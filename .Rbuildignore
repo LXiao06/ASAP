@@ -1,2 +1,6 @@
 ^ASAP\.Rproj$
 ^\.Rproj\.user$
+^dev$
+^src/*\.o$
+^src/*\.so$
+^LICENSE\.md$
