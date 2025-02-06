@@ -4,3 +4,5 @@
 ^src/*\.o$
 ^src/*\.so$
 ^LICENSE\.md$
+^README\.Rmd$
+^\.github$
