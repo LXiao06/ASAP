@@ -4,7 +4,7 @@
 .httr-oauth
 .DS_Store
 .quarto
- README.Rmd
+README.Rmd
 .Ruserdata
 inst/doc
 dev/
