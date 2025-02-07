@@ -27,7 +27,7 @@ Depends:
 Imports: 
     av,
     dplyr,
-    fftw
+    fftw,
     ggplot2 (>= 3.4.0),      
     irlba,       
     lattice,
