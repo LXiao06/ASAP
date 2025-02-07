@@ -390,7 +390,7 @@ segment.default <- function(x,  # x is wav file path
                                      smooth = smooth)
 
   if(plot) {
-    print(plot_fn())
+    plot_fn()
   }
 
   if(save_plot) {
@@ -862,8 +862,8 @@ plot_syllable_detection <- function(times, frequencies, sp, syllables, max_level
 
   # Function to create the actual plot
   create_plot <- function() {
-    # Set up the plotting layout with 2 panels
-    layout(matrix(1:2, nrow=2), heights=c(1.5,1))
+    # Set up the plotting layout with 2 panels, detection trace on top
+    layout(matrix(1:2, nrow=2), heights=c(1.5, 2))
 
     # Set consistent margins for both panels
     top_mar <- c(2,4,2,1)
@@ -872,8 +872,32 @@ plot_syllable_detection <- function(times, frequencies, sp, syllables, max_level
     # Calculate x-axis limits
     xlim <- range(times)
 
+    # Plot detection trace with black background
+    par(mar=top_mar, bg='black')
+    # Set plot region to match data coordinates exactly
+    plot.new()
+    plot.window(xlim=xlim, ylim=c(0, 1))
+    lines(times, final_envelope, col='white')
+    axis(1, col='white', col.axis='white')  # Add x-axis
+    axis(2, col='white', col.axis='white')  # Add y-axis
+    title(xlab="Time (s)", ylab="Amplitude", col.lab='white')
+    abline(h=silence_threshold, col='red', lty=2)
+    box(col='white')
+
+    # Add legend for threshold
+    legend("topright",
+           legend=c(paste("Threshold =", round(silence_threshold, 3),
+                   "(",final_threshold, "dB)")),
+           col=c("red", "white"),
+           lty=c(2, 0, 0, 0),  # only threshold line has a line style
+           text.col="white",
+           bg="transparent",
+           box.col="transparent",
+           cex=0.8,
+           inset=0.02)
+
     # Plot spectrogram with black background
-    par(mar=top_mar, bg='white')
+    par(mar=bottom_mar, bg='black')
     # Set plot region to match data coordinates exactly
     plot.new()
     plot.window(xlim=xlim, ylim=range(frequencies))
@@ -883,16 +907,15 @@ plot_syllable_detection <- function(times, frequencies, sp, syllables, max_level
     image(times_plot, frequencies_plot, spec_plot,
           col=mou_palette(n_colors),
           add=TRUE,
-          useRaster=smooth,  # Enable raster interpolation when smooth is TRUE
-          interpolate=smooth)  # Enable interpolation when smooth is TRUE
+          useRaster=smooth,
+          interpolate=smooth)
 
-    axis(1)  # Add x-axis
-    axis(2)  # Add y-axis
+    axis(1, col='white', col.axis='white')  # Add x-axis
+    axis(2, col='white', col.axis='white')  # Add y-axis
     # Add titles and labels separately
-    title(main=paste("Spectrogram of", syllables$sound.files[1], "\n( threshold = ", final_threshold, "dB)"))
-    title(ylab="Frequency (kHz)")
-    title(xlab="Time (s)")
-    box()
+    title(ylab="Frequency (kHz)", col.lab='white')
+    title(xlab="Time (s)", col.lab='white')
+    box(col='white')
 
     # Add syllable boxes and labels overlapping the spectrogram
     if(!is.null(syllables)) {
@@ -915,21 +938,9 @@ plot_syllable_detection <- function(times, frequencies, sp, syllables, max_level
              y = label_y,
              labels = i,
              col = 'white',
-             cex = 0.8)
+             cex = 0.6)
       }
     }
-
-    # Plot detection trace with white background
-    par(mar=bottom_mar, bg='white')
-    # Set plot region to match data coordinates exactly
-    plot.new()
-    plot.window(xlim=xlim, ylim=c(0, 1))
-    lines(times, final_envelope, col='black')
-    axis(1)  # Add x-axis
-    axis(2)  # Add y-axis
-    title(xlab="Time (s)", ylab="Amplitude")
-    abline(h=silence_threshold, col='red', lty=2)
-    box()
 
     # Reset layout
     layout(1)

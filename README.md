@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# ASAP: Automated Sound Analysis Pipeline
+# ASAP
 
 <!-- badges: start -->
 
@@ -32,10 +32,15 @@ particular emphasis on zebra finch vocalizations recorded using SAP2011.
 ## Purpose
 
 ASAP facilitates large-scale longitudinal studies of song development
-by: - 📊 Processing and analyzing complex vocal patterns - 🔍 Detecting
-and visualizing feature changes in high-dimensional acoustic space - 🧬
-Providing white-box algorithms for investigating song evolution in
-latent space
+by:
+
+- 📊 Processing and analyzing complex vocal patterns
+
+- 🔍 Detecting and visualizing feature changes in high-dimensional
+  acoustic space
+
+- 🧬 Providing white-box algorithms for investigating song evolution in
+  latent space
 
 ## Installation
 
@@ -48,14 +53,11 @@ remotes::install_github("LXiao06/ASAP")
 
 ## Example
 
-This example demonstrates how to detect bout boundaries or syllable
-segmentation from a single zebra finch song sample (WAV file).
+Detecting bout boundaries or syllable segmentation from a single wav
+file of zebra finch recording.
 
 ``` r
 library(ASAP)
-# Set up 1 row, 2 columns layout
-par(mfrow=c(1,2)) 
-
 # Get path to example WAV file
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
   
@@ -63,41 +65,20 @@ wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
 bouts <- find_bout(wav_file, rms_threshold= 0.1, min_duration = 0.7)
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" />
+<img src="man/figures/README-example-code1-1.png" width="100%" />
 
 ``` r
 
 # Segmentation 
-syllables <- segment(wav_file, start_time = 1, end_time = 5,
-                 flim = c(1, 8), silence_threshold = 0.01,
-                 min_syllable_ms = 20, max_syllable_ms = 240, min_level_db = 10)
-#> Spectrogram summary:
-#> Dimensions: 122 x 847
-#> Range: -118.23 to 0.00
-#> Time range: 0.00 to 4.00 seconds
-#> Frequency range: 1.00 to 8.00 Hz
-#> Time step: 4.73 ms
-#> 
-#> Searching thresholds up: 10.0 to 40.0 dB
-#> 
-#> Trying threshold: 10 dB
-#> Longest vocalization: 226.95 ms
-#> Found suitable threshold: 10 dB
-#> 
-#> Final results:
-#> Total segemnts found: 25
-#> Duration range: 47.28 to 226.95 ms
-#> Silence gaps range: 9.46 to 633.57 ms
+syllables <- segment(wav_file, start_time = 1, end_time = 5, flim = c(1, 8), silence_threshold = 0.01,
+                 min_syllable_ms = 20, max_syllable_ms = 240, min_level_db = 10, verbose = FALSE)
 ```
 
-<img src="man/figures/README-example-2.png" width="100%" />
+<img src="man/figures/README-example-code1-2.png" width="100%" />
 
-    #> [1] 1
-
-This example demonstrates the automated song development analysis. Using
-the SAP object, which is constructed and optimized for SAP2011
-recordings, we track and visualize motif changes over time through
-heatmaps and latent space projections.
+This example demonstrates a standardized song analysis pipeline
+initiated by creating a SAP object, which tracks and visualizes motif
+changes over time using heatmaps and latent space projections.
 
 ``` r
 # Create sap object 
@@ -120,8 +101,7 @@ sap <- sap |>
   analyze_spectral(balanced = TRUE) |>
   find_clusters() |>
   run_umap() |>
-  create_trajectory_matrix(data_type = "feat.embeds", clusters = c(0, 1),
-                           balanced = TRUE) |>
+  create_trajectory_matrix(data_type = "feat.embeds", clusters = c(0, 1), balanced = TRUE) |>
   run_pca()  |>
   run_umap(data_type = "traj_mat", min_dist = 0.5)
 
@@ -135,9 +115,3 @@ sap <- sap |>
 ```
 
 <img src="man/figures/sap_analysis.png" width="100%" />
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
