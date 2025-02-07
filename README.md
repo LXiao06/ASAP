@@ -51,25 +51,44 @@ remotes::install_github("LXiao06/ASAP")
 This example demonstrates how to detect bout boundaries or syllable
 segmentation from a single zebra finch song sample (WAV file).
 
+``` r
+library(ASAP)
+# Set up 1 row, 2 columns layout
+par(mfrow=c(1,2)) 
+
+# Get path to example WAV file
+wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
+  
+# Find bout
+bouts <- find_bout(wav_file, rms_threshold= 0.1, min_duration = 0.7)
+```
+
 <img src="man/figures/README-example-1.png" width="100%" />
 
-    #> Spectrogram summary:
-    #> Dimensions: 122 x 847
-    #> Range: -118.23 to 0.00
-    #> Time range: 0.00 to 4.00 seconds
-    #> Frequency range: 1.00 to 8.00 Hz
-    #> Time step: 4.73 ms
-    #> 
-    #> Searching thresholds up: 10.0 to 40.0 dB
-    #> 
-    #> Trying threshold: 10 dB
-    #> Longest vocalization: 226.95 ms
-    #> Found suitable threshold: 10 dB
-    #> 
-    #> Final results:
-    #> Total segemnts found: 25
-    #> Duration range: 47.28 to 226.95 ms
-    #> Silence gaps range: 9.46 to 633.57 ms
+``` r
+
+# Segmentation 
+syllables <- segment(wav_file, start_time = 1, end_time = 5,
+                 flim = c(1, 8), silence_threshold = 0.01,
+                 min_syllable_ms = 20, max_syllable_ms = 240, min_level_db = 10)
+#> Spectrogram summary:
+#> Dimensions: 122 x 847
+#> Range: -118.23 to 0.00
+#> Time range: 0.00 to 4.00 seconds
+#> Frequency range: 1.00 to 8.00 Hz
+#> Time step: 4.73 ms
+#> 
+#> Searching thresholds up: 10.0 to 40.0 dB
+#> 
+#> Trying threshold: 10 dB
+#> Longest vocalization: 226.95 ms
+#> Found suitable threshold: 10 dB
+#> 
+#> Final results:
+#> Total segemnts found: 25
+#> Duration range: 47.28 to 226.95 ms
+#> Silence gaps range: 9.46 to 633.57 ms
+```
 
 <img src="man/figures/README-example-2.png" width="100%" />
 

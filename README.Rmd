@@ -41,7 +41,12 @@ ASAP (Automated Sound Analysis Pipeline) is a comprehensive R toolkit designed f
 
 ## Purpose
 
-ASAP facilitates large-scale longitudinal studies of song development by: - 📊 Processing and analyzing complex vocal patterns - 🔍 Detecting and visualizing feature changes in high-dimensional acoustic space - 🧬 Providing white-box algorithms for investigating song evolution in latent space
+ASAP facilitates large-scale longitudinal studies of song development by: 
+-   📊 Processing and analyzing complex vocal patterns
+
+-   🔍 Detecting and visualizing feature changes in high-dimensional acoustic space
+
+-   🧬 Providing white-box algorithms for investigating song evolution in latent space
 
 ## Installation
 
@@ -56,7 +61,7 @@ remotes::install_github("LXiao06/ASAP")
 
 This example demonstrates how to detect bout boundaries or syllable segmentation from a single zebra finch song sample (WAV file).
 
-```{r example,echo = FALSE}
+```{r, example,fig.width=12, fig.height=6, out.width="100%"}
 library(ASAP)
 # Set up 1 row, 2 columns layout
 par(mfrow=c(1,2)) 
@@ -71,7 +76,6 @@ bouts <- find_bout(wav_file, rms_threshold= 0.1, min_duration = 0.7)
 syllables <- segment(wav_file, start_time = 1, end_time = 5,
                  flim = c(1, 8), silence_threshold = 0.01,
                  min_syllable_ms = 20, max_syllable_ms = 240, min_level_db = 10)
-
   
 ```
 
