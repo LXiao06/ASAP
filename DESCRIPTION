@@ -23,7 +23,9 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.1.0),
+    seewave,
+    tuneR
 Imports: 
     av,
     dplyr,
@@ -40,11 +42,9 @@ Imports:
     RANN,
     Rcpp (>= 1.0.0),
     rlang,        
-    seewave,
     signal,
     stats,        
     tools,     
-    tuneR,
     uwot(>= 0.1.10)
 LinkingTo: 
     Rcpp,
