@@ -1,6 +1,7 @@
 Package: ASAP
-Title: Automated Sound Analysis Pipeline for Avian Vocalization Research
 Version: 0.1.0
+Date: 2025-02-06
+Title: Automated Sound Analysis Pipeline for Avian Vocalization Research
 Authors@R: 
     person("Lei", "Xiao", email = "Leixiao2006@gmail.com", 
            role = c("aut", "cre"),
@@ -21,6 +22,9 @@ License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Depends:
+    R (>= 4.1.0),
+    methods
 Imports: 
     av,
     dplyr,
@@ -46,10 +50,8 @@ LinkingTo:
     Rcpp,
     RcppEigen,
     RcppProgress
-Depends:
-    R (>= 4.1.0),
-    methods
 Suggests: 
-    patchwork,
     bigstatsr,   
-    ggrepel   
+    ggrepel,
+    patchwork,
+    tidyr
