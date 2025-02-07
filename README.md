@@ -11,36 +11,36 @@
 
 ## Overview
 
-ASAP (Automated Sound Analysis Pipeline) is a comprehensive R toolkit
-designed for longitudinal analysis of birdsong development, with
-particular emphasis on zebra finch vocalizations recorded using SAP2011.
+ASAP (Automated Sound Analysis Pipeline) is an R toolkit designed for
+the longitudinal analysis of birdsong development, specifically
+optimized for tracking and studying the long-term vocalization patterns
+of zebra finches.
 
-## Key Features
+The pipeline introduces a dedicated SAP object, which streamlines the
+processing of recordings from the SAP2011 system or other sound data
+organized with similar structures. Additionally, ASAP is built with
+flexibility in mind, allowing for the integration of other objects to
+ensure compatibility with various recording platforms.
 
-- **Automated Song Analysis**
-  - Bout detection
-  - Motif extraction
-  - Syllable segmentation
-  - Template matching
-  - Feature extraction (temporal & spectral)
-- **Advanced Processing**
-  - Standardized analytical workflows
-  - Large-scale data handling
-  - Longitudinal tracking
-  - Parallel processing support
+### Key Features
 
-## Purpose
+- **Bout Detection**: Automatically identifies periods of singing within
+  recordings.
 
-ASAP facilitates large-scale longitudinal studies of song development
-by:
+- **Motif Extraction**: Extracts recurring song motifs for in-depth
+  analysis.
 
-- 📊 Processing and analyzing complex vocal patterns
+- **Syllable Segmentation**: Breaks down songs into individual syllables
+  for detailed study.
 
-- 🔍 Detecting and visualizing feature changes in high-dimensional
-  acoustic space
+- **Template Matching**: Compares and matches song patterns against
+  predefined templates.
 
-- 🧬 Providing white-box algorithms for investigating song evolution in
-  latent space
+- **Feature Extraction**: Extracts detailed temporal and spectral
+  features from vocalizations.
+
+- **Standardized Analytical Workflows**: Utilizes predefined workflows
+  for consistent and efficient analysis.
 
 ## Installation
 
@@ -53,8 +53,11 @@ remotes::install_github("LXiao06/ASAP")
 
 ## Example
 
-Detecting bout boundaries or syllable segmentation from a single wav
-file of zebra finch recording.
+### Detecting Bout Boundaries and Syllable Segmentation
+
+This example demonstrates how to use functions to detect **bout
+boundaries** and perform **syllable segmentation** on a single WAV file
+of a zebra finch recording.
 
 ``` r
 library(ASAP)
@@ -65,20 +68,23 @@ wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
 bouts <- find_bout(wav_file, rms_threshold= 0.1, min_duration = 0.7)
 ```
 
-<img src="man/figures/README-example-code1-1.png" width="100%" />
+<img src="man/figures/README-example-code1-1.png" width="80%" style="display: block; margin: auto;" />
 
 ``` r
 
 # Segmentation 
-syllables <- segment(wav_file, start_time = 1, end_time = 5, flim = c(1, 8), silence_threshold = 0.01,
-                 min_syllable_ms = 20, max_syllable_ms = 240, min_level_db = 10, verbose = FALSE)
+syllables <- segment(wav_file, start_time = 1, end_time = 5, flim = c(1, 8),
+                     silence_threshold = 0.01, min_syllable_ms = 20, 
+                     max_syllable_ms = 240, min_level_db = 10, verbose = FALSE)
 ```
 
-<img src="man/figures/README-example-code1-2.png" width="100%" />
+<img src="man/figures/README-example-code1-2.png" width="80%" style="display: block; margin: auto;" />
 
-This example demonstrates a standardized song analysis pipeline
-initiated by creating a SAP object, which tracks and visualizes motif
-changes over time using heatmaps and latent space projections.
+### Standardized Song Analysis Pipeline for Motif Analysis
+
+This example demonstrates a **song analysis pipeline** initiated by
+creating a SAP object, which tracks and visualizes motif changes over
+time using heatmaps and latent space projections.
 
 ``` r
 # Create sap object 
