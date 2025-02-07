@@ -1,69 +1,76 @@
 
 # Visualize Song ----------------------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Visualize Song Data
 #'
 #' @description
-#' A generic function to create spectrograms and visualize acoustic data
-#' from WAV files or SAP objects.
+#' Creates spectrograms and visualizes acoustic data from WAV files or SAP objects.
 #'
-#' @param x An object to visualize, either a character path to a WAV file
-#'          or a SAP object
+#' @param x An object to visualize, either a file path or SAP object
+#' @param start_time_in_second Numeric start time in seconds
+#' @param end_time_in_second Numeric end time in seconds
+#' @param fft_window_size Size of FFT window (default: 512 for default, 1024 for SAP)
+#' @param overlap Overlap between windows (default: 0.5 for default, 0.75 for SAP)
+#' @param dark_mode For default method: Use dark theme (default: TRUE)
+#' @param legend For default method: Show spectrogram legend (default: FALSE)
+#' @param indices For SAP objects: Numeric vector of specific indices to visualize
+#' @param n_sample For SAP objects: Number of random samples to plot (default: 6)
+#' @param random For SAP objects: Randomly sample songs if TRUE
+#' @param keep.par Preserve plotting parameters
+#' @param verbose Print processing messages
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports visualization of song data through two methods:
+#' For WAV files:
 #' \itemize{
-#'   \item Default method for individual WAV files
-#'   \item SAP object method for multiple file visualization
+#'   \item Creates single spectrogram using FFmpeg's FFT
+#'   \item Customizable time range and FFT settings
+#'   \item Optional dark mode and legend
+#' }
+#'
+#' For SAP objects:
+#' \itemize{
+#'   \item Creates multi-panel spectrograms
+#'   \item Supports random or sequential sampling
+#'   \item Maintains plotting state for sequential viewing
+#'   \item Adds day and label information to plots
 #' }
 #'
 #' @return
-#' Generates a spectrogram plot. Returns the input object invisibly.
+#' Generates spectrogram plot(s) and returns the input object invisibly.
 #'
 #' @examples
 #' \dontrun{
 #' # Visualize a single WAV file
-#' visualize_song("path/to/song.wav")
+#' visualize_song("path/to/song.wav",
+#'                start_time_in_second = 10,
+#'                end_time_in_second = 20)
 #'
-#' # Visualize songs from a SAP object
-#' visualize_song(sap_object)
+#' # Basic visualization from SAP object
+#' visualize_song(sap_object, n_sample = 4)
 #'
-#' # Visualize specific indices from a SAP object
-#' visualize_song(sap_object, indices = c(1, 3, 5))
+#' # Visualize specific indices with custom FFT settings
+#' visualize_song(sap_object,
+#'                indices = c(1, 3, 5),
+#'                fft_window_size = 2048,
+#'                overlap = 0.8)
+#'
+#' # Sequential visualization with time ranges
+#' visualize_song(sap_object,
+#'                n_sample = 6,
+#'                random = FALSE,
+#'                start_time_in_second = rep(0, 6),
+#'                end_time_in_second = rep(5, 6))
 #' }
 #'
+#' @rdname visualize_song
 #' @export
 visualize_song <- function(x, ...) {
   UseMethod("visualize_song")
 }
 
-#' Visualize Individual Song Spectrogram
-#'
-#' @description
-#' Creates a spectrogram from a single WAV file using FFmpeg's FFT
-#' through the av package.
-#'
-#' @param x Path to a WAV file
-#' @param start_time_in_second Numeric start time in seconds (optional)
-#' @param end_time_in_second Numeric end time in seconds (optional)
-#' @param fft_window_size Size of FFT window (default: 512)
-#' @param overlap Overlap between windows (default: 0.5)
-#' @param dark_mode Use dark theme for visualization (default: TRUE)
-#' @param legend Show spectrogram legend (default: FALSE)
-#' @param keep.par Preserve plotting parameters (default: FALSE)
-#' @param verbose Print processing messages (default: TRUE)
-#' @param ... Additional arguments
-#'
-#' @details
-#' Generates a spectrogram visualization for a single audio file with
-#' customizable parameters for time range, FFT settings, and visual style.
-#'
-#' @return
-#' Generates a spectrogram plot of the audio file
-#'
-#' @importFrom av read_audio_fft
+#' @rdname visualize_song
 #' @export
 visualize_song.default <- function(x,  # wav file path
                                    start_time_in_second = NULL,
@@ -103,36 +110,7 @@ visualize_song.default <- function(x,  # wav file path
   }
 }
 
-#' Visualize Songs from a SAP Object
-#'
-#' @description
-#' Creates spectrograms for multiple songs from a SAP object,
-#' with options for sampling and customization.
-#'
-#' @param x A SAP object containing song recordings
-#' @param indices Numeric vector of specific indices to visualize
-#' @param n_sample Number of random samples to plot (default: 6)
-#' @param random Randomly sample songs if TRUE, otherwise sample sequentially
-#' @param start_time_in_second Optional start times for each song
-#' @param end_time_in_second Optional end times for each song
-#' @param fft_window_size Size of FFT window (default: 1024)
-#' @param overlap Overlap between windows (default: 0.75)
-#' @param keep.par Preserve plotting parameters (default: TRUE)
-#' @param verbose Print processing messages (default: FALSE)
-#' @param ... Additional arguments
-#'
-#' @details
-#' Generates spectrograms for multiple songs from a SAP object with
-#' flexible sampling and visualization options:
-#' \itemize{
-#'   \item Select specific indices or sample randomly/sequentially
-#'   \item Customize time ranges for each song
-#'   \item Control spectrogram visualization parameters
-#' }
-#'
-#' @return
-#' Generates a multi-panel spectrogram plot. Returns the input SAP object invisibly.
-#'
+#' @rdname visualize_song
 #' @export
 visualize_song.Sap <- function(x,  # sap object
                                indices = NULL,
@@ -169,7 +147,7 @@ visualize_song.Sap <- function(x,  # sap object
       sap_state <- get("._sap_state", envir = .GlobalEnv)
 
       # Create a unique key for this SAP object based on its base path
-      state_key <- paste0("idx_", digest::digest(x$base_path))
+      state_key <- paste0("idx_", make.names(x$base_path))
 
       # Get or initialize the last index
       if (!exists(state_key, envir = sap_state)) {
@@ -274,72 +252,86 @@ visualize_song.Sap <- function(x,  # sap object
 
 
 # Visualize Song Segments -------------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Visualize Song Segments
 #'
 #' @description
-#' A generic function to visualize audio segments from various sources,
-#' supporting both data frames and SAP objects.
+#' Creates multi-panel spectrogram visualizations of audio segments from various sources.
 #'
-#' @param x An object to visualize, either a data frame or a SAP object
+#' @param x An object to visualize, either a data frame or SAP object
+#' @param wav_file_dir For default method: Directory containing WAV files
+#' @param n_samples Number of samples to display
+#' @param seed Random seed for sample selection
+#' @param fft_window_size Size of FFT window (default: 1024)
+#' @param overlap Overlap between windows (default: 0.75)
+#' @param dark_mode Use dark theme (default: TRUE)
+#' @param legend Show spectrogram legend (default: FALSE)
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'bouts', 'segments')
+#' @param labels For SAP objects: Labels to include
+#' @param clusters For SAP objects: Specific clusters to visualize
+#' @param by_column For SAP objects: Arrange by columns (default: TRUE)
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports visualization of song segments through two methods:
+#' For data frames:
 #' \itemize{
-#'   \item Default method for visualizing segments from a data frame
-#'   \item SAP object method for visualizing segments from a Sound Analysis Pro object
+#'   \item Requires columns: filename, start_time, end_time
+#'   \item Optional column: day_post_hatch for hierarchical file structure
+#'   \item Supports random sampling of segments
+#' }
+#'
+#' For SAP objects:
+#' \itemize{
+#'   \item Supports visualization by labels and/or clusters
+#'   \item Flexible sampling within groups
+#'   \item Customizable layout (by row or column)
+#'   \item Automatic handling of file paths
 #' }
 #'
 #' @return
-#' Generates a multi-panel spectrogram plot. Returns the input object invisibly.
+#' Generates a multi-panel spectrogram plot and returns the input object invisibly.
 #'
 #' @examples
 #' \dontrun{
-#' # Visualize segments from a data frame
+#' # Visualize from data frame
 #' song_df <- data.frame(
 #'   filename = c("song1.wav", "song2.wav"),
 #'   start_time = c(0, 10),
 #'   end_time = c(30, 40)
 #' )
-#' visualize_segments(song_df, wav_file_dir = "path/to/wav/files")
+#' visualize_segments(song_df,
+#'                    wav_file_dir = "path/to/wav/files",
+#'                    n_samples = 5)
 #'
-#' # Visualize segments from a SAP object
-#' visualize_segments(sap_object, segment_type = "motifs")
+#' # Basic SAP object visualization
+#' visualize_segments(sap_object,
+#'                    segment_type = "motifs",
+#'                    n_samples = 3)
+#'
+#' # Cluster-specific visualization
+#' visualize_segments(sap_object,
+#'                    segment_type = "segments",
+#'                    clusters = c(1, 2),
+#'                    labels = c("a", "b"),
+#'                    n_samples = 4)
+#'
+#' # Custom layout
+#' visualize_segments(sap_object,
+#'                    segment_type = "motifs",
+#'                    by_column = FALSE,
+#'                    fft_window_size = 2048)
 #' }
 #'
+#' @seealso \code{\link{visualize_song}} for single file visualization
+#'
+#' @rdname visualize_segments
 #' @export
 visualize_segments <- function(x, ...) {
   UseMethod("visualize_segments")
 }
 
-#' Visualize Segments from a Data Frame
-#'
-#' @description
-#' Creates a multi-panel plot of audio segments specified in a data frame.
-#'
-#' @param x A data frame containing segment information
-#' @param wav_file_dir Directory path containing the WAV files
-#' @param n_samples Number of samples to display (default: all samples)
-#' @param seed Random seed for sample selection
-#' @param fft_window_size Size of the FFT window (default: 1024)
-#' @param overlap Overlap between windows (default: 0.75)
-#' @param dark_mode Use dark theme for visualization (default: TRUE)
-#' @param legend Show spectrogram legend (default: FALSE)
-#' @param ... Additional arguments
-#'
-#' @details
-#' Generates a multi-panel spectrogram visualization for segments:
-#' \itemize{
-#'   \item Validates input data frame
-#'   \item Samples segments if specified
-#'   \item Creates individual spectrograms for each segment
-#' }
-#'
-#' @return
-#' Generates a multi-panel spectrogram plot
-#'
+#' @rdname visualize_segments
 #' @export
 visualize_segments.default  <- function(x,
                                         wav_file_dir,
@@ -405,36 +397,7 @@ visualize_segments.default  <- function(x,
   }
 }
 
-#' Visualize Segments from a SAP Object
-#'
-#' @description
-#' Creates a multi-panel plot of audio segments from a Sound Analysis Pro object.
-#'
-#' @param x A SAP object containing song recordings
-#' @param segment_type Type of segments to visualize
-#'        (one of "motifs", "bouts", "segments")
-#' @param labels Labels to include in visualization
-#' @param clusters Specific clusters to visualize
-#' @param n_samples Number of samples per label/cluster
-#' @param by_column Arrange labels/clusters by columns (default: TRUE)
-#' @param seed Random seed for sample selection
-#' @param fft_window_size Size of FFT window (default: 1024)
-#' @param overlap Overlap between windows (default: 0.75)
-#' @param dark_mode Use dark theme for visualization (default: TRUE)
-#' @param legend Show spectrogram legend (default: FALSE)
-#' @param ... Additional arguments
-#'
-#' @details
-#' Generates a multi-panel spectrogram visualization for segments from a SAP object:
-#' \itemize{
-#'   \item Supports visualization by labels and/or clusters
-#'   \item Flexible sampling of segments
-#'   \item Customizable plot layout
-#' }
-#'
-#' @return
-#' Generates a multi-panel spectrogram plot. Returns the input SAP object invisibly.
-#'
+#' @rdname visualize_segments
 #' @export
 visualize_segments.Sap <- function(x,
                                    segment_type = c("motifs", "bouts", "segments"),

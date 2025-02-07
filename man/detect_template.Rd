@@ -2,40 +2,115 @@
 % Please edit documentation in R/template.R
 \name{detect_template}
 \alias{detect_template}
+\alias{detect_template.default}
+\alias{detect_template.Sap}
 \title{Detect Templates in Song Data}
 \usage{
 detect_template(x, ...)
+
+\method{detect_template}{default}(
+  x,
+  template,
+  cor.method = "pearson",
+  save_plot = FALSE,
+  plot_dir = NULL,
+  ...
+)
+
+\method{detect_template}{Sap}(
+  x,
+  day = NULL,
+  indices = NULL,
+  template_name,
+  threshold = NULL,
+  cores = NULL,
+  cor.method = "pearson",
+  save_plot = FALSE,
+  plot_percent = 10,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to process, either a character path to a WAV file
-or a SAP object}
+\item{x}{An object to process, either a file path or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{template}{For default method: A template object created by create_template()}
+
+\item{cor.method}{Correlation method ("pearson" or "spearman")}
+
+\item{save_plot}{Whether to save detection plots}
+
+\item{plot_dir}{For default method: Directory to save plots}
+
+\item{day}{For SAP objects: Numeric vector of days to process}
+
+\item{indices}{For SAP objects: Numeric vector of indices to process}
+
+\item{template_name}{For SAP objects: Name of template to use}
+
+\item{threshold}{For SAP objects: New threshold value}
+
+\item{cores}{For SAP objects: Number of cores for parallel processing}
+
+\item{plot_percent}{For SAP objects: Percentage of files to plot (default: 10)}
+
+\item{verbose}{For SAP objects: Whether to print progress messages}
 }
 \value{
-Detection results or updated SAP object
+For default method: A data frame containing detection results with columns:
+\itemize{
+\item filename: Name of the processed file
+\item time: Time point of detection
+\item score: Correlation score
+}
+
+For SAP objects: Updated SAP object with detection results stored in template_matches
 }
 \description{
-A generic function to perform template matching on audio files using
-correlation-based detection.
+Performs template matching on audio files using correlation-based detection.
 }
 \details{
-This generic function supports template detection through two methods:
+For WAV files:
 \itemize{
-\item Default method for detecting templates in individual WAV files
-\item SAP object method for batch processing multiple files
+\item Validates input file and template
+\item Performs correlation matching
+\item Finds peaks in correlation scores
+\item Optionally saves detection plots
+}
+
+For SAP objects:
+\itemize{
+\item Parallel processing support
+\item Day-specific processing
+\item Optional threshold adjustment
+\item Progress tracking and reporting
+\item Selective plot generation
 }
 }
 \examples{
 \dontrun{
 # Detect template in single WAV file
 detections <- detect_template("path/to/song.wav",
-                             template = template_obj)
+                             template = template_obj,
+                             save_plot = TRUE)
 
 # Detect template in SAP object
 sap_obj <- detect_template(sap_object,
                           template_name = "template1",
-                          day = c(30, 40))
+                          day = c(30, 40),
+                          threshold = 0.7,
+                          cores = 4)
+
+# Process specific indices with plots
+sap_obj <- detect_template(sap_object,
+                          template_name = "template1",
+                          indices = 1:10,
+                          save_plot = TRUE)
 }
 
+}
+\seealso{
+\code{\link{create_template}} for creating templates
 }

@@ -2,30 +2,106 @@
 % Please edit documentation in R/spectral.R
 \name{analyze_spectral}
 \alias{analyze_spectral}
-\title{Analyze Spectral Features of Audio Segments}
+\alias{analyze_spectral.default}
+\alias{analyze_spectral.Sap}
+\title{Internal Functions from warbleR Package}
 \usage{
 analyze_spectral(x, ...)
+
+\method{analyze_spectral}{default}(
+  x,
+  wav_dir = NULL,
+  cores = NULL,
+  wl = 512,
+  ovlp = 50,
+  wn = "hanning",
+  freq_range = NULL,
+  threshold = 15,
+  fsmooth = 0.1,
+  fast = TRUE,
+  ...
+)
+
+\method{analyze_spectral}{Sap}(
+  x,
+  segment_type = c("motifs", "syllables", "bouts", "segments"),
+  sample_percent = NULL,
+  balanced = FALSE,
+  labels = NULL,
+  seed = 222,
+  cores = NULL,
+  wl = 512,
+  ovlp = 50,
+  wn = "hanning",
+  freq_range = NULL,
+  threshold = 15,
+  fsmooth = 0.1,
+  fast = TRUE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to analyze, either a data frame with segment information
-or a SAP object}
+\item{x}{An object to analyze, either a data frame or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{wav_dir}{Path to WAV files directory}
+
+\item{cores}{Number of cores for parallel processing}
+
+\item{wl}{Window length for spectral analysis (default: 512)}
+
+\item{ovlp}{Overlap percentage (0-100) (default: 50)}
+
+\item{wn}{Window name ("hanning", "hamming", etc.)}
+
+\item{freq_range}{Frequency range c(min, max) in kHz}
+
+\item{threshold}{Threshold for frequency tracking (default: 15)}
+
+\item{fsmooth}{Frequency smoothing parameter (default: 0.1)}
+
+\item{fast}{Whether to skip peak frequency calculation (default: TRUE)}
+
+\item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')}
+
+\item{sample_percent}{For SAP objects: Percentage of segments to sample}
+
+\item{balanced}{For SAP objects: Whether to balance groups across labels}
+
+\item{labels}{For SAP objects: Specific labels to include}
+
+\item{seed}{For SAP objects: Random seed for sampling (default: 222)}
+
+\item{verbose}{For SAP objects: Whether to print progress messages}
 }
 \value{
-A data frame of spectral features or updated SAP object
+For default method: A data frame containing spectral features for all segments
+For SAP objects: Updated SAP object with spectral features stored in features slot
 }
 \description{
-A generic function to calculate spectral features from audio segments.
+Calculates comprehensive spectral features from audio segments with support for
+parallel processing and organized data structures.
 
 Internal functions adapted from the warbleR package for spectral analysis.
 These functions are modified versions of the original warbleR code.
 }
 \details{
-This generic function supports spectral analysis through two methods:
+For data frames:
 \itemize{
-\item Default method for analyzing segments from a data frame
-\item SAP object method for analyzing organized song segments
+\item Requires columns: filename, start_time, end_time
+\item Processes segments in parallel
+\item Calculates comprehensive spectral features
+\item Returns combined results
+}
+
+For SAP objects:
+\itemize{
+\item Supports multiple segment types
+\item Optional balanced sampling
+\item Stores results in features slot
+\item Preserves segment metadata
 }
 
 Original source: warbleR package
@@ -36,12 +112,31 @@ Methods Ecol Evol. 8, 184-191.
 \examples{
 \dontrun{
 # Analyze segments from data frame
-features <- analyze_spectral(segments, wav_dir = "path/to/wavs")
+features <- analyze_spectral(segments,
+                            wav_dir = "path/to/wavs",
+                            cores = 4,
+                            freq_range = c(1, 10))
 
-# Analyze segments from SAP object
+# Basic analysis from SAP object
 sap_obj <- analyze_spectral(sap_object,
-                           segment_type = "motifs")
+                           segment_type = "motifs",
+                           cores = 4)
+
+# Balanced sampling with specific labels
+sap_obj <- analyze_spectral(sap_object,
+                           segment_type = "syllables",
+                           sample_percent = 80,
+                           balanced = TRUE,
+                           labels = c("a", "b"))
+
+# Custom spectral parameters
+sap_obj <- analyze_spectral(sap_object,
+                           segment_type = "motifs",
+                           wl = 1024,
+                           ovlp = 75,
+                           freq_range = c(2, 8))
 }
+
 
 }
 \keyword{internal}

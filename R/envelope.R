@@ -2,7 +2,7 @@
 
 
 # Extract Amplitude Envelope ----------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Calculate Amplitude Envelope for Audio Segment
 #'
@@ -17,7 +17,7 @@
 #'          \item Second value: Overlap between windows (percentage)
 #'        }
 #'        If NULL, no smoothing is applied
-#' @param norm Logical, whether to normalize envelope to range [0,1] (default: FALSE)
+#' @param norm Logical, Whether to normalize envelope to range between 0 and 1 (default: FALSE)
 #' @param plot Logical, whether to plot the envelope (default: FALSE)
 #'
 #' @details
@@ -52,8 +52,7 @@
 #' }
 #'
 #' @seealso \code{\link{find_motif}} for creating segment data
-#' @importFrom tuneR readWave
-#' @importFrom seewave env
+#'
 #' @export
 amp_env <- function(segment_row,
                     wav_dir = NULL,
@@ -100,79 +99,93 @@ amp_env <- function(segment_row,
 
 
 # Plot Heatmap ----------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Plot Heatmap of Amplitude Envelopes
 #'
 #' @description
-#' A generic function to create heatmap visualizations of amplitude envelopes
-#' from audio segments.
+#' Creates heatmap visualizations of amplitude envelopes from audio segments, supporting
+#' multiple data sources and visualization options.
 #'
-#' @param x An object to visualize: data frame, SAP object, or amplitude matrix
+#' @param x An object to visualize (data frame, SAP object, or matrix)
+#' @param wav_dir For default method: Path to WAV files directory
+#' @param msmooth Smoothing parameters c(window_length, overlap_percentage)
+#' @param color_palette Function generating color palette
+#' @param n_colors Number of colors in heatmap (default: 500)
+#' @param contrast Contrast factor for visualization (default: 3)
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'bouts', 'syllables', 'segments')
+#' @param sample_percent For SAP objects: Percentage to sample
+#' @param balanced For SAP objects: Balance across labels
+#' @param labels Optional vector of labels to include
+#' @param cores For SAP objects: Number of processing cores
+#' @param seed For SAP objects: Random seed (default: 222)
+#' @param ordered For SAP objects: Order by embeddings
+#' @param descending For SAP objects: Direction of ordering
+#' @param padding_quantile For SAP objects: Quantile for bout padding (default: 0.9)
+#' @param verbose For SAP objects: Print progress messages
+#' @param main For matrix method: Plot title
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports heatmap creation through three methods:
+#' For data frames:
 #' \itemize{
-#'   \item Default method for segment data frames
-#'   \item SAP object method for organized song data
-#'   \item Matrix method for pre-computed amplitude envelopes
+#'   \item Requires columns: filename, start_time, end_time
+#'   \item Calculates envelopes for each segment
+#'   \item Creates matrix of aligned envelopes
+#' }
+#'
+#' For SAP objects:
+#' \itemize{
+#'   \item Supports multiple segment types
+#'   \item Optional balanced sampling
+#'   \item Parallel processing support
+#'   \item Ordering by feature embeddings
+#' }
+#'
+#' For matrices:
+#' \itemize{
+#'   \item Direct visualization of pre-computed envelopes
+#'   \item Label-based organization
+#'   \item Visual separation between groups
 #' }
 #'
 #' @return
-#' A heatmap visualization or updated SAP object
+#' For default method: List containing segments, matrix, and plot
+#' For SAP objects: Updated object with amplitude features
+#' For matrices: Lattice plot object
 #'
 #' @examples
 #' \dontrun{
-#' # Plot from segment data frame
+#' # Basic usage with data frame
 #' plot_heatmap(segments, wav_dir = "path/to/wavs")
 #'
-#' # Plot from SAP object
-#' plot_heatmap(sap_obj, segment_type = "motifs")
+#' # SAP object with options
+#' plot_heatmap(sap_obj,
+#'              segment_type = "motifs",
+#'              balanced = TRUE,
+#'              ordered = TRUE)
 #'
-#' # Plot from amplitude matrix
-#' plot_heatmap(amp_matrix)
+#' # Matrix with specific labels
+#' plot_heatmap(amp_matrix,
+#'              labels = c("a", "b"),
+#'              contrast = 2)
+#'
+#' # Advanced SAP object usage
+#' plot_heatmap(sap_obj,
+#'              segment_type = "bouts",
+#'              sample_percent = 80,
+#'              cores = 4,
+#'              ordered = TRUE,
+#'              descending = FALSE)
 #' }
 #'
+#' @rdname plot_heatmap
 #' @export
 plot_heatmap <- function(x, ...) {
   UseMethod("plot_heatmap")
 }
 
-#' Plot Heatmap from Segment Data Frame
-#'
-#' @description
-#' Creates a heatmap visualization from a data frame containing segment information.
-#'
-#' @param x A data frame with segment information
-#' @param wav_dir Path to WAV files directory
-#' @param msmooth Numeric vector of length 2 for envelope smoothing:
-#'        c(window_length, overlap_percentage)
-#' @param color_palette Function generating color palette
-#' @param n_colors Number of colors in heatmap
-#' @param contrast Contrast factor for visualization
-#' @param ... Additional arguments
-#'
-#' @details
-#' Creates a heatmap visualization with the following steps:
-#' \itemize{
-#'   \item Validates input segment data
-#'   \item Calculates amplitude envelopes for each segment
-#'   \item Creates matrix of aligned envelopes
-#'   \item Generates heatmap visualization
-#' }
-#'
-#' @return
-#' A list containing:
-#' \itemize{
-#'   \item segments: Input segment data frame
-#'   \item amp_matrix: Matrix of amplitude envelopes
-#'   \item plot: Heatmap plot object
-#' }
-#'
-#' @importFrom pbmcapply pbmclapply
-#' @importFrom pbapply pbsapply
-#' @importFrom lattice levelplot
+#' @rdname plot_heatmap
 #' @export
 plot_heatmap.default <- function(x,
                                  wav_dir = NULL,
@@ -274,41 +287,7 @@ plot_heatmap.default <- function(x,
   return(result)
 }
 
-#' Plot Heatmap from Amplitude Matrix
-#'
-#' @description
-#' Creates a heatmap visualization from a pre-computed amplitude envelope matrix.
-#'
-#' @param x Matrix of amplitude envelopes with time_window attribute
-#' @param labels Optional vector of labels to subset the matrix
-#' @param color_palette Function generating color palette
-#' @param n_colors Number of colors in heatmap
-#' @param contrast Contrast factor for visualization
-#' @param main Title for the heatmap
-#' @param ... Additional arguments
-#'
-#' @details
-#' Creates a heatmap visualization with the following features:
-#' \itemize{
-#'   \item Label-based organization
-#'   \item Customizable color scheme
-#'   \item Automatic time scaling
-#'   \item Visual separation between labels
-#' }
-#'
-#' @return
-#' A lattice plot object containing the heatmap visualization
-#'
-#' @examples
-#' \dontrun{
-#' # Plot full matrix
-#' plot_heatmap(sap_obj$features$motif$amp_env)
-#'
-#' # Plot subset of labels
-#' plot_heatmap(sap_obj$features$motif$amp_env,
-#'              labels = c("a", "b"))
-#' }
-#'
+#' @rdname plot_heatmap
 #' @export
 plot_heatmap.matrix <- function(x,
                                 labels = NULL,
@@ -407,44 +386,7 @@ plot_heatmap.matrix <- function(x,
   print(heatmap)
 }
 
-#' Plot Heatmap from SAP Object
-#'
-#' @description
-#' Creates a heatmap visualization from segments stored in a SAP object,
-#' with options for sampling and organization.
-#'
-#' @param x A SAP object containing song recordings
-#' @param segment_type Type of segments to analyze ("motifs", "bouts", "syllables", "segments")
-#' @param sample_percent Percentage of segments to sample from each label
-#' @param balanced Whether to balance groups across labels
-#' @param labels Specific labels to include
-#' @param cores Number of cores for parallel processing
-#' @param seed Random seed for sampling
-#' @param msmooth Numeric vector for envelope smoothing: c(window_length, overlap_percentage)
-#' @param color_palette Function generating color palette
-#' @param n_colors Number of colors in heatmap
-#' @param contrast Contrast factor for visualization
-#' @param ordered Whether to order segments based on feature embeddings
-#' @param descending Direction of ordering
-#' @param padding_quantile Quantile for padding in bout analysis
-#' @param verbose Whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Creates a heatmap with the following features:
-#' \itemize{
-#'   \item Supports multiple segment types
-#'   \item Optional balanced sampling across labels
-#'   \item Parallel processing for large datasets
-#'   \item Ordering based on feature embeddings
-#'   \item Automatic padding for bout analysis
-#' }
-#'
-#' @return
-#' Updated SAP object with amplitude envelope features and visualization
-#'
-#' @importFrom dplyr group_by summarise arrange ungroup slice_sample n count pull group_modify
-#' @importFrom lattice levelplot panel.levelplot panel.abline
+#' @rdname plot_heatmap
 #' @export
 plot_heatmap.Sap <- function(x,
                              segment_type = c("motifs", "bouts", "syllables", "segments"),
@@ -839,7 +781,7 @@ plot_traces <- function(x,
       dplyr::mutate(plot_type = "Individual Traces")
 
     res_long_mean <- res_long |>
-      dplyr::mutate(plot_type = "Mean ± SE")
+      dplyr::mutate(plot_type = "Mean \u00B1 SE")
 
     res_combined <- dplyr::bind_rows(res_long, res_long_mean)
 
@@ -849,10 +791,10 @@ plot_traces <- function(x,
       ggplot2::geom_line(data = . %>% dplyr::filter(plot_type == "Individual Traces"),
                          ggplot2::aes(group = interaction(label, rendition_no)),
                          alpha = alpha) +
-      ggplot2::stat_summary(data = . %>% dplyr::filter(plot_type == "Mean ± SE"),
+      ggplot2::stat_summary(data = . %>% dplyr::filter(plot_type == "Mean \u00B1 SE"),
                             fun.data = mean_se, geom = "ribbon",
                             alpha = 0.3, color = NA) +
-      ggplot2::stat_summary(data = . %>% dplyr::filter(plot_type == "Mean ± SE"),
+      ggplot2::stat_summary(data = . %>% dplyr::filter(plot_type == "Mean \u00B1 SE"),
                             fun = mean, geom = "line", size = 1) +
       ggplot2::facet_wrap(~plot_type, ncol = ncol) +
       ggplot2::labs(x = "Time (s)",

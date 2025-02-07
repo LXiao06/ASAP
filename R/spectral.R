@@ -1,71 +1,87 @@
 # Analyze Spectral Features -------------------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
-#' Analyze Spectral Features of Audio Segments
+' Analyze Spectral Features of Audio Segments
 #'
 #' @description
-#' A generic function to calculate spectral features from audio segments.
+#' Calculates comprehensive spectral features from audio segments with support for
+#' parallel processing and organized data structures.
 #'
-#' @param x An object to analyze, either a data frame with segment information
-#'          or a SAP object
+#' @param x An object to analyze, either a data frame or SAP object
+#' @param wav_dir Path to WAV files directory
+#' @param cores Number of cores for parallel processing
+#' @param wl Window length for spectral analysis (default: 512)
+#' @param ovlp Overlap percentage (0-100) (default: 50)
+#' @param wn Window name ("hanning", "hamming", etc.)
+#' @param freq_range Frequency range c(min, max) in kHz
+#' @param threshold Threshold for frequency tracking (default: 15)
+#' @param fsmooth Frequency smoothing parameter (default: 0.1)
+#' @param fast Whether to skip peak frequency calculation (default: TRUE)
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
+#' @param sample_percent For SAP objects: Percentage of segments to sample
+#' @param balanced For SAP objects: Whether to balance groups across labels
+#' @param labels For SAP objects: Specific labels to include
+#' @param seed For SAP objects: Random seed for sampling (default: 222)
+#' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports spectral analysis through two methods:
+#' For data frames:
 #' \itemize{
-#'   \item Default method for analyzing segments from a data frame
-#'   \item SAP object method for analyzing organized song segments
+#'   \item Requires columns: filename, start_time, end_time
+#'   \item Processes segments in parallel
+#'   \item Calculates comprehensive spectral features
+#'   \item Returns combined results
+#' }
+#'
+#' For SAP objects:
+#' \itemize{
+#'   \item Supports multiple segment types
+#'   \item Optional balanced sampling
+#'   \item Stores results in features slot
+#'   \item Preserves segment metadata
 #' }
 #'
 #' @return
-#' A data frame of spectral features or updated SAP object
+#' For default method: A data frame containing spectral features for all segments
+#' For SAP objects: Updated SAP object with spectral features stored in features slot
 #'
 #' @examples
 #' \dontrun{
 #' # Analyze segments from data frame
-#' features <- analyze_spectral(segments, wav_dir = "path/to/wavs")
+#' features <- analyze_spectral(segments,
+#'                             wav_dir = "path/to/wavs",
+#'                             cores = 4,
+#'                             freq_range = c(1, 10))
 #'
-#' # Analyze segments from SAP object
+#' # Basic analysis from SAP object
 #' sap_obj <- analyze_spectral(sap_object,
-#'                            segment_type = "motifs")
+#'                            segment_type = "motifs",
+#'                            cores = 4)
+#'
+#' # Balanced sampling with specific labels
+#' sap_obj <- analyze_spectral(sap_object,
+#'                            segment_type = "syllables",
+#'                            sample_percent = 80,
+#'                            balanced = TRUE,
+#'                            labels = c("a", "b"))
+#'
+#' # Custom spectral parameters
+#' sap_obj <- analyze_spectral(sap_object,
+#'                            segment_type = "motifs",
+#'                            wl = 1024,
+#'                            ovlp = 75,
+#'                            freq_range = c(2, 8))
 #' }
 #'
+#'
+#' @rdname analyze_spectral
 #' @export
 analyze_spectral <- function(x, ...) {
   UseMethod("analyze_spectral")
 }
 
-#' Analyze Spectral Features from Segment Data Frame
-#'
-#' @description
-#' Calculates spectral features for audio segments specified in a data frame.
-#'
-#' @param x Data frame with segment information
-#' @param wav_dir Path to WAV files directory
-#' @param cores Number of cores for parallel processing
-#' @param wl Window length for spectral analysis
-#' @param ovlp Overlap percentage (0-100)
-#' @param wn Window name ("hanning", "hamming", etc.)
-#' @param freq_range Frequency range c(min, max) in kHz
-#' @param threshold Threshold for frequency tracking
-#' @param fsmooth Frequency smoothing parameter
-#' @param fast Whether to skip peak frequency calculation
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs spectral analysis with the following steps:
-#' \itemize{
-#'   \item Validates input data and parameters
-#'   \item Processes each segment in parallel
-#'   \item Calculates comprehensive spectral features
-#'   \item Combines results into a single data frame
-#' }
-#'
-#' @return
-#' A data frame containing spectral features for all segments
-#'
-#' @importFrom pbmcapply pbmclapply
-#' @importFrom pbapply pblapply
+#' @rdname analyze_spectral
 #' @export
 analyze_spectral.default <- function(x,
                                      wav_dir = NULL,
@@ -153,41 +169,7 @@ analyze_spectral.default <- function(x,
   return(results)
 }
 
-#' Analyze Spectral Features from SAP Object
-#'
-#' @description
-#' Calculates spectral features for segments in a SAP object with options
-#' for sampling and organization.
-#'
-#' @param x A SAP object containing song recordings
-#' @param segment_type Type of segments to analyze
-#' @param sample_percent Percentage of segments to sample
-#' @param balanced Whether to balance groups across labels
-#' @param labels Specific labels to include
-#' @param seed Random seed for sampling (default: 222)
-#' @param cores Number of cores for parallel processing
-#' @param wl Window length for spectral analysis
-#' @param ovlp Overlap percentage
-#' @param wn Window name
-#' @param freq_range Frequency range in kHz
-#' @param threshold Threshold for frequency tracking
-#' @param fsmooth Frequency smoothing parameter
-#' @param fast Whether to skip peak frequency calculation
-#' @param verbose Whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs spectral analysis with the following features:
-#' \itemize{
-#'   \item Supports multiple segment types
-#'   \item Optional balanced sampling
-#'   \item Parallel processing
-#'   \item Stores results in SAP object
-#' }
-#'
-#' @return
-#' Updated SAP object with spectral features stored in features slot
-#'
+#' @rdname analyze_spectral
 #' @export
 analyze_spectral.Sap <- function(x,
                                  segment_type = c("motifs", "syllables", "bouts", "segments"),

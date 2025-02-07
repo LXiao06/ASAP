@@ -1,5 +1,5 @@
 # Principal Component Analysis
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Run Principal Component Analysis
 #'
@@ -7,8 +7,16 @@
 #' A generic function to perform PCA with support for multiple methods
 #' and large-scale data processing.
 #'
-#' @param x An object to analyze, either a matrix/data frame
-#'          or a SAP object
+#' @param x An object to analyze, either a matrix/data frame or a SAP object
+#' @param method PCA method ('irlba', 'base', or 'parallel')
+#' @param n_components Number of principal components
+#' @param n_cores Number of cores for parallel processing
+#' @param diagnostic_plots Whether to create diagnostic plots
+#' @param output_scores Whether to return PC scores
+#' @param scale_scores Whether to scale PC scores
+#' @param segment_type For SAP objects: Type of segments to analyze ('motifs', 'syllables', 'bouts', 'segments')
+#' @param data_type For SAP objects: Type of data to analyze
+#' @param verbose For SAP objects: Whether to print progress
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
@@ -19,7 +27,8 @@
 #' }
 #'
 #' @return
-#' PCA results or updated SAP object
+#' For default method: PCA results or PC scores matrix
+#' For SAP objects: Updated SAP object with PCA results stored in features slot
 #'
 #' @examples
 #' \dontrun{
@@ -32,37 +41,14 @@
 #'                    data_type = "traj_mat")
 #' }
 #'
+#' @rdname run_pca
 #' @export
 run_pca <- function(x, ...) {
   UseMethod("run_pca")
 }
 
 
-#' Run PCA on Matrix Data
-#'
-#' @description
-#' Performs PCA using various methods optimized for different data scales.
-#'
-#' @param x Matrix or data frame to analyze
-#' @param method PCA method ('irlba', 'base', or 'parallel')
-#' @param n_components Number of principal components
-#' @param n_cores Number of cores for parallel processing
-#' @param diagnostic_plots Whether to create diagnostic plots
-#' @param output_scores Whether to return PC scores
-#' @param scale_scores Whether to scale PC scores
-#' @param ... Additional arguments
-#'
-#' @details
-#' Supports three PCA methods:
-#' \itemize{
-#'   \item irlba: Fast truncated SVD for large matrices
-#'   \item base: Standard R prcomp implementation
-#'   \item parallel: Distributed computation for very large matrices
-#' }
-#'
-#' @return
-#' PCA results or PC scores matrix
-#'
+#' @rdname run_pca
 #' @export
 run_pca.default <- function(x,
                    method = c("irlba", "base", "parallel"),
@@ -70,7 +56,8 @@ run_pca.default <- function(x,
                    n_cores = NULL,
                    diagnostic_plots = TRUE,
                    output_scores = TRUE,
-                   scale_scores = FALSE) {
+                   scale_scores = FALSE,
+                   ...) {
 
 
   method <- match.arg(method)
@@ -204,34 +191,7 @@ run_pca.default <- function(x,
   }
 }
 
-#' Run PCA on SAP Object
-#'
-#' @description
-#' Performs PCA on trajectory matrices stored in a SAP object.
-#'
-#' @param x A SAP object
-#' @param segment_type Type of segments to analyze
-#' @param data_type Type of data to analyze
-#' @param method PCA method to use
-#' @param n_components Number of components
-#' @param n_cores Number of cores
-#' @param diagnostic_plots Whether to show diagnostics
-#' @param scale_scores Whether to scale scores
-#' @param verbose Whether to print progress
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs PCA with the following features:
-#' \itemize{
-#'   \item Support for different segment types
-#'   \item Multiple PCA methods
-#'   \item Diagnostic visualizations
-#'   \item Results storage in SAP object
-#' }
-#'
-#' @return
-#' Updated SAP object with PCA results stored in features slot
-#'
+#' @rdname run_pca
 #' @export
 run_pca.Sap <- function(x,
                         segment_type = c("motifs", "syllables", "bouts", "segments"),

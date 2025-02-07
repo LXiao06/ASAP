@@ -1,91 +1,56 @@
 # Segmentation
-# Update date : Feb. 5, 2025
+# Update date : Feb. 7, 2025
 
 #' Segment Audio into Syllables
 #'
 #' @description
-#' A generic function to segment audio recordings into syllables using
-#' dynamic thresholding of spectrograms.
+#' Segments audio recordings into syllables using dynamic thresholding of spectrograms.
 #'
-#' @param x An object to segment, either a character path to WAV file
-#'          or a SAP object
-#' @param ... Additional arguments passed to specific methods
-#'
-#' @details
-#' This generic function supports syllable segmentation through two methods:
-#' \itemize{
-#'   \item Default method for individual WAV files
-#'   \item SAP object method for batch processing multiple recordings
-#' }
-#'
-#' @return
-#' A data frame with syllable information or updated SAP object
-#'
-#' @examples
-#' \dontrun{
-#' # Segment single audio file
-#' syllables <- segment("path/to/song.wav")
-#'
-#' # Segment recordings in SAP object
-#' sap_obj <- segment(sap_object,
-#'                    segment_type = "bouts")
-#' }
-#'
-#' @export
-segment <- function(x, ...) {
-  UseMethod("segment")
-}
-
-#' Segment Individual Audio File into Syllables
-#'
-#' @description
-#' Segments a single audio recording into syllables using dynamic
-#' thresholding of the spectrogram.
-#'
-#' @param x Character. Full path to the audio file.
-#' @param start_time Numeric. Optional. Start time in seconds.
-#'   If not provided: start_time defaults to 0 with warning
-#' @param end_time Numeric. Optional. End time in seconds.
-#'   If not provided: end_time defaults to file duration
-#' @param wl Numeric. Window length for spectrogram calculation.
-#'   Default is 256.
-#' @param ovlp Numeric. Overlap percentage between windows (0-100).
-#'   Default is 80.
-#' @param flim Numeric vector of length 2. Frequency limits in kHz.
-#'   Default is c(1, 10).
-#' @param min_syllable_ms Numeric. Minimum syllable length in milliseconds.
-#'   Default is 50.
-#' @param max_syllable_ms Numeric. Maximum syllable length in milliseconds.
-#'   Default is 200.
-#' @param min_level_db Numeric. Minimum threshold level in dB. Default is 0.
-#'   Represents the quietest sounds to detect. When combined with internal reference
-#'   level (20 dB), corresponds to -60 dB relative to full scale.
-#' @param max_level_db Numeric. Maximum threshold level in dB. Default is 40.
-#'   Represents the loudest sounds to detect. When combined with internal reference
-#'   level (20 dB), corresponds to -20 dB relative to full scale.
-#' @param db_delta Numeric. Step size for threshold search in dB. Default is 5.
-#' @param search_direction Character. Direction for threshold search: "up" or "down".
+#' @param x An object to segment, either a file path or SAP object
+#' @param start_time Start time in seconds
+#' @param end_time End time in seconds
+#' @param wl Window length for spectrogram (default: 256)
+#' @param ovlp Overlap percentage (0-100) (default: 80)
+#' @param flim Frequency limits in kHz (default: c(1, 10))
+#' @param silence_threshold Threshold for silence detection (0-1) (default: 0.05)
+#' @param min_syllable_ms Minimum syllable length in milliseconds (default: 50)
+#' @param max_syllable_ms Maximum syllable length in milliseconds (default: 200)
+#' @param min_level_db Minimum threshold level in dB (Default is 0)
+#' @param max_level_db Maximum threshold level in dB (Default is 40)
+#' @param db_delta Step size for threshold search in dB (default: 5)
+#' @param search_direction Direction for threshold search: "up" or "down".
 #'   \itemize{
 #'     \item "up": Starts from min_level_db and increases (recommended for quiet or variable recordings)
 #'     \item "down": Starts from max_level_db and decreases (recommended for loud, clear recordings)
 #'   }
-#' @param silence_threshold Numeric. Threshold for silence detection (0-1). Default is 0.05.
-#' @param verbose Logical. If TRUE, prints progress information. Default is TRUE.
-#' @param plot Logical. If TRUE, displays detection plot. Default is TRUE.
-#' @param smooth Logical. If TRUE, smooths spectrogram visualization. Default is FALSE.
-#' @param save_plot Logical. If TRUE, detection plot is saved to a local directory. Default FALSE.
-#' @param plot_dir Character. Directory to save plots. Default NULL.
+#' @param verbose Print progress messages (default: TRUE)
+#' @param plot Display detection plot (default: TRUE)
+#' @param smooth Smooth spectrogram visualization (default: FALSE)
+#' @param save_plot Save detection plot (default: FALSE)
+#' @param plot_dir Directory to save plots
+#' @param segment_type For SAP objects: Type of segments ('bouts', 'motifs')
+#' @param day For SAP objects: Days to process
+#' @param indices For SAP objects: Specific indices to process
+#' @param cores For SAP objects: Number of processing cores
+#' @param plot_percent For SAP objects: Percentage of files to plot (default: 10)
+#' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' The function implements a robust syllable detection algorithm using the following steps:
-#' 1. Reads and validates the audio file
-#' 2. Computes the spectrogram using Short-Time Fourier Transform
-#' 3. Performs adaptive thresholding to detect syllables
-#' 4. Validates detected segments against duration constraints
-#' 5. Optionally generates visualization plots
+#' For WAV files:
+#' \itemize{
+#'   \item Reads and validates the audio file
+#'   \item Computes spectrogram using Short-Time Fourier Transform
+#'   \item Performs adaptive thresholding to detect syllables
+#'   \item Validates detected segments against duration constraints
+#' }
 #'
-#' The function uses an internal reference level of 20 dB to convert between user-friendly
-#' positive dB values and actual dB measurements relative to full scale (dBFS).
+#' For SAP objects:
+#' \itemize{
+#'   \item Supports batch processing with parallel execution
+#'   \item Processes specific days or indices
+#'   \item Organizes results by source type
+#'   \item Maintains metadata relationships
+#' }
 #'
 #' dB Scale Conversion:
 #' \itemize{
@@ -126,28 +91,40 @@ segment <- function(x, ...) {
 #'
 #' If no syllables are detected, returns NULL.
 #'
+#' For SAP objects: Updated object with syllable information in segments slot
+#'
 #' @examples
 #' \dontrun{
-#' # Basic usage with default parameters
-#' syllables <- segment("path/to/audio.wav")
+#' # Basic segmentation of WAV file
+#' syllables <- segment("song.wav")
 #'
-#' # For clean recordings with consistent loud syllables
-#' syllables <- segment(
-#'   file_path = "path/to/clean_audio.wav",
-#'   start_time = 0,
-#'   end_time = 1,
-#'   search_direction = "down"
-#' )
+#' # Custom parameters for clean recording
+#' syllables <- segment("clean_song.wav",
+#'                      search_direction = "down",
+#'                      min_syllable_ms = 30,
+#'                      max_syllable_ms = 150)
 #'
-#' # For recordings with variable amplitude or background noise
-#' syllables <- segment(
-#'   file_path = "path/to/noisy_audio.wav",
-#'   start_time = 0,
-#'   end_time = 1,
-#'   search_direction = "up"
-#' )
+#' # Process specific days in SAP object
+#' sap_obj <- segment(sap_object,
+#'                    segment_type = "bouts",
+#'                    day = c(30, 40),
+#'                    cores = 4)
+#'
+#' # Process with custom detection parameters
+#' sap_obj <- segment(sap_object,
+#'                    segment_type = "motifs",
+#'                    min_level_db = 10,
+#'                    max_level_db = 30,
+#'                    save_plot = TRUE)
 #' }
 #'
+#' @rdname segment
+#' @export
+segment <- function(x, ...) {
+  UseMethod("segment")
+}
+
+#' @rdname segment
 #' @export
 segment.default <- function(x,  # x is wav file path
                             start_time = NULL,
@@ -409,43 +386,7 @@ segment.default <- function(x,  # x is wav file path
   return(segemnts)
 }
 
-#' Segment SAP Object Recordings into Syllables
-#'
-#' @description
-#' Performs batch syllable segmentation on recordings stored in a SAP object.
-#'
-#' @param x A SAP object
-#' @param day Days to process
-#' @param indices Specific indices to process
-#' @param segment_type Type of segments to process
-#' @param cores Number of processing cores
-#' @param save_plot Whether to save plots
-#' @param plot_percent Percentage of files to plot
-#' @param wl Window length for spectrogram
-#' @param ovlp Overlap percentage
-#' @param flim Frequency limits in kHz
-#' @param min_syllable_ms Minimum syllable duration
-#' @param max_syllable_ms Maximum syllable duration
-#' @param min_level_db Minimum threshold level
-#' @param max_level_db Maximum threshold level
-#' @param db_delta Threshold step size
-#' @param search_direction Direction for threshold search
-#' @param silence_threshold Threshold for silence
-#' @param verbose Print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs batch segmentation with:
-#' \itemize{
-#'   \item Parallel processing support
-#'   \item Multiple segment type options
-#'   \item Progress tracking
-#'   \item Result organization
-#' }
-#'
-#' @return
-#' Updated SAP object with syllable information stored in segments slot
-#'
+#' @rdname segment
 #' @export
 segment.Sap <- function(x,  # x is SAP object
                         day = NULL,

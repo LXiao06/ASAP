@@ -1,14 +1,24 @@
 
 # Run UMAP ----------------------------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Run UMAP Dimensionality Reduction
 #'
 #' @description
 #' A generic function to perform UMAP dimensionality reduction on feature data.
 #'
-#' @param x An object to analyze, either a data frame with feature data
-#'          or a SAP object
+#' @param x An object to analyze, either a data frame or SAP object
+#' @param metadata_cols Column indices for metadata (for default method)
+#' @param scale Whether to scale features before UMAP
+#' @param n_neighbors Number of neighbors (default: 15)
+#' @param n_components Number of output dimensions (default: 2)
+#' @param min_dist Minimum distance parameter (default: 0.1)
+#' @param seed Random seed for reproducibility
+#' @param n_threads Number of computation threads
+#' @param verbose Whether to print progress messages
+#' @param segment_type For SAP objects: Type of segments to analyze ('motifs', 'syllables', 'bouts', 'segments')
+#' @param data_type For SAP objects: Type of feature data ('spectral_feature', 'traj_mat')
+#' @param label For SAP objects: Specific label to filter data
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
@@ -19,7 +29,8 @@
 #' }
 #'
 #' @return
-#' UMAP coordinates or updated SAP object
+#' For default method: Matrix of UMAP coordinates
+#' For SAP objects: Updated SAP object with UMAP coordinates stored in features slot
 #'
 #' @examples
 #' \dontrun{
@@ -32,53 +43,28 @@
 #' sap_obj <- run_umap(sap_object,
 #'                     segment_type = "motifs",
 #'                     data_type = "spectral_feature")
-#' }
 #'
-#' @export
-run_umap <- function(x, ...) {
-  UseMethod("run_umap")
-}
-
-#' Run UMAP on Feature Data Frame
-#'
-#' @description
-#' Performs UMAP dimensionality reduction on a data frame containing feature data.
-#'
-#' @param x Data frame containing feature data
-#' @param metadata_cols Column indices for metadata
-#' @param scale Whether to scale features
-#' @param n_neighbors Number of neighbors
-#' @param n_components Number of output dimensions
-#' @param min_dist Minimum distance parameter
-#' @param seed Random seed
-#' @param n_threads Number of computation threads
-#' @param verbose Whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs UMAP with the following steps:
-#' \itemize{
-#'   \item Separates metadata and feature columns
-#'   \item Scales features if requested
-#'   \item Computes UMAP embedding
-#' }
-#'
-#' @return
-#' Matrix of UMAP coordinates
-#'
-#' @examples
-#' \dontrun{
-#' # Basic UMAP
-#' coords <- run_umap(features)
-#'
-#' # UMAP with metadata and parameters
+#' # UMAP with specific parameters
 #' coords <- run_umap(features,
 #'                    metadata_cols = 1:3,
 #'                    scale = TRUE,
 #'                    n_neighbors = 20,
 #'                    seed = 123)
+#'
+#' # UMAP with label filtering
+#' sap_obj <- run_umap(sap_obj,
+#'                     segment_type = "syllables",
+#'                     data_type = "spectral_feature",
+#'                     label = "a")
 #' }
 #'
+#' @rdname run_umap
+#' @export
+run_umap <- function(x, ...) {
+  UseMethod("run_umap")
+}
+
+#' @rdname run_umap
 #' @export
 run_umap.default <- function(x,
                              metadata_cols = NULL,  # Make it optional
@@ -145,50 +131,7 @@ run_umap.default <- function(x,
   return(result)
 }
 
-#' Run UMAP on SAP Object Features
-#'
-#' @description
-#' Performs UMAP dimensionality reduction on features stored in a SAP object.
-#'
-#' @param x A SAP object containing feature data
-#' @param segment_type Type of segments to analyze
-#' @param data_type Type of feature data to use
-#' @param label Specific label to filter data
-#' @param scale Whether to scale features
-#' @param n_neighbors Number of neighbors
-#' @param n_components Number of output dimensions
-#' @param min_dist Minimum distance parameter
-#' @param seed Random seed
-#' @param n_threads Number of computation threads
-#' @param verbose Whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs UMAP with the following features:
-#' \itemize{
-#'   \item Supports multiple segment types
-#'   \item Optional label filtering
-#'   \item Stores results in SAP object
-#'   \item Preserves metadata
-#' }
-#'
-#' @return
-#' Updated SAP object with UMAP coordinates stored in features slot
-#'
-#' @examples
-#' \dontrun{
-#' # Run UMAP on spectral features
-#' sap_obj <- run_umap(sap_obj,
-#'                     segment_type = "motifs",
-#'                     data_type = "spectral_feature")
-#'
-#' # Run UMAP with label filtering
-#' sap_obj <- run_umap(sap_obj,
-#'                     segment_type = "syllables",
-#'                     data_type = "spectral_feature",
-#'                     label = "a")
-#' }
-#'
+#' @rdname run_umap
 #' @export
 run_umap.Sap <- function(x,
                          segment_type = c("motifs", "syllables", "bouts", "segments"),
@@ -334,75 +277,41 @@ run_umap.Sap <- function(x,
 
 
 # Plot UMAP ---------------------------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Plot UMAP Visualization
 #'
 #' @description
-#' A generic function to create UMAP visualizations with options for
-#' grouping, highlighting, and customization.
+#' Creates customizable UMAP visualizations with options for grouping, highlighting, and customization.
 #'
-#' @param x An object to visualize, either a data frame with UMAP coordinates
-#'          or a SAP object
+#' @param x An object to visualize, either a data frame with UMAP coordinates or a SAP object
+#' @param dims UMAP dimensions to plot (default: c("UMAP1", "UMAP2"))
+#' @param group.by Column name for grouping points
+#' @param split.by Column name for faceting plots
+#' @param subset.by Column name for subsetting data
+#' @param subset.value Values to subset by
+#' @param cols Custom colors for groups
+#' @param pt.size Point size (default: 0.5)
+#' @param stroke Point stroke width (default: 0.5)
+#' @param alpha Point transparency (default: 0.3)
+#' @param highlight.alpha Transparency for highlighted points
+#' @param label Whether to add labels (default: FALSE)
+#' @param label.size Size of labels (default: 4)
+#' @param repel Whether to use repelling labels (default: FALSE)
+#' @param highlight.by Column name for highlighting
+#' @param highlight.value Values to highlight
+#' @param cols.highlight Colors for highlighted points (default: '#DE2D26')
+#' @param sizes.highlight Size for highlighted points (default: 1)
+#' @param background.value Background group value
+#' @param na.value Color for NA values (default: 'grey80')
+#' @param ncol Number of columns in multi-plot layout
+#' @param combine Whether to combine multiple plots (default: TRUE)
+#' @param segment_type For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')
+#' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports UMAP visualization through two methods:
-#' \itemize{
-#'   \item Default method for data frames with UMAP coordinates
-#'   \item SAP object method for organized song features
-#' }
-#'
-#' @return
-#' A ggplot object or updated SAP object
-#'
-#' @examples
-#' \dontrun{
-#' # Basic UMAP plot from data frame
-#' plot_umap(umap_df, group.by = "cluster")
-#'
-#' # UMAP plot from SAP object
-#' plot_umap(sap_obj,
-#'           segment_type = "motifs",
-#'           group.by = "label")
-#' }
-#'
-#' @export
-plot_umap <- function(x, ...) {
-  UseMethod("plot_umap")
-}
-
-#' Plot UMAP from Data Frame
-#'
-#' @description
-#' Creates customizable UMAP visualizations from a data frame containing coordinates.
-#'
-#' @param x Data frame containing UMAP coordinates
-#' @param dims UMAP dimensions to plot
-#' @param subset.by Column name for subsetting
-#' @param subset.value Values to subset by
-#' @param group.by Column name for grouping
-#' @param split.by Column name for faceting
-#' @param cols Custom colors for groups
-#' @param pt.size Point size
-#' @param stroke Point stroke width
-#' @param alpha Point transparency
-#' @param highlight.alpha Transparency for highlighted points
-#' @param label Whether to add labels
-#' @param label.size Size of labels
-#' @param repel Whether to use repelling labels
-#' @param highlight.by Column name for highlighting
-#' @param highlight.value Values to highlight
-#' @param cols.highlight Colors for highlighted points
-#' @param sizes.highlight Size for highlighted points
-#' @param background.value Background group value
-#' @param na.value Color for NA values
-#' @param ncol Number of columns in multi-plot layout
-#' @param combine Whether to combine multiple plots
-#' @param ... Additional arguments
-#'
-#' @details
-#' Creates UMAP visualization with the following features:
+#' This function creates UMAP visualizations with the following features:
 #' \itemize{
 #'   \item Flexible grouping and highlighting
 #'   \item Customizable point appearance
@@ -411,11 +320,12 @@ plot_umap <- function(x, ...) {
 #' }
 #'
 #' @return
-#' A ggplot object or list of plots
+#' For default method: A ggplot object or list of plots
+#' For SAP objects: Updated SAP object with plot as side effect
 #'
 #' @examples
 #' \dontrun{
-#' # Basic plot with grouping
+#' # Basic UMAP plot from data frame
 #' plot_umap(umap_df, group.by = "cluster")
 #'
 #' # Plot with highlighting
@@ -428,8 +338,27 @@ plot_umap <- function(x, ...) {
 #' plot_umap(umap_df,
 #'           group.by = "cluster",
 #'           split.by = "day_post_hatch")
+#'
+#' # Plot from SAP object
+#' plot_umap(sap_obj,
+#'           segment_type = "motifs",
+#'           group.by = "label")
+#'
+#' # SAP object plot with custom grouping and highlighting
+#' plot_umap(sap_obj,
+#'           segment_type = "syllables",
+#'           group.by = "label",
+#'           highlight.by = "cluster",
+#'           highlight.value = c(1, 2))
 #' }
 #'
+#' @rdname plot_umap
+#' @export
+plot_umap <- function(x, ...) {
+  UseMethod("plot_umap")
+}
+
+#' @rdname plot_umap
 #' @export
 plot_umap.default <- function(x,
                               dims = c("UMAP1", "UMAP2"),
@@ -575,43 +504,7 @@ plot_umap.default <- function(x,
   }
 }
 
-#' Plot UMAP from SAP Object
-#'
-#' @description
-#' Creates UMAP visualizations from embeddings stored in a SAP object.
-#'
-#' @param x A SAP object containing UMAP embeddings
-#' @param segment_type Type of segments to visualize
-#' @param dims UMAP dimensions to plot
-#' @param group.by Column name for grouping
-#' @param split.by Column name for faceting
-#' @param ... Additional visualization parameters
-#'
-#' @details
-#' Creates UMAP visualization with the following features:
-#' \itemize{
-#'   \item Support for different segment types
-#'   \item Access to stored embeddings
-#'   \item All customization options from default method
-#' }
-#'
-#' @return
-#' Updated SAP object with plot as side effect
-#'
-#' @examples
-#' \dontrun{
-#' # Basic plot of motif embeddings
-#' plot_umap(sap_obj,
-#'           segment_type = "motifs")
-#'
-#' # Plot with custom grouping and highlighting
-#' plot_umap(sap_obj,
-#'           segment_type = "syllables",
-#'           group.by = "label",
-#'           highlight.by = "cluster",
-#'           highlight.value = c(1, 2))
-#' }
-#'
+#' @rdname plot_umap
 #' @export
 plot_umap.Sap <- function(x,
                           segment_type = c("motifs", "syllables", "bouts", "segments"),
@@ -883,23 +776,38 @@ plot_single_umap <- function(
 #' Plot UMAP Visualization for Trajectory Analysis
 #'
 #' @description
-#' A generic function to create UMAP visualizations optimized for
-#' trajectory analysis, with support for continuous color mapping
-#' and overlay comparisons.
+#' Creates UMAP visualizations optimized for trajectory analysis, with support
+#' for continuous color mapping and overlay comparisons.
 #'
-#' @param x An object to visualize, either a data frame with trajectory data
-#'          or a SAP object
+#' @param x An object to visualize, either a data frame or SAP object
+#' @param dims UMAP dimensions to plot (default: c("UMAP1", "UMAP2"))
+#' @param color.by Column for continuous color mapping (default: ".time")
+#' @param split.by Column for faceting (default: "label")
+#' @param order.by Column for ordering facets (default: "day_post_hatch")
+#' @param pt.size Point size (default: 1.2)
+#' @param alpha_range Range for alpha transparency (default: c(0.1, 0.5))
+#' @param ncol Number of columns in layout
+#' @param title Plot title
+#' @param overlay_mode Whether to create overlay comparisons (default: FALSE)
+#' @param base_label Base label for overlay comparison
+#' @param compare_labels Labels to compare against base
+#' @param base_color Color for base label (default: "steelblue")
+#' @param compare_color Color for comparison labels (default: "orangered")
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
+#' @param data_type For SAP objects: Type of embedding data ('feat.embeds', 'traj.embeds')
+#' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports trajectory visualization through two methods:
+#' Supports two visualization modes:
 #' \itemize{
-#'   \item Default method for trajectory data frames
-#'   \item SAP object method for organized trajectory features
+#'   \item Standard mode: Continuous color mapping for trajectory visualization
+#'   \item Overlay mode: Direct comparison between trajectory patterns
 #' }
 #'
 #' @return
-#' A ggplot object or updated SAP object
+#' For default method: A ggplot object
+#' For SAP objects: Updated SAP object with plot as side effect
 #'
 #' @examples
 #' \dontrun{
@@ -911,48 +819,28 @@ plot_single_umap <- function(
 #'            overlay_mode = TRUE,
 #'            base_label = "a",
 #'            compare_labels = c("b", "c"))
+#'
+#' # Plot motif trajectories from SAP object
+#' plot_umap2(sap_obj,
+#'            segment_type = "motifs",
+#'            data_type = "traj.embeds",
+#'            color.by = ".time")
+#'
+#' # Compare trajectories between labels
+#' plot_umap2(sap_obj,
+#'            segment_type = "motifs",
+#'            data_type = "traj.embeds",
+#'            overlay_mode = TRUE,
+#'            base_label = "pre")
 #' }
 #'
+#' @rdname plot_umap2
 #' @export
 plot_umap2 <- function(x, ...) {
   UseMethod("plot_umap2")
 }
 
-#' Plot UMAP Trajectory from Data Frame
-#'
-#' @description
-#' Creates trajectory-focused UMAP visualizations with continuous color mapping
-#' or overlay comparisons.
-#'
-#' @param x Data frame containing trajectory data
-#' @param dims UMAP dimensions to plot
-#' @param color.by Column for continuous color mapping
-#' @param split.by Column for faceting
-#' @param order.by Column for ordering facets
-#' @param pt.size Point size
-#' @param alpha_range Range for alpha transparency
-#' @param ncol Number of columns in layout
-#' @param title Plot title
-#' @param overlay_mode Whether to create overlay comparisons
-#' @param base_label Base label for overlay comparison
-#' @param compare_labels Labels to compare against base
-#' @param base_color Color for base label
-#' @param compare_color Color for comparison labels
-#' @param ... Additional arguments
-#'
-#' @details
-#' Supports two visualization modes:
-#' \itemize{
-#'   \item Standard mode: Continuous color mapping for trajectory visualization
-#'   \item Overlay mode: Direct comparison between trajectory patterns
-#' }
-#'
-#' @return
-#' A ggplot object
-#'
-#' @importFrom rlang sym !!
-#' @importFrom dplyr filter mutate
-#' @importFrom ggplot2 ggplot aes geom_point scale_color_manual scale_alpha_continuous theme_minimal facet_wrap ggtitle
+#' @rdname plot_umap2
 #' @export
 plot_umap2.default <- function(x,
                                dims = c("UMAP1", "UMAP2"),
@@ -1055,58 +943,7 @@ plot_umap2.default <- function(x,
   }
 }
 
-#' Plot UMAP Trajectory from SAP Object
-#'
-#' @description
-#' Creates trajectory-focused UMAP visualizations from embeddings stored in a SAP object.
-#'
-#' @param x A SAP object containing trajectory data
-#' @param segment_type Type of segments to visualize
-#' @param data_type Type of embedding data ("feat.embeds" or "traj.embeds")
-#' @param dims UMAP dimensions to plot
-#' @param color.by Column for continuous color mapping
-#' @param split.by Column for faceting
-#' @param order.by Column for ordering facets
-#' @param pt.size Point size
-#' @param alpha_range Range for alpha transparency
-#' @param ncol Number of columns in layout
-#' @param title Plot title
-#' @param overlay_mode Whether to create overlay comparisons
-#' @param base_label Base label for overlay comparison
-#' @param compare_labels Labels to compare against base
-#' @param base_color Color for base label
-#' @param compare_color Color for comparison labels
-#' @param verbose Whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Creates trajectory visualizations with:
-#' \itemize{
-#'   \item Support for different segment types
-#'   \item Multiple embedding data types
-#'   \item Continuous trajectory mapping
-#'   \item Optional overlay comparisons
-#' }
-#'
-#' @return
-#' Updated SAP object with plot as side effect
-#'
-#' @examples
-#' \dontrun{
-#' # Plot motif trajectories
-#' plot_umap2(sap_obj,
-#'            segment_type = "motifs",
-#'            data_type = "traj.embeds",
-#'            color.by = ".time")
-#'
-#' # Compare trajectories between labels
-#' plot_umap2(sap_obj,
-#'            segment_type = "motifs",
-#'            data_type = "traj.embeds",
-#'            overlay_mode = TRUE,
-#'            base_label = "pre")
-#' }
-#'
+#' @rdname plot_umap2
 #' @export
 plot_umap2.Sap <- function(x,
                            segment_type = c("motifs", "syllables", "bouts", "segments"),

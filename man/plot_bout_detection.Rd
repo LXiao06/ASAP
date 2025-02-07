@@ -17,11 +17,11 @@ plot_bout_detection(
 )
 }
 \arguments{
-\item{rms_threshold}{Threshold for bout detection}
+\item{rms_threshold}{Threshold for bout detection (default: 0.1)}
 
-\item{wl}{Window length for RMS calculation}
+\item{wl}{Window length for RMS calculation (default: 1024)}
 
-\item{ovlp}{Overlap percentage between windows}
+\item{ovlp}{Overlap percentage between windows (default: 50)}
 }
 \description{
 Creates a two-panel plot showing RMS envelope and spectrogram with bout boundaries.

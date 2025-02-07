@@ -1,57 +1,28 @@
 # Song Trajectory Analysis
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Create Spectrogram Matrices for Song Trajectory Analysis
 #'
 #' @description
-#' A generic function to create spectrogram matrices from sliding windows
-#' for song trajectory analysis.
+#' Creates spectrogram matrices from sliding windows for song trajectory analysis.
 #'
-#' @param x An object to process, either a data frame with segment information
-#'          or a SAP object
-#' @param ... Additional arguments passed to specific methods
-#'
-#' @details
-#' This generic function supports trajectory analysis through two methods:
-#' \itemize{
-#'   \item Default method for processing segment data frames
-#'   \item SAP object method for processing organized song segments
-#' }
-#'
-#' @return
-#' A list containing spectrogram matrix and sliding window information,
-#' or updated SAP object
-#'
-#' @examples
-#' \dontrun{
-#' # Create trajectory matrix from segments
-#' matrix <- create_trajectory_matrix(segments,
-#'                                   wav_dir = "path/to/wavs")
-#'
-#' # Create trajectory matrix from SAP object
-#' sap_obj <- create_trajectory_matrix(sap_object,
-#'                                    segment_type = "motifs")
-#' }
-#'
-#' @export
-create_trajectory_matrix <- function(x, ...) {
-  UseMethod("create_trajectory_matrix")
-}
-
-#' Create Trajectory Matrix from Segment Data Frame
-#'
-#' @description
-#' Creates spectrogram matrices from audio segments using sliding windows.
-#'
-#' @param x Data frame with segment information
-#' @param wav_dir Directory containing WAV files
-#' @param window_size Size of sliding window in seconds
-#' @param step_size Step size between windows
-#' @param wl Window length for spectrogram
-#' @param ovlp Overlap percentage
-#' @param flim Frequency limits
+#' @param x An object to process, either a data frame or SAP object
+#' @param wav_dir Directory containing WAV files (for default method)
+#' @param window_size Size of sliding window in seconds (default: 0.1)
+#' @param step_size Step size between windows (default: 0.005)
+#' @param wl Window length for spectrogram (default: 128)
+#' @param ovlp Overlap percentage (default: 50)
+#' @param flim Frequency limits (default: c(1, 12))
 #' @param cores Number of processing cores
-#' @param ... Additional arguments
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
+#' @param data_type For SAP objects: Type of data to analyze
+#' @param clusters For SAP objects: Specific clusters to include
+#' @param sample_percent For SAP objects: Percentage to sample
+#' @param balanced For SAP objects: Whether to balance across groups
+#' @param labels For SAP objects: Specific labels to include
+#' @param seed For SAP objects: Random seed
+#' @param verbose For SAP objects: Whether to print progress
+#' @param ... Additional arguments passed to specific methods
 #'
 #' @details
 #' Creates trajectory matrix with the following steps:
@@ -61,14 +32,51 @@ create_trajectory_matrix <- function(x, ...) {
 #'   \item Combines results into matrix form
 #' }
 #'
+#' For SAP objects, additional features include:
+#' \itemize{
+#'   \item Support for different segment types
+#'   \item Optional cluster/label filtering
+#'   \item Balanced sampling options
+#'   \item Results storage in features slot
+#' }
+#'
 #' @return
-#' A list containing:
+#' For default method: A list containing:
 #' \itemize{
 #'   \item spectrogram_matrix: Matrix of spectrogram vectors
 #'   \item sliding_windows: Data frame of window information
 #' }
 #'
-#' @importFrom pbapply pblapply
+#' For SAP objects: Updated SAP object with trajectory matrix stored in features slot
+#'
+#' @examples
+#' \dontrun{
+#' # Create trajectory matrix from segments
+#' matrix <- create_trajectory_matrix(segments,
+#'                                   wav_dir = "path/to/wavs",
+#'                                   window_size = 0.1,
+#'                                   step_size = 0.005)
+#'
+#' # Create trajectory matrix from SAP object
+#' sap_obj <- create_trajectory_matrix(sap_object,
+#'                                    segment_type = "motifs",
+#'                                    balanced = TRUE,
+#'                                    sample_percent = 80)
+#'
+#' # Create matrix with specific clusters
+#' sap_obj <- create_trajectory_matrix(sap_object,
+#'                                    segment_type = "syllables",
+#'                                    clusters = c(1, 2),
+#'                                    labels = c("a", "b"))
+#' }
+#'
+#' @rdname create_trajectory_matrix
+#' @export
+create_trajectory_matrix <- function(x, ...) {
+  UseMethod("create_trajectory_matrix")
+}
+
+#' @rdname create_trajectory_matrix
 #' @export
 create_trajectory_matrix.default <- function(
     x,
@@ -214,40 +222,7 @@ create_trajectory_matrix.default <- function(
 }
 
 
-#' Create Trajectory Matrix from SAP Object
-#'
-#' @description
-#' Creates spectrogram matrices from segments in a SAP object.
-#'
-#' @param x A SAP object
-#' @param segment_type Type of segments to analyze
-#' @param data_type Type of data to analyze
-#' @param clusters Specific clusters to include
-#' @param sample_percent Percentage to sample
-#' @param balanced Whether to balance across groups
-#' @param labels Specific labels to include
-#' @param seed Random seed
-#' @param window_size Size of sliding window
-#' @param step_size Step size between windows
-#' @param wl Window length for spectrogram
-#' @param ovlp Overlap percentage
-#' @param flim Frequency limits
-#' @param cores Number of processing cores
-#' @param verbose Whether to print progress
-#' @param ... Additional arguments
-#'
-#' @details
-#' Creates trajectory matrix with the following features:
-#' \itemize{
-#'   \item Support for different segment types
-#'   \item Optional cluster/label filtering
-#'   \item Balanced sampling options
-#'   \item Stores results in SAP object
-#' }
-#'
-#' @return
-#' Updated SAP object with trajectory matrix stored in features slot
-#'
+#' @rdname create_trajectory_matrix
 #' @export
 create_trajectory_matrix.Sap <- function(
     x,

@@ -2,18 +2,62 @@
 % Please edit documentation in R/pca.R
 \name{run_pca}
 \alias{run_pca}
+\alias{run_pca.default}
+\alias{run_pca.Sap}
 \title{Run Principal Component Analysis}
 \usage{
 run_pca(x, ...)
+
+\method{run_pca}{default}(
+  x,
+  method = c("irlba", "base", "parallel"),
+  n_components = 50,
+  n_cores = NULL,
+  diagnostic_plots = TRUE,
+  output_scores = TRUE,
+  scale_scores = FALSE,
+  ...
+)
+
+\method{run_pca}{Sap}(
+  x,
+  segment_type = c("motifs", "syllables", "bouts", "segments"),
+  data_type = "traj_mat",
+  method = c("irlba", "base", "parallel"),
+  n_components = 50,
+  n_cores = NULL,
+  diagnostic_plots = TRUE,
+  scale_scores = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to analyze, either a matrix/data frame
-or a SAP object}
+\item{x}{An object to analyze, either a matrix/data frame or a SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{method}{PCA method ('irlba', 'base', or 'parallel')}
+
+\item{n_components}{Number of principal components}
+
+\item{n_cores}{Number of cores for parallel processing}
+
+\item{diagnostic_plots}{Whether to create diagnostic plots}
+
+\item{output_scores}{Whether to return PC scores}
+
+\item{scale_scores}{Whether to scale PC scores}
+
+\item{segment_type}{For SAP objects: Type of segments to analyze ('motifs', 'syllables', 'bouts', 'segments')}
+
+\item{data_type}{For SAP objects: Type of data to analyze}
+
+\item{verbose}{For SAP objects: Whether to print progress}
 }
 \value{
-PCA results or updated SAP object
+For default method: PCA results or PC scores matrix
+For SAP objects: Updated SAP object with PCA results stored in features slot
 }
 \description{
 A generic function to perform PCA with support for multiple methods

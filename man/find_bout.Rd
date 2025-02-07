@@ -2,39 +2,158 @@
 % Please edit documentation in R/bout.R
 \name{find_bout}
 \alias{find_bout}
+\alias{find_bout.default}
+\alias{find_bout.Sap}
 \title{Detect Song Bouts in Audio Recordings}
 \usage{
 find_bout(x, ...)
+
+\method{find_bout}{default}(
+  x,
+  wl = 1024,
+  ovlp = 50,
+  norm_method = c("quantile", "max"),
+  rms_threshold = 0.1,
+  min_duration = 0.5,
+  gap_duration = 0.3,
+  edge_window = 0.05,
+  freq_range = c(3, 5),
+  plot = TRUE,
+  save_plot = FALSE,
+  plot_dir = NULL,
+  ...
+)
+
+\method{find_bout}{Sap}(
+  x,
+  day = NULL,
+  indices = NULL,
+  segment_type = "motifs",
+  cores = NULL,
+  save_plot = FALSE,
+  plot_percent = 10,
+  wl = 1024,
+  ovlp = 50,
+  norm_method = c("quantile", "max"),
+  rms_threshold = 0.1,
+  min_duration = 0.5,
+  gap_duration = 0.3,
+  edge_window = 0.05,
+  freq_range = c(3, 5),
+  summary = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to analyze, either a character path to WAV file
-or a SAP object}
+\item{x}{An object to analyze, either a file path or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{wl}{Window length for RMS calculation (default: 1024)}
+
+\item{ovlp}{Overlap percentage between windows (default: 50)}
+
+\item{norm_method}{Method for normalizing RMS values ("quantile" or "max")}
+
+\item{rms_threshold}{Threshold for bout detection (default: 0.1)}
+
+\item{min_duration}{Minimum bout duration in seconds (default: 0.5)}
+
+\item{gap_duration}{Minimum gap between bouts (default: 0.3)}
+
+\item{edge_window}{Time window for edge effects (default: 0.05)}
+
+\item{freq_range}{Frequency range for bandpass filter (default: c(3, 5))}
+
+\item{plot}{Whether to display visualization (default: TRUE)}
+
+\item{save_plot}{Whether to save plots to file (default: FALSE)}
+
+\item{plot_dir}{Directory for saving plots}
+
+\item{day}{For SAP objects: Days to process}
+
+\item{indices}{For SAP objects: Specific indices to process}
+
+\item{segment_type}{For SAP objects: Type of segments (default: "motifs")}
+
+\item{cores}{For SAP objects: Number of processing cores}
+
+\item{plot_percent}{For SAP objects: Percentage of files to plot (default: 10)}
+
+\item{summary}{For SAP objects: Include additional statistics (default: FALSE)}
+
+\item{verbose}{For SAP objects: Print progress messages (default: TRUE)}
 }
 \value{
-A data frame with bout information or updated SAP object
+For default method: Data frame containing:
+\itemize{
+\item filename: Name of WAV file
+\item selec: Bout number
+\item start_time: Onset time
+\item end_time: Offset time
+}
+
+For SAP objects: Updated object with bout information in bouts slot
 }
 \description{
-A generic function to detect and analyze song bouts using RMS amplitude
-thresholding with bandpass filtering.
+Detects and analyzes song bouts using RMS amplitude thresholding with bandpass filtering.
 }
 \details{
-This generic function supports bout detection through two methods:
+For WAV files:
 \itemize{
-\item Default method for individual WAV files
-\item SAP object method for organized song recordings
+\item Applies bandpass filtering to focus on vocalization frequencies
+\item Calculates RMS envelope with specified window parameters
+\item Detects bouts using adaptive thresholding
+\item Handles edge cases and minimum duration constraints
+\item Creates optional visualizations
+}
+
+For SAP objects:
+\itemize{
+\item Processes multiple recordings in parallel
+\item Validates bouts against existing motif detections
+\item Provides optional summary statistics
+\item Maintains metadata relationships
+\item Supports selective plotting
+}
+
+When summary = TRUE for SAP objects with motifs:
+\itemize{
+\item n_motifs: Count of motifs per bout
+\item align_time: First motif time for alignment
+\item bout_number_day: Sequential numbering
+\item bout_gap: Time from previous bout
 }
 }
 \examples{
 \dontrun{
-# Detect bouts in single file
-bouts <- find_bout("path/to/song.wav")
+# Basic bout detection from file
+bouts <- find_bout("song.wav",
+                   rms_threshold = 0.1,
+                   min_duration = 0.7)
 
-# Detect bouts in SAP object
+# Custom parameters with visualization
+bouts <- find_bout("song.wav",
+                   freq_range = c(2, 8),
+                   plot = TRUE,
+                   save_plot = TRUE)
+
+# Process SAP object with summary
 sap_obj <- find_bout(sap_object,
                      segment_type = "motifs",
+                     day = c(30, 40),
                      summary = TRUE)
+
+# Process specific files with plots
+sap_obj <- find_bout(sap_object,
+                     indices = 1:5,
+                     save_plot = TRUE,
+                     cores = 4)
 }
 
+}
+\seealso{
+\code{\link{segment}} for syllable-level segmentation
 }

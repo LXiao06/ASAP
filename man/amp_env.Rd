@@ -24,7 +24,7 @@ amp_env(
 }
 If NULL, no smoothing is applied}
 
-\item{norm}{Logical, whether to normalize envelope to range \link{0,1} (default: FALSE)}
+\item{norm}{Logical, Whether to normalize envelope to range between 0 and 1 (default: FALSE)}
 
 \item{plot}{Logical, whether to plot the envelope (default: FALSE)}
 }

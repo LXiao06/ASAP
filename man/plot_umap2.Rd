@@ -2,29 +2,101 @@
 % Please edit documentation in R/umap.R
 \name{plot_umap2}
 \alias{plot_umap2}
+\alias{plot_umap2.default}
+\alias{plot_umap2.Sap}
 \title{Plot UMAP Visualization for Trajectory Analysis}
 \usage{
 plot_umap2(x, ...)
+
+\method{plot_umap2}{default}(
+  x,
+  dims = c("UMAP1", "UMAP2"),
+  color.by = ".time",
+  split.by = "label",
+  order.by = "day_post_hatch",
+  pt.size = 1.2,
+  alpha_range = c(0.1, 0.5),
+  ncol = NULL,
+  title = NULL,
+  overlay_mode = FALSE,
+  base_label = NULL,
+  compare_labels = NULL,
+  base_color = "steelblue",
+  compare_color = "orangered",
+  ...
+)
+
+\method{plot_umap2}{Sap}(
+  x,
+  segment_type = c("motifs", "syllables", "bouts", "segments"),
+  data_type = c("feat.embeds", "traj.embeds"),
+  dims = c("UMAP1", "UMAP2"),
+  color.by = ".time",
+  split.by = "label",
+  order.by = "day_post_hatch",
+  pt.size = 1.2,
+  alpha_range = c(0.1, 0.5),
+  ncol = NULL,
+  title = NULL,
+  overlay_mode = FALSE,
+  base_label = NULL,
+  compare_labels = NULL,
+  base_color = "steelblue",
+  compare_color = "orangered",
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to visualize, either a data frame with trajectory data
-or a SAP object}
+\item{x}{An object to visualize, either a data frame or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{dims}{UMAP dimensions to plot (default: c("UMAP1", "UMAP2"))}
+
+\item{color.by}{Column for continuous color mapping (default: ".time")}
+
+\item{split.by}{Column for faceting (default: "label")}
+
+\item{order.by}{Column for ordering facets (default: "day_post_hatch")}
+
+\item{pt.size}{Point size (default: 1.2)}
+
+\item{alpha_range}{Range for alpha transparency (default: c(0.1, 0.5))}
+
+\item{ncol}{Number of columns in layout}
+
+\item{title}{Plot title}
+
+\item{overlay_mode}{Whether to create overlay comparisons (default: FALSE)}
+
+\item{base_label}{Base label for overlay comparison}
+
+\item{compare_labels}{Labels to compare against base}
+
+\item{base_color}{Color for base label (default: "steelblue")}
+
+\item{compare_color}{Color for comparison labels (default: "orangered")}
+
+\item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')}
+
+\item{data_type}{For SAP objects: Type of embedding data ('feat.embeds', 'traj.embeds')}
+
+\item{verbose}{For SAP objects: Whether to print progress messages}
 }
 \value{
-A ggplot object or updated SAP object
+For default method: A ggplot object
+For SAP objects: Updated SAP object with plot as side effect
 }
 \description{
-A generic function to create UMAP visualizations optimized for
-trajectory analysis, with support for continuous color mapping
-and overlay comparisons.
+Creates UMAP visualizations optimized for trajectory analysis, with support
+for continuous color mapping and overlay comparisons.
 }
 \details{
-This generic function supports trajectory visualization through two methods:
+Supports two visualization modes:
 \itemize{
-\item Default method for trajectory data frames
-\item SAP object method for organized trajectory features
+\item Standard mode: Continuous color mapping for trajectory visualization
+\item Overlay mode: Direct comparison between trajectory patterns
 }
 }
 \examples{
@@ -37,6 +109,19 @@ plot_umap2(traj_df,
            overlay_mode = TRUE,
            base_label = "a",
            compare_labels = c("b", "c"))
+
+# Plot motif trajectories from SAP object
+plot_umap2(sap_obj,
+           segment_type = "motifs",
+           data_type = "traj.embeds",
+           color.by = ".time")
+
+# Compare trajectories between labels
+plot_umap2(sap_obj,
+           segment_type = "motifs",
+           data_type = "traj.embeds",
+           overlay_mode = TRUE,
+           base_label = "pre")
 }
 
 }

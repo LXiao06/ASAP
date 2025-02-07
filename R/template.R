@@ -1,73 +1,72 @@
 
 # Create Audio Clips------------------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Create Audio Clips from Sound Files
 #'
 #' @description
-#' A generic function to create audio clips from WAV files or SAP objects
-#' by extracting specified time segments.
+#' Creates audio clips from WAV files or SAP objects by extracting specified time segments.
 #'
-#' @param x An object to process, either a character path to a WAV file
-#'          or a SAP object
+#' @param x An object to process, either a file path or SAP object
+#' @param start_time Numeric start time(s) of the clip(s)
+#' @param end_time Numeric end time(s) of the clip(s)
+#' @param clip_name,clip_names Name(s) for the output clip(s)
+#' @param unit Time unit ("second" or "millisecond")
+#' @param indices For SAP objects: Numeric vector of indices to process
+#' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports audio clip creation through two methods:
-#' \itemize{
-#'   \item Default method for individual WAV files
-#'   \item SAP object method for batch processing multiple files
-#' }
-#'
-#' @return
-#' Path to created audio clip(s) or updated SAP object
-#'
-#' @examples
-#' \dontrun{
-#' # Create clip from single WAV file
-#' create_audio_clip("path/to/song.wav",
-#'                   start_time = 10,
-#'                   end_time = 20)
-#'
-#' # Create clips from SAP object
-#' create_audio_clip(sap_object,
-#'                   indices = c(1, 2),
-#'                   start_time = c(10, 20),
-#'                   end_time = c(20, 30),
-#'                   clip_names = c("clip1", "clip2"))
-#' }
-#'
-#' @export
-create_audio_clip <- function(x, ...) {
-  UseMethod("create_audio_clip")
-}
-
-#' Create Audio Clip from WAV File
-#'
-#' @description
-#' Creates an audio clip from a single WAV file by extracting a specified time segment.
-#'
-#' @param x Path to WAV file
-#' @param start_time Numeric start time of the clip
-#' @param end_time Numeric end time of the clip
-#' @param clip_name Character name for the output clip (optional)
-#' @param unit Character time unit ("second" or "millisecond")
-#' @param ... Additional arguments
-#'
-#' @details
-#' Creates a single audio clip with specified parameters:
+#' For single WAV files:
 #' \itemize{
 #'   \item Validates input file and time parameters
 #'   \item Creates templates directory if needed
 #'   \item Extracts specified segment from audio file
 #' }
 #'
-#' @return
-#' Character string containing path to the created audio clip
+#' For SAP objects:
+#' \itemize{
+#'   \item Creates clips for specified indices
+#'   \item Updates template information in SAP object
+#'   \item Maintains metadata about created clips
+#' }
 #'
-#' @importFrom av av_audio_convert
+#' @return
+#' For default method: Character string containing path to created audio clip
+#' For SAP objects: Updated SAP object with new template information
+#'
+#' @examples
+#' \dontrun{
+#' # Create clip from single WAV file
+#' create_audio_clip("path/to/song.wav",
+#'                   start_time = 10,
+#'                   end_time = 20,
+#'                   clip_name = "song_clip")
+#'
+#' # Create multiple clips from SAP object
+#' create_audio_clip(sap_object,
+#'                   indices = c(1, 2),
+#'                   start_time = c(10, 20),
+#'                   end_time = c(20, 30),
+#'                   clip_names = c("clip1", "clip2"))
+#'
+#' # Create clip with millisecond units
+#' create_audio_clip("song.wav",
+#'                   start_time = 10000,
+#'                   end_time = 20000,
+#'                   unit = "millisecond")
+#' }
+#'
+#' @rdname create_audio_clip
+#' @export
+create_audio_clip <- function(x, ...) {
+  UseMethod("create_audio_clip")
+}
+
+#' @rdname create_audio_clip
 #' @export
 create_audio_clip.default <- function(x,
+                                      ...,
                                       start_time,
                                       end_time,
                                       clip_name = NULL,
@@ -122,28 +121,7 @@ create_audio_clip.default <- function(x,
   return(clip_path)
 }
 
-#' Create Audio Clips from SAP Object
-#'
-#' @description
-#' Creates multiple audio clips from a SAP object by extracting specified time segments.
-#'
-#' @param x A SAP object containing song recordings
-#' @param indices Numeric vector of indices to process
-#' @param start_time Numeric vector of start times
-#' @param end_time Numeric vector of end times
-#' @param clip_names Character vector of names for output clips
-#' @param unit Character time unit ("second" or "millisecond")
-#' @param verbose Logical, whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Batch processes multiple audio clips from a SAP object:
-#' \itemize{
-#'   \item Creates clips for specified indices
-#'   \item Updates template information in SAP object
-#'   \item Maintains metadata about created clips
-#' }
-#'
+#' @rdname create_audio_clip
 #' @return
 #' Updated SAP object with new template information
 #'
@@ -247,53 +225,14 @@ create_audio_clip.Sap <- function(x,
 
 
 # Create Templates ------------------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Create Correlation Templates for Song Analysis
 #'
 #' @description
-#' A generic function to create correlation templates from WAV files or SAP objects
-#' for song detection and analysis.
+#' Creates correlation templates from WAV files or SAP objects for song detection and analysis.
 #'
-#' @param x An object to process, either a character path to a WAV file
-#'          or a SAP object
-#' @param ... Additional arguments passed to specific methods
-#'
-#' @details
-#' This generic function supports template creation through two methods:
-#' \itemize{
-#'   \item Default method for creating templates from individual WAV files
-#'   \item SAP object method for creating templates from audio clips within a SAP object
-#' }
-#'
-#' @return
-#' A correlation template object or updated SAP object
-#'
-#' @examples
-#' \dontrun{
-#' # Create template from WAV file
-#' template <- create_template("path/to/song.wav",
-#'                            template_name = "template1",
-#'                            start_time = 1.0,
-#'                            end_time = 2.0)
-#'
-#' # Create template from SAP object
-#' sap_obj <- create_template(sap_object,
-#'                           template_name = "template1",
-#'                           clip_name = "clip1")
-#' }
-#'
-#' @export
-create_template <- function(x, ...) {
-  UseMethod("create_template")
-}
-
-#' Create Template from WAV File
-#'
-#' @description
-#' Creates a correlation template from a single WAV file for song detection.
-#'
-#' @param x Path to WAV file
+#' @param x An object to process, either a file path or SAP object
 #' @param template_name Character name for the template
 #' @param start_time Numeric start time of template segment
 #' @param end_time Numeric end time of template segment
@@ -301,20 +240,63 @@ create_template <- function(x, ...) {
 #' @param freq_max Numeric maximum frequency in kHz (default: 15)
 #' @param threshold Numeric correlation threshold (default: 0.6)
 #' @param write_template Logical whether to write template to disk
-#' @param ... Additional arguments
+#' @param clip_name For SAP objects: Character name of the clip to use
+#' @param verbose For SAP objects: Whether to print progress messages
+#' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' Creates a correlation template with specified parameters:
+#' For WAV files:
 #' \itemize{
 #'   \item Validates input parameters
 #'   \item Creates template using monitoR package
 #'   \item Optionally writes template to disk
 #' }
 #'
-#' @return
-#' A correlation template object from monitoR package
+#' For SAP objects:
+#' \itemize{
+#'   \item Validates clip existence
+#'   \item Creates template using specified parameters
+#'   \item Updates SAP object with template information
+#' }
 #'
-#' @importFrom monitoR makeCorTemplate writeCorTemplates
+#' @return
+#' For default method: A correlation template object from monitoR package
+#' For SAP objects: Updated SAP object with new template information
+#'
+#' @examples
+#' \dontrun{
+#' # Create template from WAV file
+#' template <- create_template("path/to/song.wav",
+#'                            template_name = "template1",
+#'                            start_time = 1.0,
+#'                            end_time = 2.0,
+#'                            freq_min = 2,
+#'                            freq_max = 8)
+#'
+#' # Create and save template
+#' template <- create_template("song.wav",
+#'                            template_name = "template2",
+#'                            start_time = 1.0,
+#'                            end_time = 2.0,
+#'                            write_template = TRUE)
+#'
+#' # Create template from SAP object
+#' sap_obj <- create_template(sap_object,
+#'                           template_name = "template1",
+#'                           clip_name = "clip1",
+#'                           freq_min = 2,
+#'                           freq_max = 8)
+#' }
+#'
+#' @seealso \code{\link{create_audio_clip}} for creating audio clips
+#'
+#' @rdname create_template
+#' @export
+create_template <- function(x, ...) {
+  UseMethod("create_template")
+}
+
+#' @rdname create_template
 #' @export
 create_template.default <- function(x,              # x is wav file path
                                     template_name,    # mandatory
@@ -323,7 +305,8 @@ create_template.default <- function(x,              # x is wav file path
                                     freq_min = 0,
                                     freq_max = 15,
                                     threshold = 0.6,
-                                    write_template = FALSE) {
+                                    write_template = FALSE,
+                                    ...) {
   # Validate file path
   if (!file.exists(x)) {
     stop("File does not exist: ", x)
@@ -390,35 +373,7 @@ create_template.default <- function(x,              # x is wav file path
   return(template)
 }
 
-#' Create Template from SAP Object
-#'
-#' @description
-#' Creates a correlation template from an audio clip within a SAP object.
-#'
-#' @param x A SAP object containing audio clips
-#' @param template_name Character name for the template
-#' @param clip_name Character name of the clip to use
-#' @param start_time Numeric start time of template segment
-#' @param end_time Numeric end time of template segment
-#' @param freq_min Numeric minimum frequency in kHz (default: 0)
-#' @param freq_max Numeric maximum frequency in kHz (default: 15)
-#' @param threshold Numeric correlation threshold (default: 0.6)
-#' @param write_template Logical whether to write template to disk
-#' @param verbose Logical whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Creates a template from a SAP object clip:
-#' \itemize{
-#'   \item Validates clip existence
-#'   \item Creates template using specified parameters
-#'   \item Updates SAP object with template information
-#' }
-#'
-#' @return
-#' Updated SAP object with new template information
-#'
-#' @seealso \code{\link{create_audio_clip}} for creating audio clips
+#' @rdname create_template
 #' @export
 create_template.Sap <- function(x,              # x is Sap object
                                 template_name,    # mandatory
@@ -512,59 +467,29 @@ create_template.Sap <- function(x,              # x is Sap object
 
 
 # Detect Templates ------------------------------------------------------
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 #' Detect Templates in Song Data
 #'
 #' @description
-#' A generic function to perform template matching on audio files using
-#' correlation-based detection.
+#' Performs template matching on audio files using correlation-based detection.
 #'
-#' @param x An object to process, either a character path to a WAV file
-#'          or a SAP object
+#' @param x An object to process, either a file path or SAP object
+#' @param template For default method: A template object created by create_template()
+#' @param cor.method Correlation method ("pearson" or "spearman")
+#' @param save_plot Whether to save detection plots
+#' @param plot_dir For default method: Directory to save plots
+#' @param template_name For SAP objects: Name of template to use
+#' @param day For SAP objects: Numeric vector of days to process
+#' @param indices For SAP objects: Numeric vector of indices to process
+#' @param threshold For SAP objects: New threshold value
+#' @param cores For SAP objects: Number of cores for parallel processing
+#' @param plot_percent For SAP objects: Percentage of files to plot (default: 10)
+#' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports template detection through two methods:
-#' \itemize{
-#'   \item Default method for detecting templates in individual WAV files
-#'   \item SAP object method for batch processing multiple files
-#' }
-#'
-#' @return
-#' Detection results or updated SAP object
-#'
-#' @examples
-#' \dontrun{
-#' # Detect template in single WAV file
-#' detections <- detect_template("path/to/song.wav",
-#'                              template = template_obj)
-#'
-#' # Detect template in SAP object
-#' sap_obj <- detect_template(sap_object,
-#'                           template_name = "template1",
-#'                           day = c(30, 40))
-#' }
-#'
-#' @export
-detect_template <- function(x, ...) {
-  UseMethod("detect_template")
-}
-
-#' Detect Template in WAV File
-#'
-#' @description
-#' Performs template matching on a single WAV file using correlation-based detection.
-#'
-#' @param x Path to WAV file
-#' @param template A template object created by create_template()
-#' @param cor.method Correlation method ("pearson" or "spearman")
-#' @param save_plot Whether to save detection plots
-#' @param plot_dir Directory to save plots (optional)
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs template detection with the following steps:
+#' For WAV files:
 #' \itemize{
 #'   \item Validates input file and template
 #'   \item Performs correlation matching
@@ -572,17 +497,55 @@ detect_template <- function(x, ...) {
 #'   \item Optionally saves detection plots
 #' }
 #'
+#' For SAP objects:
+#' \itemize{
+#'   \item Parallel processing support
+#'   \item Day-specific processing
+#'   \item Optional threshold adjustment
+#'   \item Progress tracking and reporting
+#'   \item Selective plot generation
+#' }
+#'
 #' @return
-#' A data frame containing detection results with columns:
+#' For default method: A data frame containing detection results with columns:
 #' \itemize{
 #'   \item filename: Name of the processed file
 #'   \item time: Time point of detection
 #'   \item score: Correlation score
 #' }
 #'
-#' @importFrom monitoR corMatch findPeaks getDetections
-#' @importFrom tools file_path_sans_ext
-#' @importFrom dplyr rename select
+#' For SAP objects: Updated SAP object with detection results stored in template_matches
+#'
+#' @examples
+#' \dontrun{
+#' # Detect template in single WAV file
+#' detections <- detect_template("path/to/song.wav",
+#'                              template = template_obj,
+#'                              save_plot = TRUE)
+#'
+#' # Detect template in SAP object
+#' sap_obj <- detect_template(sap_object,
+#'                           template_name = "template1",
+#'                           day = c(30, 40),
+#'                           threshold = 0.7,
+#'                           cores = 4)
+#'
+#' # Process specific indices with plots
+#' sap_obj <- detect_template(sap_object,
+#'                           template_name = "template1",
+#'                           indices = 1:10,
+#'                           save_plot = TRUE)
+#' }
+#'
+#' @seealso \code{\link{create_template}} for creating templates
+#'
+#' @rdname detect_template
+#' @export
+detect_template <- function(x, ...) {
+  UseMethod("detect_template")
+}
+
+#' @rdname detect_template
 #' @export
 detect_template.default <- function(x,  # x is wav file path
                                     template,
@@ -649,41 +612,7 @@ detect_template.default <- function(x,  # x is wav file path
   return(detections)
 }
 
-#' Detect Template in SAP Object
-#'
-#' @description
-#' Performs batch template detection across multiple files in a SAP object.
-#'
-#' @param x A SAP object containing song recordings
-#' @param day Numeric vector of days to process
-#' @param indices Numeric vector of indices to process
-#' @param template_name Name of template to use
-#' @param threshold New threshold value (optional)
-#' @param cores Number of cores for parallel processing
-#' @param cor.method Correlation method ("pearson" or "spearman")
-#' @param save_plot Whether to save detection plots
-#' @param plot_percent Percentage of files to plot (default: 10)
-#' @param verbose Whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs batch template detection with the following features:
-#' \itemize{
-#'   \item Parallel processing support
-#'   \item Day-specific processing
-#'   \item Optional threshold adjustment
-#'   \item Progress tracking and reporting
-#'   \item Selective plot generation
-#' }
-#'
-#' @return
-#' Updated SAP object with detection results stored in template_matches
-#'
-#' @importFrom parallel detectCores
-#' @importFrom pbmcapply pbmclapply
-#' @importFrom pbapply pblapply
-#' @importFrom dplyr mutate
-#' @importFrom monitoR templateCutoff
+#' @rdname detect_template
 #' @export
 detect_template.Sap <- function(x,  # x is SAP object
                                 day = NULL,

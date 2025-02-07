@@ -1,5 +1,5 @@
 # Clustering
-# Update date : Feb. 4, 2025
+# Update date : Feb. 7, 2025
 
 # Find Clusters -----------------------------------------------------------
 
@@ -7,56 +7,23 @@
 #' Find Clusters in Feature Data
 #'
 #' @description
-#' A generic function to perform cluster analysis on feature data using
-#' shared nearest neighbor (SNN) clustering.
+#' Performs cluster analysis on feature data using shared nearest neighbor (SNN) clustering.
 #'
-#' @param x An object to analyze, either a data frame with feature data
-#'          or a SAP object
+#' @param x An object to analyze, either a data frame or SAP object
+#' @param metadata_cols For default method: Column indices for metadata
+#' @param k.param Number of nearest neighbors (default: 20)
+#' @param prune.SNN Pruning threshold for SNN graph (default: 1/15)
+#' @param n.pcs Number of principal components to use (default: 20)
+#' @param resolution Resolution parameter for clustering (default: 0.2)
+#' @param n.start Number of random starts (default: 10)
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
+#' @param data_type For SAP objects: Type of feature data ('spectral_feature')
+#' @param label For SAP objects: Specific label to filter data
+#' @param verbose Whether to print progress messages (default: TRUE)
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
-#' This generic function supports clustering through two methods:
-#' \itemize{
-#'   \item Default method for clustering feature data frames
-#'   \item SAP object method for clustering organized song features
-#' }
-#'
-#' @return
-#' A data frame with cluster assignments or updated SAP object
-#'
-#' @examples
-#' \dontrun{
-#' # Cluster feature data frame
-#' clusters <- find_clusters(features, metadata_cols = c(1:5))
-#'
-#' # Cluster features in SAP object
-#' sap_obj <- find_clusters(sap_object,
-#'                         segment_type = "motifs",
-#'                         data_type = "spectral_feature")
-#' }
-#'
-#' @export
-find_clusters <- function(x, ...) {
-  UseMethod("find_clusters")
-}
-
-#' Find Clusters in Feature Data Frame
-#'
-#' @description
-#' Performs cluster analysis on a data frame containing feature data.
-#'
-#' @param x Data frame containing feature data
-#' @param metadata_cols Column indices or names for metadata
-#' @param k.param Number of nearest neighbors
-#' @param prune.SNN Pruning threshold for SNN graph
-#' @param n.pcs Number of principal components to use
-#' @param resolution Resolution parameter for clustering
-#' @param n.start Number of random starts
-#' @param verbose Whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs clustering with the following steps:
+#' For feature data frames:
 #' \itemize{
 #'   \item Separates metadata and feature columns
 #'   \item Finds nearest neighbors using PCA
@@ -64,9 +31,58 @@ find_clusters <- function(x, ...) {
 #'   \item Performs community detection
 #' }
 #'
-#' @return
-#' A data frame containing metadata columns and cluster assignments
+#' For SAP objects:
+#' \itemize{
+#'   \item Supports multiple segment types
+#'   \item Optional label filtering
+#'   \item Stores results in features slot
+#'   \item Updates feature embeddings
+#' }
 #'
+#' The clustering approach is similar to that used in Seurat V3, implementing:
+#' \itemize{
+#'   \item PCA-based neighbor finding
+#'   \item SNN graph construction
+#'   \item Louvain community detection
+#' }
+#'
+#' @return
+#' For default method: Data frame with metadata columns and cluster assignments
+#' For SAP objects: Updated object with clustering results in features slot
+#'
+#' @examples
+#' \dontrun{
+#' # Basic clustering of feature data
+#' clusters <- find_clusters(features,
+#'                          metadata_cols = c(1:5))
+#'
+#' # Clustering with custom parameters
+#' clusters <- find_clusters(features,
+#'                          metadata_cols = c(1:5),
+#'                          k.param = 30,
+#'                          resolution = 0.3)
+#'
+#' # Cluster SAP object features
+#' sap_obj <- find_clusters(sap_object,
+#'                         segment_type = "motifs",
+#'                         data_type = "spectral_feature")
+#'
+#' # Label-specific clustering
+#' sap_obj <- find_clusters(sap_object,
+#'                         segment_type = "syllables",
+#'                         label = "a",
+#'                         resolution = 0.4)
+#' }
+#'
+#' @seealso \code{\link{run_umap}} for visualization of clusters
+#'
+#' @rdname find_clusters
+#' @export
+find_clusters <- function(x, ...) {
+  UseMethod("find_clusters")
+}
+
+#' @rdname find_clusters
 #' @export
 find_clusters.default <- function(x,
                                   metadata_cols,
@@ -131,35 +147,7 @@ find_clusters.default <- function(x,
   return(seg_cluster)
 }
 
-#' Find Clusters in SAP Object Features
-#'
-#' @description
-#' Performs cluster analysis on features stored in a SAP object.
-#'
-#' @param x A SAP object containing feature data
-#' @param segment_type Type of segments to analyze
-#' @param data_type Type of feature data to use
-#' @param label Specific label to filter data
-#' @param k.param Number of nearest neighbors
-#' @param prune.SNN Pruning threshold for SNN graph
-#' @param n.pcs Number of principal components to use
-#' @param resolution Resolution parameter for clustering
-#' @param n.start Number of random starts
-#' @param verbose Whether to print progress messages
-#' @param ... Additional arguments
-#'
-#' @details
-#' Performs clustering with the following features:
-#' \itemize{
-#'   \item Supports multiple segment types
-#'   \item Optional label filtering
-#'   \item Stores results in SAP object
-#'   \item Updates feature embeddings
-#' }
-#'
-#' @return
-#' Updated SAP object with clustering results stored in features slot
-#'
+#' @rdname find_clusters
 #' @export
 find_clusters.Sap <- function(x,
                               segment_type = c("motifs", "syllables", "bouts", "segments"),
@@ -276,19 +264,26 @@ find_clusters.Sap <- function(x,
 #'
 #' @details
 #' Original source: Seurat package
-#' (https://github.com/satijalab/seurat/blob/main/inst/CITATION)
-#' Citations:
+#' (\url{https://github.com/satijalab/seurat/blob/main/inst/CITATION})
+#'
+#' These functions are based on methods developed in the following publications:
 #' \itemize{
-#'   \item Hao et al. Dictionary learning for integrative, multimodal and scalable
-#'         single-cell analysis. Nature Biotechnology (2023) [Seurat V5]
-#'   \item Hao and Hao et al. Integrated analysis of multimodal single-cell data.
-#'         Cell (2021) [Seurat V4]
-#'   \item Stuart and Butler et al. Comprehensive Integration of Single-Cell Data.
-#'         Cell (2019) [Seurat V3]
-#'   \item Butler et al. Integrating single-cell transcriptomic data across different
-#'         conditions, technologies, and species. Nat Biotechnol (2018) [Seurat V2]
-#'   \item Butler et al. Spatial reconstruction of single-cell gene expression data
-#'         Nat Biotechnol (2015) [Seurat V1]
+#'   \item Hao Y, et al. (2023). Dictionary learning for integrative, multimodal
+#'         and scalable single-cell analysis. \emph{Nature Biotechnology}.
+#'         doi:10.1038/s41587-023-01767-y
+#'   \item Hao Y, Hao S, et al. (2021). Integrated analysis of multimodal
+#'         single-cell data. \emph{Cell}.
+#'         doi:10.1016/j.cell.2021.04.048
+#'   \item Stuart T, Butler A, et al. (2019). Comprehensive Integration of
+#'         Single-Cell Data. \emph{Cell}.
+#'         doi:10.1016/j.cell.2019.05.031
+#'   \item Butler A, et al. (2018). Integrating single-cell transcriptomic data
+#'         across different conditions, technologies, and species.
+#'         \emph{Nature Biotechnology}.
+#'         doi:10.1038/nbt.4096
+#'   \item Satija R, et al. (2015). Spatial reconstruction of single-cell gene
+#'         expression data. \emph{Nature Biotechnology}.
+#'         doi:10.1038/nbt.3192
 #' }
 #'
 #' @keywords internal

@@ -2,41 +2,120 @@
 % Please edit documentation in R/spectrogramming.R
 \name{visualize_segments}
 \alias{visualize_segments}
+\alias{visualize_segments.default}
+\alias{visualize_segments.Sap}
 \title{Visualize Song Segments}
 \usage{
 visualize_segments(x, ...)
+
+\method{visualize_segments}{default}(
+  x,
+  wav_file_dir,
+  n_samples = NULL,
+  seed = NULL,
+  fft_window_size = 1024,
+  overlap = 0.75,
+  dark_mode = TRUE,
+  legend = FALSE,
+  ...
+)
+
+\method{visualize_segments}{Sap}(
+  x,
+  segment_type = c("motifs", "bouts", "segments"),
+  labels = NULL,
+  clusters = NULL,
+  n_samples = NULL,
+  by_column = TRUE,
+  seed = NULL,
+  fft_window_size = 1024,
+  overlap = 0.75,
+  dark_mode = TRUE,
+  legend = FALSE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to visualize, either a data frame or a SAP object}
+\item{x}{An object to visualize, either a data frame or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{wav_file_dir}{For default method: Directory containing WAV files}
+
+\item{n_samples}{Number of samples to display}
+
+\item{seed}{Random seed for sample selection}
+
+\item{fft_window_size}{Size of FFT window (default: 1024)}
+
+\item{overlap}{Overlap between windows (default: 0.75)}
+
+\item{dark_mode}{Use dark theme (default: TRUE)}
+
+\item{legend}{Show spectrogram legend (default: FALSE)}
+
+\item{segment_type}{For SAP objects: Type of segments ('motifs', 'bouts', 'segments')}
+
+\item{labels}{For SAP objects: Labels to include}
+
+\item{clusters}{For SAP objects: Specific clusters to visualize}
+
+\item{by_column}{For SAP objects: Arrange by columns (default: TRUE)}
 }
 \value{
-Generates a multi-panel spectrogram plot. Returns the input object invisibly.
+Generates a multi-panel spectrogram plot and returns the input object invisibly.
 }
 \description{
-A generic function to visualize audio segments from various sources,
-supporting both data frames and SAP objects.
+Creates multi-panel spectrogram visualizations of audio segments from various sources.
 }
 \details{
-This generic function supports visualization of song segments through two methods:
+For data frames:
 \itemize{
-\item Default method for visualizing segments from a data frame
-\item SAP object method for visualizing segments from a Sound Analysis Pro object
+\item Requires columns: filename, start_time, end_time
+\item Optional column: day_post_hatch for hierarchical file structure
+\item Supports random sampling of segments
+}
+
+For SAP objects:
+\itemize{
+\item Supports visualization by labels and/or clusters
+\item Flexible sampling within groups
+\item Customizable layout (by row or column)
+\item Automatic handling of file paths
 }
 }
 \examples{
 \dontrun{
-# Visualize segments from a data frame
+# Visualize from data frame
 song_df <- data.frame(
   filename = c("song1.wav", "song2.wav"),
   start_time = c(0, 10),
   end_time = c(30, 40)
 )
-visualize_segments(song_df, wav_file_dir = "path/to/wav/files")
+visualize_segments(song_df,
+                   wav_file_dir = "path/to/wav/files",
+                   n_samples = 5)
 
-# Visualize segments from a SAP object
-visualize_segments(sap_object, segment_type = "motifs")
+# Basic SAP object visualization
+visualize_segments(sap_object,
+                   segment_type = "motifs",
+                   n_samples = 3)
+
+# Cluster-specific visualization
+visualize_segments(sap_object,
+                   segment_type = "segments",
+                   clusters = c(1, 2),
+                   labels = c("a", "b"),
+                   n_samples = 4)
+
+# Custom layout
+visualize_segments(sap_object,
+                   segment_type = "motifs",
+                   by_column = FALSE,
+                   fft_window_size = 2048)
 }
 
+}
+\seealso{
+\code{\link{visualize_song}} for single file visualization
 }

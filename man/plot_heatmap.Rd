@@ -2,40 +2,144 @@
 % Please edit documentation in R/envelope.R
 \name{plot_heatmap}
 \alias{plot_heatmap}
+\alias{plot_heatmap.default}
+\alias{plot_heatmap.matrix}
+\alias{plot_heatmap.Sap}
 \title{Plot Heatmap of Amplitude Envelopes}
 \usage{
 plot_heatmap(x, ...)
+
+\method{plot_heatmap}{default}(
+  x,
+  wav_dir = NULL,
+  msmooth = c(256, 50),
+  color_palette = NULL,
+  n_colors = 500,
+  contrast = 3,
+  ...
+)
+
+\method{plot_heatmap}{matrix}(
+  x,
+  labels = NULL,
+  color_palette = NULL,
+  n_colors = 500,
+  contrast = 3,
+  main = "Amplitude Envelope Heatmap",
+  ...
+)
+
+\method{plot_heatmap}{Sap}(
+  x,
+  segment_type = c("motifs", "bouts", "syllables", "segments"),
+  sample_percent = NULL,
+  balanced = FALSE,
+  labels = NULL,
+  cores = NULL,
+  seed = 222,
+  msmooth = c(256, 50),
+  color_palette = NULL,
+  n_colors = 500,
+  contrast = 3,
+  ordered = FALSE,
+  descending = TRUE,
+  padding_quantile = 0.9,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to visualize: data frame, SAP object, or amplitude matrix}
+\item{x}{An object to visualize (data frame, SAP object, or matrix)}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{wav_dir}{For default method: Path to WAV files directory}
+
+\item{msmooth}{Smoothing parameters c(window_length, overlap_percentage)}
+
+\item{color_palette}{Function generating color palette}
+
+\item{n_colors}{Number of colors in heatmap (default: 500)}
+
+\item{contrast}{Contrast factor for visualization (default: 3)}
+
+\item{labels}{Optional vector of labels to include}
+
+\item{main}{For matrix method: Plot title}
+
+\item{segment_type}{For SAP objects: Type of segments ('motifs', 'bouts', 'syllables', 'segments')}
+
+\item{sample_percent}{For SAP objects: Percentage to sample}
+
+\item{balanced}{For SAP objects: Balance across labels}
+
+\item{cores}{For SAP objects: Number of processing cores}
+
+\item{seed}{For SAP objects: Random seed (default: 222)}
+
+\item{ordered}{For SAP objects: Order by embeddings}
+
+\item{descending}{For SAP objects: Direction of ordering}
+
+\item{padding_quantile}{For SAP objects: Quantile for bout padding (default: 0.9)}
+
+\item{verbose}{For SAP objects: Print progress messages}
 }
 \value{
-A heatmap visualization or updated SAP object
+For default method: List containing segments, matrix, and plot
+For SAP objects: Updated object with amplitude features
+For matrices: Lattice plot object
 }
 \description{
-A generic function to create heatmap visualizations of amplitude envelopes
-from audio segments.
+Creates heatmap visualizations of amplitude envelopes from audio segments, supporting
+multiple data sources and visualization options.
 }
 \details{
-This generic function supports heatmap creation through three methods:
+For data frames:
 \itemize{
-\item Default method for segment data frames
-\item SAP object method for organized song data
-\item Matrix method for pre-computed amplitude envelopes
+\item Requires columns: filename, start_time, end_time
+\item Calculates envelopes for each segment
+\item Creates matrix of aligned envelopes
+}
+
+For SAP objects:
+\itemize{
+\item Supports multiple segment types
+\item Optional balanced sampling
+\item Parallel processing support
+\item Ordering by feature embeddings
+}
+
+For matrices:
+\itemize{
+\item Direct visualization of pre-computed envelopes
+\item Label-based organization
+\item Visual separation between groups
 }
 }
 \examples{
 \dontrun{
-# Plot from segment data frame
+# Basic usage with data frame
 plot_heatmap(segments, wav_dir = "path/to/wavs")
 
-# Plot from SAP object
-plot_heatmap(sap_obj, segment_type = "motifs")
+# SAP object with options
+plot_heatmap(sap_obj,
+             segment_type = "motifs",
+             balanced = TRUE,
+             ordered = TRUE)
 
-# Plot from amplitude matrix
-plot_heatmap(amp_matrix)
+# Matrix with specific labels
+plot_heatmap(amp_matrix,
+             labels = c("a", "b"),
+             contrast = 2)
+
+# Advanced SAP object usage
+plot_heatmap(sap_obj,
+             segment_type = "bouts",
+             sample_percent = 80,
+             cores = 4,
+             ordered = TRUE,
+             descending = FALSE)
 }
 
 }

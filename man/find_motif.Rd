@@ -2,28 +2,77 @@
 % Please edit documentation in R/motif.R
 \name{find_motif}
 \alias{find_motif}
+\alias{find_motif.default}
+\alias{find_motif.Sap}
 \title{Find Motifs in Song Data}
 \usage{
 find_motif(x, ...)
+
+\method{find_motif}{default}(
+  x,
+  pre_time = NULL,
+  lag_time = NULL,
+  wav_dir = NULL,
+  add_path_attr = TRUE,
+  verbose = TRUE,
+  ...
+)
+
+\method{find_motif}{Sap}(
+  x,
+  template_name,
+  pre_time = NULL,
+  lag_time = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to process, either a data frame with detection data
-or a SAP object}
+\item{x}{An object to process, either a data frame or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{pre_time}{Time in seconds before detection point}
+
+\item{lag_time}{Time in seconds after detection point}
+
+\item{wav_dir}{For default method: Directory containing WAV files}
+
+\item{add_path_attr}{For default method: Add wav_dir as attribute (default: TRUE)}
+
+\item{verbose}{Whether to print processing information (default: TRUE)}
+
+\item{template_name}{For SAP objects: Name of template to process}
 }
 \value{
-A data frame of motif information or updated SAP object
+For default method: Data frame containing:
+\itemize{
+\item filename: Source WAV file name
+\item detection_time: Original detection time
+\item start_time, end_time: Motif boundaries
+\item duration: Motif duration
+}
+
+For SAP objects: Updated object with motifs stored in motifs slot
 }
 \description{
-A generic function to identify and extract motifs from song recordings
-based on detection times.
+Identifies and extracts motifs from song recordings based on detection times.
 }
 \details{
-This generic function supports motif extraction through two methods:
+For detection data frames:
 \itemize{
-\item Default method for processing detection data from a data frame
-\item SAP object method for processing template-based detections
+\item Requires columns: filename, time
+\item Validates motif boundaries against audio duration
+\item Processes each unique audio file
+\item Returns combined results with metadata
+}
+
+For SAP objects:
+\itemize{
+\item Processes template-based detections
+\item Organizes results by recording day
+\item Validates motif boundaries
+\item Updates object with extracted motifs
 }
 }
 \examples{
@@ -34,11 +83,28 @@ motifs <- find_motif(detections,
                      lag_time = 0.2,
                      wav_dir = "path/to/wavs")
 
+# Process with path attribute
+motifs <- find_motif(detections,
+                     pre_time = 0.1,
+                     lag_time = 0.2,
+                     wav_dir = "path/to/wavs",
+                     add_path_attr = TRUE)
+
 # Find motifs in SAP object
 sap_obj <- find_motif(sap_object,
                       template_name = "template1",
                       pre_time = 0.7,
                       lag_time = 0.5)
+
+# Process with custom timing
+sap_obj <- find_motif(sap_object,
+                      template_name = "template2",
+                      pre_time = 0.5,
+                      lag_time = 0.3,
+                      verbose = TRUE)
 }
 
+}
+\seealso{
+\code{\link{detect_template}} for template detection
 }

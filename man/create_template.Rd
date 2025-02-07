@@ -2,28 +2,81 @@
 % Please edit documentation in R/template.R
 \name{create_template}
 \alias{create_template}
+\alias{create_template.default}
+\alias{create_template.Sap}
 \title{Create Correlation Templates for Song Analysis}
 \usage{
 create_template(x, ...)
+
+\method{create_template}{default}(
+  x,
+  template_name,
+  start_time = NULL,
+  end_time = NULL,
+  freq_min = 0,
+  freq_max = 15,
+  threshold = 0.6,
+  write_template = FALSE,
+  ...
+)
+
+\method{create_template}{Sap}(
+  x,
+  template_name,
+  clip_name,
+  start_time = NULL,
+  end_time = NULL,
+  freq_min = 0,
+  freq_max = 15,
+  threshold = 0.6,
+  write_template = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to process, either a character path to a WAV file
-or a SAP object}
+\item{x}{An object to process, either a file path or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{template_name}{Character name for the template}
+
+\item{start_time}{Numeric start time of template segment}
+
+\item{end_time}{Numeric end time of template segment}
+
+\item{freq_min}{Numeric minimum frequency in kHz (default: 0)}
+
+\item{freq_max}{Numeric maximum frequency in kHz (default: 15)}
+
+\item{threshold}{Numeric correlation threshold (default: 0.6)}
+
+\item{write_template}{Logical whether to write template to disk}
+
+\item{clip_name}{For SAP objects: Character name of the clip to use}
+
+\item{verbose}{For SAP objects: Whether to print progress messages}
 }
 \value{
-A correlation template object or updated SAP object
+For default method: A correlation template object from monitoR package
+For SAP objects: Updated SAP object with new template information
 }
 \description{
-A generic function to create correlation templates from WAV files or SAP objects
-for song detection and analysis.
+Creates correlation templates from WAV files or SAP objects for song detection and analysis.
 }
 \details{
-This generic function supports template creation through two methods:
+For WAV files:
 \itemize{
-\item Default method for creating templates from individual WAV files
-\item SAP object method for creating templates from audio clips within a SAP object
+\item Validates input parameters
+\item Creates template using monitoR package
+\item Optionally writes template to disk
+}
+
+For SAP objects:
+\itemize{
+\item Validates clip existence
+\item Creates template using specified parameters
+\item Updates SAP object with template information
 }
 }
 \examples{
@@ -32,12 +85,26 @@ This generic function supports template creation through two methods:
 template <- create_template("path/to/song.wav",
                            template_name = "template1",
                            start_time = 1.0,
-                           end_time = 2.0)
+                           end_time = 2.0,
+                           freq_min = 2,
+                           freq_max = 8)
+
+# Create and save template
+template <- create_template("song.wav",
+                           template_name = "template2",
+                           start_time = 1.0,
+                           end_time = 2.0,
+                           write_template = TRUE)
 
 # Create template from SAP object
 sap_obj <- create_template(sap_object,
                           template_name = "template1",
-                          clip_name = "clip1")
+                          clip_name = "clip1",
+                          freq_min = 2,
+                          freq_max = 8)
 }
 
+}
+\seealso{
+\code{\link{create_audio_clip}} for creating audio clips
 }

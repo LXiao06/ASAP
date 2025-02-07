@@ -2,28 +2,71 @@
 % Please edit documentation in R/template.R
 \name{create_audio_clip}
 \alias{create_audio_clip}
+\alias{create_audio_clip.default}
+\alias{create_audio_clip.Sap}
 \title{Create Audio Clips from Sound Files}
 \usage{
 create_audio_clip(x, ...)
+
+\method{create_audio_clip}{default}(
+  x,
+  ...,
+  start_time,
+  end_time,
+  clip_name = NULL,
+  unit = "second"
+)
+
+\method{create_audio_clip}{Sap}(
+  x,
+  indices,
+  start_time,
+  end_time,
+  clip_names,
+  unit = "second",
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to process, either a character path to a WAV file
-or a SAP object}
+\item{x}{An object to process, either a file path or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{start_time}{Numeric start time(s) of the clip(s)}
+
+\item{end_time}{Numeric end time(s) of the clip(s)}
+
+\item{clip_name, clip_names}{Name(s) for the output clip(s)}
+
+\item{unit}{Time unit ("second" or "millisecond")}
+
+\item{indices}{For SAP objects: Numeric vector of indices to process}
+
+\item{verbose}{For SAP objects: Whether to print progress messages}
 }
 \value{
-Path to created audio clip(s) or updated SAP object
+For default method: Character string containing path to created audio clip
+For SAP objects: Updated SAP object with new template information
+
+Updated SAP object with new template information
 }
 \description{
-A generic function to create audio clips from WAV files or SAP objects
-by extracting specified time segments.
+Creates audio clips from WAV files or SAP objects by extracting specified time segments.
 }
 \details{
-This generic function supports audio clip creation through two methods:
+For single WAV files:
 \itemize{
-\item Default method for individual WAV files
-\item SAP object method for batch processing multiple files
+\item Validates input file and time parameters
+\item Creates templates directory if needed
+\item Extracts specified segment from audio file
+}
+
+For SAP objects:
+\itemize{
+\item Creates clips for specified indices
+\item Updates template information in SAP object
+\item Maintains metadata about created clips
 }
 }
 \examples{
@@ -31,14 +74,21 @@ This generic function supports audio clip creation through two methods:
 # Create clip from single WAV file
 create_audio_clip("path/to/song.wav",
                   start_time = 10,
-                  end_time = 20)
+                  end_time = 20,
+                  clip_name = "song_clip")
 
-# Create clips from SAP object
+# Create multiple clips from SAP object
 create_audio_clip(sap_object,
                   indices = c(1, 2),
                   start_time = c(10, 20),
                   end_time = c(20, 30),
                   clip_names = c("clip1", "clip2"))
+
+# Create clip with millisecond units
+create_audio_clip("song.wav",
+                  start_time = 10000,
+                  end_time = 20000,
+                  unit = "millisecond")
 }
 
 }

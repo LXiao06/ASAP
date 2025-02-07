@@ -2,40 +2,125 @@
 % Please edit documentation in R/trajectory.R
 \name{create_trajectory_matrix}
 \alias{create_trajectory_matrix}
+\alias{create_trajectory_matrix.default}
+\alias{create_trajectory_matrix.Sap}
 \title{Create Spectrogram Matrices for Song Trajectory Analysis}
 \usage{
 create_trajectory_matrix(x, ...)
+
+\method{create_trajectory_matrix}{default}(
+  x,
+  wav_dir,
+  window_size = 0.1,
+  step_size = 0.005,
+  wl = 128,
+  ovlp = 50,
+  flim = c(1, 12),
+  cores = NULL,
+  ...
+)
+
+\method{create_trajectory_matrix}{Sap}(
+  x,
+  segment_type = c("motifs", "syllables", "bouts", "segments"),
+  data_type = NULL,
+  clusters = NULL,
+  sample_percent = NULL,
+  balanced = FALSE,
+  labels = NULL,
+  seed = 222,
+  window_size = 0.1,
+  step_size = 0.005,
+  wl = 128,
+  ovlp = 50,
+  flim = c(1, 12),
+  cores = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
-\item{x}{An object to process, either a data frame with segment information
-or a SAP object}
+\item{x}{An object to process, either a data frame or SAP object}
 
 \item{...}{Additional arguments passed to specific methods}
+
+\item{wav_dir}{Directory containing WAV files (for default method)}
+
+\item{window_size}{Size of sliding window in seconds (default: 0.1)}
+
+\item{step_size}{Step size between windows (default: 0.005)}
+
+\item{wl}{Window length for spectrogram (default: 128)}
+
+\item{ovlp}{Overlap percentage (default: 50)}
+
+\item{flim}{Frequency limits (default: c(1, 12))}
+
+\item{cores}{Number of processing cores}
+
+\item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')}
+
+\item{data_type}{For SAP objects: Type of data to analyze}
+
+\item{clusters}{For SAP objects: Specific clusters to include}
+
+\item{sample_percent}{For SAP objects: Percentage to sample}
+
+\item{balanced}{For SAP objects: Whether to balance across groups}
+
+\item{labels}{For SAP objects: Specific labels to include}
+
+\item{seed}{For SAP objects: Random seed}
+
+\item{verbose}{For SAP objects: Whether to print progress}
 }
 \value{
-A list containing spectrogram matrix and sliding window information,
-or updated SAP object
+For default method: A list containing:
+\itemize{
+\item spectrogram_matrix: Matrix of spectrogram vectors
+\item sliding_windows: Data frame of window information
+}
+
+For SAP objects: Updated SAP object with trajectory matrix stored in features slot
 }
 \description{
-A generic function to create spectrogram matrices from sliding windows
-for song trajectory analysis.
+Creates spectrogram matrices from sliding windows for song trajectory analysis.
 }
 \details{
-This generic function supports trajectory analysis through two methods:
+Creates trajectory matrix with the following steps:
 \itemize{
-\item Default method for processing segment data frames
-\item SAP object method for processing organized song segments
+\item Generates sliding windows for each segment
+\item Computes spectrograms for each window
+\item Combines results into matrix form
+}
+
+For SAP objects, additional features include:
+\itemize{
+\item Support for different segment types
+\item Optional cluster/label filtering
+\item Balanced sampling options
+\item Results storage in features slot
 }
 }
 \examples{
 \dontrun{
 # Create trajectory matrix from segments
 matrix <- create_trajectory_matrix(segments,
-                                  wav_dir = "path/to/wavs")
+                                  wav_dir = "path/to/wavs",
+                                  window_size = 0.1,
+                                  step_size = 0.005)
 
 # Create trajectory matrix from SAP object
 sap_obj <- create_trajectory_matrix(sap_object,
-                                   segment_type = "motifs")
+                                   segment_type = "motifs",
+                                   balanced = TRUE,
+                                   sample_percent = 80)
+
+# Create matrix with specific clusters
+sap_obj <- create_trajectory_matrix(sap_object,
+                                   segment_type = "syllables",
+                                   clusters = c(1, 2),
+                                   labels = c("a", "b"))
 }
 
 }

@@ -7,9 +7,9 @@
 compute_rms(data, wl, ovlp)
 }
 \arguments{
-\item{wl}{Window length for RMS calculation}
+\item{wl}{Window length for RMS calculation (default: 1024)}
 
-\item{ovlp}{Overlap percentage between windows}
+\item{ovlp}{Overlap percentage between windows (default: 50)}
 }
 \description{
 Internal function to calculate RMS envelope of audio signal.
