@@ -63,7 +63,6 @@ run_pca <- function(x, ...) {
 #' @return
 #' PCA results or PC scores matrix
 #'
-#' @importFrom tictoc tic toc
 #' @export
 run_pca.default <- function(x,
                    method = c("irlba", "base", "parallel"),
@@ -330,10 +329,14 @@ fast_pca <- function(matrix, n_components = 50, center = TRUE, scale = TRUE) {
 #' @param n_cores Number of cores
 #' @param scale Whether to scale data
 #'
-#' @importFrom bigstatsr as_FBM big_randomSVD big_scale
 #' @keywords internal
 parallel_pca <- function(x, n_components = 50, n_cores = NULL, scale = TRUE) {
-  #require(bigstatsr)
+  # Check if bigstatsr is installed
+  if (!requireNamespace("bigstatsr", quietly = TRUE)) {
+    warning("Package 'bigstatsr' is required for parallel PCA processing.
+            Please install it with: install.packages('bigstatsr')")
+    return(NULL)
+  }
 
   # Check if input is a valid matrix
   if (!is.matrix(x)) {

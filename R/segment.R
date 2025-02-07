@@ -938,7 +938,7 @@ plot_syllable_detection <- function(times, frequencies, sp, syllables, max_level
              y = label_y,
              labels = i,
              col = 'white',
-             cex = 0.6)
+             cex = 0.8)
       }
     }
 

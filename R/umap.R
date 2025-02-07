@@ -454,6 +454,12 @@ plot_umap.default <- function(x,
                               ncol = NULL,
                               combine = TRUE,
                               ...) {
+  # Check for patchwork package
+  if (!requireNamespace("patchwork", quietly = TRUE)) {
+    warning("Package 'patchwork' is required for this function.
+            Please install it with: install.packages('patchwork')")
+    return(NULL)
+  }
 
   # Validate input
   if(!is.data.frame(x)) stop("Input must be a data frame")
@@ -947,7 +953,6 @@ plot_umap2 <- function(x, ...) {
 #' @importFrom rlang sym !!
 #' @importFrom dplyr filter mutate
 #' @importFrom ggplot2 ggplot aes geom_point scale_color_manual scale_alpha_continuous theme_minimal facet_wrap ggtitle
-#' @importFrom patchwork wrap_plots
 #' @export
 plot_umap2.default <- function(x,
                                dims = c("UMAP1", "UMAP2"),

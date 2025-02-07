@@ -64,7 +64,6 @@ visualize_song <- function(x, ...) {
 #' Generates a spectrogram plot of the audio file
 #'
 #' @importFrom av read_audio_fft
-#' @importFrom signal hanning
 #' @export
 visualize_song.default <- function(x,  # wav file path
                                    start_time_in_second = NULL,

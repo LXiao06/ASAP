@@ -719,7 +719,6 @@ pad_amp_env <- function(segment_row,
 #' @return A ggplot object
 #'
 #' @importFrom dplyr mutate select filter arrange left_join bind_rows %>%
-#' @importFrom tidyr pivot_longer
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap labs theme_minimal scale_color_brewer
 #'             scale_fill_brewer ggtitle theme element_text stat_summary
 #' @importFrom stats sd
