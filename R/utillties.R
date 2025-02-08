@@ -1,5 +1,9 @@
 # utilities
 
+
+#' @importFrom rlang `%||%`
+NULL
+
 #' Construct file path for audio file
 #'
 #' @param x A data frame row with file name
