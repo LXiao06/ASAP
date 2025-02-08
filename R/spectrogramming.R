@@ -64,8 +64,6 @@
 #'                end_time_in_second = rep(5, 6))
 #' }
 #'
-#' @importFrom tuneR readWave
-#'
 #' @rdname visualize_song
 #' @export
 visualize_song <- function(x, ...) {
@@ -326,8 +324,6 @@ visualize_song.Sap <- function(x,  # sap object
 #' }
 #'
 #' @seealso \code{\link{visualize_song}} for single file visualization
-#'
-#' @importFrom tuneR readWave
 #'
 #' @rdname visualize_segments
 #' @export

@@ -1,6 +1,6 @@
 # utilities
 
-
+#' @importFrom tuneR readWave
 #' @importFrom rlang `%||%`
 NULL
 

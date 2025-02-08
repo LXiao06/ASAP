@@ -76,8 +76,6 @@
 #'
 #' @seealso \code{\link{run_umap}} for visualization of clusters
 #'
-#' @importFrom rlang `%||%`
-#'
 #' @rdname find_clusters
 #' @export
 find_clusters <- function(x, ...) {
@@ -305,7 +303,6 @@ NULL
 #'
 #' @return List containing neighbor graphs
 #'
-#' @importFrom Matrix sparseMatrix
 #' @keywords internal
 find_segment_neighbors <- function(
     segments_data,
@@ -462,7 +459,6 @@ find_segment_clusters <- function(
 #' @description
 #' Internal function to run modularity optimization.
 #'
-#' @importFrom utils read.table write.table
 #' @keywords internal
 RunModularityClustering <- function(
     SNN = matrix(),

@@ -93,8 +93,6 @@
 #'
 #' @seealso \code{\link{segment}} for syllable-level segmentation
 #'
-#' @importFrom tuneR readWave
-#'
 #' @rdname find_bout
 #' @export
 find_bout <- function(x, ...) {

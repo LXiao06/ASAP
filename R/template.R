@@ -125,8 +125,6 @@ create_audio_clip.default <- function(x,
 #' @return
 #' Updated SAP object with new template information
 #'
-#' @importFrom av av_audio_convert
-#' @importFrom tools file_path_sans_ext
 #' @export
 create_audio_clip.Sap <- function(x,
                                   indices,

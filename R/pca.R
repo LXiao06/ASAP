@@ -267,14 +267,13 @@ run_pca.Sap <- function(x,
 #' @param center Whether to center data
 #' @param scale Whether to scale data
 #'
-#' @importFrom irlba prcomp_irlba
 #' @keywords internal
 fast_pca <- function(matrix, n_components = 50, center = TRUE, scale = TRUE) {
   #require(irlba)
-  pca_result <- prcomp_irlba(matrix,
-                             n = n_components,
-                             center = center,
-                             scale. = scale)
+  pca_result <- irlba::prcomp_irlba(matrix,
+                                   n = n_components,
+                                   center = center,
+                                   scale. = scale)
 
   return(pca_result)
 }

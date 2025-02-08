@@ -118,7 +118,6 @@
 #'                    save_plot = TRUE)
 #' }
 #'
-#' @importFrom rlang `%||%`
 #' @rdname segment
 #' @export
 segment <- function(x, ...) {
