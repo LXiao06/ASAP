@@ -352,6 +352,8 @@ run_umap.Sap <- function(x,
 #'           highlight.value = c(1, 2))
 #' }
 #'
+#' @importFrom rlang `%||%`
+#'
 #' @rdname plot_umap
 #' @export
 plot_umap <- function(x, ...) {
@@ -833,6 +835,8 @@ plot_single_umap <- function(
 #'            overlay_mode = TRUE,
 #'            base_label = "pre")
 #' }
+#'
+#' @importFrom rlang `%||%`
 #'
 #' @rdname plot_umap2
 #' @export

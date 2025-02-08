@@ -76,6 +76,8 @@
 #'
 #' @seealso \code{\link{run_umap}} for visualization of clusters
 #'
+#' @importFrom rlang `%||%`
+#'
 #' @rdname find_clusters
 #' @export
 find_clusters <- function(x, ...) {
