@@ -23,9 +23,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends:
-    R (>= 4.1.0),
-    seewave,
-    tuneR
+    R (>= 4.1.0)
 Imports: 
     av,
     dplyr,
@@ -35,16 +33,19 @@ Imports:
     lattice,
     Matrix (>= 1.5.0),
     monitoR,
+    patchwork,
     pbapply,
     pbmcapply,
     Polychrome,
     pracma,
     RANN,
     Rcpp (>= 1.0.0),
-    rlang,        
+    rlang, 
+    seewave,
     signal,
-    stats,        
-    tools,     
+    stats, 
+    tools, 
+    tuneR,
     uwot(>= 0.1.10)
 LinkingTo: 
     Rcpp,
@@ -53,5 +54,4 @@ LinkingTo:
 Suggests: 
     bigstatsr,   
     ggrepel,
-    patchwork,
     tidyr
