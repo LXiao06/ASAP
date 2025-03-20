@@ -2,6 +2,7 @@
 
 #' @importFrom tuneR readWave
 #' @importFrom rlang `%||%`
+#' @importFrom tools file_path_sans_ext
 NULL
 
 #' Construct file path for audio file
@@ -89,13 +90,9 @@ select_segments <- function(segments_df,
     message(sprintf("\nFiltered for clusters: %s", paste(clusters, collapse = ", ")))
   }
 
-
-  # Print available labels
-  available_labels <- unique(segments_df$label)
-  message("Available labels: ", paste(available_labels, collapse = ", "))
-
   # Handle label selection
   if (!is.null(labels)) {
+    available_labels <- unique(segments_df$label)
     missing_labels <- labels[!labels %in% available_labels]
     if (length(missing_labels) > 0) {
       stop(sprintf("Labels not found: %s\nAvailable labels: %s",
@@ -104,6 +101,12 @@ select_segments <- function(segments_df,
     }
     segments_df <- segments_df[segments_df$label %in% labels, ]
   }
+
+  # Add order tracking index after initial filtering
+  segments_df <- segments_df |>
+    dplyr::mutate(.original_order = dplyr::row_number())
+
+  message("Available labels: ", paste(unique(segments_df$label), collapse = ", "))
 
   # Print initial summary
   message("\nInitial data summary:")
@@ -127,6 +130,7 @@ select_segments <- function(segments_df,
     segments_df <- segments_df |>
       dplyr::group_by(label) |>
       dplyr::slice_sample(n = n_sample) |>
+      dplyr::arrange(.original_order) |>
       dplyr::ungroup() |>
       dplyr::arrange(label)
   }
@@ -142,13 +146,19 @@ select_segments <- function(segments_df,
       dplyr::group_modify(~ {
         n_available <- nrow(.x)
         n_to_sample <- ceiling(n_available * sample_percent / 100)
-        dplyr::slice_sample(.x, n = n_to_sample)
+        dplyr::slice_sample(.x, n = n_to_sample)  |>
+          dplyr::arrange(.original_order)
       }) |>
       dplyr::ungroup() |>
       dplyr::arrange(day_post_hatch)
 
     message(sprintf("\nSampling %.1f%% from each label", sample_percent))
   }
+
+  # Final cleanup and ordering
+  segments_df <- segments_df |>
+    dplyr::arrange(.original_order) |>  # Global order preservation
+    dplyr::select(-.original_order)
 
   # Print final summary if data was modified
   if (balanced || !is.null(sample_percent)) {
@@ -168,7 +178,49 @@ select_segments <- function(segments_df,
 
 
 
+#' parallel processing function
+#'
+#' @importFrom parallel detectCores makeCluster stopCluster
+#' @importFrom pbmcapply pbmclapply
+#' @importFrom pbapply pblapply
+#'
+#' @keywords internal
+parallel_apply <- function(indices, FUN, cores) {
+  # Set number of cores
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+  }
 
+  if (cores > 1) {
+    if (Sys.info()["sysname"] == "Darwin") {
+      # macOS/Linux: Use pbmcapply with multicore
+      result <- pbmcapply::pbmclapply(
+        indices,
+        FUN,
+        mc.cores = cores,
+        mc.preschedule = FALSE
+      )
+    } else {
+      # Windows: Use pbapply with PSOCK cluster
+      cl <- parallel::makeCluster(cores)
+      on.exit(parallel::stopCluster(cl), add = TRUE)
+
+      result <- pbapply::pblapply(
+        indices,
+        FUN,
+        cl = cl
+      )
+    }
+  } else {
+    # Single-core with progress
+    result <- pbapply::pblapply(
+      indices,
+      FUN
+    )
+  }
+
+  return(result)
+}
 
 #' # internal use
 #'

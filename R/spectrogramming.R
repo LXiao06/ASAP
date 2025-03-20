@@ -75,7 +75,7 @@ visualize_song <- function(x, ...) {
 visualize_song.default <- function(x,  # wav file path
                                    start_time_in_second = NULL,
                                    end_time_in_second = NULL,
-                                   fft_window_size = 512,
+                                   fft_window_size = 1024,
                                    overlap = 0.5,
                                    dark_mode = TRUE,
                                    legend = FALSE,

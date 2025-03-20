@@ -35,6 +35,7 @@ plot_heatmap(x, ...)
   sample_percent = NULL,
   balanced = FALSE,
   labels = NULL,
+  clusters = NULL,
   cores = NULL,
   seed = 222,
   msmooth = c(256, 50),

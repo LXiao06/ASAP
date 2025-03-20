@@ -128,13 +128,14 @@ find_motif.default <- function(x,
 
     # Get detections for this file
     file_detections <- x[x$filename == file, ]
+    detection_time <- round(file_detections$time, 2)
 
     # Calculate boundaries for each detection
     motif_data <- data.frame(
       filename = file_detections$filename,
-      detection_time = file_detections$time,
-      start_time = file_detections$time - pre_time,
-      end_time = file_detections$time + lag_time
+      detection_time = detection_time,
+      start_time = detection_time - pre_time,
+      end_time = detection_time + lag_time
     )
 
     # Filter out boundaries that extend beyond wav file
@@ -145,7 +146,7 @@ find_motif.default <- function(x,
 
     if (nrow(valid_motifs) > 0) {
       # Add duration
-      valid_motifs$duration <- valid_motifs$end_time - valid_motifs$start_time
+      valid_motifs$duration <- pre_time + lag_time
 
       # Add to results list
       motifs[[file]] <- valid_motifs

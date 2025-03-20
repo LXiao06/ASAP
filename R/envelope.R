@@ -352,8 +352,8 @@ plot_heatmap.matrix <- function(x,
                                 main = main,
                                 scales = list(
                                   x = list(
-                                    #at = seq(0, ncol(reversed_amp_matrix), length.out = 5),
-                                    at = pretty(1:nrow(reversed_amp_matrix), n = 5),
+                                    at = seq(0, nrow(reversed_amp_matrix), length.out = 5),
+                                    #at = pretty(1:nrow(reversed_amp_matrix), n = 5),
                                     labels = sprintf("%.1f", seq(0, time_window, length.out = 5))
                                   ),
                                   y = list(
@@ -393,6 +393,7 @@ plot_heatmap.Sap <- function(x,
                              sample_percent = NULL,
                              balanced = FALSE,
                              labels = NULL,
+                             clusters = NULL,
                              cores = NULL,
                              seed = 222,
                              msmooth = c(256,50),
@@ -408,8 +409,39 @@ plot_heatmap.Sap <- function(x,
 
   # Input validation
   segment_type <- match.arg(segment_type)
-  segments_df <- x[[segment_type]]
 
+  # Special handling for motifs ==============================================
+  if (segment_type == "motifs") {
+    # Use original motifs if no ordering/cluster filtering needed
+    if (!ordered && is.null(clusters)) {
+      segments_df <- x[["motifs"]]
+
+      # Use feature embeddings when ordering or clusters requested
+    } else {
+      if (is.null(x$features$motif$feat.embeds)) {
+        stop("Feature embeddings required for ordered/clustered motif plots")
+      }
+
+      segments_df <- x$features$motif$feat.embeds |>
+        as_segment()
+
+      # Apply UMAP-based ordering if requested
+      if (ordered) {
+        segments_df <- segments_df |>
+          dplyr::arrange(
+            day_post_hatch,
+            if (descending) dplyr::desc(UMAP2) else UMAP2,
+            if (descending) dplyr::desc(UMAP1) else UMAP1
+          )
+      }
+    }
+
+    # For non-motif segment types ==============================================
+  } else {
+    segments_df <- x[[segment_type]]
+    }
+
+  # Validation
   if (!inherits(segments_df, "segment") || nrow(segments_df) == 0) {
     stop("No segments found in the specified segment type")
   }
@@ -417,9 +449,15 @@ plot_heatmap.Sap <- function(x,
   # Select and balance segments
   segments_df <- select_segments(segments_df,
                                  labels = labels,
+                                 clusters = clusters,
                                  balanced = balanced,
                                  sample_percent = sample_percent,
                                  seed = seed)
+
+  # Check if segments_df is empty after subsetting
+  if (nrow(segments_df) == 0) {
+    stop("No segments remaining after subsetting. Check labels/clusters.")
+  }
 
   # Set number of cores
   if (is.null(cores)) {
@@ -494,12 +532,18 @@ plot_heatmap.Sap <- function(x,
       simplify = TRUE)
   }
 
+  # Check for non-finite values and handle
+  if (any(!is.finite(amp_matrix))) {
+    warning("amp_matrix contains non-finite values. Replacing with 0.")
+    amp_matrix[!is.finite(amp_matrix)] <- 0
+  }
+
   # Store attributes in amp_matrix
   attr(amp_matrix, "msmooth") <- msmooth
   # Store segments_df in attributes for future reference
   attr(amp_matrix, "segments_df") <- segments_df
   attr(amp_matrix, "segment_type") <- segment_type
-  attr(amp_matrix, "time_window") <- round(time_window, 2)
+  attr(amp_matrix, "time_window") <- time_window
 
   # Set column names as labels
   colnames(amp_matrix) <- segments_df$label
@@ -508,59 +552,6 @@ plot_heatmap.Sap <- function(x,
   feature_type <- sub("s$", "", segment_type) # Remove 's' from end
   x$features[[feature_type]][["amp_env"]] <- amp_matrix
 
-
-  # if order is requested
-  if (isTRUE(ordered)) {
-    # Check if the feature embeddings 'feat.embeds' exist
-    if (!is.null(x$features[[feature_type]][["feat.embeds"]])) {
-      embeds <- x$features[[feature_type]][["feat.embeds"]]
-
-      # Create a unique identifier for each segment
-      segments_df$segment_id <- paste(segments_df$filename,
-                                      segments_df$start_time,
-                                      segments_df$end_time,
-                                      sep = "_")
-      embeds$segment_id <- paste(embeds$filename,
-                                 embeds$start_time,
-                                 embeds$end_time,
-                                 sep = "_")
-
-      # Check if all segments in 'segments_df' are in 'embeds'
-      if (all(segments_df$segment_id %in% embeds$segment_id)) {
-        # Arrange embeddings
-        if (isTRUE(descending)) {
-          embeds_arranged <- embeds |>
-            dplyr::arrange(day_post_hatch, desc(UMAP2), desc(UMAP1))
-        } else {
-          embeds_arranged <- embeds |>
-            dplyr::arrange(day_post_hatch, UMAP2, UMAP1)
-        }
-
-        # Get the new order of segment IDs
-        new_order_segment_ids <- embeds_arranged$segment_id
-
-        # Create a mapping from new order to columns in amp_matrix
-        mapping <- match(new_order_segment_ids, segments_df$segment_id)
-
-        # Reorder amp_matrix columns
-        amp_matrix <- amp_matrix[, mapping]
-
-        # Reorder segments_df accordingly
-        segments_df <- segments_df[mapping, ]
-
-        # Update column names of amp_matrix
-        colnames(amp_matrix) <- segments_df$label
-
-        # Reset attributes after reordering
-        attr(amp_matrix, "time_window") <- round(time_window, 2)
-
-      } else {
-        warning("Not all segments in 'segments_df' are present in 'feat.embeds'. Using original order.")
-      }
-    } else {
-      warning("feat.embeds not found in features. Using original order.")
-    }
-  }
 
   # Create heatmap using matrix method
   plot_heatmap(amp_matrix,

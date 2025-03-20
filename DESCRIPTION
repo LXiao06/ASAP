@@ -38,6 +38,7 @@ Imports:
     pbmcapply,
     Polychrome,
     pracma,
+    purrr,
     RANN,
     Rcpp (>= 1.0.0),
     rlang, 
