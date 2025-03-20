@@ -13,8 +13,6 @@ refine_motif_boundaries(x, adjustments_by_label = NULL, verbose = TRUE)
 to apply to motif end limits, where names correspond to labels}
 
 \item{verbose}{Logical flag for printing progress messages (default: TRUE)}
-
-\item{clusters}{Numeric vector of cluster IDs to filter}
 }
 \value{
 Returns a modified SAP object with updated motifs containing:

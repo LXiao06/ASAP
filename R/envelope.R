@@ -116,6 +116,7 @@ amp_env <- function(segment_row,
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'bouts', 'syllables', 'segments')
 #' @param sample_percent For SAP objects: Percentage to sample
 #' @param balanced For SAP objects: Balance across labels
+#' @param clusters Numeric vector of cluster IDs to filter
 #' @param labels Optional vector of labels to include
 #' @param cores For SAP objects: Number of processing cores
 #' @param seed For SAP objects: Random seed (default: 222)

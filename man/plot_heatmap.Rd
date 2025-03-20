@@ -74,6 +74,8 @@ plot_heatmap(x, ...)
 
 \item{balanced}{For SAP objects: Balance across labels}
 
+\item{clusters}{Numeric vector of cluster IDs to filter}
+
 \item{cores}{For SAP objects: Number of processing cores}
 
 \item{seed}{For SAP objects: Random seed (default: 222)}

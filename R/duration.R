@@ -85,7 +85,6 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
 #' onsets/offsets.
 #'
 #' @param x A SAP object containing 'segments' and 'motifs' data
-#' @param clusters Numeric vector of cluster IDs to filter
 #' @param adjustments_by_label Optional named list of time adjustments (in seconds)
 #'        to apply to motif end limits, where names correspond to labels
 #' @param verbose Logical flag for printing progress messages (default: TRUE)
@@ -186,9 +185,10 @@ refine_motif_boundaries <- function(x,
 
     if(verbose) {
       message("Applied end limit adjustments:")
-      print(tibble::tibble(
+      print(data.frame(
         Label = names(adjustments_by_label),
-        Adjustment = unlist(adjustments_by_label)
+        Adjustment = unlist(adjustments_by_label),
+        stringsAsFactors = FALSE
       ))
     }
   }
