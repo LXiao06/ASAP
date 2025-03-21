@@ -6,5 +6,5 @@
 .quarto
 
 .Ruserdata
-inst/doc
+inst/*/
 dev/
