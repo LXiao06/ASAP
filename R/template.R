@@ -567,6 +567,34 @@ detect_template.default <- function(x,  # x is wav file path
   }
 
   # Correlation matching
+  # scores <- suppressWarnings({
+  #   utils::capture.output(
+  #     corMatch_result <- monitoR::corMatch(
+  #       survey = x,
+  #       templates = template,
+  #       show.prog = FALSE,
+  #       cor.method = cor.method,
+  #       time.source = "fileinfo"
+  #     ),
+  #     type = c("output", "message"),
+  #     file = nullfile()
+  #   )
+  #   corMatch_result
+  # })
+
+  # Create null connection
+  null_con <- file(tempfile(), open = "w")
+  on.exit({
+    sink(type = "output")  # Reset output sink
+    sink(type = "message")  # Reset message sink
+    close(null_con)
+  })
+
+  # Redirect BOTH output streams
+  sink(file = null_con, type = "output")
+  sink(file = null_con, type = "message")
+
+  # Correlation matching
   scores <- suppressWarnings(
     monitoR::corMatch(
       survey = x,
