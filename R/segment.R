@@ -518,7 +518,7 @@ segment.Sap <- function(x,  # x is SAP object
         max_level_db = max_level_db,
         db_delta = db_delta,
         search_direction = search_direction,
-        verbose = verbose,
+        verbose = FALSE,
         plot = should_plot_file,
         save_plot = save_plot,
         plot_dir = plot_dir,

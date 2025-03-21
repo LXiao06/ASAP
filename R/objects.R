@@ -71,7 +71,7 @@ create_sap_metadata <- function(base_path,
       path = subfolder_paths[i],
       pattern = "\\.wav$",
       full.names = TRUE,
-      recursive = TRUE
+      recursive = FALSE
     )
 
     # Create metadata for the current subfolder
