@@ -5,16 +5,16 @@
 
 #' Fundamental Frequency Estimation
 #'
-#' Estimates the fundamental frequency (F0) of an audio segmentusing either cepstral analysis or YIN method 
+#' Estimates the fundamental frequency (F0) of an audio segmentusing either cepstral analysis or YIN method
 #' (currently under development) for a specified audio segment.
-#' 
+#'
 #' @param segment_row A single-row data frame containing segment information
 #' @param wav_dir Directory containing wav files. If NULL, attempts to use an attribute from the input
 #' @param method Pitch estimation method. Currently supports "cepstrum"
 #' @param wl Window length for spectral analysis (default: 512)
 #' @param ovlp Overlap percentage between windows (default: 80)
 #' @param fmax Maximum frequency to consider (default: 1400 Hz)
-#' @param threshold Threshold Amplitude threshold for cepstral method in % (default = 10). 
+#' @param threshold Threshold Amplitude threshold for cepstral method in % (default = 10).
 #' @param plot Logical, whether to plot the pitch estimation (default: FALSE)
 #'
 #' @return A matrix with two columns:
@@ -28,12 +28,12 @@
 #' # Assuming 'segment' is a data frame with start_time and end_time columns
 #' segment_row <- segment[1, ]
 #' F0 <- FF(segment_row, wav_dir = "/path/to/wav/files")
-#' 
+#'
 #' # Plot the fundamental frequency
 #' FF(segment_row, plot = TRUE)
 #' }
 #'
-#' @seealso 
+#' @seealso
 #' \code{\link[seewave]{fund}} for underlying pitch detection method
 FF <- function(segment_row,
                wav_dir = NULL,
@@ -43,39 +43,39 @@ FF <- function(segment_row,
                fmax = 1400,
                threshold = 10,
                plot = FALSE) {
-  
+
   # Check if input is valid
   if (!is.data.frame(segment_row) || nrow(segment_row) != 1) {
     stop("segment_row must be a single row from a data frame")
   }
-  
+
   # Check for required timing columns
   if (!all(c("start_time", "end_time") %in% names(segment_row))) {
     stop("Input row must contain 'start_time' and 'end_time' columns")
   }
-  
+
   # Construct file path
   sound_path <- construct_wav_path(segment_row, wav_dir = wav_dir)
-  
+
   # Verify file exists
   if (!file.exists(sound_path)) {
     stop(sprintf("Sound file not found: %s", sound_path))
   }
-  
+
   # Read wave file using timestamps
   wv <- tuneR::readWave(sound_path,
                         from = segment_row$start_time,
                         to = segment_row$end_time,
                         units = "seconds")
-  
+
   # Properly match the method argument
   method <- match.arg(method)
-  
+
   # Process based on method
   if(method == "cepstrum") {
     F0 <- seewave::fund(wv, wl = wl, ovlp = ovlp, fmax = fmax,
                         threshold = threshold, plot = plot)
-    
+
     # Replace NA values with 0 in frequency column
     if (!is.null(F0) && is.matrix(F0) && ncol(F0) >= 2) {
       F0[,2][is.na(F0[,2])] <- 0
@@ -85,7 +85,7 @@ FF <- function(segment_row,
       "The YIN pitch detection method is not yet fully implemented.\n",
       "  * Please use method = 'cepstrum' for current analyses\n")
   }
-  
+
   return(F0)
 }
 
@@ -161,8 +161,8 @@ FF <- function(segment_row,
 #' plot_FundFreq(segments, wav_dir = "path/to/wavs")
 #'
 #' # Limit frequency range
-#' plot_FundFreq(segments, 
-#'               wav_dir = "path/to/wavs", 
+#' plot_FundFreq(segments,
+#'               wav_dir = "path/to/wavs",
 #'               plot_freq_lim = c(0.5, 1.5))
 #'
 #' # SAP object with options
@@ -198,20 +198,20 @@ plot_FundFreq.default <- function(x,
                                   n_colors = 500,
                                   cores = NULL,
                                   ...) {
-  
+
   # Validate input structure
   required_cols <- c("filename", "start_time", "end_time")
   if (!all(required_cols %in% names(x))) {
     stop(paste("Missing required columns:", paste(setdiff(required_cols, names(x)), collapse = ", ")))
   }
   if (nrow(x) == 0) stop("Input data frame is empty")
-  
+
   # Handle audio directory
   if (is.null(wav_dir) && is.null(attr(x, "wav_dir"))) {
     stop("wav_dir must be provided either as argument or attribute")
   }
   wav_dir <- wav_dir %||% attr(x, "wav_dir")
-  
+
   # Parallel processing of F0 extraction
   f0_list <- parallel_apply(
     indices = 1:nrow(x),
@@ -229,15 +229,15 @@ plot_FundFreq.default <- function(x,
     },
     cores = cores
   )
-  
+
   # Extract time and frequency components
   time_list <- lapply(f0_list, function(x) x$time)
   f0_list <- lapply(f0_list, function(x) x$f0)
-  
+
   # Create reference time axis from first rendition
   ref_time <- time_list[[1]]
   ref_duration <- round(max(ref_time) - min(ref_time), 2)
-  
+
   # Normalize all F0 vectors to reference time scale
   f0_matrix <- sapply(f0_list, function(f0) {
     if(length(f0) != length(ref_time)) {
@@ -250,33 +250,33 @@ plot_FundFreq.default <- function(x,
       f0
     }
   })
-  
+
   # Modify F0 matrix capping
   if (!is.null(plot_freq_lim)) {
     f0_matrix[f0_matrix < plot_freq_lim[1]] <- plot_freq_lim[1]
     f0_matrix[f0_matrix > plot_freq_lim[2]] <- plot_freq_lim[2]
-    
+
     # Update range for color breaks
     f0_range <- plot_freq_lim
   } else {
     # Only calculate f0_range if plot_freq_lim is not provided
     f0_range <- round(range(f0_matrix, na.rm = FALSE), 1)
   }
-  
+
   # Configure color mapping
   if (is.null(color_palette)) {
     color_palette <- colorRampPalette(c("black", "darkblue","blue","white", "yellow","orange", "red"))
   }
-  
+
   # Create color breaks based on the determined f0_range
   color_breaks <- seq(f0_range[1], f0_range[2], length.out = n_colors)
-  
+
   # Configure visualization parameters
   time_axis <- list(
     at = seq(1, length(ref_time), length.out = 5),
     labels = sprintf("%.1f", seq(0, ref_duration, length.out = 5))
   )
-  
+
   # Generate heatmap plot
   heatmap <- lattice::levelplot(
     f0_matrix,
@@ -315,10 +315,10 @@ plot_FundFreq.default <- function(x,
     ),
     ...
   )
-  
-  
+
+
   print(heatmap)
-  
+
   # Return structure includes original times for reference
   structure(
     list(
@@ -344,7 +344,7 @@ plot_FundFreq.matrix <- function(x,
   if (!is.matrix(x)) {
     stop("Input must be a matrix")
   }
-  
+
   # Require a 'time_window' attribute for the x-axis scaling
   if (is.null(attr(x, "time_window"))) {
     stop("Matrix must have a 'time_window' attribute")
@@ -353,12 +353,12 @@ plot_FundFreq.matrix <- function(x,
   if (!is.numeric(time_window) || length(time_window) != 1) {
     stop("The 'time_window' attribute must be a single numeric value")
   }
-  
+
   # Check that the matrix has column names to use as rendition labels
   if (is.null(colnames(x))) {
     stop("Matrix must have column names (to be used as labels)")
   }
-  
+
   # If a subset of labels is provided, subset the matrix accordingly
   # and preserve the time_window attribute
   if (!is.null(labels)) {
@@ -368,43 +368,43 @@ plot_FundFreq.matrix <- function(x,
     x <- x[, colnames(x) %in% labels, drop = FALSE]
     attr(x, "time_window") <- time_window
   }
-  
+
   # Modify F0 matrix capping
   if (!is.null(plot_freq_lim)) {
     x[x < plot_freq_lim[1]] <- plot_freq_lim[1]
     x[x > plot_freq_lim[2]] <- plot_freq_lim[2]
-    
+
     # Update range for color breaks
     f0_range <- plot_freq_lim
   } else {
     # Only calculate f0_range if plot_freq_lim is not provided
     f0_range <- round(range(x, na.rm = TRUE), 1)
   }
-  
+
   # Reverse the matrix so that the first rendition appears on top
   reversed_f0_matrix <- x[, ncol(x):1, drop = FALSE]
-  
+
   # Reverse the column labels and compute positions for labeling and horizontal lines
   reversed_labels <- rev(unique(colnames(x)))
   samples_per_label <- rev(as.numeric(table(colnames(x))))
   cumulative_positions <- cumsum(c(0, head(samples_per_label, -1)))
   label_positions <- cumulative_positions + samples_per_label / 2
   hline_positions <- cumsum(samples_per_label)[-length(samples_per_label)]
-  
+
   # Set a default color_palette if none given
   if (is.null(color_palette)) {
     color_palette <- colorRampPalette(c("black", "darkblue", "blue", "white", "yellow", "orange", "red"))
   }
-  
+
   # Create color breaks based on the determined f0_range
   color_breaks <- seq(f0_range[1], f0_range[2], length.out = n_colors)
-  
+
   # Define the x-axis (time) scale
   x_scale <- list(
     at = seq(0, nrow(reversed_f0_matrix), length.out = 5),
     labels = sprintf("%.1f", seq(0, time_window, length.out = 5))
   )
-  
+
   # Create the heatmap using levelplot
   heatmap <- lattice::levelplot(
     reversed_f0_matrix,
@@ -445,9 +445,9 @@ plot_FundFreq.matrix <- function(x,
     ),
     ...
   )
-  
+
   print(heatmap)
-  
+
   invisible(heatmap)
 }
 
@@ -473,25 +473,25 @@ plot_FundFreq.Sap <- function(x,
                               verbose = TRUE,
                               ...) {
   if(verbose) message(sprintf("\n=== Starting Fundamental Frequency Heatmap Plotting ===\n"))
-  
+
   # Input validation
   segment_type <- match.arg(segment_type)
-  
+
   # Special handling for motifs
   if (segment_type == "motifs") {
     # Use original motifs if no ordering/cluster filtering needed
     if (!ordered && is.null(clusters)) {
       segments_df <- x[["motifs"]]
-      
+
       # Use feature embeddings when ordering or clusters requested
     } else {
       if (is.null(x$features$motif$feat.embeds)) {
         stop("Feature embeddings required for ordered/clustered motif plots")
       }
-      
+
       segments_df <- x$features$motif$feat.embeds |>
         as_segment()
-      
+
       # Apply UMAP-based ordering if requested
       if (ordered) {
         segments_df <- segments_df |>
@@ -505,12 +505,12 @@ plot_FundFreq.Sap <- function(x,
   } else {
     stop("Currently only 'motifs' segment type is supported for fundamental frequency heatmap")
   }
-  
+
   # Validation
   if (!inherits(segments_df, "segment") || nrow(segments_df) == 0) {
     stop("No segments found in the specified segment type")
   }
-  
+
   # Select and balance segments
   segments_df <- select_segments(segments_df,
                                  labels = labels,
@@ -518,12 +518,12 @@ plot_FundFreq.Sap <- function(x,
                                  balanced = balanced,
                                  sample_percent = sample_percent,
                                  seed = seed)
-  
+
   # Check if segments_df is empty after subsetting
   if (nrow(segments_df) == 0) {
     stop("No segments remaining after subsetting. Check labels/clusters.")
   }
-  
+
   # Parallel processing of F0 extraction
   f0_list <- parallel_apply(
     indices = 1:nrow(segments_df),
@@ -541,15 +541,15 @@ plot_FundFreq.Sap <- function(x,
     },
     cores = cores
   )
-  
+
   # Extract time and frequency components
   time_list <- lapply(f0_list, function(x) x$time)
   f0_list <- lapply(f0_list, function(x) x$f0)
-  
+
   # Create reference time axis from first rendition
   ref_time <- time_list[[1]]
   time_window <- round(max(ref_time) - min(ref_time), 2)
-  
+
   # Normalize all F0 vectors to reference time scale
   f0_matrix <- sapply(f0_list, function(f0) {
     if(length(f0) != length(ref_time)) {
@@ -562,20 +562,25 @@ plot_FundFreq.Sap <- function(x,
       f0
     }
   })
-  
+
   # Store attributes in f0_matrix
   attr(f0_matrix, "wl") <- wl
   attr(f0_matrix, "ovlp") <- ovlp
   attr(f0_matrix, "segments_df") <- segments_df
   attr(f0_matrix, "segment_type") <- segment_type
   attr(f0_matrix, "time_window") <- time_window
-  
+
   # Set column names as labels
   colnames(f0_matrix) <- segments_df$label
-  
+
   # Update SAP object's features
   x$features$motif[["fund_freq"]] <- f0_matrix
-  
+
+  if(verbose) {
+    message(sprintf("\nAccess fundamental frequency matrix via: x$features$motif$fund_freq"))
+    message(sprintf("Access attributes via: attributes(x$features$motif$fund_freq)"))
+  }
+
   # Create heatmap using matrix method
   plot_FundFreq(f0_matrix,
                 labels = labels,
@@ -583,6 +588,6 @@ plot_FundFreq.Sap <- function(x,
                 color_palette = color_palette,
                 n_colors = n_colors,
                 main = "Heatmap of Motifs: Fundamental Frequency")
-  
+
   invisible(x)
 }
