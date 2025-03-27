@@ -260,7 +260,7 @@ plot_FundFreq.default <- function(x,
     f0_range <- plot_freq_lim
   } else {
     # Only calculate f0_range if plot_freq_lim is not provided
-    f0_range <- round(range(f0_matrix, na.rm = FALSE), 1)
+    f0_range <- round(range(f0_matrix, na.rm = FALSE), 2)
   }
 
   # Configure color mapping
@@ -378,7 +378,7 @@ plot_FundFreq.matrix <- function(x,
     f0_range <- plot_freq_lim
   } else {
     # Only calculate f0_range if plot_freq_lim is not provided
-    f0_range <- round(range(x, na.rm = TRUE), 1)
+    f0_range <- round(range(x, na.rm = TRUE), 2)
   }
 
   # Reverse the matrix so that the first rendition appears on top
@@ -432,7 +432,7 @@ plot_FundFreq.matrix <- function(x,
       height = 0.75,
       labels = list(
         at = seq(f0_range[1], f0_range[2], length.out = 3),
-        labels = sprintf("%.1f", seq(f0_range[1], f0_range[2], length.out = 3)),
+        labels = sprintf("%.2f", seq(f0_range[1], f0_range[2], length.out = 3)),
         cex = 1,
         col = "black"
       ),
