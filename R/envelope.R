@@ -553,6 +553,11 @@ plot_heatmap.Sap <- function(x,
   feature_type <- sub("s$", "", segment_type) # Remove 's' from end
   x$features[[feature_type]][["amp_env"]] <- amp_matrix
 
+  #  Guidance on accessing the amplitude envelope matrix
+  if(verbose) {
+    message(sprintf("\nAccess amplitude envelope matrix via: x$features$%s$amp_env", feature_type))
+    message(sprintf("Access attributes via: attributes(x$features$%s$amp_env)", feature_type))
+  }
 
   # Create heatmap using matrix method
   plot_heatmap(amp_matrix,
