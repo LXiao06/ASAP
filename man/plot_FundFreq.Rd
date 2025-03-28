@@ -143,8 +143,8 @@ For matrices:
 plot_FundFreq(segments, wav_dir = "path/to/wavs")
 
 # Limit frequency range
-plot_FundFreq(segments, 
-              wav_dir = "path/to/wavs", 
+plot_FundFreq(segments,
+              wav_dir = "path/to/wavs",
               plot_freq_lim = c(0.5, 1.5))
 
 # SAP object with options
