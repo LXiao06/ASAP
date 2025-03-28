@@ -15,7 +15,8 @@ plot_traces(x, ...)
   feature = c("env", "pitch"),
   alpha = 0.2,
   ncol = 1,
-  palette = "Set1"
+  palette = "Set1",
+  ...
 )
 
 \method{plot_traces}{Sap}(

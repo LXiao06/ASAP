@@ -79,7 +79,8 @@ plot_traces.default  <- function(x,
                               feature = c("env", "pitch"),
                               alpha = 0.2,
                               ncol = 1,
-                              palette = "Set1"
+                              palette = "Set1",
+                              ...
                               ) {
 
   # Input validation
