@@ -113,10 +113,11 @@ select_segments <- function(segments_df,
   initial_summary <- segments_df |>
     dplyr::group_by(label) |>
     dplyr::summarise(
+      dph = mean(day_post_hatch),
       n = dplyr::n(),
       mean_duration = mean(end_time - start_time)
     ) |>
-    dplyr::arrange(label)
+    dplyr::arrange(dph)
   print(initial_summary)
 
   # Handle balancing first if requested
@@ -132,7 +133,7 @@ select_segments <- function(segments_df,
       dplyr::slice_sample(n = n_sample) |>
       dplyr::arrange(.original_order) |>
       dplyr::ungroup() |>
-      dplyr::arrange(label)
+      dplyr::arrange(day_post_hatch, .original_order)
   }
 
   # Handle sampling if specified
@@ -166,12 +167,16 @@ select_segments <- function(segments_df,
     final_summary <- segments_df |>
       dplyr::group_by(label) |>
       dplyr::summarise(
+        dph = mean(day_post_hatch),
         n = dplyr::n(),
         mean_duration = mean(end_time - start_time)
       ) |>
-      dplyr::arrange(label)
+      dplyr::arrange(dph)
     print(final_summary)
   }
+
+  #  Store day ordering as an attribute
+  attr(segments_df, "label_order") <- unique(segments_df$label)
 
   return(segments_df)
 }
