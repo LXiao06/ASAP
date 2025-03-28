@@ -252,6 +252,7 @@ segment.default <- function(x,  # x is wav file path
   final_envelope <- NULL
   final_threshold <- NULL
   final_regions <- NULL
+  segments <- NULL
 
   # Calculate thresholds sequence based on direction
   thresholds <- if(search_direction == "up") {
@@ -355,32 +356,34 @@ segment.default <- function(x,  # x is wav file path
     }
   }
   # Plotting section
-  plot_fn <- plot_syllable_detection(times = times,
-                                     frequencies = frequencies,
-                                     sp = sp,
-                                     syllables = segments,
-                                     max_level_db = max_level_db,
-                                     ref_level_db = ref_level_db,
-                                     final_threshold = final_threshold,
-                                     final_envelope = final_envelope,
-                                     silence_threshold = silence_threshold,
-                                     smooth = smooth)
+  if (!is.null(segments)) {
+    plot_fn <- plot_syllable_detection(times = times,
+                                       frequencies = frequencies,
+                                       sp = sp,
+                                       syllables = segments,
+                                       max_level_db = max_level_db,
+                                       ref_level_db = ref_level_db,
+                                       final_threshold = final_threshold,
+                                       final_envelope = final_envelope,
+                                       silence_threshold = silence_threshold,
+                                       smooth = smooth)
 
-  if(plot) {
-    plot_fn()
-  }
+    if(plot) plot_fn()
 
-  if(save_plot) {
-    dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
+    if(save_plot) {
+      dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
 
-    plot_filename <- file.path(plot_dir,
-                               paste0(tools::file_path_sans_ext(basename(x)),
-                                      "_", round(start_time, 2),
-                                      ".png"))
+      plot_filename <- file.path(plot_dir,
+                                 paste0(tools::file_path_sans_ext(basename(x)),
+                                        "_", round(start_time, 2),
+                                        ".png"))
 
-    png(filename = plot_filename, width = 1600, height = 1200, res = 300)
-    plot_fn()
-    dev.off()
+      png(filename = plot_filename, width = 1600, height = 1200, res = 300)
+      plot_fn()
+      dev.off()
+    }
+  } else {
+    if (verbose) message("No segments detected - skipping plot")
   }
 
   return(segments)
