@@ -115,7 +115,7 @@ select_segments <- function(segments_df,
     dplyr::summarise(
       dph = mean(day_post_hatch),
       n = dplyr::n(),
-      mean_duration = mean(end_time - start_time)
+      time_window = mean(end_time - start_time)
     ) |>
     dplyr::arrange(dph)
   print(initial_summary)
@@ -169,14 +169,14 @@ select_segments <- function(segments_df,
       dplyr::summarise(
         dph = mean(day_post_hatch),
         n = dplyr::n(),
-        mean_duration = mean(end_time - start_time)
+        time_window = mean(end_time - start_time)
       ) |>
       dplyr::arrange(dph)
     print(final_summary)
   }
 
-  #  Store day ordering as an attribute
-  attr(segments_df, "label_order") <- unique(segments_df$label)
+  # #  Store day ordering as an attribute
+  # attr(segments_df, "label_order") <- unique(segments_df$label)
 
   return(segments_df)
 }

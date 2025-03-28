@@ -323,7 +323,7 @@ segment.default <- function(x,  # x is wav file path
   valid_idx <- region_durations >= min_syllable_length
 
   if(sum(valid_idx) > 0) {
-    segemnts <- data.frame(
+    segments <- data.frame(
       filename = filename,
       selec = seq_len(sum(valid_idx)),
       threshold = final_threshold,
@@ -335,22 +335,22 @@ segment.default <- function(x,  # x is wav file path
     )
 
     # Calculate silence gaps
-    if(nrow(segemnts) > 1) {
-      segemnts$silence_gap <- c(NA, segemnts$start[-1] - segemnts$end[-nrow(segemnts)])
+    if(nrow(segments) > 1) {
+      segments$silence_gap <- c(NA, segments$start[-1] - segments$end[-nrow(segments)])
     } else {
-      segemnts$silence_gap <- NA
+      segments$silence_gap <- NA
     }
 
     if(verbose) {
-      cat(sprintf("\nFinal results:\nTotal segemnts found: %d\nDuration range: %.2f to %.2f ms\n",
-                  nrow(segemnts),
-                  min(segemnts$duration)*1000,
-                  max(segemnts$duration)*1000))
+      cat(sprintf("\nFinal results:\nTotal segments found: %d\nDuration range: %.2f to %.2f ms\n",
+                  nrow(segments),
+                  min(segments$duration)*1000,
+                  max(segments$duration)*1000))
 
-      if(nrow(segemnts) > 1) {
+      if(nrow(segments) > 1) {
         cat(sprintf("Silence gaps range: %.2f to %.2f ms\n",
-                    min(segemnts$silence_gap[-1], na.rm=TRUE)*1000,
-                    max(segemnts$silence_gap[-1], na.rm=TRUE)*1000))
+                    min(segments$silence_gap[-1], na.rm=TRUE)*1000,
+                    max(segments$silence_gap[-1], na.rm=TRUE)*1000))
       }
     }
   }
@@ -358,7 +358,7 @@ segment.default <- function(x,  # x is wav file path
   plot_fn <- plot_syllable_detection(times = times,
                                      frequencies = frequencies,
                                      sp = sp,
-                                     syllables = segemnts,
+                                     syllables = segments,
                                      max_level_db = max_level_db,
                                      ref_level_db = ref_level_db,
                                      final_threshold = final_threshold,
@@ -383,7 +383,7 @@ segment.default <- function(x,  # x is wav file path
     dev.off()
   }
 
-  return(segemnts)
+  return(segments)
 }
 
 #' @rdname segment

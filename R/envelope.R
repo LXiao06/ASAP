@@ -549,6 +549,10 @@ plot_heatmap.Sap <- function(x,
   # Set column names as labels
   colnames(amp_matrix) <- segments_df$label
 
+  # # Store label order based on order in segments_df
+  # label_order <- unique(segments_df$label)
+  # attr(amp_matrix, "label_order") <- label_order
+
   # Update SAP object's features
   feature_type <- sub("s$", "", segment_type) # Remove 's' from end
   x$features[[feature_type]][["amp_env"]] <- amp_matrix
