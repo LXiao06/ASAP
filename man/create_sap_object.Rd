@@ -8,7 +8,7 @@ create_sap_object(
   base_path,
   subfolders_to_include = NULL,
   subfolders_to_exclude = c("templates", "plots"),
-  labels = NULL
+  labels
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ If NULL, includes all subfolders except those in subfolders_to_exclude}
 Default excludes 'templates' and 'plots'}
 
 \item{labels}{Character vector of labels corresponding to each subfolder.
-Must match the length of subfolders if provided}
+Must match the length of subfolders}
 }
 \value{
 A SAP object containing:

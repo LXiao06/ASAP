@@ -14,7 +14,7 @@
 #' @param subfolders_to_exclude Character vector of subfolder names to exclude.
 #'        Default excludes 'templates' and 'temp_plots'
 #' @param labels Character vector of labels corresponding to each subfolder.
-#'        Must match the length of subfolders if provided
+#'        Must match the length of subfolders
 #'
 #' @return A data frame containing metadata with columns:
 #'   \item{filename}{Name of the WAV file}
@@ -37,25 +37,41 @@
 create_sap_metadata <- function(base_path,
                                 subfolders_to_include = NULL,
                                 subfolders_to_exclude = c("templates", "temp_plots"),
-                                labels = NULL) {
+                                labels ) {
+  # Input validation
+  if (!is.character(labels) || length(labels) == 0) {
+    stop("labels must be a non-empty character vector")
+  }
+
   # Get all subfolders if not specified
   if (is.null(subfolders_to_include)) {
     subfolders <- list.dirs(base_path, recursive = FALSE, full.names = FALSE)
+
     # Exclude specified subfolders
     subfolders <- subfolders[!subfolders %in% subfolders_to_exclude]
+
+    if (length(subfolders) == 0) {
+      stop("No valid subfolders found after exclusions")
+    }
+
+    message("Detected subfolders (", length(subfolders), "): ",
+            paste(subfolders, collapse = ", "))
+
+    # Validate label count matches detected subfolders
+    if (length(labels) != length(subfolders)) {
+      stop("Number of labels (", length(labels),
+           ") must match number of detected subfolders (",
+           length(subfolders), ")")
+    }
   } else {
     subfolders <- subfolders_to_include
-  }
 
-  # Validate input: check if labels match subfolder count
-  if (!is.null(labels) && length(subfolders) != length(labels)) {
-    stop("The number of subfolders (", length(subfolders),
-         ") and labels (", length(labels), ") must be the same.")
-  }
-
-  # Assign NA labels if not provided
-  if (is.null(labels)) {
-    labels <- rep(NA, length(subfolders))
+    # Validate label count matches specified subfolders
+    if (length(labels) != length(subfolders)) {
+      stop("Number of labels (", length(labels),
+           ") must match number of subfolders_to_include (",
+           length(subfolders), ")")
+    }
   }
 
   # Construct subfolder paths
@@ -73,6 +89,11 @@ create_sap_metadata <- function(base_path,
       full.names = TRUE,
       recursive = FALSE
     )
+
+    if (length(FileList) == 0) {
+      warning("No WAV files found in: ", subfolders[i])
+      next
+    }
 
     # Create metadata for the current subfolder
     subfolder_metadata <- do.call(rbind, lapply(FileList, function(x) {
@@ -94,6 +115,24 @@ create_sap_metadata <- function(base_path,
 
   # Combine all metadata into a single dataframe
   metadata_df <- do.call(rbind, metadata_list)
+
+  if (nrow(metadata_df) == 0) {
+    stop("No valid WAV files found in specified subfolders")
+  }
+
+  # Verify all labels were applied
+  applied_labels <- unique(metadata_df$label)
+  missing_labels <- setdiff(labels, applied_labels)
+  if (length(missing_labels) > 0) {
+    warning("These labels had no matching files: ",
+            paste(missing_labels, collapse = ", "))
+  }
+
+  message("Processed ", nrow(metadata_df),
+          " files from ", length(subfolders), " subfolders: ",
+          paste(subfolders, collapse = ", "),
+          "\nAssociated labels: ",
+          paste(unique(na.omit(metadata_df$label)), collapse = ", "))
 
   return(metadata_df)
 }
@@ -150,7 +189,7 @@ parse_filename <- function(filename) {
 #' @param subfolders_to_exclude Character vector of subfolder names to exclude.
 #'        Default excludes 'templates' and 'plots'
 #' @param labels Character vector of labels corresponding to each subfolder.
-#'        Must match the length of subfolders if provided
+#'        Must match the length of subfolders
 #'
 #' @details
 #' This function performs several key operations:
@@ -187,7 +226,7 @@ parse_filename <- function(filename) {
 create_sap_object <- function(base_path,
                               subfolders_to_include = NULL,
                               subfolders_to_exclude = c("templates", "plots"),
-                              labels = NULL) {
+                              labels) {
   # Input validation
   if (!is.character(base_path) || length(base_path) != 1) {
     stop("base_path must be a single character string")
@@ -203,21 +242,25 @@ create_sap_object <- function(base_path,
     stop("subfolders_to_exclude must be NULL or a character vector")
   }
 
-  if (!is.null(labels) &&
-      (!is.character(labels) ||
-       !is.null(subfolders_to_include) && length(labels) != length(subfolders_to_include))) {
-    stop("labels must be NULL or a character vector matching length of subfolders_to_include")
+  # Validate labels (now mandatory)
+  if (!is.character(labels) || length(labels) == 0) {
+    stop("labels must be a non-empty character vector")
+  }
+
+  # Validate label-subfolder relationship
+  if (!is.null(subfolders_to_include) && length(labels) != length(subfolders_to_include)) {
+    stop("Number of labels must match number of subfolders_to_include")
   }
 
   # Validate and normalize base_path
   tryCatch({
+    # Normalize path
+    base_path <- normalizePath(base_path, mustWork = TRUE)
+
     # Check if path exists
     if (!dir.exists(base_path)) {
       stop("Directory does not exist: ", base_path)
     }
-
-    # Normalize path
-    base_path <- normalizePath(base_path, mustWork = TRUE)
 
     # Check if it's actually a directory
     if (!file.info(base_path)$isdir) {
@@ -282,10 +325,9 @@ create_sap_object <- function(base_path,
   })
 
   # Report creation success
-  message(sprintf("SAP object created successfully with %d files", nrow(metadata)))
-  if (!is.null(subfolders_to_include)) {
-    message("Included subfolders: ", paste(subfolders_to_include, collapse = ", "))
-  }
+  message(sprintf("Successfully created SAP object with %d files across %d labels",
+                  nrow(metadata),
+                  length(unique(metadata$label))))
 
   return(sap)
 }
