@@ -329,9 +329,20 @@ plot_heatmap.matrix <- function(x,
   # Create reversed matrix for plotting
   reversed_amp_matrix <- x[, ncol(x):1]
 
-  # Get reversed labels and calculate positions
-  reversed_labels <- rev(unique(colnames(x)))
-  samples_per_label <- rev(table(colnames(x)))
+  # # Get reversed labels and calculate positions
+  # reversed_labels <- rev(unique(colnames(x)))
+  # samples_per_label <- rev(table(colnames(x)))
+  # cumulative_positions <- cumsum(c(0, head(samples_per_label, -1)))
+  # label_positions <- cumulative_positions + samples_per_label/2
+  # hline_positions <- cumsum(samples_per_label)[-length(samples_per_label)]
+
+  # Calculate positions using reserved order
+  current_labels <- colnames(x)
+  reversed_labels <- rev(unique(current_labels))
+
+  ordered_labels <- factor(current_labels, levels = unique(current_labels))
+  samples_per_label <- rev(table(ordered_labels))  # rev() for bottom-to-top plotting
+
   cumulative_positions <- cumsum(c(0, head(samples_per_label, -1)))
   label_positions <- cumulative_positions + samples_per_label/2
   hline_positions <- cumsum(samples_per_label)[-length(samples_per_label)]
