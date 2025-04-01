@@ -45,6 +45,20 @@ FF <- function(segment_row,
                plot = FALSE,
                verbose = TRUE,
                ...) {
+  # Validate python dependencies if method "yin" is choosen
+  if(method == "yin") {
+
+    check_python_dependencies()
+
+    tryCatch({
+      librosa <- reticulate::import("librosa")
+      np <- reticulate::import("numpy")
+    }, error = function(e) {
+      stop("Python dependencies not found. Install with:\n",
+           "reticulate::py_install(c('librosa', 'numpy'))\n",
+           "Then restart R and try again.")
+    })
+  }
 
   # Check if input is valid
   if (!is.data.frame(segment_row) || nrow(segment_row) != 1) {
@@ -83,51 +97,6 @@ FF <- function(segment_row,
       F0[,2][is.na(F0[,2])] <- 0
     }
   } else if(method == "yin") {
-    if (!requireNamespace("reticulate", quietly = TRUE)) {
-      stop("The 'reticulate' package is required. Please install it using: install.packages('reticulate')")
-    }
-
-    # Check for librosa
-    tryCatch({
-      reticulate::py_module_available("librosa")
-    }, error = function(e) {
-      if (verbose) {
-        message("Librosa is not installed. Attempting to install...")
-      }
-
-      # Try to install librosa
-      tryCatch({
-        reticulate::py_install("librosa", pip = TRUE)
-      }, error = function(e) {
-        stop("Failed to install librosa. Please install it manually using pip: pip install librosa")
-      })
-    })
-
-    # Check for numpy
-    tryCatch({
-      reticulate::py_module_available("numpy")
-    }, error = function(e) {
-      if (verbose) {
-        message("Numpy is not installed. Attempting to install...")
-      }
-
-      # Try to install numpy
-      tryCatch({
-        reticulate::py_install("numpy", pip = TRUE)
-      }, error = function(e) {
-        stop("Failed to install numpy. Please install it manually using pip: pip install numpy")
-      })
-    })
-
-    tryCatch({
-      librosa <- reticulate::import("librosa", delay_load = TRUE)
-      np <- reticulate::import("numpy", delay_load = TRUE)
-    }, error = function(e) {
-      stop("Python dependencies not found. Install with:\n",
-           "reticulate::py_install(c('librosa', 'numpy'))\n",
-           "Then restart R and try again.")
-    })
-
     # Convert tuneR wave to numpy array
     audio <- np$array(wv@left)
     sr <- wv@samp.rate
@@ -403,6 +372,20 @@ plot_FundFreq.default <- function(x,
                                   n_colors = 500,
                                   cores = NULL,
                                   ...) {
+  # Validate python dependencies if method "yin" is choosen
+  if(method == "yin") {
+
+    check_python_dependencies()
+
+    tryCatch({
+      librosa <- reticulate::import("librosa")
+      np <- reticulate::import("numpy")
+    }, error = function(e) {
+      stop("Python dependencies not found. Install with:\n",
+           "reticulate::py_install(c('librosa', 'numpy'))\n",
+           "Then restart R and try again.")
+    })
+  }
 
   # Validate input structure
   required_cols <- c("filename", "start_time", "end_time")
@@ -683,6 +666,21 @@ plot_FundFreq.Sap <- function(x,
                               verbose = TRUE,
                               ...) {
   if(verbose) message(sprintf("\n=== Starting Fundamental Frequency Heatmap Plotting ===\n"))
+
+  # Validate python dependencies if method "yin" is choosen
+  if(method == "yin") {
+
+    check_python_dependencies()
+
+    tryCatch({
+      librosa <- reticulate::import("librosa")
+      np <- reticulate::import("numpy")
+    }, error = function(e) {
+      stop("Python dependencies not found. Install with:\n",
+           "reticulate::py_install(c('librosa', 'numpy'))\n",
+           "Then restart R and try again.")
+    })
+  }
 
   # Input validation
   segment_type <- match.arg(segment_type)
