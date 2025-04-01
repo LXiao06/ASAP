@@ -227,6 +227,50 @@ parallel_apply <- function(indices, FUN, cores) {
   return(result)
 }
 
+
+
+#' Check Python dependencies
+#'
+#' @keywords internal
+check_python_dependencies <- function() {
+  if (!requireNamespace("reticulate", quietly = TRUE)) {
+    stop("The 'reticulate' package is required. Please install it using: install.packages('reticulate')")
+  }
+
+  # Check for librosa
+  tryCatch({
+    reticulate::py_module_available("librosa")
+  }, error = function(e) {
+    if (verbose) {
+      message("Librosa is not installed. Attempting to install...")
+    }
+
+    # Try to install librosa
+    tryCatch({
+      reticulate::py_install("librosa", pip = TRUE)
+    }, error = function(e) {
+      stop("Failed to install librosa. Please install it manually using pip: pip install librosa")
+    })
+  })
+
+  # Check for numpy
+  tryCatch({
+    reticulate::py_module_available("numpy")
+  }, error = function(e) {
+    if (verbose) {
+      message("Numpy is not installed. Attempting to install...")
+    }
+
+    # Try to install numpy
+    tryCatch({
+      reticulate::py_install("numpy", pip = TRUE)
+    }, error = function(e) {
+      stop("Failed to install numpy. Please install it manually using pip: pip install numpy")
+    })
+  })
+}
+
+
 #' # internal use
 #'
 #' #' Helper function for SAP analysis
