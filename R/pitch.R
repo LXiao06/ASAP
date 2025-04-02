@@ -22,7 +22,7 @@
 #' @param ovlp Overlap percentage between windows (default: 50)
 #' @param fmax Maximum frequency to consider (default: 1400 Hz)
 #' @param threshold Amplitude threshold for pitch detection in % (default: 10)
-#' @param plot Logical, whether to generate visualization
+#' @param plot Logical, whether to generate visualization(default: TRUE)
 #' @param plot_freq_lim Optional vector of length 2 specifying frequency limits for plotting
 #' @param color_palette Function generating color palette (default: black-to-red spectrum)
 #' @param n_colors Number of colors in heatmap (default: 500)
@@ -115,7 +115,7 @@ FF.default <- function(x,
                        fmax = 1400,
                        threshold = 10,
                        method = c("cepstrum", "yin"),
-                       plot = FALSE,
+                       plot = TRUE,
                        plot_freq_lim = NULL,
                        color_palette = NULL,
                        n_colors = 500,
@@ -125,20 +125,6 @@ FF.default <- function(x,
   # Properly match the method argument
   method <- match.arg(method)
 
-  # Validate python dependencies if method "yin" is chosen
-  if(method == "yin") {
-
-    check_python_dependencies()
-
-    tryCatch({
-      librosa <- reticulate::import("librosa")
-      np <- reticulate::import("numpy")
-    }, error = function(e) {
-      stop("Python dependencies not found. Install with:\n",
-           "reticulate::py_install(c('librosa', 'numpy'))\n",
-           "Then restart R and try again.")
-    })
-  }
 
   # Validate input
   required_cols <- c("filename", "start_time", "end_time")
@@ -162,9 +148,23 @@ FF.default <- function(x,
                          fmax = fmax,
                          threshold = threshold,
                          method = method,
-                         plot = plot,
-                         verbose = verbose))
+                         plot = plot))
   } else {
+    # Validate python dependencies if method "yin" is chosen
+    if(method == "yin") {
+
+      check_python_dependencies()
+
+      tryCatch({
+        librosa <- reticulate::import("librosa")
+        np <- reticulate::import("numpy")
+      }, error = function(e) {
+        stop("Python dependencies not found. Install with:\n",
+             "reticulate::py_install(c('librosa', 'numpy'))\n",
+             "Then restart R and try again.")
+      })
+    }
+
     # Parallel processing of F0 extraction
     f0_list <- parallel_apply(
       indices = 1:nrow(x),
@@ -312,6 +312,7 @@ FF.Sap <- function(x,
                    fmax = 1400,
                    threshold = 10,
                    method = c("cepstrum", "yin"),
+                   plot = TRUE,
                    plot_freq_lim = NULL,
                    color_palette = NULL,
                    n_colors = 500,
@@ -619,6 +620,20 @@ FF_single_row  <- function(segment_row,
                    threshold = 10,
                    plot = FALSE,
                ...) {
+  # Validate python dependencies if method "yin" is chosen
+  if(method == "yin") {
+
+    check_python_dependencies()
+
+    tryCatch({
+      librosa <- reticulate::import("librosa")
+      np <- reticulate::import("numpy")
+    }, error = function(e) {
+      stop("Python dependencies not found. Install with:\n",
+           "reticulate::py_install(c('librosa', 'numpy'))\n",
+           "Then restart R and try again.")
+    })
+  }
 
   # Construct file path
   sound_path <- construct_wav_path(segment_row, wav_dir = wav_dir)
