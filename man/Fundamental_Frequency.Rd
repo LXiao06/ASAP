@@ -17,7 +17,7 @@ FF(x, ...)
   fmax = 1400,
   threshold = 10,
   method = c("cepstrum", "yin"),
-  plot = FALSE,
+  plot = TRUE,
   plot_freq_lim = NULL,
   color_palette = NULL,
   n_colors = 500,
@@ -81,7 +81,7 @@ FF(x, ...)
 
 \item{method}{Pitch estimation method ("cepstrum" or "yin")}
 
-\item{plot}{Logical, whether to generate visualization}
+\item{plot}{Logical, whether to generate visualization(default: TRUE)}
 
 \item{plot_freq_lim}{Optional vector of length 2 specifying frequency limits for plotting}
 
