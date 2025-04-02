@@ -19,9 +19,9 @@
 #' @param wav_dir Directory containing WAV files (for data frame methods)
 #' @param method Pitch estimation method ("cepstrum" or "yin")
 #' @param wl Window length for spectral analysis (default: 512)
-#' @param ovlp Overlap percentage between windows (default: 80 for single, 50 for batch)
+#' @param ovlp Overlap percentage between windows (default: 50)
 #' @param fmax Maximum frequency to consider (default: 1400 Hz)
-#' @param threshold Amplitude threshold for pitch detection (default: 10)
+#' @param threshold Amplitude threshold for pitch detection in % (default: 10)
 #' @param plot Logical, whether to generate visualization
 #' @param plot_freq_lim Optional vector of length 2 specifying frequency limits for plotting
 #' @param color_palette Function generating color palette (default: black-to-red spectrum)
@@ -42,18 +42,16 @@
 #' @details
 #' The function provides different methods depending on the input type:
 #'
-#' Default method (single-row data frame):
+#'
+#' Default method (Data frame method)
 #' \itemize{
 #'   \item Performs fundamental frequency analysis on a single segment
+#'          or processes multiple segments in parallel
 #'   \item Supports both cepstrum and YIN-based pitch detection
-#'   \item Optional spectrogram overlay when plotting
-#' }
-#'
-#' Data frame method:
-#' \itemize{
-#'   \item Processes multiple segments in parallel
 #'   \item Normalizes time series across renditions
 #'   \item Creates aligned F0 matrix
+#'   \item Optional spectrogram overlay (single segment)
+#'         or heatmap visualization(multiple segments)
 #' }
 #'
 #' SAP object method:
@@ -70,19 +68,11 @@
 #'   \item Adds visual separators between groups
 #' }
 #'
-#' Visualization features:
-#' \itemize{
-#'   \item Customizable color palette and scaling
-#'   \item Group separation with white lines
-#'   \item Informative color key with frequency scale
-#'   \item Adjustable aspect ratio and dimensions
-#' }
-#'
 #' @return
 #' Returns an object depending on the method used:
 #' \itemize{
-#'   \item Default method: Matrix of time and frequency values
-#'   \item Data frame method: List with F0 matrix and metadata
+#'   \item Default method: Matrix of time and frequency values(F0 matrix)
+#'         or List with F0 matrix and metadata
 #'   \item SAP method: Updated SAP object with F0 features
 #'   \item Matrix method: Lattice plot object (invisibly)
 #' }
@@ -110,17 +100,13 @@
 #' \code{\link[seewave]{fund}} for cepstral analysis
 #' \code{\link[librosa]{yin}} for YIN algorithm (when using method = "yin")
 #'
-#' @importFrom lattice levelplot panel.levelplot panel.abline
-#' @importFrom seewave fund
-#' @importFrom tuneR readWave
-#'
-#' @rdname plot_FundFreq
+#' @rdname Fundamental_Frequency
 #' @export
 FF <- function(x, ...) {
   UseMethod("FF")
 }
 
-#' @rdname plot_FundFreq
+#' @rdname Fundamental_Frequency
 #' @export
 FF.default <- function(x,
                        wav_dir = NULL,
@@ -311,7 +297,7 @@ FF.default <- function(x,
   }
 }
 
-#' @rdname plot_FundFreq
+#' @rdname Fundamental_Frequency
 #' @export
 FF.Sap <- function(x,
                    segment_type = c("motifs", "syllables", "segments"),
@@ -474,7 +460,7 @@ FF.Sap <- function(x,
   invisible(x)
 }
 
-#' @rdname plot_FundFreq
+#' @rdname Fundamental_Frequency
 #' @export
 FF.matrix <- function(x,
                       labels = NULL,
@@ -732,7 +718,9 @@ FF_single_row  <- function(segment_row,
 # Goodness of pitch ----------------------------------------------
 # Update date : Mar. 26, 2025
 
-#' @export
+#' Internal function for processing single-row fundamental frequency estimation
+#'
+#' @keywords internal
 pitch_goodness <- function(segment_row,
                            wav_dir = NULL,
                            wl = 512,
