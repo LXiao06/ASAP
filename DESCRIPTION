@@ -55,6 +55,7 @@ LinkingTo:
     RcppProgress,
     reticulate
 Suggests: 
-    bigstatsr,   
+    bigstatsr,
     ggrepel,
+    reticulate,
     tidyr
