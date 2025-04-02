@@ -231,8 +231,6 @@ parallel_apply <- function(indices, FUN, cores) {
 
 #' Check Python dependencies
 #'
-#' @importFrom reticulate py_install import
-#'
 #' @keywords internal
 check_python_dependencies <- function() {
   if (!requireNamespace("reticulate", quietly = TRUE)) {
