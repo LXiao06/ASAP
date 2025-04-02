@@ -312,7 +312,6 @@ FF.Sap <- function(x,
                    fmax = 1400,
                    threshold = 10,
                    method = c("cepstrum", "yin"),
-                   plot = TRUE,
                    plot_freq_lim = NULL,
                    color_palette = NULL,
                    n_colors = 500,
@@ -448,15 +447,14 @@ FF.Sap <- function(x,
     message(sprintf("Access attributes via: attributes(x$features$motif$fund_freq)"))
   }
 
-  if(plot) {
-    # Create heatmap using matrix method
-    FF(f0_matrix,
-       labels = labels,
-       plot_freq_lim = plot_freq_lim,
-       color_palette = color_palette,
-       n_colors = n_colors,
-       main = "Heatmap of Motifs: Fundamental Frequency")
-  }
+
+  # Create heatmap using matrix method
+  FF(f0_matrix,
+     labels = labels,
+     plot_freq_lim = plot_freq_lim,
+     color_palette = color_palette,
+     n_colors = n_colors,
+     main = "Heatmap of Motifs: Fundamental Frequency")
 
   invisible(x)
 }
