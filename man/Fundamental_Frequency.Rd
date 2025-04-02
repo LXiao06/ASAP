@@ -40,6 +40,7 @@ FF(x, ...)
   fmax = 1400,
   threshold = 10,
   method = c("cepstrum", "yin"),
+  plot = TRUE,
   plot_freq_lim = NULL,
   color_palette = NULL,
   n_colors = 500,
