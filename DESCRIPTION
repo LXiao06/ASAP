@@ -52,8 +52,7 @@ Imports:
 LinkingTo: 
     Rcpp,
     RcppEigen,
-    RcppProgress,
-    reticulate
+    RcppProgress
 Suggests: 
     bigstatsr,
     ggrepel,
