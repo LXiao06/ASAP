@@ -10,7 +10,7 @@ pitch_goodness(
   wl = 512,
   ovlp = 80,
   fmax = 1500,
-  plot = FALSE,
+  plot = TRUE,
   ...
 )
 }

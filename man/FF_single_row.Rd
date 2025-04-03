@@ -2,7 +2,7 @@
 % Please edit documentation in R/pitch.R
 \name{FF_single_row}
 \alias{FF_single_row}
-\title{Internal function for processing single-row fundamental frequency estimation}
+\title{Internal function to calculate the fundamental frequency of time series data derived from a single audio segment}
 \usage{
 FF_single_row(
   segment_row,

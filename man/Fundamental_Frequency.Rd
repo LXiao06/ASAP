@@ -22,7 +22,6 @@ FF(x, ...)
   color_palette = NULL,
   n_colors = 500,
   cores = NULL,
-  verbose = TRUE,
   ...
 )
 
@@ -40,6 +39,7 @@ FF(x, ...)
   fmax = 1400,
   threshold = 10,
   method = c("cepstrum", "yin"),
+  plot = TRUE,
   plot_freq_lim = NULL,
   color_palette = NULL,
   n_colors = 500,
@@ -91,8 +91,6 @@ FF(x, ...)
 
 \item{cores}{Number of cores for parallel processing}
 
-\item{verbose}{Logical, whether to print progress messages}
-
 \item{segment_type}{For SAP objects: Type of segments (currently only 'motifs')}
 
 \item{sample_percent}{For SAP objects: Percentage of segments to sample}
@@ -108,6 +106,8 @@ FF(x, ...)
 \item{ordered}{For SAP objects: Whether to order by feature embeddings}
 
 \item{descending}{For SAP objects: Direction of embedding-based ordering}
+
+\item{verbose}{Logical, whether to print progress messages}
 
 \item{main}{Plot title (for matrix method)}
 }
