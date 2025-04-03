@@ -748,7 +748,7 @@ FF_single_row  <- function(segment_row,
 #'   }
 #' @param wav_dir Directory containing WAV files (for data frame methods)
 #' @param wl Window length for spectral analysis (default: 512)
-#' @param ovlp Overlap percentage between windows (default: 80)
+#' @param ovlp Overlap percentage between windows (default: 50)
 #' @param fmax Maximum frequency to consider (default: 1500 Hz)
 #' @param plot Logical, whether to generate visualization (default: TRUE)
 #' @param plot_lim Optional vector of length 2 specifying goodness limits for plotting
@@ -837,7 +837,7 @@ goodness <- function(x, ...) {
 goodness.default <- function(x,
                              wav_dir = NULL,
                              wl = 512,
-                             ovlp = 80,
+                             ovlp = 50,
                              fmax = 1500,
                              plot = TRUE,
                              plot_lim = NULL,
@@ -1009,7 +1009,7 @@ goodness.Sap <- function(x,
                          cores = NULL,
                          seed = 222,
                          wl = 512,
-                         ovlp = 80,
+                         ovlp = 50,
                          fmax = 1500,
                          plot = TRUE,
                          plot_lim = NULL,

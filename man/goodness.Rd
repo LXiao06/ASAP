@@ -13,7 +13,7 @@ goodness(x, ...)
   x,
   wav_dir = NULL,
   wl = 512,
-  ovlp = 80,
+  ovlp = 50,
   fmax = 1500,
   plot = TRUE,
   plot_lim = NULL,
@@ -33,7 +33,7 @@ goodness(x, ...)
   cores = NULL,
   seed = 222,
   wl = 512,
-  ovlp = 80,
+  ovlp = 50,
   fmax = 1500,
   plot = TRUE,
   plot_lim = NULL,
@@ -69,7 +69,7 @@ goodness(x, ...)
 
 \item{wl}{Window length for spectral analysis (default: 512)}
 
-\item{ovlp}{Overlap percentage between windows (default: 80)}
+\item{ovlp}{Overlap percentage between windows (default: 50)}
 
 \item{fmax}{Maximum frequency to consider (default: 1500 Hz)}
 
