@@ -61,13 +61,26 @@ using various methods and applying temporal constraints.
 The function uses either quantile-based thresholding or Hidden Markov Models to identify
 regions of reliable pitch tracking. It can optionally split segments at local minima in
 pitch goodness and applies minimum duration constraints.
+
+When using the 'hmm' method, the package 'depmixS4' is required.
+If not installed, the function will prompt for installation.
+}
+\note{
+The HMM method requires the 'depmixS4' package to be installed.
 }
 \examples{
 \dontrun{
-sap3 <- refine_FF(sap1,
+# Default method
+sap <- refine_FF(sap,
                   reference_label = "BL",
                   method = "quantile",
                   plot = TRUE)
+# hmm method
+sap <- refine_FF(sap,
+                  reference_label = "BL",
+                  method = "hmm")
+
 }
+
 
 }

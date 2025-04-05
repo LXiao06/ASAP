@@ -1421,7 +1421,7 @@ pitch_goodness <- function(segment_row,
 #'
 #' }
 #'
-#'@importFrom depmixS4 depmix fit posterior
+# #'@importFrom depmixS4 depmix fit posterior
 #'
 #' @export
 refine_FF <- function(x,
