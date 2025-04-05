@@ -1400,12 +1400,25 @@ pitch_goodness <- function(segment_row,
 #' regions of reliable pitch tracking. It can optionally split segments at local minima in
 #' pitch goodness and applies minimum duration constraints.
 #'
+#' @details
+#' When using the 'hmm' method, the package 'depmixS4' is required.
+#' If not installed, the function will prompt for installation.
+#'
+#' @note
+#' The HMM method requires the 'depmixS4' package to be installed.
+#'
 #' @examples
 #' \dontrun{
-#' sap3 <- refine_FF(sap1,
+#' # Default method
+#' sap <- refine_FF(sap,
 #'                   reference_label = "BL",
 #'                   method = "quantile",
 #'                   plot = TRUE)
+#' # hmm method
+#' sap <- refine_FF(sap,
+#'                   reference_label = "BL",
+#'                   method = "hmm")
+#'
 #' }
 #'
 #'@importFrom depmixS4 depmix fit posterior
@@ -1429,6 +1442,13 @@ refine_FF <- function(x,
   # Input validation
   segment_type <- match.arg(segment_type)
   method <- match.arg(method)
+
+  # Check for depmixS4 if hmm method is selected
+  if (method == "hmm" && !requireNamespace("depmixS4", quietly = TRUE)) {
+    stop("Package 'depmixS4' is needed for HMM method. Please install it with:\n",
+         "install.packages('depmixS4')",
+         call. = FALSE)
+  }
 
   # Check if input is a Sap object
   if (!inherits(x, "Sap")) {
@@ -1470,10 +1490,6 @@ refine_FF <- function(x,
            },
 
            "hmm" = {
-             if (!requireNamespace("depmixS4", quietly = TRUE)) {
-               stop("Install depmixS4: install.packages('depmixS4')")
-             }
-
              if (!is.null(random_seed)) set.seed(random_seed)
 
              hmm_data <- data.frame(goodness = ref_goodness)
