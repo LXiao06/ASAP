@@ -1420,6 +1420,7 @@ refine_FF <- function(x,
                      plot_freq_lim = NULL,
                      color_palette = NULL,
                      stats = FALSE,
+                     stats_across_label = FALSE,
                       ...) {
 
   # Input validation
@@ -1525,10 +1526,20 @@ refine_FF <- function(x,
 
   if (stats) {
   # Calculate segment statistics
-  segment_stats <- calculate_segment_stats(filtered_ff, template, time_step)
+  segment_list <- calculate_segment_stats(feature_matrix = filtered_ff,
+                                           template = template,
+                                           time_step = time_step,
+                                           stats_across_label = stats_across_label)
 
-  # Add stats to Sap object
-  x$features[[feature_type]]$stats_fund_freq <- segment_stats
+
+  if (stats_across_label) {
+    # When comparing across labels
+    x$features[[feature_type]]$stats_fund_freq <- segment_list$segment_stats
+    x$features[[feature_type]]$fund_freq_across_label <- segment_list$label_comparisons
+  } else {
+    # When not comparing across labels
+    x$features[[feature_type]]$stats_fund_freq <- segment_list
+  }
   }
 
   # Plot
@@ -1616,7 +1627,9 @@ split_at_dips <- function(template, goodness, min_duration_samples) {
 calculate_segment_stats <- function(feature_matrix,
                                     template,
                                     time_step,
-                                    feature = "pitch") {
+                                    feature = "pitch",
+                                    stats_across_label = FALSE,
+                                    ...) {
 
   # Validate inputs
   if (!is.matrix(feature_matrix)) stop("feature_matrix must be a matrix")
@@ -1627,74 +1640,145 @@ calculate_segment_stats <- function(feature_matrix,
 
   # Get labels from column names
   labels <- colnames(feature_matrix)
-  if (is.null(labels)) labels <- paste0("Rendition_", seq_len(ncol(feature_matrix)))
 
   # Identify contiguous segments
   rle_template <- rle(template)
   segment_ends <- cumsum(rle_template$lengths)
   segment_starts <- c(1, segment_ends[-length(segment_ends)] + 1)
+  valid_segments <- which(rle_template$values)
 
   # Initialize list to store results per label
   stats_list <- list()
 
-  # Calculate stats for each label separately
+  # Process each label separately
   for (label in labels) {
-    # Initialize data frame for current label
-    label_stats <- data.frame(
-      segment_id = integer(),
-      start_time = numeric(),
-      end_time = numeric(),
-      duration = numeric(),
-      mean_freq = numeric(),
-      sd_freq = numeric(),
-      min_freq = numeric(),
-      max_freq = numeric(),
-      freq_range = numeric(),
-      cv_freq = numeric(),
-      stringsAsFactors = FALSE
-    )
+    # Get columns belonging to this label
+    label_cols <- which(colnames(feature_matrix) == label)
+    if (length(label_cols) == 0) next
 
-    # Calculate stats for each segment
-    for (i in seq_along(segment_starts)) {
-      if (rle_template$values[i]) {
+    # Calculate per-rendition statistics within each segment
+    rendition_stats <- lapply(label_cols, function(col) {
+      seg_stats <- lapply(valid_segments, function(i) {
         seg_range <- segment_starts[i]:segment_ends[i]
-        seg_data <- feature_matrix[seg_range, label, drop = TRUE]
-        valid_freqs <- seg_data[!is.na(seg_data)]
+        seg_data <- feature_matrix[seg_range, col]
+        valid_vals <- seg_data[!is.na(seg_data)]
 
-        if (length(valid_freqs) > 0) {
-          mean_freq <- mean(valid_freqs, na.rm = TRUE)
-          sd_freq <- sd(valid_freqs, na.rm = TRUE)
-
-          label_stats <- rbind(label_stats, data.frame(
-            segment_id = nrow(label_stats) + 1,
+        if (length(valid_vals) > 0) {
+          data.frame(
+            segment_id = i,
             start_time = (segment_starts[i] - 1) * time_step,
             end_time = segment_ends[i] * time_step,
             duration = (segment_ends[i] - segment_starts[i] + 1) * time_step,
-            mean_freq = mean_freq,
-            sd_freq = sd_freq,
-            min_freq = min(valid_freqs, na.rm = TRUE),
-            max_freq = max(valid_freqs, na.rm = TRUE),
-            freq_range = max(valid_freqs, na.rm = TRUE) - min(valid_freqs, na.rm = TRUE),
-            cv_freq = sd_freq / mean_freq,
+            mean_val = mean(valid_vals),
+            #sd_val = sd(valid_vals),
+            min_val = min(valid_vals),
+            max_val = max(valid_vals),
+            n_samples = length(valid_vals),
             stringsAsFactors = FALSE
-          ))
-        }
-      }
-    }
+          )
+        } else NULL
+      })
+      do.call(rbind, seg_stats)
+    })
 
-    # Add label column and store in list
-    if (nrow(label_stats) > 0) {
-      label_stats$label <- label
+    # Combine all renditions for this label
+    label_df <- do.call(rbind, rendition_stats)
+
+    if (!is.null(label_df) && nrow(label_df) > 0) {
+      # Calculate label-level aggregates across renditions
+      label_stats <- label_df %>%
+        dplyr::group_by(segment_id, start_time, end_time, duration) %>%
+        dplyr::summarize(
+          rendition_count = dplyr::n(),
+          mean_freq = mean(mean_val, na.rm = TRUE),
+          sd_freq = sd(mean_val, na.rm = TRUE),
+          min_freq = min(min_val, na.rm = TRUE),
+          max_freq = max(max_val, na.rm = TRUE),
+          .groups = "drop"
+        ) %>%
+        dplyr::mutate(label = label)
+
       stats_list[[label]] <- label_stats
     }
   }
 
-  # Combine all labels into one data frame
+  # Combine all labels into final data frame
   stats_df <- do.call(rbind, stats_list)
   rownames(stats_df) <- NULL
 
   # Reorder columns
-  stats_df <- stats_df[, c("label", setdiff(names(stats_df), "label"))]
+  stats_df <- stats_df %>%
+    dplyr::select(label, segment_id, start_time, end_time, duration,
+           rendition_count, everything())
+
+  # Add statistical comparisons across labels if requested
+  if (stats_across_label && length(unique(stats_df$label)) > 1) {
+    comparison_stats <- compare_labels(label_df)
+    stats_df <- list(
+      segment_stats = stats_df,
+      label_comparisons = comparison_stats
+    )
+  }
 
   return(stats_df)
+}
+
+
+# Helper function for label comparisons
+compare_labels <- function(label_df) {
+  require(dplyr)
+  require(broom)
+
+  # Initialize results list
+  comparison_results <- list()
+
+  # 1. ANOVA for each segment across labels
+  anova_results <- label_df %>%
+    group_by(segment_id) %>%
+    filter(n_distinct(label) > 1) %>%  # Only compare segments with multiple labels
+    do(tidy(aov(mean_freq ~ label, data = .))) %>%
+    ungroup()
+    #  %>%
+    # mutate(significant = p.value < 0.05)
+
+  comparison_results$anova <- anova_results
+
+  # 2. Pairwise t-tests for each segment
+  pairwise_results <- label_df %>%
+    group_by(segment_id) %>%
+    filter(n_distinct(label) > 1) %>%
+    do(tidy(pairwise.t.test(.$mean_freq, .$label, p.adjust.method = "holm"))) %>%
+    ungroup()
+
+  comparison_results$pairwise <- pairwise_results
+
+  # 3. Overall label differences (across all segments)
+  overall_test <- tryCatch({
+    tidy(kruskal.test(mean_freq ~ label, data = label_df))
+  }, error = function(e) NULL)
+
+  comparison_results$overall <- overall_test
+
+  # 4. Effect size (Cohen's d for pairwise comparisons)
+  effect_sizes <- label_df %>%
+    group_by(segment_id) %>%
+    filter(n_distinct(label) > 1) %>%
+    do({
+      labels <- unique(.$label)
+      combn(labels, 2, simplify = FALSE) %>%
+        purrr::map_dfr(function(pair) {
+          x <- filter(., label == pair[1])$mean_freq
+          y <- filter(., label == pair[2])$mean_freq
+          data.frame(
+            segment_id = first(.$segment_id),
+            comparison = paste(pair, collapse = " vs "),
+            cohens_d = abs(mean(x) - mean(y))/sqrt((sd(x)^2 + sd(y)^2)/2)
+          )
+        })
+    }) %>%
+    ungroup()
+
+  comparison_results$effect_sizes <- effect_sizes
+
+  return(comparison_results)
 }
