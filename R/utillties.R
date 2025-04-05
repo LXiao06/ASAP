@@ -270,77 +270,232 @@ check_python_dependencies <- function() {
   })
 }
 
+#' @keywords internal
+calculate_segment_stats <- function(feature_matrix,
+                                    template,
+                                    time_step,
+                                    cores = NULL,
+                                    ...) {
+  # Validate inputs
+  if (!is.matrix(feature_matrix)) stop("feature_matrix must be a matrix")
+  if (!is.logical(template)) stop("template must be a logical vector")
+  if (nrow(feature_matrix) != length(template)) {
+    stop("feature_matrix rows must match template length")
+  }
 
-#' # internal use
+  # Get unique labels
+  labels <- unique(colnames(feature_matrix))
+
+  # Find valid segments
+  runs <- rle(template)
+  segment_starts <- cumsum(c(1, runs$lengths[-length(runs$lengths)]))
+  segment_ends <- cumsum(runs$lengths)
+  valid_segments <- which(runs$values)
+
+  # Process all labels in parallel
+  all_stats <- parallel_apply(
+    labels,
+    function(label) {
+      process_label(label, feature_matrix, segment_starts, segment_ends,
+                    valid_segments, time_step)
+    },
+    cores = cores
+  )
+
+  # Combine results
+  stats_df <- do.call(rbind, unlist(all_stats, recursive = FALSE))
+  rownames(stats_df) <- NULL
+
+  return(stats_df)
+}
+
+#' @keywords internal
+process_label <- function(label, feature_matrix, segment_starts, segment_ends,
+                          valid_segments, time_step) {
+  # Get columns belonging to this label
+  label_cols <- which(colnames(feature_matrix) == label)
+  if (length(label_cols) == 0) return(NULL)
+
+  # Create all combinations of label columns and segments
+  combinations <- expand.grid(
+    col = label_cols,
+    segment = valid_segments,
+    stringsAsFactors = FALSE
+  )
+
+  # Function to process a single combination
+  process_combination <- function(combo) {
+    col <- combo$col
+    i <- combo$segment
+
+    seg_range <- segment_starts[i]:segment_ends[i]
+    seg_data <- feature_matrix[seg_range, col]
+    valid_vals <- seg_data[!is.na(seg_data)]
+
+    if (length(valid_vals) > 0) {
+      # Filter out zeros
+      non_zero_vals <- valid_vals[valid_vals != 0]
+
+      # Only proceed if we have more then two non-zero values for statistics
+      if (length(non_zero_vals) > 2) {
+
+        data.frame(
+          label = label,
+          segment_id = i,
+          duration = (segment_ends[i] - segment_starts[i] + 1) * time_step,
+          mean = mean(non_zero_vals),
+          median = median(non_zero_vals),
+          sd = sd(non_zero_vals),
+          sem = sd(non_zero_vals) / sqrt(length(non_zero_vals)),
+          min_val = min(non_zero_vals),
+          max_val = max(non_zero_vals),
+          n_samples = length(non_zero_vals),
+          stringsAsFactors = FALSE
+        )
+      } else NULL
+    } else NULL
+  }
+
+  # Use parallel_apply to process combinations
+  parallel_apply(
+    1:nrow(combinations),
+    function(idx) process_combination(combinations[idx,]),
+    cores = NULL  # Will use default core detection
+  )
+}
+
+
+#' Perform ANOVA and Multiple Comparisons Analysis
 #'
-#' #' Helper function for SAP analysis
-#' #'
-#' #' @description Provides help information for SAP (Sound Analysis Pro) object operations
-#' #' including object creation, clip creation, template creation, and motif detection.
-#' #'
-#' #' @param topic Character string specifying the help topic.
-#' #'              Options are: "sap", "clip", "template", "motif"
-#' #'
-#' #' @return Prints help information to the console
-#' #'
-#' #' @examples
-#' #' Help.sap()  # Shows available topics
-#' #' Help.sap("sap")  # Shows help for SAP object creation
-#' #'
-#' #' @export
-#' Help.sap <- function(topic = NULL) {
-#'   if (is.null(topic)) {
-#'     cat("Available topics: 'sap', 'clip', 'template', 'motif'\n")
-#'     cat("Use Help.sap('topic') to get specific information\n")
-#'     return()
+#' @description
+#' Performs one-way ANOVA and Tukey's HSD test for multiple comparisons across different segments.
+#' Provides both statistical results and optional visualization.
+#'
+#' @param stats_df A data frame containing columns:
+#'   \itemize{
+#'     \item segment_id: Numeric identifier for segments
+#'     \item label: Factor or character indicating groups to compare
+#'     \item mean: Numeric values for comparison
+#'   }
+#' @param plot Logical, whether to create a boxplot visualization (default: TRUE)
+#'
+#' @return A tibble containing ANOVA results with columns:
+#'   \itemize{
+#'     \item segment_id: Segment identifier
+#'     \item term: Source of variation (label or Residuals)
+#'     \item df: Degrees of freedom
+#'     \item sumsq: Sum of squares
+#'     \item meansq: Mean squares
+#'     \item statistic: F-statistic
+#'     \item p.value: P-value
+#'     \item significant: Logical indicating if p.value < 0.05
 #'   }
 #'
-#'   if (topic == "sap") {
-#'     cat("SAP Object Creation and Basic Information:\n\n")
-#'     cat("Example code:\n")
-#'     cat('sap <- create_sap_object(\n  base_path = "/path/to/recordings",\n  subfolders_to_include = c("190", "201", "203"),\n  labels = c("BL", "Post", "Rec2")\n)\n\n')
-#'
-#'     cat("Useful inspection commands:\n")
-#'     cat("1. class(sap)           # Shows the object type\n")
-#'     cat("2. head(sap$metadata,5) # Displays first 5 rows of metadata\n")
-#'     cat("3. sap$base_path        # Shows the base directory path\n")
-#'   }
-#'
-#'   else if (topic == "clip") {
-#'     cat("Audio Clip Creation:\n\n")
-#'     cat("Example code:\n")
-#'     cat('sap <- create_audio_clip(sap,\n  indices = c(1, 5),\n  start_time = c(1, 2),\n  end_time = c(2.5, 3.5),\n  clip_names = c("m1", "m2"))\n\n')
-#'
-#'     cat("Useful inspection commands:\n")
-#'     cat("1. class(sap$template)                  # Shows template object type\n")
-#'     cat("2. sap$template$template_info[,1:8]     # Displays template information\n")
-#'   }
-#'
-#'   else if (topic == "template") {
-#'     cat("Template Creation:\n\n")
-#'     cat("Example code:\n")
-#'     cat('sap <- create_template(sap,\n  template_name = "d",\n  clip_name = "m1",\n  start_time = 0.72,\n  end_time = 0.84,\n  freq_min = 1,\n  freq_max = 10,\n  write_template = TRUE)\n\n')
-#'
-#'     cat("Useful inspection commands:\n")
-#'     cat("1. names(sap$templates$template_list)    # Shows available template names\n")
-#'     cat("2. unique(sap$metadata$day_post_hatch)   # Shows available days\n")
-#'     cat("3. sap$template$template_info[,1:8]      # Displays template information\n")
-#'   }
-#'
-#'   else if (topic == "motif") {
-#'     cat("Motif Detection:\n\n")
-#'     cat("Example code:\n")
-#'     cat('sap <- find_motifs(sap,\n  template_name = "d",\n  pre_time = 0.7,\n  lag_time = 0.5)\n\n')
-#'
-#'     cat("Useful inspection commands:\n")
-#'     cat("1. head(sap$motifs, 5)    # Shows first 5 detected motifs\n")
-#'   }
-#'
-#'   else {
-#'     cat("Topic not found. Available topics: 'sap', 'clip', 'template', 'motif'\n")
-#'   }
+#' @details
+#' The function performs two main analyses:
+#' \itemize{
+#'   \item One-way ANOVA for each segment
+#'   \item Tukey's HSD test for multiple comparisons with adjusted p-values
 #' }
 #'
+#' The printed output includes:
+#' \itemize{
+#'   \item Tukey's HSD results with adjusted p-values
+#'   \item Significance levels: *** (p<0.001), ** (p<0.01), * (p<0.05), ns (p>=0.05)
+#'   \item Optional boxplot visualization
+#' }
 #'
+#' @examples
+#' \dontrun{
+#' # Basic usage
+#' results <- anova_results(stats_df)
 #'
+#' # Without plot
+#' results <- anova_results(stats_df, plot = FALSE)
+#' }
 #'
+# #' @importFrom dplyr group_by filter n_distinct mutate bind_rows
+# #' @importFrom tidyr group_split
+# #' @importFrom broom tidy
+# #' @importFrom ggplot2 ggplot aes geom_boxplot facet_wrap theme_minimal labs
+#'
+#' @export
+anova_analysis <- function(stats_df, plot = TRUE) {
+  # Store ANOVA and Tukey results
+  results_list <- stats_df %>%
+    group_by(segment_id) %>%
+    filter(n_distinct(label) > 1) %>%  # Only compare segments with multiple labels
+    group_split() %>%
+    lapply(function(seg_data) {
+      # Perform ANOVA
+      aov_model <- aov(mean ~ label, data = seg_data)
+      anova_result <- tidy(aov_model) %>%
+        mutate(significant = p.value < 0.05,
+               segment_id = unique(seg_data$segment_id)) |>
+        select(segment_id, everything())
+
+      # Perform Tukey's HSD test for multiple comparison adjustment
+      tukey_result <- TukeyHSD(aov_model)
+      tukey_df <- as.data.frame(tukey_result$label) %>%
+        mutate(
+          comparison = rownames(.),
+          segment_id = unique(seg_data$segment_id),
+          significance = case_when(
+            `p adj` < 0.001 ~ "***",
+            `p adj` < 0.01 ~ "**",
+            `p adj` < 0.05 ~ "*",
+            TRUE ~ "ns"
+          )
+        )
+
+      list(anova = anova_result, tukey = tukey_df)
+    })
+
+  # Combine ANOVA results
+  anova_summary <- bind_rows(lapply(results_list, function(x) x$anova))
+
+  # Print pretty output for Tukey's HSD results
+  cat("## Tukey multiple comparisons of means")
+  cat("\n## 95% family-wise confidence level")
+  cat("\n## Fit: aov(formula = mean ~ label, data = segment)")
+  cat("\n## Note: p-values are adjusted for multiple comparisons using Tukey's method\n")
+  cat("\nlabel       segment      diff         lwr          upr         p adj   sign")
+
+  # Print Tukey results for each segment
+  for(result in results_list) {
+    tukey_df <- result$tukey
+    for(i in 1:nrow(tukey_df)) {
+      cat(sprintf("\n%-10s %5.0f %12.4f %12.4f %12.4f %12.5f    %s",
+                  tukey_df$comparison[i],
+                  tukey_df$segment_id[i],
+                  tukey_df$diff[i],
+                  tukey_df$lwr[i],
+                  tukey_df$upr[i],
+                  tukey_df$`p adj`[i],
+                  tukey_df$significance[i]))
+    }
+  }
+
+  # Add significance code explanation
+  cat("\n\nSignificance codes (adjusted p-values):")
+  cat("\n'***' < 0.001")
+  cat("\n'**'  < 0.01")
+  cat("\n'*'   < 0.05")
+  cat("\n'ns'  >= 0.05\n")
+
+  # Create plot if requested
+  if(plot) {
+    p <- ggplot(stats_df, aes(x=label, y=mean)) +
+      ggplot2::geom_boxplot() +
+      ggplot2::facet_wrap(~segment_id) +
+      theme_minimal() +
+      labs(title = "Mean Values by Label across Segments",
+           x = "Label",
+           y = "Mean Value")
+    print(p)
+  }
+
+  # Return ANOVA summary
+  return(anova_summary)
+}
+

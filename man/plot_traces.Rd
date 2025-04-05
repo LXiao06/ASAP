@@ -12,7 +12,7 @@ plot_traces(x, ...)
   x,
   labels = NULL,
   plot_type = c("combined", "individual", "average"),
-  feature = c("env", "pitch"),
+  feature = c("env", "pitch", "goodness"),
   alpha = 0.2,
   ncol = 1,
   palette = "Set1",
@@ -22,7 +22,7 @@ plot_traces(x, ...)
 \method{plot_traces}{Sap}(
   x,
   segment_type = c("motifs", "syllables", "segments"),
-  feature = c("env", "pitch"),
+  feature = c("env", "pitch", "goodness"),
   labels = NULL,
   plot_type = c("combined", "individual", "average"),
   alpha = 0.2,

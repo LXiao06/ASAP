@@ -79,7 +79,7 @@ plot_traces <- function(x, ...) {
 plot_traces.default  <- function(x,
                               labels = NULL,
                               plot_type = c("combined", "individual", "average"),
-                              feature = c("env", "pitch"),
+                              feature = c("env", "pitch", "goodness"),
                               alpha = 0.2,
                               ncol = 1,
                               palette = "Set1",
@@ -151,7 +151,8 @@ plot_traces.default  <- function(x,
   # Set y-axis label based on trace type
   y_label <- switch(feature,
                     "env" = "Amplitude Envelope",
-                    "pitch" = "Fundamental Frequency (kHz)")
+                    "pitch" = "Fundamental Frequency (kHz)",
+                    "goodness" = "Pitch Goodness")
 
   # Create plot based on type
   if (plot_type == "individual") {
@@ -225,7 +226,7 @@ plot_traces.default  <- function(x,
 #' @export
 plot_traces.Sap <- function(x,
                             segment_type = c("motifs", "syllables", "segments"),
-                            feature = c("env", "pitch"),
+                            feature = c("env", "pitch", "goodness"),
                             labels = NULL,
                             plot_type = c("combined", "individual", "average"),
                             alpha = 0.2,
@@ -246,6 +247,8 @@ plot_traces.Sap <- function(x,
     matrix_to_plot <- x$features[[feature_type]]$amp_env
   } else if (feature == "pitch") {
     matrix_to_plot <- x$features[[feature_type]]$fund_freq
+  } else if (feature == "goodness") {
+    matrix_to_plot <- x$features[[feature_type]]$pitch_goodness
   } else {
     stop("Invalid feature type")
   }
