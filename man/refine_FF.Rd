@@ -16,7 +16,8 @@ refine_FF(
   plot = TRUE,
   plot_freq_lim = NULL,
   color_palette = NULL,
-  stats = FALSE,
+  stats = TRUE,
+  verbose = TRUE,
   ...
 )
 }
@@ -44,6 +45,8 @@ refine_FF(
 \item{color_palette}{Function, color palette for plotting}
 
 \item{stats}{Logical, whether to calculate segment statistics}
+
+\item{verbose}{Logical, whether to print access information}
 
 \item{...}{Additional arguments passed to plotting functions}
 }
