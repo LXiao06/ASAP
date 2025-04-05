@@ -1370,3 +1370,331 @@ pitch_goodness <- function(segment_row,
 
 
 
+# Refine FF ---------------------------------------------------------------
+
+#' Refine Fundamental Frequency Detection
+#'
+#' @description
+#' Refines fundamental frequency detection by identifying regions of reliable pitch tracking
+#' using various methods and applying temporal constraints.
+#'
+#' @param x A Sap object containing fundamental frequency and pitch goodness data
+#' @param segment_type Character, type of segment to analyze: "motifs", "syllables", or "segments"
+#' @param reference_label Character, label to use as reference for template creation
+#' @param method Character, method for template creation: "quantile" or "hmm"
+#' @param minimal_duration Numeric, minimum duration (in ms) for valid segments
+#' @param split_dips Logical, whether to split segments at significant dips in goodness
+#' @param quantile_threshold Numeric, threshold for quantile method (0-1)
+#' @param random_seed Numeric, seed for reproducibility
+#' @param plot Logical, whether to plot the results
+#' @param plot_freq_lim Numeric vector of length 2, frequency limits for plotting
+#' @param color_palette Function, color palette for plotting
+#' @param stats Logical, whether to calculate segment statistics
+#' @param ... Additional arguments passed to plotting functions
+#'
+#' @return Invisibly returns the modified Sap object with refined fundamental frequency data
+#'
+#' @details
+#' The function uses either quantile-based thresholding or Hidden Markov Models to identify
+#' regions of reliable pitch tracking. It can optionally split segments at local minima in
+#' pitch goodness and applies minimum duration constraints.
+#'
+#' @examples
+#' \dontrun{
+#' sap3 <- refine_FF(sap1,
+#'                   reference_label = "BL",
+#'                   method = "quantile",
+#'                   plot = TRUE)
+#' }
+#'
+#' @export
+refine_FF <- function(x,
+                     segment_type = c("motifs", "syllables", "segments"),
+                     reference_label,
+                     method = c("quantile", "hmm"),
+                     minimal_duration = 20, # in ms
+                     split_dips = TRUE,
+                     quantile_threshold = 0.5,
+                     random_seed = 222,
+                     plot = TRUE,
+                     plot_freq_lim = NULL,
+                     color_palette = NULL,
+                     stats = FALSE,
+                      ...) {
+
+  # Input validation
+  segment_type <- match.arg(segment_type)
+  method <- match.arg(method)
+
+  # Check if input is a Sap object
+  if (!inherits(x, "Sap")) {
+    stop("Input must be a Sap object")
+  }
+
+  # Update feature type by removing 's' from segment_type
+  feature_type <- sub("s$", "", segment_type)
+
+  # Get the relevant matrices
+  ff_matrix <- x$features[[feature_type]]$fund_freq
+  goodness_matrix <- x$features[[feature_type]]$pitch_goodness
+
+  # Validate matrices
+  if (is.null(ff_matrix) || is.null(goodness_matrix)) {
+    stop("Both fundamental frequency and pitch goodness matrices must exist")
+  }
+  if (!identical(dim(ff_matrix), dim(goodness_matrix))) {
+    stop("Matrices must have identical dimensions")
+  }
+  if (!reference_label %in% colnames(ff_matrix)) {
+    stop("Reference label not found in data")
+  }
+
+  # Calculate time parameters
+  time_window <- attr(ff_matrix, "time_window")
+  time_step <- time_window / nrow(ff_matrix)
+  min_samples <- ceiling(minimal_duration / (time_step * 1000))
+
+  # Get reference label columns and average them
+  ref_cols <- which(colnames(ff_matrix) == reference_label)
+  ref_goodness <- rowMeans(goodness_matrix[, ref_cols, drop = FALSE])
+
+  # Core segmentation logic
+  template <- switch(method,
+           "quantile" = {
+             quantile_val <- quantile(ref_goodness, quantile_threshold, na.rm = TRUE)
+             ref_goodness > quantile_val
+           },
+
+           "hmm" = {
+             if (!requireNamespace("depmixS4", quietly = TRUE)) {
+               stop("Install depmixS4: install.packages('depmixS4')")
+             }
+
+             if (!is.null(random_seed)) set.seed(random_seed)
+
+             hmm_data <- data.frame(goodness = ref_goodness)
+             hmm_model <- depmixS4::depmix(
+               goodness ~ 1,
+               data = hmm_data,
+               nstates = 2,
+               family = gaussian(),
+               instart = c(0.5, 0.5),
+               trstart = matrix(c(hmm_trans_prob, 1-hmm_trans_prob,
+                                  1-hmm_trans_prob, hmm_trans_prob), ncol = 2),
+               ntimes = nrow(hmm_data)
+             )
+
+             hmm_fit <- tryCatch({
+               fit <- depmixS4::fit(hmm_model, verbose = FALSE)
+               if(fit@message != "converged") {
+                 NULL  # Return NULL if not converged
+               } else {
+                 fit
+               }
+             }, error = function(e) NULL)
+
+             if(!is.null(hmm_fit)) {
+               states <- depmixS4::posterior(hmm_fit, type = "viterbi")$state
+               state_means <- tapply(ref_goodness, states, mean)
+               states == which.max(state_means)
+             } else {
+               warning("HMM failed to converge, using quantile fallback (threshold = 0.5)")
+               quantile_val <- quantile(ref_goodness, 0.5, na.rm = TRUE)
+               ref_goodness > quantile_val
+             }
+           }
+
+  )
+
+  # Apply minimal duration filter
+  template <- filter_short_segments(template, min_samples)
+
+  # Segmentation splitting at local minima
+  if(split_dips) {
+    template <- split_at_dips(template, ref_goodness, min_samples)
+  }
+
+  # Create filtered FF matrix
+  filtered_ff <- ff_matrix
+  filtered_ff[!template, ] <- NA
+  attributes(filtered_ff) <- attributes(ff_matrix)
+  attr(filtered_ff, "temporal_template") <- template
+
+  # Update the Sap object
+  x$features[[feature_type]]$filtered_fund_freq <- filtered_ff
+
+  if (stats) {
+  # Calculate segment statistics
+  segment_stats <- calculate_segment_stats(filtered_ff, template, time_step)
+
+  # Add stats to Sap object
+  x$features[[feature_type]]$stats_fund_freq <- segment_stats
+  }
+
+  # Plot
+  if (plot) {
+    heatmap <- FF.matrix(
+      ff_matrix,
+      plot_freq_lim = plot_freq_lim,
+      color_palette = color_palette,
+      main = paste("Fundamental Frequency with", method, "Template")
+    )
+
+    # Overlay template
+    lattice::trellis.focus("panel", 1, 1, highlight = FALSE)
+    template_pos <- which(template)
+    if(length(template_pos) > 0) {
+      lattice::panel.rect(
+        xleft = template_pos - 0.5,
+        xright = template_pos + 0.5,
+        ybottom = 0.5,
+        ytop = ncol(filtered_ff) + 0.5,
+        border = NA,
+        col = rgb(0, 1, 0, 0.5)  # Cyan overlay
+      )
+    }
+    lattice::trellis.unfocus()
+  }
+
+  invisible(x)
+}
+
+
+#' Filter Short Segments from Template
+#'
+#' @param template Logical vector representing the template
+#' @param min_samples Minimum number of samples for a valid segment
+#' @return Logical vector with short segments removed
+#' @keywords internal
+filter_short_segments <- function(template, min_samples) {
+  rle_template <- rle(template)
+  for(i in seq_along(rle_template$lengths)) {
+    if(rle_template$values[i] && rle_template$lengths[i] < min_samples) {
+      start <- sum(rle_template$lengths[1:i-1]) + 1
+      end <- start + rle_template$lengths[i] - 1
+      template[start:end] <- FALSE
+    }
+  }
+  template
+}
+
+#' Split Template at Local Minima in Goodness
+#'
+#' @param template Logical vector representing the template
+#' @param goodness Numeric vector of goodness values
+#' @param min_duration_samples Minimum number of samples for a valid segment
+#' @return Logical vector with segments split at significant dips
+#' @keywords internal
+split_at_dips <- function(template, goodness, min_duration_samples) {
+  runs <- rle(template)
+  new_template <- template
+
+  for(i in which(runs$values)) {
+    start <- sum(runs$lengths[1:(i-1)]) + 1
+    end <- start + runs$lengths[i] - 1
+    segment_goodness <- goodness[start:end]
+
+    # Find local minima
+    minima <- which(diff(sign(diff(segment_goodness))) == 2) + 1
+    if(length(minima) > 0) {
+      dip_threshold <- quantile(segment_goodness, 0.25)
+      valid_minima <- minima[segment_goodness[minima] < dip_threshold]
+
+       # Apply splits
+       for(vm in valid_minima) {
+         split_pos <- start + vm - 1
+         new_template[split_pos] <- FALSE
+       }
+    }
+  }
+
+  # Return modified template and re-apply duration filter
+  filter_short_segments(new_template, min_duration_samples)
+}
+
+#' @keywords internal
+calculate_segment_stats <- function(feature_matrix,
+                                    template,
+                                    time_step,
+                                    feature = "pitch") {
+
+  # Validate inputs
+  if (!is.matrix(feature_matrix)) stop("feature_matrix must be a matrix")
+  if (!is.logical(template)) stop("template must be a logical vector")
+  if (nrow(feature_matrix) != length(template)) {
+    stop("feature_matrix rows must match template length")
+  }
+
+  # Get labels from column names
+  labels <- colnames(feature_matrix)
+  if (is.null(labels)) labels <- paste0("Rendition_", seq_len(ncol(feature_matrix)))
+
+  # Identify contiguous segments
+  rle_template <- rle(template)
+  segment_ends <- cumsum(rle_template$lengths)
+  segment_starts <- c(1, segment_ends[-length(segment_ends)] + 1)
+
+  # Initialize list to store results per label
+  stats_list <- list()
+
+  # Calculate stats for each label separately
+  for (label in labels) {
+    # Initialize data frame for current label
+    label_stats <- data.frame(
+      segment_id = integer(),
+      start_time = numeric(),
+      end_time = numeric(),
+      duration = numeric(),
+      mean_freq = numeric(),
+      sd_freq = numeric(),
+      min_freq = numeric(),
+      max_freq = numeric(),
+      freq_range = numeric(),
+      cv_freq = numeric(),
+      stringsAsFactors = FALSE
+    )
+
+    # Calculate stats for each segment
+    for (i in seq_along(segment_starts)) {
+      if (rle_template$values[i]) {
+        seg_range <- segment_starts[i]:segment_ends[i]
+        seg_data <- feature_matrix[seg_range, label, drop = TRUE]
+        valid_freqs <- seg_data[!is.na(seg_data)]
+
+        if (length(valid_freqs) > 0) {
+          mean_freq <- mean(valid_freqs, na.rm = TRUE)
+          sd_freq <- sd(valid_freqs, na.rm = TRUE)
+
+          label_stats <- rbind(label_stats, data.frame(
+            segment_id = nrow(label_stats) + 1,
+            start_time = (segment_starts[i] - 1) * time_step,
+            end_time = segment_ends[i] * time_step,
+            duration = (segment_ends[i] - segment_starts[i] + 1) * time_step,
+            mean_freq = mean_freq,
+            sd_freq = sd_freq,
+            min_freq = min(valid_freqs, na.rm = TRUE),
+            max_freq = max(valid_freqs, na.rm = TRUE),
+            freq_range = max(valid_freqs, na.rm = TRUE) - min(valid_freqs, na.rm = TRUE),
+            cv_freq = sd_freq / mean_freq,
+            stringsAsFactors = FALSE
+          ))
+        }
+      }
+    }
+
+    # Add label column and store in list
+    if (nrow(label_stats) > 0) {
+      label_stats$label <- label
+      stats_list[[label]] <- label_stats
+    }
+  }
+
+  # Combine all labels into one data frame
+  stats_df <- do.call(rbind, stats_list)
+  rownames(stats_df) <- NULL
+
+  # Reorder columns
+  stats_df <- stats_df[, c("label", setdiff(names(stats_df), "label"))]
+
+  return(stats_df)
+}
