@@ -1408,6 +1408,8 @@ pitch_goodness <- function(segment_row,
 #'                   plot = TRUE)
 #' }
 #'
+#'@importFrom depmixS4 depmix fit posterior
+#'
 #' @export
 refine_FF <- function(x,
                      segment_type = c("motifs", "syllables", "segments"),
