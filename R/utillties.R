@@ -414,25 +414,37 @@ process_label <- function(label, feature_matrix, segment_starts, segment_ends,
 #' results <- anova_results(stats_df, plot = FALSE)
 #' }
 #'
-# #' @importFrom dplyr group_by filter n_distinct mutate bind_rows
-# #' @importFrom tidyr group_split
-# #' @importFrom broom tidy
-# #' @importFrom ggplot2 ggplot aes geom_boxplot facet_wrap theme_minimal labs
+#' @importFrom dplyr %>% group_by filter n_distinct mutate bind_rows group_split case_when
+#' @importFrom ggplot2 ggplot aes geom_boxplot facet_wrap theme_minimal labs
 #'
 #' @export
 anova_analysis <- function(stats_df, plot = TRUE) {
+
   # Store ANOVA and Tukey results
-  results_list <- stats_df %>%
-    group_by(segment_id) %>%
-    filter(n_distinct(label) > 1) %>%  # Only compare segments with multiple labels
-    group_split() %>%
+  results_list <- stats_df |>
+    group_by(segment_id) |>
+    filter(n_distinct(label) > 1) |>  # Only compare segments with multiple labels
+    group_split() |>
     lapply(function(seg_data) {
       # Perform ANOVA
       aov_model <- aov(mean ~ label, data = seg_data)
-      anova_result <- tidy(aov_model) %>%
-        mutate(significant = p.value < 0.05,
-               segment_id = unique(seg_data$segment_id)) |>
-        select(segment_id, everything())
+
+      # Create anova result data frame
+      aov_summary <- summary(aov_model)[[1]]
+      anova_result <- data.frame(
+        term = rownames(aov_summary),
+        Df = aov_summary$Df,
+        Sum_Sq = aov_summary$`Sum Sq`,
+        Mean_Sq = aov_summary$`Mean Sq`,
+        F_value = aov_summary$`F value`,
+        p.value = aov_summary$`Pr(>F)`,
+        stringsAsFactors = FALSE
+      ) |>
+        dplyr::mutate(
+          significant = p.value < 0.05,
+          segment_id = unique(seg_data$segment_id)
+        ) |>
+        dplyr::select(segment_id, dplyr::everything())
 
       # Perform Tukey's HSD test for multiple comparison adjustment
       tukey_result <- TukeyHSD(aov_model)

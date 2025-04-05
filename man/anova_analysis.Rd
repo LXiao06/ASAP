@@ -56,5 +56,4 @@ results <- anova_results(stats_df)
 results <- anova_results(stats_df, plot = FALSE)
 }
 
-
 }

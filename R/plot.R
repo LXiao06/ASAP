@@ -85,6 +85,10 @@ plot_traces.default  <- function(x,
                               palette = "Set1",
                               ...
                               ) {
+  if (!requireNamespace("tidyr", quietly = TRUE)) {
+    stop("Package 'tidyr' needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
 
   # Input validation
   plot_type <- match.arg(plot_type)
