@@ -7,15 +7,17 @@
 #'
 #' @description
 #' Creates fundamental frequency analyses and visualizations from audio segments, supporting
-#' multiple data types (data frames, SAP objects) and visualization options.
+#' multiple data types (WAV file, data frames, SAP objects) and visualization options.
 #' Provides both analytical results and optional single trial or heatmap visualizations.
 #'
 #' @param x Input object:
-#'   \itemize{
-#'     \item data frame (default method)
+#'     \item character: path to WAV file (default method)
+#'     \item data frame: containing segment information
 #'     \item SAP object
 #'     \item Pre-computed F0 matrix
 #'   }
+#' @param start_time Numeric, start time in seconds (for default method)
+#' @param end_time Numeric, end time in seconds (for default method)
 #' @param wav_dir Directory containing WAV files (for data frame methods)
 #' @param method Pitch estimation method ("cepstrum" or "yin")
 #' @param wl Window length for spectral analysis (default: 512)
@@ -42,16 +44,19 @@
 #' @details
 #' The function provides different methods depending on the input type:
 #'
-#'
-#' Default method (Data frame method)
+#' Default method (WAV file method):
 #' \itemize{
-#'   \item Performs fundamental frequency analysis on a single segment
-#'          or processes multiple segments in parallel
+#'   \item Analyzes a single WAV file within specified time window
 #'   \item Supports both cepstrum and YIN-based pitch detection
+#'   \item Creates spectrogram with F0 overlay visualization
+#' }
+#'
+#' Data frame method:
+#' \itemize{
+#'   \item Processes multiple segments in parallel
 #'   \item Normalizes time series across renditions
 #'   \item Creates aligned F0 matrix
-#'   \item Optional spectrogram overlay (single segment)
-#'         or heatmap visualization(multiple segments)
+#'   \item Generates heatmap visualization for multiple segments
 #' }
 #'
 #' SAP object method:
@@ -71,16 +76,16 @@
 #' @return
 #' Returns an object depending on the method used:
 #' \itemize{
-#'   \item Default method: Matrix of time and frequency values(F0 matrix)
-#'         or List with F0 matrix and metadata
+#'   \item Default method: Matrix of time and frequency values
+#'   \item Data frame method: List with F0 matrix and metadata
 #'   \item SAP method: Updated SAP object with F0 features
 #'   \item Matrix method: Lattice plot object (invisibly)
 #' }
 #'
 #' @examples
 #' \dontrun{
-#' # Single segment analysis
-#' FF(segment_row, wav_dir = "path/to/wavs", plot = TRUE)
+#' # Single WAV file analysis
+#' FF("path/to/sound.wav", start_time = 1, end_time = 2)
 #'
 #' # Multiple segment analysis
 #' FF(segments_df, wav_dir = "path/to/wavs",
@@ -108,7 +113,81 @@ FF <- function(x, ...) {
 
 #' @rdname Fundamental_Frequency
 #' @export
-FF.default <- function(x,
+FF.default <- function(x,  # x is wav file path
+                       start_time = NULL,
+                       end_time = NULL,
+                       wl = 512,
+                       ovlp = 50,
+                       fmax = 1400,
+                       threshold = 10,
+                       method = c("cepstrum", "yin"),
+                       plot = TRUE,
+                       ...) {
+  # Validate file path
+  if (!file.exists(x)) {
+    stop("File does not exist: ", x)
+  }
+
+  # Properly match the method argument
+  method <- match.arg(method)
+
+  # Always read header first to get duration
+  header <- tuneR::readWave(x, header = TRUE)
+  duration <- header$samples / header$sample.rate
+
+  # Handle start_time
+  if (is.null(start_time)) {
+    start_time <- 0
+  }
+
+  # Handle end_time
+  if (is.null(end_time)) {
+    end_time <- duration
+  } else {
+    # Validate user-provided end_time against actual duration
+    if (end_time > duration) {
+      end_time <- duration
+    }
+  }
+
+  # Final boundary checks
+  if (start_time < 0) {
+    stop("start_time cannot be negative (got ", start_time, "s)")
+  }
+
+  if (start_time >= end_time) {
+    stop("Invalid time window: start_time (", start_time,
+         "s) >= end_time (", end_time, "s)")
+  }
+
+  # Create a single-row data frame for FF_single_row
+  segment_row <- data.frame(
+    filename = basename(x),
+    start_time = start_time,
+    end_time = end_time,
+    stringsAsFactors = FALSE
+  )
+
+  # Call FF_single_row with the constructed data
+  FF_result <- FF_single_row(
+    segment_row = segment_row,
+    wav_dir = dirname(x),
+    wl = wl,
+    ovlp = ovlp,
+    fmax = fmax,
+    threshold = threshold,
+    method = method,
+    plot = plot,
+    ...
+  )
+
+  return(FF_result)
+}
+
+
+#' @rdname Fundamental_Frequency
+#' @export
+FF.data.frame  <- function(x,
                        wav_dir = NULL,
                        wl = 512,
                        ovlp = 50,
