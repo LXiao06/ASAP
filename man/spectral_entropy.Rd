@@ -66,11 +66,16 @@ spectral_entropy(x, ...)
 )
 }
 \arguments{
-\item{x}{A data frame containing audio segment information}
+\item{x}{Input object:
+\itemize{
+\item data frame (default method)
+\item SAP object
+\item Pre-computed matrix for spectral entropy
+}}
 
 \item{...}{Additional arguments passed to levelplot}
 
-\item{wav_dir}{Directory containing WAV files}
+\item{wav_dir}{Directory containing WAV files (for data frame methods)}
 
 \item{wl}{Window length for FFT (default: 512)}
 
@@ -82,7 +87,7 @@ spectral_entropy(x, ...)
 
 \item{freq_range}{Frequency range for analysis c(min, max) in Hz (default: c(500, 15000))}
 
-\item{threshold}{Threshold for power spectrum (default: 10)}
+\item{threshold}{Amplitude threshold for power spectrum (default: 10)}
 
 \item{method}{Entropy type ("weiner" or "shannon")}
 
@@ -97,6 +102,26 @@ spectral_entropy(x, ...)
 \item{n_colors}{Number of colors in palette (default: 500)}
 
 \item{cores}{Number of cores for parallel processing}
+
+\item{segment_type}{For SAP objects: Type of segments (currently only 'motifs')}
+
+\item{sample_percent}{For SAP objects: Percentage of segments to sample}
+
+\item{balanced}{For SAP objects: Whether to balance samples across labels}
+
+\item{labels}{Optional vector of labels for subsetting or grouping}
+
+\item{clusters}{For SAP objects: Numeric vector of cluster IDs to include}
+
+\item{seed}{Random seed for sampling (default: 222)}
+
+\item{ordered}{For SAP objects: Whether to order by feature embeddings}
+
+\item{descending}{For SAP objects: Direction of embedding-based ordering}
+
+\item{verbose}{Logical, whether to print progress messages}
+
+\item{main}{Plot title (for matrix method)}
 }
 \value{
 For single segments, returns a matrix with columns time and entropy.

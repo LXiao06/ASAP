@@ -54,12 +54,7 @@ refine_sh(
 \item{...}{Additional arguments passed to plotting functions}
 }
 \value{
-Returns the input Sap object with additional components:
-\itemize{
-\item filtered_{matrix}\emph{entropy: Filtered entropy matrix
-\item stats}{matrix}_entropy: Statistics of segments (if stats = TRUE)
-\item temporal_template: Binary vector indicating template (as attribute)
-}
+Invisibly returns the modified Sap object with refined spectral entropy data
 }
 \description{
 Refines spectral entropy measurements by creating a temporal template based on pitch goodness.

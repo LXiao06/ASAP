@@ -9,21 +9,36 @@
 #' Calculates spectral entropy (Wiener or Shannon) for audio segments, providing measures
 #' of spectral uniformity or complexity in sound signals.
 #'
-#' @param x A data frame containing audio segment information
-#' @param wav_dir Directory containing WAV files
+#' @param x Input object:
+#'   \itemize{
+#'     \item data frame (default method)
+#'     \item SAP object
+#'     \item Pre-computed matrix for spectral entropy
+#'   }
+#' @param wav_dir Directory containing WAV files (for data frame methods)
 #' @param wl Window length for FFT (default: 512)
 #' @param wn Window name for FFT (default: "hanning")
 #' @param ovlp Overlap percentage between windows (default: 50)
 #' @param fftw Logical, use FFTW or not (default: TRUE)
 #' @param freq_range Frequency range for analysis c(min, max) in Hz (default: c(500, 15000))
-#' @param threshold Threshold for power spectrum (default: 10)
+#' @param threshold Amplitude threshold for power spectrum (default: 10)
 #' @param method Entropy type ("weiner" or "shannon")
 #' @param normalize Logical, whether to normalize entropy values (default: FALSE)
 #' @param plot Logical, whether to plot results (default: TRUE)
 #' @param plot_entropy_lim Optional limits for entropy plot c(min, max)
 #' @param color_palette Custom color palette function
 #' @param n_colors Number of colors in palette (default: 500)
+#' @param main Plot title (for matrix method)
+#' @param labels Optional vector of labels for subsetting or grouping
+#' @param segment_type For SAP objects: Type of segments (currently only 'motifs')
+#' @param sample_percent For SAP objects: Percentage of segments to sample
+#' @param balanced For SAP objects: Whether to balance samples across labels
+#' @param clusters For SAP objects: Numeric vector of cluster IDs to include
 #' @param cores Number of cores for parallel processing
+#' @param seed Random seed for sampling (default: 222)
+#' @param ordered For SAP objects: Whether to order by feature embeddings
+#' @param descending For SAP objects: Direction of embedding-based ordering
+#' @param verbose Logical, whether to print progress messages
 #' @param ... Additional arguments passed to levelplot
 #'
 #' @details
@@ -904,14 +919,8 @@ getH <- function(x,
 #' using either a quantile threshold or HMM segmentation. The filtered entropy values are stored
 #' in the Sap object and can be visualized as a heatmap with the template overlay.
 #'
-#' @return
-#' Returns the input Sap object with additional components:
-#' \itemize{
-#'   \item filtered_{matrix}_entropy: Filtered entropy matrix
-#'   \item stats_{matrix}_entropy: Statistics of segments (if stats = TRUE)
-#'   \item temporal_template: Binary vector indicating template (as attribute)
-#' }
-#'
+#' @return Invisibly returns the modified Sap object with refined spectral entropy data
+#' 
 #' @examples
 #' \dontrun{
 #' # Refine Wiener entropy using quantile method
