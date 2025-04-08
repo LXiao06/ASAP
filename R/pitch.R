@@ -1,7 +1,7 @@
 # Pitch Module
 
 # Fundamental Frequency Estimation ----------------------------------------------
-# Update date : Apr.2, 2025
+# Update date : Apr.8, 2025
 
 #' Fundamental Frequency Analysis and Visualization
 #'
