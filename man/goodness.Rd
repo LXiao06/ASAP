@@ -3,6 +3,7 @@
 \name{goodness}
 \alias{goodness}
 \alias{goodness.default}
+\alias{goodness.data.frame}
 \alias{goodness.Sap}
 \alias{goodness.matrix}
 \title{Pitch Goodness Analysis}
@@ -10,6 +11,17 @@
 goodness(x, ...)
 
 \method{goodness}{default}(
+  x,
+  start_time = NULL,
+  end_time = NULL,
+  wl = 512,
+  ovlp = 50,
+  fmax = 1500,
+  plot = TRUE,
+  ...
+)
+
+\method{goodness}{data.frame}(
   x,
   wav_dir = NULL,
   wl = 512,
@@ -58,14 +70,17 @@ goodness(x, ...)
 \arguments{
 \item{x}{Input object:
 \itemize{
-\item  Data frame (default method)
+\item character: path to WAV file (default method)
+\item data frame: containing segment information
 \item SAP object
 \item Pre-computed goodness matrix
 }}
 
 \item{...}{Additional arguments passed to methods or plotting functions}
 
-\item{wav_dir}{Directory containing WAV files (for data frame methods)}
+\item{start_time}{Numeric, start time in seconds (for default method)}
+
+\item{end_time}{Numeric, end time in seconds (for default method)}
 
 \item{wl}{Window length for spectral analysis (default: 512)}
 
@@ -74,6 +89,8 @@ goodness(x, ...)
 \item{fmax}{Maximum frequency to consider (default: 1500 Hz)}
 
 \item{plot}{Logical, whether to generate visualization (default: TRUE)}
+
+\item{wav_dir}{Directory containing WAV files (for data frame methods)}
 
 \item{plot_lim}{Optional vector of length 2 specifying goodness limits for plotting}
 
@@ -104,35 +121,72 @@ goodness(x, ...)
 \item{main}{Plot title (for matrix method)}
 }
 \value{
-For single segments (nrow = 1):
+Depending on the method used:
 \itemize{
-\item Matrix with columns: time, goodness
-}
-
-For multiple segments (nrow > 1):
-\itemize{
-\item List with components:
+\item Default method (WAV file):
 \describe{
-\item{goodness_matrix}{Matrix of aligned goodness values}
-\item{reference_time}{Vector of reference time points}
-\item{original_times}{List of original time vectors}
-\item{plot}{If plot=TRUE, the generated lattice plot}
+\item{Matrix}{With columns: time, goodness}
+}
+\item Data frame method:
+\describe{
+\item{List}{With components: goodness_matrix, reference_time, original_times, plot (if plot=TRUE)}
+}
+\item SAP method:
+\describe{
+\item{SAP object}{Updated with goodness features}
+}
+\item Matrix method:
+\describe{
+\item{Lattice plot}{(invisibly)}
 }
 }
 }
 \description{
 Calculates and visualizes pitch goodness for audio segments using cepstral analysis.
-Supports both single segment analysis and batch processing with visualization options.
+Supports single WAV file analysis, batch processing, and multiple visualization options.
 }
 \details{
 The function provides different methods depending on the input type:
 
-Default method (data frame):
+Default method (WAV file):
 \itemize{
-\item Processes single or multiple segments
+\item Analyzes a single WAV file within specified time window
 \item Uses cepstral analysis for pitch goodness calculation
-\item Supports parallel processing for multiple segments
-\item Provides optional visualization
+\item Creates spectrogram with goodness overlay visualization
+}
+
+Data frame method:
+\itemize{
+\item Processes multiple segments in parallel
+\item Supports batch processing
+\item Provides heatmap visualization for multiple segments
+}
+SAP object method:
+\itemize{
+\item Integrates with SAP feature analysis pipeline
+\item Supports segment filtering and ordering
+\item Stores results in features component
+}
+
+Matrix method:
+\itemize{
+\item Visualizes pre-computed F0 data
+\item Supports label-based organization
+\item Adds visual separators between groups
+}
+
+SAP object method:
+\itemize{
+\item Integrates with SAP feature analysis pipeline
+\item Supports segment filtering and ordering
+\item Stores results in features component
+}
+
+Matrix method:
+\itemize{
+\item Visualizes pre-computed pitch goodness data
+\item Supports label-based organization
+\item Adds visual separators between groups
 }
 
 The pitch goodness measure:
@@ -145,8 +199,8 @@ The pitch goodness measure:
 }
 \examples{
 \dontrun{
-# Single segment analysis
-goodness(segment_row, wav_dir = "path/to/wavs", plot = TRUE)
+# Single WAV file analysis
+goodness("path/to/sound.wav", start_time = 1, end_time = 2)
 
 # Multiple segment analysis
 goodness(segments_df, wav_dir = "path/to/wavs",

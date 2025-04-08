@@ -11,6 +11,7 @@
 #' Provides both analytical results and optional single trial or heatmap visualizations.
 #'
 #' @param x Input object:
+#'   \itemize{
 #'     \item character: path to WAV file (default method)
 #'     \item data frame: containing segment information
 #'     \item SAP object
@@ -811,20 +812,24 @@ FF_single_row  <- function(segment_row,
 }
 
 # Goodness of pitch ----------------------------------------------
-# Update date : Apr.3, 2025
+# Update date : Apr.8, 2025
 
 #' Pitch Goodness Analysis
 #'
 #' @description
 #' Calculates and visualizes pitch goodness for audio segments using cepstral analysis.
-#' Supports both single segment analysis and batch processing with visualization options.
+#' Supports single WAV file analysis, batch processing, and multiple visualization options.
 #'
 #' @param x Input object:
 #'   \itemize{
-#'     \item  Data frame (default method)
+#'     \item character: path to WAV file (default method)
+#'     \item data frame: containing segment information
 #'     \item SAP object
 #'     \item Pre-computed goodness matrix
 #'   }
+#'
+#' @param start_time Numeric, start time in seconds (for default method)
+#' @param end_time Numeric, end time in seconds (for default method)
 #' @param wav_dir Directory containing WAV files (for data frame methods)
 #' @param wl Window length for spectral analysis (default: 512)
 #' @param ovlp Overlap percentage between windows (default: 50)
@@ -851,12 +856,45 @@ FF_single_row  <- function(segment_row,
 #' @details
 #' The function provides different methods depending on the input type:
 #'
-#' Default method (data frame):
+#' Default method (WAV file):
 #' \itemize{
-#'   \item Processes single or multiple segments
+#'   \item Analyzes a single WAV file within specified time window
 #'   \item Uses cepstral analysis for pitch goodness calculation
-#'   \item Supports parallel processing for multiple segments
-#'   \item Provides optional visualization
+#'   \item Creates spectrogram with goodness overlay visualization
+#' }
+#'
+#' Data frame method:
+#' \itemize{
+#'   \item Processes multiple segments in parallel
+#'   \item Supports batch processing
+#'   \item Provides heatmap visualization for multiple segments
+#' }
+#' SAP object method:
+#' \itemize{
+#'   \item Integrates with SAP feature analysis pipeline
+#'   \item Supports segment filtering and ordering
+#'   \item Stores results in features component
+#' }
+#'
+#' Matrix method:
+#' \itemize{
+#'   \item Visualizes pre-computed F0 data
+#'   \item Supports label-based organization
+#'   \item Adds visual separators between groups
+#' }
+#'
+#' SAP object method:
+#' \itemize{
+#'   \item Integrates with SAP feature analysis pipeline
+#'   \item Supports segment filtering and ordering
+#'   \item Stores results in features component
+#' }
+#'
+#' Matrix method:
+#' \itemize{
+#'   \item Visualizes pre-computed pitch goodness data
+#'   \item Supports label-based organization
+#'   \item Adds visual separators between groups
 #' }
 #'
 #' The pitch goodness measure:
@@ -868,26 +906,30 @@ FF_single_row  <- function(segment_row,
 #' }
 #'
 #' @return
-#' For single segments (nrow = 1):
+#' Depending on the method used:
 #' \itemize{
-#'   \item Matrix with columns: time, goodness
-#' }
-#'
-#' For multiple segments (nrow > 1):
-#' \itemize{
-#'   \item List with components:
+#'   \item Default method (WAV file):
 #'     \describe{
-#'       \item{goodness_matrix}{Matrix of aligned goodness values}
-#'       \item{reference_time}{Vector of reference time points}
-#'       \item{original_times}{List of original time vectors}
-#'       \item{plot}{If plot=TRUE, the generated lattice plot}
+#'       \item{Matrix}{With columns: time, goodness}
+#'     }
+#'   \item Data frame method:
+#'     \describe{
+#'       \item{List}{With components: goodness_matrix, reference_time, original_times, plot (if plot=TRUE)}
+#'     }
+#'   \item SAP method:
+#'     \describe{
+#'       \item{SAP object}{Updated with goodness features}
+#'     }
+#'   \item Matrix method:
+#'     \describe{
+#'       \item{Lattice plot}{(invisibly)}
 #'     }
 #' }
 #'
 #' @examples
 #' \dontrun{
-#' # Single segment analysis
-#' goodness(segment_row, wav_dir = "path/to/wavs", plot = TRUE)
+#' # Single WAV file analysis
+#' goodness("path/to/sound.wav", start_time = 1, end_time = 2)
 #'
 #' # Multiple segment analysis
 #' goodness(segments_df, wav_dir = "path/to/wavs",
@@ -913,7 +955,74 @@ goodness <- function(x, ...) {
 
 #' @rdname goodness
 #' @export
-goodness.default <- function(x,
+goodness.default <- function(x,  # x is wav file path
+                             start_time = NULL,
+                             end_time = NULL,
+                             wl = 512,
+                             ovlp = 50,
+                             fmax = 1500,
+                             plot = TRUE,
+                             ...) {
+  # Validate file path
+  if (!file.exists(x)) {
+    stop("File does not exist: ", x)
+  }
+
+  # Always read header first to get duration
+  header <- tuneR::readWave(x, header = TRUE)
+  duration <- header$samples / header$sample.rate
+
+  # Handle start_time
+  if (is.null(start_time)) {
+    start_time <- 0
+  }
+
+  # Handle end_time
+  if (is.null(end_time)) {
+    end_time <- duration
+  } else {
+    # Validate user-provided end_time against actual duration
+    if (end_time > duration) {
+      end_time <- duration
+    }
+  }
+
+  # Final boundary checks
+  if (start_time < 0) {
+    stop("start_time cannot be negative (got ", start_time, "s)")
+  }
+
+  if (start_time >= end_time) {
+    stop("Invalid time window: start_time (", start_time,
+         "s) >= end_time (", end_time, "s)")
+  }
+
+  # Create a single-row data frame for pitch_goodness
+  segment_row <- data.frame(
+    filename = basename(x),
+    start_time = start_time,
+    end_time = end_time,
+    duration = end_time - start_time,
+    stringsAsFactors = FALSE
+  )
+
+  # Call pitch_goodness with the constructed data
+  result <- pitch_goodness(
+    segment_row = segment_row,
+    wav_dir = dirname(x),
+    wl = wl,
+    ovlp = ovlp,
+    fmax = fmax,
+    plot = plot,
+    ...
+  )
+
+  return(result)
+}
+
+#' @rdname goodness
+#' @export
+goodness.data.frame <- function(x,
                              wav_dir = NULL,
                              wl = 512,
                              ovlp = 50,

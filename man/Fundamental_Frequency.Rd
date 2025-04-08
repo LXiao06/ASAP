@@ -3,6 +3,7 @@
 \name{FF}
 \alias{FF}
 \alias{FF.default}
+\alias{FF.data.frame}
 \alias{FF.Sap}
 \alias{FF.matrix}
 \title{Fundamental Frequency Analysis and Visualization}
@@ -10,6 +11,19 @@
 FF(x, ...)
 
 \method{FF}{default}(
+  x,
+  start_time = NULL,
+  end_time = NULL,
+  wl = 512,
+  ovlp = 50,
+  fmax = 1400,
+  threshold = 10,
+  method = c("cepstrum", "yin"),
+  plot = TRUE,
+  ...
+)
+
+\method{FF}{data.frame}(
   x,
   wav_dir = NULL,
   wl = 512,
@@ -62,14 +76,17 @@ FF(x, ...)
 \arguments{
 \item{x}{Input object:
 \itemize{
-\item data frame (default method)
+\item character: path to WAV file (default method)
+\item data frame: containing segment information
 \item SAP object
 \item Pre-computed F0 matrix
 }}
 
 \item{...}{Additional arguments passed to methods or lattice::levelplot}
 
-\item{wav_dir}{Directory containing WAV files (for data frame methods)}
+\item{start_time}{Numeric, start time in seconds (for default method)}
+
+\item{end_time}{Numeric, end time in seconds (for default method)}
 
 \item{wl}{Window length for spectral analysis (default: 512)}
 
@@ -82,6 +99,8 @@ FF(x, ...)
 \item{method}{Pitch estimation method ("cepstrum" or "yin")}
 
 \item{plot}{Logical, whether to generate visualization(default: TRUE)}
+
+\item{wav_dir}{Directory containing WAV files (for data frame methods)}
 
 \item{plot_freq_lim}{Optional vector of length 2 specifying frequency limits for plotting}
 
@@ -114,29 +133,33 @@ FF(x, ...)
 \value{
 Returns an object depending on the method used:
 \itemize{
-\item Default method: Matrix of time and frequency values(F0 matrix)
-or List with F0 matrix and metadata
+\item Default method: Matrix of time and frequency values
+\item Data frame method: List with F0 matrix and metadata
 \item SAP method: Updated SAP object with F0 features
 \item Matrix method: Lattice plot object (invisibly)
 }
 }
 \description{
 Creates fundamental frequency analyses and visualizations from audio segments, supporting
-multiple data types (data frames, SAP objects) and visualization options.
+multiple data types (WAV file, data frames, SAP objects) and visualization options.
 Provides both analytical results and optional single trial or heatmap visualizations.
 }
 \details{
 The function provides different methods depending on the input type:
 
-Default method (Data frame method)
+Default method (WAV file method):
 \itemize{
-\item Performs fundamental frequency analysis on a single segment
-or processes multiple segments in parallel
+\item Analyzes a single WAV file within specified time window
 \item Supports both cepstrum and YIN-based pitch detection
+\item Creates spectrogram with F0 overlay visualization
+}
+
+Data frame method:
+\itemize{
+\item Processes multiple segments in parallel
 \item Normalizes time series across renditions
 \item Creates aligned F0 matrix
-\item Optional spectrogram overlay (single segment)
-or heatmap visualization(multiple segments)
+\item Generates heatmap visualization for multiple segments
 }
 
 SAP object method:
@@ -155,8 +178,8 @@ Matrix method:
 }
 \examples{
 \dontrun{
-# Single segment analysis
-FF(segment_row, wav_dir = "path/to/wavs", plot = TRUE)
+# Single WAV file analysis
+FF("path/to/sound.wav", start_time = 1, end_time = 2)
 
 # Multiple segment analysis
 FF(segments_df, wav_dir = "path/to/wavs",
