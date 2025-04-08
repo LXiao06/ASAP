@@ -3,6 +3,7 @@
 \name{spectral_entropy}
 \alias{spectral_entropy}
 \alias{spectral_entropy.default}
+\alias{spectral_entropy.data.frame}
 \alias{spectral_entropy.Sap}
 \alias{spectral_entropy.matrix}
 \title{Calculate Spectral Entropy for Audio Segments}
@@ -10,6 +11,22 @@
 spectral_entropy(x, ...)
 
 \method{spectral_entropy}{default}(
+  x,
+  start_time = NULL,
+  end_time = NULL,
+  wl = 512,
+  wn = "hanning",
+  ovlp = 50,
+  fftw = TRUE,
+  freq_range = c(500, 15000),
+  threshold = 10,
+  method = c("weiner", "shannon"),
+  normalize = FALSE,
+  plot = TRUE,
+  ...
+)
+
+\method{spectral_entropy}{data.frame}(
   x,
   wav_dir = NULL,
   wl = 512,
@@ -68,14 +85,17 @@ spectral_entropy(x, ...)
 \arguments{
 \item{x}{Input object:
 \itemize{
-\item data frame (default method)
+\item character: path to WAV file (default method)
+\item data frame: containing segment information
 \item SAP object
 \item Pre-computed matrix for spectral entropy
 }}
 
 \item{...}{Additional arguments passed to levelplot}
 
-\item{wav_dir}{Directory containing WAV files (for data frame methods)}
+\item{start_time}{Numeric, start time in seconds (for default method)}
+
+\item{end_time}{Numeric, end time in seconds (for default method)}
 
 \item{wl}{Window length for FFT (default: 512)}
 
@@ -94,6 +114,8 @@ spectral_entropy(x, ...)
 \item{normalize}{Logical, whether to normalize entropy values (default: FALSE)}
 
 \item{plot}{Logical, whether to plot results (default: TRUE)}
+
+\item{wav_dir}{Directory containing WAV files (for data frame methods)}
 
 \item{plot_entropy_lim}{Optional limits for entropy plot c(min, max)}
 
@@ -124,13 +146,24 @@ spectral_entropy(x, ...)
 \item{main}{Plot title (for matrix method)}
 }
 \value{
-For single segments, returns a matrix with columns time and entropy.
-For multiple segments, returns a list with components:
+Depending on the method used:
 \itemize{
-\item entropy_matrix: Matrix of entropy values
-\item reference_time: Reference time axis
-\item original_times: List of original time vectors
-\item plot: If plot=TRUE, the generated plot
+\item Default method (WAV file):
+\describe{
+\item{Matrix}{With columns: time, entropy}
+}
+\item Data frame method:
+\describe{
+\item{List}{With components: entropy_matrix, reference_time, original_times, plot (if plot=TRUE)}
+}
+\item SAP method:
+\describe{
+\item{SAP object}{Updated with entropy features}
+}
+\item Matrix method:
+\describe{
+\item{Lattice plot}{(invisibly)}
+}
 }
 }
 \description{
@@ -167,13 +200,14 @@ Shannon entropy measures information content:
 }
 \examples{
 \dontrun{
-# Calculate Wiener entropy for a single segment
-entropy <- spectral_entropy(segment,
-                          wav_dir = "path/to/wavs",
+# Calculate entropy for a single WAV file
+entropy <- spectral_entropy("path/to/sound.wav",
+                          start_time = 1,
+                          end_time = 2,
                           method = "weiner",
                           normalize = FALSE)
 
-# Calculate normalized Shannon entropy for multiple segments
+# Calculate normalized Shannon entropy for multiple segments using data frame method
 entropy_list <- spectral_entropy(segments,
                                wav_dir = "path/to/wavs",
                                method = "shannon",
@@ -194,8 +228,8 @@ wiener_entropy <- sap$features$motif$weiner_entropy
 # Plot existing entropy matrix with custom settings
 spectral_entropy(wiener_entropy,
                 plot_entropy_lim = c(-3, 0),
-                color_palette = colorRampPalette(c("purple", "blue", 
-                                                  "cyan", "yellow", 
+                color_palette = colorRampPalette(c("purple", "blue",
+                                                  "cyan", "yellow",
                                                   "orange", "red")),
                 main = "Custom Entropy Visualization")
 
