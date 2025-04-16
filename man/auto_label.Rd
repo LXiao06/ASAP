@@ -2,7 +2,7 @@
 % Please edit documentation in R/label.R
 \name{auto_label}
 \alias{auto_label}
-\title{Automatic Syllable Clustering in Bird Song}
+\title{Automatic Syllable Labeling in Song Motif}
 \usage{
 auto_label(
   x,
