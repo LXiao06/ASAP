@@ -376,7 +376,7 @@ plot_traces.Sap <- function(x,
 #'
 #' @export
 plot_clusters <- function(x, ...) {
-  UseMethod("plot_cluster")
+  UseMethod("plot_clusters")
 }
 
 #' @rdname plot_clusters
@@ -650,7 +650,7 @@ plot_clusters.Sap <- function(x,
                   sprintf("%s cluster heatmap", data_type),
                   "syllable heatmap")
 
-  result <- plot_cluster.matrix(cluster_matrix,
+  result <- plot_clusters.matrix(cluster_matrix,
                                 cluster_colors = cluster_colors,
                                 main =  title)
   invisible(x)
