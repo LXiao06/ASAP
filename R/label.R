@@ -1,4 +1,8 @@
-#' Automatic Syllable Clustering in Bird Song
+
+# Labeling syllables in song motif ----------------------------------------
+# Update date: Apr. 16, 2025
+
+#' Automatic Syllable Labeling in Song Motif
 #'
 #' @description
 #' Performs two-stage clustering of bird song segments to identify syllables:
