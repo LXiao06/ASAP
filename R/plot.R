@@ -272,7 +272,7 @@ plot_traces.Sap <- function(x,
   invisible(x)
 }
 
-# Plot Traces -------------------------------------------------------------
+# Plot clusters -------------------------------------------------------------
 # Update date: Apr. 15, 2025
 
 #' Plot Clusters in Time Series Data
@@ -333,7 +333,7 @@ plot_traces.Sap <- function(x,
 #' * Can order motifs by UMAP coordinates for pattern visualization
 #' * Allows balanced sampling across conditions
 #'
-#' @return Invisibly returns NULL
+#' @return Invisibly returns x
 #'
 #' @examples
 #' \dontrun{
@@ -341,16 +341,16 @@ plot_traces.Sap <- function(x,
 #' mat <- matrix(sample(1:5, 1000, replace = TRUE), ncol = 10)
 #' attr(mat, "time_window") <- 1.2
 #' colnames(mat) <- rep(c("BL", "Post"), each = 5)
-#' plot_cluster(mat)
+#' plot_clusters(mat)
 #'
 #' # Sap object - Pre-labeling (numerical clusters)
 #' # Basic cluster visualization
-#' plot_cluster(sap,
+#' plot_clusters(sap,
 #'             data_type = "syllable",
 #'             label_type = "pre")
 #'
 #' # Ordered by UMAP with specific conditions
-#' plot_cluster(sap,
+#' plot_clusters(sap,
 #'             data_type = "syllable",
 #'             label_type = "pre",
 #'             ordered = TRUE,
@@ -358,12 +358,12 @@ plot_traces.Sap <- function(x,
 #'
 #' # Sap object - Post-labeling (syllable letters)
 #' # After running manual_label()
-#' plot_cluster(sap,
+#' plot_clusters(sap,
 #'             data_type = "syllable",
 #'             label_type = "post")
 #'
 #' # Balanced sampling across conditions
-#' plot_cluster(sap,
+#' plot_clusters(sap,
 #'             data_type = "syllable",
 #'             label_type = "post",
 #'             balanced = TRUE,
@@ -375,13 +375,13 @@ plot_traces.Sap <- function(x,
 #' * auto_label() for automatic cluster generation
 #'
 #' @export
-plot_cluster <- function(x, ...) {
+plot_clusters <- function(x, ...) {
   UseMethod("plot_cluster")
 }
 
-#' @rdname plot_cluster
+#' @rdname plot_clusters
 #' @export
-plot_cluster.matrix <- function(x,
+plot_clusters.matrix <- function(x,
                                 labels = NULL,
                                 cluster_colors = NULL,
                                 main = NULL,
@@ -489,9 +489,9 @@ plot_cluster.matrix <- function(x,
 }
 
 
-#' @rdname plot_cluster
+#' @rdname plot_clusters
 #' @export
-plot_cluster.sap <- function(x,
+plot_clusters.Sap <- function(x,
                              data_type = c("segment", "syllable"),
                              label_type = c("pre", "post"),
                              time_resolution = 1000,  # Number of time points
@@ -653,5 +653,5 @@ plot_cluster.sap <- function(x,
   result <- plot_cluster.matrix(cluster_matrix,
                                 cluster_colors = cluster_colors,
                                 main =  title)
-  invisible(NULL)
+  invisible(x)
 }
