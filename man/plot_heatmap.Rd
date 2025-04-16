@@ -31,7 +31,7 @@ plot_heatmap(x, ...)
 
 \method{plot_heatmap}{Sap}(
   x,
-  segment_type = c("motifs", "bouts", "syllables", "segments"),
+  segment_type = c("motifs", "bouts"),
   sample_percent = NULL,
   balanced = FALSE,
   labels = NULL,

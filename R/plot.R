@@ -275,7 +275,7 @@ plot_traces.Sap <- function(x,
 # Plot Traces -------------------------------------------------------------
 # Update date: Apr. 15, 2025
 
-# ' Plot Clusters in Time Series Data
+#' Plot Clusters in Time Series Data
 #'
 #' @description
 #' Generic function for plotting clusters in time series data, primarily designed for
@@ -336,6 +336,7 @@ plot_traces.Sap <- function(x,
 #' @return Invisibly returns NULL
 #'
 #' @examples
+#' \dontrun{
 #' # Matrix method example
 #' mat <- matrix(sample(1:5, 1000, replace = TRUE), ncol = 10)
 #' attr(mat, "time_window") <- 1.2
@@ -367,6 +368,7 @@ plot_traces.Sap <- function(x,
 #'             label_type = "post",
 #'             balanced = TRUE,
 #'             labels = c("BL", "Post", "Rec"))
+#' }
 #'
 #' @seealso
 #' * manual_label() for creating syllable labels
@@ -494,7 +496,6 @@ plot_cluster.sap <- function(x,
                              label_type = c("pre", "post"),
                              time_resolution = 1000,  # Number of time points
                              cluster_colors = NULL, # Optional custom color palette
-                             plot_col = "cluster",
                              sample_percent = NULL,
                              balanced = FALSE,
                              labels = NULL,
