@@ -119,8 +119,6 @@ refine_motif_boundaries <- function(x,
                                     adjustments_by_label = NULL,
                                     verbose = TRUE) {
 
-
-
   # # Handle feature embeddings for clustering
   # if (!is.null(clusters) ) {
   #   if (is.null(x$features$motif$feat.embeds)) {
