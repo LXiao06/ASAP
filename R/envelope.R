@@ -401,7 +401,7 @@ plot_heatmap.matrix <- function(x,
 #' @rdname plot_heatmap
 #' @export
 plot_heatmap.Sap <- function(x,
-                             segment_type = c("motifs", "bouts", "syllables", "segments"),
+                             segment_type = c("motifs", "bouts"),
                              sample_percent = NULL,
                              balanced = FALSE,
                              labels = NULL,
@@ -422,7 +422,7 @@ plot_heatmap.Sap <- function(x,
   # Input validation
   segment_type <- match.arg(segment_type)
 
-  # Special handling for motifs ==============================================
+  # Special handling for motifs
   if (segment_type == "motifs") {
     # Use original motifs if no ordering/cluster filtering needed
     if (!ordered && is.null(clusters)) {
@@ -448,7 +448,7 @@ plot_heatmap.Sap <- function(x,
       }
     }
 
-    # For non-motif segment types ==============================================
+    # For non-motif segment types
   } else {
     segments_df <- x[[segment_type]]
     }
