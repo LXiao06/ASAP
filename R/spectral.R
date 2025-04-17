@@ -8,7 +8,7 @@
 #' parallel processing and organized data structures.
 #'
 #' @param x An object to analyze, either a data frame or SAP object
-#' @param wav_dir Path to WAV files directory
+#' @param wav_dir Directory containing WAV files
 #' @param cores Number of cores for parallel processing
 #' @param wl Window length for spectral analysis (default: 512)
 #' @param ovlp Overlap percentage (0-100) (default: 50)
@@ -113,11 +113,6 @@ analyze_spectral.default <- function(x,
     stop("wav_dir must be provided either as argument or attribute")
   }
 
-  # Set number of cores
-  if (is.null(cores)) {
-    cores <- parallel::detectCores() - 1
-  }
-
   # Function to process a single row
   process_row <- function(i) {
     spectral_analysis(x[i, ],
@@ -136,27 +131,11 @@ analyze_spectral.default <- function(x,
               nrow(x), cores))
 
   # Choose parallel processing method based on system and cores
-  if (cores > 1) {
-    if (Sys.info()["sysname"] == "Linux") { # "Darwin"
-      results <- pbmcapply::pbmclapply(
-        seq_len(nrow(x)),
-        process_row,
-        mc.cores = cores,
-        mc.preschedule = FALSE
-      )
-    } else {
-      results <- pbapply::pblapply(
-        seq_len(nrow(x)),
-        process_row,
-        cl = cores
-      )
-    }
-  } else {
-    results <- pbapply::pblapply(
-      seq_len(nrow(x)),
-      process_row
-    )
-  }
+  results <- parallel_apply(
+    seq_len(nrow(x)),
+    process_row,
+    cores = cores
+  )
 
   # Combine results
   results <- do.call(rbind, results[!sapply(results, is.null)])
@@ -203,11 +182,6 @@ analyze_spectral.Sap <- function(x,
                                  balanced = balanced,
                                  sample_percent = sample_percent,
                                  seed = seed)
-
-  # Set number of cores
-  if (is.null(cores)) {
-    cores <- parallel::detectCores() - 1
-  }
 
   # Process segments using default method
   result <- analyze_spectral.default(segments_df,
