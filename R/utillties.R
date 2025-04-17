@@ -194,6 +194,7 @@ parallel_apply <- function(indices, FUN, cores) {
   # Set number of cores
   if (is.null(cores)) {
     cores <- parallel::detectCores() - 1
+    cores <- max(1, cores)
   }
 
   if (cores > 1) {
