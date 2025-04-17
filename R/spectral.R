@@ -127,6 +127,12 @@ analyze_spectral.default <- function(x,
                       ...)
   }
 
+  # Set number of cores
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+    cores <- max(1, cores)
+  }
+
   cat(sprintf("\nProcessing %d audio segments using %d cores.\n",
               nrow(x), cores))
 
