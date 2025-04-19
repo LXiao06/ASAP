@@ -46,7 +46,7 @@ analyze_spectral(x, ...)
 
 \item{...}{Additional arguments passed to specific methods}
 
-\item{wav_dir}{Path to WAV files directory}
+\item{wav_dir}{Directory containing WAV files}
 
 \item{cores}{Number of cores for parallel processing}
 
