@@ -22,8 +22,8 @@ find_clusters(x, ...)
 
 \method{find_clusters}{Sap}(
   x,
-  segment_type = c("motifs", "syllables", "bouts", "segments"),
-  data_type = c("spectral_feature"),
+  segment_type = c("motifs", "syllables", "segments"),
+  data_type = c("spectral_feature", "spectrogram"),
   label = NULL,
   k.param = 20,
   prune.SNN = 1/15,
@@ -53,9 +53,9 @@ find_clusters(x, ...)
 
 \item{verbose}{Whether to print progress messages (default: TRUE)}
 
-\item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')}
+\item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'segments')}
 
-\item{data_type}{For SAP objects: Type of feature data ('spectral_feature')}
+\item{data_type}{For SAP objects: Type of feature data ('spectral_feature', "spectrogram")}
 
 \item{label}{For SAP objects: Specific label to filter data}
 }

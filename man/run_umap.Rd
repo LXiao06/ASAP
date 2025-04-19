@@ -24,7 +24,7 @@ run_umap(x, ...)
 \method{run_umap}{Sap}(
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
-  data_type = c("spectral_feature", "traj_mat"),
+  data_type = c("spectral_feature", "spectrogram", "traj_mat"),
   label = NULL,
   scale = TRUE,
   n_neighbors = 20,
@@ -59,7 +59,7 @@ run_umap(x, ...)
 
 \item{segment_type}{For SAP objects: Type of segments to analyze ('motifs', 'syllables', 'bouts', 'segments')}
 
-\item{data_type}{For SAP objects: Type of feature data ('spectral_feature', 'traj_mat')}
+\item{data_type}{For SAP objects: Type of feature data ('spectral_feature','spectrogram', 'traj_mat')}
 
 \item{label}{For SAP objects: Specific label to filter data}
 }
