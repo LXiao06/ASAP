@@ -17,7 +17,7 @@
 #' @param n_threads Number of computation threads
 #' @param verbose Whether to print progress messages
 #' @param segment_type For SAP objects: Type of segments to analyze ('motifs', 'syllables', 'bouts', 'segments')
-#' @param data_type For SAP objects: Type of feature data ('spectral_feature', 'traj_mat')
+#' @param data_type For SAP objects: Type of feature data ('spectral_feature','spectrogram', 'traj_mat')
 #' @param label For SAP objects: Specific label to filter data
 #' @param ... Additional arguments passed to specific methods
 #'
@@ -135,7 +135,7 @@ run_umap.default <- function(x,
 #' @export
 run_umap.Sap <- function(x,
                          segment_type = c("motifs", "syllables", "bouts", "segments"),
-                         data_type = c("spectral_feature", "traj_mat"),
+                         data_type = c("spectral_feature", "spectrogram","traj_mat"),
                          label = NULL,
                          scale = TRUE,
                          n_neighbors = 20,
@@ -160,7 +160,7 @@ run_umap.Sap <- function(x,
   feature_type <- sub("s$", "", segment_type)
 
   # Get appropriate data based on data_type
-  if(data_type == "spectral_feature") {
+  if(data_type %in% c("spectral_feature", "spectrogram")) {
     feature_data <- x$features[[feature_type]][[data_type]]
     if (is.null(feature_data)) {
       stop(sprintf("%s features not found in SAP object", segment_type))
@@ -220,7 +220,7 @@ run_umap.Sap <- function(x,
   )
 
   # Handle results based on data_type
-  if(data_type == "spectral_feature") {
+  if(data_type %in% c("spectral_feature", "spectrogram")) {
     # Create UMAP result with metadata
     umap_result <- data.frame(
       feature_data[, metadata_cols, drop = FALSE],
