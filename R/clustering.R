@@ -16,8 +16,8 @@
 #' @param n.pcs Number of principal components to use (default: 20)
 #' @param resolution Resolution parameter for clustering (default: 0.2)
 #' @param n.start Number of random starts (default: 10)
-#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
-#' @param data_type For SAP objects: Type of feature data ('spectral_feature')
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'segments')
+#' @param data_type For SAP objects: Type of feature data ('spectral_feature', "spectrogram")
 #' @param label For SAP objects: Specific label to filter data
 #' @param verbose Whether to print progress messages (default: TRUE)
 #' @param ... Additional arguments passed to specific methods
@@ -150,8 +150,8 @@ find_clusters.default <- function(x,
 #' @rdname find_clusters
 #' @export
 find_clusters.Sap <- function(x,
-                              segment_type = c("motifs", "syllables", "bouts", "segments"),
-                              data_type = c("spectral_feature"),
+                              segment_type = c("motifs", "syllables", "segments"),
+                              data_type = c("spectral_feature", "spectrogram"),
                               label = NULL,
                               k.param = 20,
                               prune.SNN = 1/15,
@@ -172,11 +172,11 @@ find_clusters.Sap <- function(x,
 
   # Match segment_type argument
   segment_type <- match.arg(segment_type)
-  #data_type <- match.arg(data_type)
+  data_type <- match.arg(data_type)
 
   # Get feature data
   feature_type <- sub("s$", "", segment_type)  # Remove 's' from end
-  feature_data <- x$features[[feature_type]][["spectral_feature"]]
+  feature_data <- x$features[[feature_type]][[data_type ]]
 
   if (is.null(feature_data)) {
     stop(sprintf("%s features not found in SAP object", segment_type))
