@@ -90,8 +90,18 @@ run_umap.default <- function(x,
     if(verbose) {
       message("Metadata columns:")
       print(colnames(x)[metadata_cols])
-      message("\nFeature columns:")
-      print(colnames(x)[-metadata_cols])
+
+      feature_cols <- colnames(x)[-metadata_cols]
+      total_feature_cols <- length(feature_cols)
+
+      message("\nFeature columns (showing first 30 of ", total_feature_cols, "):")
+
+      if(total_feature_cols > 30) {
+        print(head(feature_cols, 30))
+        message("... and ", total_feature_cols - 30, " more columns not shown")
+      } else {
+        print(feature_cols)
+      }
     }
 
     # Extract features excluding metadata columns
