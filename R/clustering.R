@@ -78,6 +78,7 @@
 #'
 #' @rdname find_clusters
 #' @export
+
 find_clusters <- function(x, ...) {
   UseMethod("find_clusters")
 }
@@ -105,7 +106,7 @@ find_clusters.default <- function(x,
     message("Metadata columns:")
     print(colnames(x)[metadata_cols])
     message("\nFeature columns:")
-    print(colnames(x)[-metadata_cols])
+    print(head(colnames(x)[-metadata_cols],20))
   }
 
   # Extract features
@@ -173,6 +174,15 @@ find_clusters.Sap <- function(x,
   # Match segment_type argument
   segment_type <- match.arg(segment_type)
   data_type <- match.arg(data_type)
+
+  # Set default parameters based on data_type
+  if (is.null(n.pcs)) {
+    n.pcs <- if(data_type == "spectrogram") 10 else 20
+  }
+
+  if (is.null(resolution)) {
+    resolution <- if(data_type == "spectrogram") 0.1 else 0.2
+  }
 
   # Get feature data
   feature_type <- sub("s$", "", segment_type)  # Remove 's' from end
