@@ -11,7 +11,7 @@
 #'
 #' @param x An object to analyze, either a data frame or SAP object
 #' @param metadata_cols For default method: Column indices for metadata
-#' @param k.param Number of nearest neighbors
+#' @param k.param Number of nearest neighbors (default: 20)
 #' @param prune.SNN Pruning threshold for SNN graph (default: 1/15)
 #' @param n.pcs Number of principal components to use
 #' @param resolution Resolution parameter for clustering
@@ -164,7 +164,7 @@ find_clusters.Sap <- function(x,
                               segment_type = c("motifs", "syllables", "segments"),
                               data_type = c("spectral_feature", "spectrogram"),
                               label = NULL,
-                              k.param = NULL,
+                              k.param = 20,
                               prune.SNN = 1/15,
                               n.pcs = NULL,
                               resolution = NULL,
@@ -186,9 +186,9 @@ find_clusters.Sap <- function(x,
   data_type <- match.arg(data_type)
 
   # Set default parameters based on data_type
-  if (is.null(k.param)) {
-    k.param <- if(data_type == "spectrogram") 30 else 20
-  }
+  # if (is.null(k.param)) {
+  #   k.param <- if(data_type == "spectrogram") 30 else 20
+  # }
 
   if (is.null(n.pcs)) {
     n.pcs <- if(data_type == "spectrogram") 10 else 20

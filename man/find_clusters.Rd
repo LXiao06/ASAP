@@ -25,7 +25,7 @@ find_clusters(x, ...)
   segment_type = c("motifs", "syllables", "segments"),
   data_type = c("spectral_feature", "spectrogram"),
   label = NULL,
-  k.param = NULL,
+  k.param = 20,
   prune.SNN = 1/15,
   n.pcs = NULL,
   resolution = NULL,
@@ -41,7 +41,7 @@ find_clusters(x, ...)
 
 \item{metadata_cols}{For default method: Column indices for metadata}
 
-\item{k.param}{Number of nearest neighbors}
+\item{k.param}{Number of nearest neighbors (default: 20)}
 
 \item{prune.SNN}{Pruning threshold for SNN graph (default: 1/15)}
 
