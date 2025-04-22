@@ -1,4 +1,291 @@
 
+# Spectrograming from audio segments -------------------------------------------------------------------
+# Update date : Apr. 21, 2025
+
+##' Extract and pad spectrograms from audio segments
+#'
+#' @param x Data frame with audio segment information or a SAP object
+#' @param wav_dir Directory containing WAV files (default: NULL)
+#' @param cores Number of CPU cores to use for parallel processing (default: NULL, uses available cores - 1)
+#' @param wl Window length for spectrogram analysis (default: 256 )
+#'          Time resolution: wl/sampling rate per window
+#'          Frequency resolution: sampling rate/wl Hz per bin
+#' @param ovlp Overlap percentage between windows (default: 20 )
+#' @param wn Window function name (default: "hanning")
+#' @param freq_range Frequency range to analyze in kHz (default: c(1,10) )
+#' @param segment_type Type of segments to process: "segments" or "syllables" (default: "segments")
+#' @param sample_percent Percentage of segments to sample (default: NULL)
+#' @param balanced Whether to balance samples across labels (default: FALSE)
+#' @param labels Specific labels to include (default: NULL)
+#' @param seed Random seed for reproducible sampling (default: 222)
+#' @param verbose Whether to display progress messages (default: TRUE)
+#' @param ... Additional parameters passed to spectro
+#'
+#' @return For default method: data frame with original metadata and flattened, padded spectrograms
+#'         For SAP method: updated SAP object with spectrograms added to features
+#' @export
+extract_spec <- function(x, ...) {
+  UseMethod("extract_spec")
+}
+
+#' Default method for extract_spec
+#' @rdname extract_spec
+#' @export
+extract_spec.default <- function(x,
+                                 wav_dir = NULL,
+                                 cores = NULL,
+                                 wl = 256,  # Time resolution: 256/44100 ≈ 5.8 ms per window /Frequency resolution: 44100/256 ≈ 172.2 Hz per bin
+                                 ovlp = 20,
+                                 wn = "hanning",
+                                 freq_range = c(1,10),
+                                 ...) {
+
+  # Check required columns
+  required_cols <- c("filename", "start_time", "end_time")
+  missing_cols <- required_cols[!required_cols %in% names(x)]
+  if (length(missing_cols) > 0) {
+    stop(sprintf("Missing required columns: %s",
+                 paste(missing_cols, collapse = ", ")))
+  }
+
+  # Check if data frame is empty
+  if (nrow(x) == 0) {
+    stop("Input data frame is empty")
+  }
+
+  # Handle wav_dir
+  if (is.null(wav_dir)) {
+    wav_dir <- attr(x, "wav_dir")
+    if (is.null(wav_dir)) {
+      stop("wav_dir must be provided either as argument or attribute")
+    }
+  }
+
+  # Set number of cores
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+    cores <- max(1, cores)  # Ensure at least 1 core
+  }
+
+  cat(sprintf("\nExtracting spectrograms from %d audio segments using %d cores.\n",
+              nrow(x), cores))
+
+  # Function to process a single row
+  process_row <- function(i) {
+    extract_single_spec(x[i, ],
+                        wav_dir = wav_dir,
+                        wl = wl,
+                        ovlp = ovlp,
+                        wn = wn,
+                        freq_range = freq_range,
+                        ...)
+  }
+
+  # Extract spectrograms in parallel
+  spectrograms <- parallel_apply(
+    seq_len(nrow(x)),
+    process_row,
+    cores = cores
+  )
+
+  # Filter out NULL results
+  valid_indices <- which(!sapply(spectrograms, is.null))
+  valid_spectrograms <- spectrograms[valid_indices]
+
+  if (length(valid_spectrograms) == 0) {
+    warning("No valid spectrograms extracted")
+    return(NULL)
+  }
+
+  # Find the maximum length for padding
+  max_length <- max(sapply(valid_spectrograms, length))
+
+  cat(sprintf("\nPadding spectrograms to match length: %d\n", max_length))
+
+  # Pad all spectrograms to the same length
+  padded_spectrograms <- lapply(valid_spectrograms, function(spec) {
+    pad_array(spec, max_length)
+  })
+
+  # Create a data frame with the original metadata
+  df <- x[valid_indices, ]
+
+  # Check which metadata columns actually exist in the data
+  metadata_cols <- c("filename", "day_post_hatch", "label", "start_time", "end_time")
+  available_cols <- intersect(metadata_cols, names(df))
+
+  # Subset only the available columns
+  metadata <- df[, available_cols, drop = FALSE]
+
+  # Convert list of padded spectrograms to a matrix
+  spec_matrix <- do.call(rbind, padded_spectrograms)
+  colnames(spec_matrix) <- paste0("V_", seq_len(ncol(spec_matrix)))
+
+  # Combine metadata with spectrogram features
+  res <- cbind(metadata, as.data.frame(spec_matrix))
+
+  cat(sprintf("\nSuccessfully processed %d of %d segments.\n",
+              length(valid_spectrograms), nrow(x)))
+
+  # Add metadata as attributes
+  attr(res, "max_length") <- max_length
+
+  return(res)
+}
+
+#' @rdname extract_spec
+#' @export
+extract_spec.Sap <- function(x,
+                             segment_type = c("segments", "syllables"),
+                             sample_percent = NULL,
+                             balanced = FALSE,
+                             labels = NULL,
+                             seed = 222,
+                             cores = NULL,
+                             wl = 256,
+                             ovlp = 20,
+                             wn = "hanning",
+                             freq_range = c(1,10),
+                             verbose = TRUE,
+                             ...) {
+  if(verbose) message(sprintf("\n=== Starting Spectrogram Extraction ===\n"))
+
+  # Input validation
+  segment_type <- match.arg(segment_type)
+  segments_df <- x[[segment_type]]
+
+  if (!inherits(segments_df, "segment") || nrow(segments_df) == 0) {
+    stop("No segments found in the specified segment type")
+  }
+
+  # Select and balance segments
+  segments_df <- select_segments(segments_df,
+                                 labels = labels,
+                                 balanced = balanced,
+                                 sample_percent = sample_percent,
+                                 seed = seed)
+
+  # Process segments using default method
+  result <- extract_spec.default(segments_df,
+                                 wav_dir = x$base_path,
+                                 cores = cores,
+                                 wl = wl,
+                                 ovlp = ovlp,
+                                 wn = wn,
+                                 freq_range = freq_range,
+                                 ...)
+
+  if (nrow(result) < nrow(segments_df)) {
+    filtered_count <- nrow(segments_df) - nrow(result)
+    filtered_percent <- round(100 * filtered_count / nrow(segments_df), 1)
+
+    warning_msg <- sprintf(
+      "\n %d segments (%.1f%%) were filtered out during processing.\nRecommendations to improve processing success rate:\n1. Try reducing window length (wl)\n2. Try increasing freq_range or set it to NULL",
+      filtered_count, filtered_percent
+    )
+
+    warning(warning_msg)
+  }
+
+  # Add attributes to result
+  attr(result, "segment_indices") <- which(x[[segment_type]]$filename %in% segments_df$filename &
+                                             x[[segment_type]]$start_time %in% segments_df$start_time &
+                                             x[[segment_type]]$end_time %in% segments_df$end_time)
+  attr(result, "segment_type") <- segment_type
+
+  # Update SAP object's features
+  feature_type <- sub("s$", "", segment_type)  # Remove 's' from end
+  x$features[[feature_type]][["spectrogram"]] <- result
+
+  # Add message about data access
+  if(verbose) {
+    cat(sprintf("\nAccess spectrogram data via: x$features$%s$spectrogram\n", feature_type))
+  }
+
+  # Return updated SAP object invisibly
+  invisible(x)
+}
+
+
+#' Extract spectrogram for a single audio segment
+#'
+#' @keywords internal
+extract_single_spec <- function(x, wav_dir, wl, ovlp, wn, freq_range, ...) {
+  tryCatch({
+    # Get file path
+    file_path <- construct_wav_path(x, wav_dir = wav_dir)
+    if (!file.exists(file_path)) {
+      warning(sprintf("File not found: %s", file_path))
+      return(NULL)
+    }
+
+    # Read wave file for specific time segment
+    wave_data <- tuneR::readWave(
+      file_path,
+      from = x$start_time,
+      to = x$end_time,
+      units = "seconds"
+    )
+
+    # Apply frequency range if provided
+    sr <- wave_data@samp.rate
+    if (is.null(freq_range)) {
+      freq_range <- c(0.5, sr/2000)
+    }
+
+    # Compute spectrogram
+    stft_result <- seewave::spectro(
+      wave_data,
+      f = wave_data@samp.rate,
+      wl = wl,
+      ovlp = ovlp,
+      wn = wn,
+      fftw = TRUE,
+      flimd = freq_range,
+      plot = FALSE,
+      osc = TRUE,
+      cont = TRUE
+    )
+
+    # Extract amplitude array and flatten it
+    amp_array <- as.vector(stft_result$amp)
+
+    return(amp_array)
+  }, error = function(e) {
+    warning(sprintf("Error processing row: %s", e$message))
+    return(NULL)
+  })
+}
+
+#' Pad an array with zeros to match the target length
+#'
+#' @param arr Array to pad
+#' @param target_length Target length after padding
+#' @return Padded array
+#'
+#' @keywords internal
+pad_array <- function(arr, target_length) {
+  orig_length <- length(arr)
+
+  # If already the right length, return as is
+  if (orig_length == target_length) {
+    return(arr)
+  }
+
+  # Calculate padding needed on each side
+  pad_before <- floor((target_length - orig_length) / 2)
+  pad_after <- target_length - orig_length - pad_before
+
+  # Create padded array
+  padded <- numeric(target_length)
+
+  # Insert original array in the center
+  padded[(pad_before + 1):(pad_before + orig_length)] <- arr
+
+  return(padded)
+}
+
+
 # Visualize Song ----------------------------------------------------------
 # Update date : Feb. 7, 2025
 
