@@ -187,7 +187,7 @@ find_clusters.Sap <- function(x,
 
   # Set default parameters based on data_type
   if (is.null(k.param)) {
-    k.param <- if(data_type == "spectrogram") 40 else 20
+    k.param <- if(data_type == "spectrogram") 30 else 20
   }
 
   if (is.null(n.pcs)) {
