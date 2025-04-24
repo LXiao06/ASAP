@@ -44,8 +44,4 @@ A matrix with two columns:
 Estimates the fundamental frequency (F0) of an audio segment using either cepstral analysis
 or YIN method for a specified audio segment.
 }
-\seealso{
-\code{\link[seewave]{fund}} for cepstral analysis method
-\code{\link[librosa]{yin}} for YIN algorithm implementation
-}
 \keyword{internal}

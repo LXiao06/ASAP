@@ -104,7 +104,8 @@
 #' @seealso
 #' \code{\link[lattice]{levelplot}} for underlying plotting function
 #' \code{\link[seewave]{fund}} for cepstral analysis
-#' \code{\link[librosa]{yin}} for YIN algorithm (when using method = "yin")
+#' YIN algorithm implementation based on the approach used in the Python librosa package
+#' (\url{https://librosa.org/doc/main/generated/librosa.yin.html})
 #'
 #' @rdname Fundamental_Frequency
 #' @export
@@ -689,10 +690,6 @@ FF.matrix <- function(x,
 #' @return A matrix with two columns:
 #'   - First column: Time points
 #'   - Second column: Fundamental frequency values
-#'
-#' @seealso
-#' \code{\link[seewave]{fund}} for cepstral analysis method
-#' \code{\link[librosa]{yin}} for YIN algorithm implementation
 #'
 #' @keywords internal
 FF_single_row  <- function(segment_row,

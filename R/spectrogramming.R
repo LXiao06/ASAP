@@ -427,20 +427,19 @@ visualize_song.Sap <- function(x,  # sap object
     if (random) {
       indices <- sample(1:total_samples, size = n_sample)
     } else {
-      # Create or get the environment to store the last index
-      if (!exists("._sap_state", envir = .GlobalEnv)) {
-        assign("._sap_state", new.env(), envir = .GlobalEnv)
+      # Use the SAP object itself to store state instead of global environment
+      if (is.null(x$._state)) {
+        x$._state <- list()
       }
-      sap_state <- get("._sap_state", envir = .GlobalEnv)
 
-      # Create a unique key for this SAP object based on its base path
+      # Create a unique key for tracking indices
       state_key <- paste0("idx_", make.names(x$base_path))
 
       # Get or initialize the last index
-      if (!exists(state_key, envir = sap_state)) {
-        assign(state_key, 0, envir = sap_state)
+      if (is.null(x$._state[[state_key]])) {
+        x$._state[[state_key]] <- 0
       }
-      last_idx <- get(state_key, envir = sap_state)
+      last_idx <- x$._state[[state_key]]
 
       # Calculate next set of indices
       start_idx <- last_idx + 1
@@ -449,11 +448,11 @@ visualize_song.Sap <- function(x,  # sap object
       indices <- start_idx:end_idx
 
       # Update last plotted index
-      assign(state_key, end_idx, envir = sap_state)
+      x$._state[[state_key]] <- end_idx
 
       # Reset if we've reached the end
       if (end_idx >= total_samples) {
-        assign(state_key, 0, envir = sap_state)
+        x$._state[[state_key]] <- 0
         message("Reached the end of samples. Next call will start from the beginning.")
       }
     }
@@ -534,6 +533,7 @@ visualize_song.Sap <- function(x,  # sap object
     title(title_text, line = 0.5)
   }
 
+  # Return the modified object with state information
   invisible(x)
 }
 

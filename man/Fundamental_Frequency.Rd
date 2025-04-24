@@ -198,5 +198,6 @@ FF(f0_matrix, labels = c("a", "b", "c"),
 \seealso{
 \code{\link[lattice]{levelplot}} for underlying plotting function
 \code{\link[seewave]{fund}} for cepstral analysis
-\code{\link[librosa]{yin}} for YIN algorithm (when using method = "yin")
+YIN algorithm implementation based on the approach used in the Python librosa package
+(\url{https://librosa.org/doc/main/generated/librosa.yin.html})
 }

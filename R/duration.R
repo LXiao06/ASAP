@@ -512,12 +512,12 @@ add_marginal_window <- function(segments_df, marginal_window = 0.1, verbose = TR
 
     original_count <- nrow(segments_df)
 
+    # Create a copy to work with
+    processed <- segments_df
+
     # Create adjusted time columns
-    processed <- segments_df %>%
-      mutate(
-        adj_start = start_time - marginal_window,
-        adj_end = end_time + marginal_window
-      )
+    processed$adj_start <- processed$start_time - marginal_window
+    processed$adj_end <- processed$end_time + marginal_window
 
     # Calculate removal reasons BEFORE filtering
     removal_stats <- list(
@@ -527,21 +527,17 @@ add_marginal_window <- function(segments_df, marginal_window = 0.1, verbose = TR
     )
 
     # Now filter
-    processed <- processed %>%
-      filter(
-        .data$adj_start >= 0,
-        .data$adj_end <= wav_duration,
-        !is.na(.data$wav_duration)
-      )
+    keep_idx <- processed$adj_start >= 0 &
+      processed$adj_end <= processed$wav_duration &
+      !is.na(processed$wav_duration)
+    processed <- processed[keep_idx, ]
 
     # Update time columns
-    processed <- processed %>%
-      mutate(
-        start_time = .data$adj_start,
-        end_time = .data$adj_end,
-        duration = .data$end_time - .data$start_time
-      ) %>%
-      select(-adj_start, -adj_end)
+    processed$start_time <- processed$adj_start
+    processed$end_time <- processed$adj_end
+    processed$duration <- processed$end_time - processed$start_time
+    processed$adj_start <- NULL
+    processed$adj_end <- NULL
 
     removal_stats$total <- original_count - nrow(processed)
   }

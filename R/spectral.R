@@ -553,11 +553,11 @@ NULL
   L <- length(spec)
   wl <- L * 2
   if (any(spec < 0)) {
-    stop2("The frequency spectrum to be analysed should not be in dB")
+    stop("The frequency spectrum to be analysed should not be in dB")
   }
   if (!is.null(flim)) {
     if (flim[1] < 0 || flim[2] > fhz / 2) {
-      stop2("'flim' should range between 0 and f/2")
+      stop("'flim' should range between 0 and f/2")
     }
   } else {
     flim <- c(0, (f / 2 - f / wl) / 1000)

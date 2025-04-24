@@ -4,7 +4,7 @@
 \alias{check_python_dependencies}
 \title{Check Python dependencies}
 \usage{
-check_python_dependencies()
+check_python_dependencies(verbose = FALSE)
 }
 \description{
 Check Python dependencies

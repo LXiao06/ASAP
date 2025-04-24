@@ -7,15 +7,17 @@
 #' @importFrom tools file_path_sans_ext
 #' @importFrom grDevices colorRampPalette dev.off png rgb
 #' @importFrom utils head tail
-#' @importFrom graphics abline axis box image layout legend lines mtext par plot.new
-#'             plot.window points rect text title
+#' @importFrom graphics abline axis box image layout legend lines mtext par
+#'             plot.new plot.window points rect text title
 #' @importFrom dplyr mutate select filter arrange left_join bind_rows %>%
-#' @importFrom ggplot2 ggplot aes geom_line facet_wrap labs theme_minimal scale_color_brewer
-#'             scale_fill_brewer ggtitle theme element_text stat_summary
-#' @importFrom stats TukeyHSD aggregate aov approx as.formula dist gaussian median
-#'             na.omit prcomp quantile setNames sd time
+#'             group_by n_distinct group_split case_when
+#' @importFrom ggplot2 ggplot aes geom_line geom_boxplot facet_wrap labs
+#'             theme_minimal scale_color_brewer scale_fill_brewer ggtitle
+#'             theme element_text stat_summary
+#' @importFrom stats TukeyHSD aggregate aov approx as.formula dist gaussian
+#'             median na.omit prcomp quantile setNames sd time
 #' @importFrom seewave spec inputw ftwindow sfm sh th meanspec afilter sspectro
-
+#'
 NULL
 
 # Define global variables used in NSE contexts
@@ -258,7 +260,7 @@ parallel_apply <- function(indices, FUN, cores) {
 #' Check Python dependencies
 #'
 #' @keywords internal
-check_python_dependencies <- function() {
+check_python_dependencies <- function(verbose = FALSE) {
   if (!requireNamespace("reticulate", quietly = TRUE)) {
     stop("The 'reticulate' package is required. Please install it using: install.packages('reticulate')")
   }
@@ -440,17 +442,13 @@ process_label <- function(label, feature_matrix, segment_starts, segment_ends,
 #' results <- anova_results(stats_df, plot = FALSE)
 #' }
 #'
-#' @importFrom dplyr %>% group_by filter n_distinct mutate bind_rows group_split case_when
-#' @importFrom ggplot2 ggplot aes geom_boxplot facet_wrap theme_minimal labs
-#'
 #' @export
 anova_analysis <- function(stats_df, plot = TRUE) {
-
   # Store ANOVA and Tukey results
   results_list <- stats_df |>
-    group_by(segment_id) |>
-    filter(n_distinct(label) > 1) |>  # Only compare segments with multiple labels
-    group_split() |>
+    dplyr::group_by(.data$segment_id) |>
+    dplyr::filter(dplyr::n_distinct(.data$label) > 1) |>  # Only compare segments with multiple labels
+    dplyr::group_split() |>
     lapply(function(seg_data) {
       # Perform ANOVA
       aov_model <- aov(mean ~ label, data = seg_data)
@@ -467,18 +465,19 @@ anova_analysis <- function(stats_df, plot = TRUE) {
         stringsAsFactors = FALSE
       ) |>
         dplyr::mutate(
-          significant = p.value < 0.05,
+          significant = .data$p.value < 0.05,
           segment_id = unique(seg_data$segment_id)
         ) |>
-        dplyr::select(segment_id, dplyr::everything())
+        dplyr::select(.data$segment_id, dplyr::everything())
 
       # Perform Tukey's HSD test for multiple comparison adjustment
       tukey_result <- TukeyHSD(aov_model)
-      tukey_df <- as.data.frame(tukey_result$label) %>%
-        mutate(
-          comparison = rownames(.),
+      tukey_df <- as.data.frame(tukey_result$label)
+      tukey_df <- tukey_df |>
+        dplyr::mutate(
+          comparison = rownames(tukey_df),
           segment_id = unique(seg_data$segment_id),
-          significance = case_when(
+          significance = dplyr::case_when(
             `p adj` < 0.001 ~ "***",
             `p adj` < 0.01 ~ "**",
             `p adj` < 0.05 ~ "*",
@@ -486,11 +485,12 @@ anova_analysis <- function(stats_df, plot = TRUE) {
           )
         )
 
+
       list(anova = anova_result, tukey = tukey_df)
     })
 
   # Combine ANOVA results
-  anova_summary <- bind_rows(lapply(results_list, function(x) x$anova))
+  anova_summary <- dplyr::bind_rows(lapply(results_list, function(x) x$anova))
 
   # Print pretty output for Tukey's HSD results
   cat("## Tukey multiple comparisons of means")
@@ -523,17 +523,16 @@ anova_analysis <- function(stats_df, plot = TRUE) {
 
   # Create plot if requested
   if(plot) {
-    p <- ggplot(stats_df, aes(x=label, y=mean)) +
+    p <- ggplot2::ggplot(stats_df, ggplot2::aes(x = .data$label, y = .data$mean)) +
       ggplot2::geom_boxplot() +
-      ggplot2::facet_wrap(~segment_id) +
-      theme_minimal() +
-      labs(title = "Mean Values by Label across Segments",
-           x = "Label",
-           y = "Mean Value")
+      ggplot2::facet_wrap(~ .data$segment_id) +
+      ggplot2::theme_minimal() +
+      ggplot2::labs(title = "Mean Values by Label across Segments",
+                    x = "Label",
+                    y = "Mean Value")
     print(p)
   }
 
   # Return ANOVA summary
   return(anova_summary)
 }
-
