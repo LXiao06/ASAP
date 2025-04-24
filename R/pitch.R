@@ -279,7 +279,7 @@ FF.data.frame  <- function(x,
     # Normalize all F0 vectors to reference time scale
     f0_matrix <- sapply(f0_list, function(f0) {
       if(length(f0) != length(ref_time)) {
-        approx(
+        stats::approx(
           x = seq(0, 1, length.out = length(f0)),
           y = f0,
           xout = seq(0, 1, length.out = length(ref_time))
@@ -321,7 +321,7 @@ FF.data.frame  <- function(x,
 
       # Configure color mapping
       if (is.null(color_palette)) {
-        color_palette <- colorRampPalette(c("black", "darkblue","blue","white", "yellow","orange", "red"))
+        color_palette <- grDevices::colorRampPalette(c("black", "darkblue","blue","white", "yellow","orange", "red"))
       }
 
       # Create color breaks based on the determined f0_range
@@ -504,7 +504,7 @@ FF.Sap <- function(x,
   # Normalize all F0 vectors to reference time scale
   f0_matrix <- sapply(f0_list, function(f0) {
     if(length(f0) != length(ref_time)) {
-      approx(
+      stats::approx(
         x = seq(0, 1, length.out = length(f0)),
         y = f0,
         xout = seq(0, 1, length.out = length(ref_time))
@@ -607,13 +607,13 @@ FF.matrix <- function(x,
   # Reverse the column labels and compute positions for labeling and horizontal lines
   reversed_labels <- rev(unique(colnames(x)))
   samples_per_label <- rev(as.numeric(table(colnames(x))))
-  cumulative_positions <- cumsum(c(0, head(samples_per_label, -1)))
+  cumulative_positions <- cumsum(c(0, utils::head(samples_per_label, -1)))
   label_positions <- cumulative_positions + samples_per_label / 2
   hline_positions <- cumsum(samples_per_label)[-length(samples_per_label)]
 
   # Set a default color_palette if none given
   if (is.null(color_palette)) {
-    color_palette <- colorRampPalette(c("black", "darkblue", "blue", "white", "yellow", "orange", "red"))
+    color_palette <- grDevices::colorRampPalette(c("black", "darkblue", "blue", "white", "yellow", "orange", "red"))
   }
 
   # Create color breaks based on the determined f0_range
@@ -1090,7 +1090,7 @@ goodness.data.frame <- function(x,
     # Normalize all goodness vectors to reference time scale
     goodness_matrix <- sapply(goodness_list, function(goodness) {
       if(length(goodness) != length(ref_time)) {
-        approx(
+        stats::approx(
           x = seq(0, 1, length.out = length(goodness)),
           y = goodness,
           xout = seq(0, 1, length.out = length(ref_time))
@@ -1125,7 +1125,7 @@ goodness.data.frame <- function(x,
 
       # Configure color mapping
       if (is.null(color_palette)) {
-        color_palette <- colorRampPalette(c("black", "red" , "yellow", "white"))
+        color_palette <- grDevices::colorRampPalette(c("black", "red" , "yellow", "white"))
       }
 
       # Create color breaks
@@ -1284,7 +1284,7 @@ goodness.Sap <- function(x,
 
   goodness_matrix <- sapply(goodness_list, function(goodness) {
     if(length(goodness) != length(ref_time)) {
-      approx(
+      stats::approx(
         x = seq(0, 1, length.out = length(goodness)),
         y = goodness,
         xout = seq(0, 1, length.out = length(ref_time))
@@ -1383,13 +1383,13 @@ goodness.matrix <- function(x,
   # Prepare labels and positions
   reversed_labels <- rev(unique(colnames(x)))
   samples_per_label <- rev(as.numeric(table(colnames(x))))
-  cumulative_positions <- cumsum(c(0, head(samples_per_label, -1)))
+  cumulative_positions <- cumsum(c(0, utils::head(samples_per_label, -1)))
   label_positions <- cumulative_positions + samples_per_label / 2
   hline_positions <- cumsum(samples_per_label)[-length(samples_per_label)]
 
   # Set default color palette
   if (is.null(color_palette)) {
-    color_palette <- colorRampPalette(c("black", "red", "yellow", "white"))
+    color_palette <- grDevices::colorRampPalette(c("black", "red", "yellow", "white"))
   }
 
   # Create color breaks

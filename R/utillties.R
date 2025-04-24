@@ -3,7 +3,19 @@
 #' @importFrom tuneR readWave
 #' @importFrom rlang `%||%`
 #' @importFrom tools file_path_sans_ext
+#' @importFrom grDevices colorRampPalette
+#' @importFrom utils head
+#' @importFrom graphics par title
 NULL
+
+# Define global variables used in NSE contexts
+utils::globalVariables(c(
+  "day_post_hatch",
+  "UMAP1",
+  "UMAP2",
+  "start_time",
+  "end_time"
+))
 
 #' Construct file path for audio file
 #'
