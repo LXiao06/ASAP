@@ -1,20 +1,33 @@
 # utilities
 
+#' @importClassesFrom tuneR Wave
 #' @importFrom tuneR readWave
-#' @importFrom rlang `%||%`
+#' @importFrom methods getMethod
+#' @importFrom rlang `%||%` .data
 #' @importFrom tools file_path_sans_ext
-#' @importFrom grDevices colorRampPalette
-#' @importFrom utils head
-#' @importFrom graphics par title
+#' @importFrom grDevices colorRampPalette dev.off png rgb
+#' @importFrom utils head tail
+#' @importFrom graphics abline axis box image layout legend lines mtext par plot.new
+#'             plot.window points rect text title
+#' @importFrom dplyr mutate select filter arrange left_join bind_rows %>%
+#' @importFrom ggplot2 ggplot aes geom_line facet_wrap labs theme_minimal scale_color_brewer
+#'             scale_fill_brewer ggtitle theme element_text stat_summary
+#' @importFrom stats TukeyHSD aggregate aov approx as.formula dist gaussian median
+#'             na.omit prcomp quantile setNames sd time
+#' @importFrom seewave spec inputw ftwindow sfm sh th meanspec afilter sspectro
+
 NULL
 
 # Define global variables used in NSE contexts
 utils::globalVariables(c(
   "day_post_hatch",
+  "dph",
   "UMAP1",
   "UMAP2",
   "start_time",
-  "end_time"
+  "end_time",
+  "label",
+  "filename"
 ))
 
 #' Construct file path for audio file

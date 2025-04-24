@@ -500,7 +500,6 @@ plot_motif_boundaries <- function(x,
 #'
 #' @keywords internal
 #' @noRd
-#' @importFrom dplyr mutate filter select
 add_marginal_window <- function(segments_df, marginal_window = 0.1, verbose = TRUE) {
   if (!is.null(marginal_window)) {
     # Input validation
@@ -530,17 +529,17 @@ add_marginal_window <- function(segments_df, marginal_window = 0.1, verbose = TR
     # Now filter
     processed <- processed %>%
       filter(
-        adj_start >= 0,
-        adj_end <= wav_duration,
-        !is.na(wav_duration)
+        .data$adj_start >= 0,
+        .data$adj_end <= wav_duration,
+        !is.na(.data$wav_duration)
       )
 
     # Update time columns
     processed <- processed %>%
       mutate(
-        start_time = adj_start,
-        end_time = adj_end,
-        duration = end_time - start_time
+        start_time = .data$adj_start,
+        end_time = .data$adj_end,
+        duration = .data$end_time - .data$start_time
       ) %>%
       select(-adj_start, -adj_end)
 

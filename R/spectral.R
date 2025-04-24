@@ -238,8 +238,6 @@ analyze_spectral.Sap <- function(x,
 #' @return
 #' Data frame with spectral features
 #'
-#' @importFrom seewave spec inputw ftwindow sfm sh th meanspec afilter sspectro
-#' @importClassesFrom tuneR Wave
 #' @keywords internal
 spectral_analysis <- function(x,
                               wav_dir = NULL,
@@ -541,7 +539,7 @@ NULL
 
   if (is.null(f)) {
     if (is.vector(spec)) {
-      stop2("'f' is missing")
+      stop("'f' is missing")
     } else if (is.matrix(spec)) {
       f <- spec[nrow(spec), 1] * 2000 * nrow(spec) / (nrow(spec) - 1)
     }
@@ -878,7 +876,7 @@ NULL
   f <- input$f
   rm(input)
   if (!is.null(tlim)) {
-    wave <- cutw(wave, f = f, from = tlim[1], to = tlim[2])
+    wave <- seewave::cutw(wave, f = f, from = tlim[1], to = tlim[2])
   }
 
   if (!is.null(threshold)) {

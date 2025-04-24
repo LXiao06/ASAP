@@ -63,11 +63,6 @@
 #'             ncol = 2)
 #' }
 #'
-#' @importFrom dplyr mutate select filter arrange left_join bind_rows %>%
-#' @importFrom ggplot2 ggplot aes geom_line facet_wrap labs theme_minimal scale_color_brewer
-#'             scale_fill_brewer ggtitle theme element_text stat_summary
-#' @importFrom stats sd
-#'
 #' @export
 plot_traces <- function(x, ...) {
   UseMethod("plot_traces")
