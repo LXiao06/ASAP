@@ -630,8 +630,8 @@ detect_template.default <- function(x,  # x is wav file path
 
   # Rename id to filename and remove data.time column
   detections <- detections |>
-    dplyr::rename(filename = .data$id) |>
-    dplyr::select(-.data$date.time)
+    dplyr::rename(filename = id) |>
+    dplyr::select(-date.time)
 
   # Save plot if requested
   if (save_plot) {

@@ -593,22 +593,22 @@ plot_clusters.Sap <- function(x,
   df <- feat_embeds |>
     dplyr::inner_join(motifs, by = c("filename", "day_post_hatch", "label"),
                       relationship = "many-to-many") |>
-    dplyr::filter(start_time >= .data$motif_start & start_time <= .data$motif_end) |>
+    dplyr::filter(start_time >= motif_start & start_time <= motif_end) |>
     dplyr::mutate(
       #segment_duration = end_time - start_time,
-      .start = start_time - .data$motif_start,
-      .end = end_time - .data$motif_start,
-      motif_duration = .data$motif_end - .data$motif_start,
-      motif_label = paste(filename, .data$motif_index))  |>
-    dplyr::arrange(.data$original_order)   # Sort by original order
+      .start = start_time - motif_start,
+      .end = end_time - motif_start,
+      motif_duration = motif_end - motif_start,
+      motif_label = paste(filename, motif_index))  |>
+    dplyr::arrange(original_order)   # Sort by original order
   # |>dplyr::select(filename, day_post_hatch, label, motif_index, .start, .end,
   #                 cluster, motif_duration, original_order, motif_label)
 
   # Get ordered unique motifs based on original UMAP order
   motif_order <- df |>
-    dplyr::distinct(.data$motif_label, .data$original_order) |>
-    dplyr::arrange(.data$original_order) |>
-    dplyr::pull(.data$motif_label)
+    dplyr::distinct(motif_label, original_order) |>
+    dplyr::arrange(original_order) |>
+    dplyr::pull(motif_label)
 
   # Check if motif_duration is unique
   unique_durations <- unique(df$motif_duration)
@@ -616,7 +616,7 @@ plot_clusters.Sap <- function(x,
 
   # Function to process each motif
   process_motif <- function(motif_id) {
-    motif_rows <- dplyr::filter(df, .data$motif_label == motif_id)
+    motif_rows <- dplyr::filter(df, motif_label == motif_id)
     motif_vector <- rep(NA, time_resolution)
 
     for (j in seq_len(nrow(motif_rows))) {

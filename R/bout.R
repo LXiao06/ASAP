@@ -504,7 +504,7 @@ find_bout.Sap <- function(x,  # x is SAP object
 
       final_results <- final_results |>
         # Calculate motif information for each bout
-        dplyr::group_by(filename, day_post_hatch, .data$selec) |>
+        dplyr::group_by(filename, day_post_hatch, selec) |>
         dplyr::mutate(
           # Count motifs within bout
           n_motifs = {
