@@ -482,6 +482,7 @@ create_template.Sap <- function(x,              # x is Sap object
 #' @param indices For SAP objects: Numeric vector of indices to process
 #' @param threshold For SAP objects: New threshold value
 #' @param cores For SAP objects: Number of cores for parallel processing
+#' @param proximity_window For SAP objects: Time window in seconds to filter nearby detections (NULL to disable)
 #' @param plot_percent For SAP objects: Percentage of files to plot (default: 10)
 #' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to specific methods
@@ -502,7 +503,13 @@ create_template.Sap <- function(x,              # x is Sap object
 #'   \item Optional threshold adjustment
 #'   \item Progress tracking and reporting
 #'   \item Selective plot generation
+#'   \item Filtering of nearby detections when proximity_window is specified
 #' }
+#'
+#' @section Proximity Filtering:
+#' When \code{proximity_window} is specified, the function will filter detections that occur
+#' within the specified time window (in seconds). For each group of detections within the window,
+#' only the one with the highest score is kept. This is useful for removing false positive detections.
 #'
 #' @return
 #' For default method: A data frame containing detection results with columns:
@@ -533,6 +540,11 @@ create_template.Sap <- function(x,              # x is Sap object
 #'                           template_name = "template1",
 #'                           indices = 1:10,
 #'                           save_plot = TRUE)
+#'
+#' # Filter nearby detections within 0.5 seconds
+#' sap_obj <- detect_template(sap_object,
+#'                           template_name = "template1",
+#'                           proximity_window = 0.5)
 #' }
 #'
 #' @seealso \code{\link{create_template}} for creating templates
@@ -645,6 +657,7 @@ detect_template.Sap <- function(x,  # x is SAP object
                                 indices = NULL,
                                 template_name,
                                 threshold = NULL,
+                                proximity_window = NULL,
                                 cores = NULL,
                                 cor.method = "pearson",
                                 save_plot = FALSE,
@@ -660,6 +673,19 @@ detect_template.Sap <- function(x,  # x is SAP object
 
   if (is.null(template_name) || !template_name %in% names(x$templates$template_list)) {
     stop("template_name must be provided and must exist in the SAP object")
+  }
+
+  # Validate proximity window parameter
+  if (!is.null(proximity_window)) {
+    if (!is.numeric(proximity_window) || proximity_window <= 0) {
+      stop("proximity_window must be a positive number or NULL to disable filtering")
+    }
+  }
+
+  # Detect cores for parallel processing
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+    cores <- max(1, cores)
   }
 
   # Get the template from SAP object
@@ -698,11 +724,6 @@ detect_template.Sap <- function(x,  # x is SAP object
   } else {
     process_metadata <- x$metadata
     days_to_process <- unique(process_metadata$day_post_hatch)
-  }
-
-  # Set number of cores
-  if (is.null(cores)) {
-    cores <- parallel::detectCores() - 1
   }
 
   # Create plot directories if save_plot is TRUE
@@ -797,28 +818,8 @@ detect_template.Sap <- function(x,  # x is SAP object
       })
     }
 
-    # Choose parallel processing method based on system and cores
-    if (cores > 1) {
-      if (Sys.info()["sysname"] == "Linux") { # "Darwin"
-        day_results <- pbmcapply::pbmclapply(
-          unique_files,
-          process_file,
-          mc.cores = cores,
-          mc.preschedule = FALSE
-        )
-      } else {
-        day_results <- pbapply::pblapply(
-          unique_files,
-          process_file,
-          cl = cores
-        )
-      }
-    } else {
-      day_results <- pbapply::pblapply(
-        unique_files,
-        process_file
-      )
-    }
+    # Parallel processing
+    day_results <- parallel_apply(unique_files, process_file, cores)
 
     # Combine results for this day
     valid_detections <- day_results[!sapply(day_results, is.null)]
@@ -838,6 +839,27 @@ detect_template.Sap <- function(x,  # x is SAP object
     final_results <- do.call(rbind, all_results)
     row.names(final_results) <- NULL
 
+    original_detections <- nrow(final_results)
+
+    # Apply proximity filtering if proximity_window is provided
+    if (!is.null(proximity_window)) {
+      if (verbose) {
+        message(sprintf("\nFiltering detections within %.2f seconds of each other...", proximity_window))
+      }
+
+      # Apply the filtering function
+      final_results <- filter_by_proximity(final_results, proximity_window)
+
+      if (verbose) {
+        filtered_detections <- nrow(final_results)
+        removed_detections <- original_detections - filtered_detections
+        message(sprintf("Removed %d overlapping detections (%.1f%%). %d detections remain.",
+                        removed_detections,
+                        100 * removed_detections / original_detections,
+                        filtered_detections))
+      }
+    }
+
     # Store results in template_matches
     x$templates$template_matches[[template_name]] <- final_results
 
@@ -845,7 +867,7 @@ detect_template.Sap <- function(x,  # x is SAP object
     x$misc$last_modified <- Sys.time()
 
     message(sprintf("\nTotal detections across all days: %d", nrow(final_results)))
-    message(sprintf("Detection results for template '%s' have been stored in the SAP object",
+    message(sprintf("Access detection results via: x$templates$template_matches[[\"%s\"]]",
                     template_name))
   } else {
     warning(sprintf("No detections found for template '%s'", template_name))
@@ -853,4 +875,50 @@ detect_template.Sap <- function(x,  # x is SAP object
 
   # Return the modified SAP object invisibly
   invisible(x)
+}
+
+
+#' @keywords internal
+filter_by_proximity <- function(detections, proximity_window) {
+  # Group by filename and filter by proximity
+  filtered_results <- detections |>
+    dplyr::group_by(filename) |>
+    dplyr::arrange(filename, time) |>
+    dplyr::group_modify(function(file_df, key) {
+      # No need to filter if there's only one detection
+      if (nrow(file_df) <= 1) {
+        return(file_df)
+      }
+
+      # Initialize vector to track which rows to keep
+      keep_rows <- rep(TRUE, nrow(file_df))
+
+      # Loop through each detection
+      for (i in 1:(nrow(file_df) - 1)) {
+        if (!keep_rows[i]) next  # Skip if already marked for removal
+
+        # Find detections within proximity window
+        proximity_group <- which(
+          file_df$time > file_df$time[i] &
+            file_df$time <= file_df$time[i] + proximity_window
+        )
+
+        if (length(proximity_group) > 0) {
+          # Include current detection in comparison
+          group_to_compare <- c(i, proximity_group)
+
+          # Find detection with highest score
+          best_detection <- group_to_compare[which.max(file_df$score[group_to_compare])]
+
+          # Mark all others for removal
+          keep_rows[group_to_compare[group_to_compare != best_detection]] <- FALSE
+        }
+      }
+
+      # Return filtered dataframe
+      return(file_df[keep_rows, ])
+    }) |>
+    dplyr::ungroup()
+
+  return(filtered_results)
 }
