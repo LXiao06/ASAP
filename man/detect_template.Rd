@@ -23,7 +23,6 @@ detect_template(x, ...)
   indices = NULL,
   template_name,
   threshold = NULL,
-  proximity_window = NULL,
   cores = NULL,
   cor.method = "pearson",
   save_plot = FALSE,
@@ -52,8 +51,6 @@ detect_template(x, ...)
 \item{template_name}{For SAP objects: Name of template to use}
 
 \item{threshold}{For SAP objects: New threshold value}
-
-\item{proximity_window}{For SAP objects: Time window in seconds to filter nearby detections (NULL to disable)}
 
 \item{cores}{For SAP objects: Number of cores for parallel processing}
 
@@ -90,16 +87,8 @@ For SAP objects:
 \item Optional threshold adjustment
 \item Progress tracking and reporting
 \item Selective plot generation
-\item Filtering of nearby detections when proximity_window is specified
 }
 }
-\section{Proximity Filtering}{
-
-When \code{proximity_window} is specified, the function will filter detections that occur
-within the specified time window (in seconds). For each group of detections within the window,
-only the one with the highest score is kept. This is useful for removing false positive detections.
-}
-
 \examples{
 \dontrun{
 # Detect template in single WAV file
@@ -119,11 +108,6 @@ sap_obj <- detect_template(sap_object,
                           template_name = "template1",
                           indices = 1:10,
                           save_plot = TRUE)
-
-# Filter nearby detections within 0.5 seconds
-sap_obj <- detect_template(sap_object,
-                          template_name = "template1",
-                          proximity_window = 0.5)
 }
 
 }
