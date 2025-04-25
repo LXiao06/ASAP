@@ -10,7 +10,7 @@
 #' @importFrom graphics abline axis box image layout legend lines mtext par
 #'             plot.new plot.window points rect text title
 #' @importFrom dplyr mutate select filter arrange left_join bind_rows %>%
-#'             group_by n_distinct group_split case_when
+#'             group_by n_distinct group_split case_when all_of
 #' @importFrom ggplot2 ggplot aes geom_line geom_boxplot facet_wrap labs
 #'             theme_minimal scale_color_brewer scale_fill_brewer ggtitle
 #'             theme element_text stat_summary

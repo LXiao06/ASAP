@@ -112,13 +112,13 @@ auto_label <- function(x,
   data <- x$features$segment$feat.embeds |>
     dplyr::inner_join(motifs, by = c("filename", "day_post_hatch", "label"),
                       relationship = "many-to-many") |>
-    dplyr::filter(start_time >= motif_start & start_time <= motif_end) |>
+    dplyr::filter(start_time >= .data$motif_start & start_time <= .data$motif_end) |>
     dplyr::mutate(
       segment_duration = end_time - start_time,
       # motif_duration = motif_end - motif_start,
       # .start = start_time - motif_start,
       # .end = end_time - motif_start,
-      .time =(start_time + end_time)/2 -motif_start
+      .time =(start_time + end_time)/2 - .data$motif_start
       )
 
 
@@ -207,8 +207,8 @@ auto_label <- function(x,
 
   # Merge similar clusters based on UMAP embeddings
   merged_clusters <- merge_similar_clusters(cleaned_data, umap_threshold = umap_threshold) |>
-    dplyr::select(filename, day_post_hatch, label, start_time, end_time, merged_cluster, UMAP1, UMAP2) |>
-    dplyr::rename(cluster = merged_cluster)
+    dplyr::select(filename, day_post_hatch, label, start_time, end_time, .data$merged_cluster, UMAP1, UMAP2) |>
+    dplyr::rename(cluster = .data$merged_cluster)
 
   # Upadte syllable data
   x[["features"]][["syllable"]][["feat.embeds"]] <- merged_clusters
@@ -230,14 +230,14 @@ auto_label <- function(x,
 merge_similar_clusters <- function(data, umap_threshold = NULL) {
   # Calculate cluster centers in UMAP space
   cluster_centers <- data |>
-    dplyr::group_by(label, cleaned_cluster) |>
+    dplyr::group_by(.data$label, .data$cleaned_cluster) |>
     dplyr::reframe(
       mean_UMAP1 = mean(UMAP1),
       mean_UMAP2 = mean(UMAP2),
       n_points = dplyr::n(),
-      cluster_id = paste(label, cleaned_cluster, sep = "_")
+      cluster_id = paste(.data$label, .data$cleaned_cluster, sep = "_")
     ) |>
-    dplyr::distinct(cluster_id, .keep_all = TRUE)
+    dplyr::distinct(.data$cluster_id, .keep_all = TRUE)
 
   # Create initial cluster ID mapping
   data$cluster_id <- paste(data$label, data$cleaned_cluster, sep = "_")
@@ -293,13 +293,13 @@ merge_similar_clusters <- function(data, umap_threshold = NULL) {
         by = "cluster_id"
       ) |>
       dplyr::left_join(cluster_mapping, by = "old_cluster") |>
-      dplyr::mutate(merged_cluster = new_cluster) |>
-      dplyr::select(-old_cluster, -new_cluster)
+      dplyr::mutate(merged_cluster = .data$new_cluster) |>
+      dplyr::select(all_of(c("old_cluster", "new_cluster")))
 
   } else {
     # If no edges, create continuous cluster numbers from 1 to n
     result <- data |>
-      dplyr::mutate(merged_cluster = cleaned_cluster)
+      dplyr::mutate(merged_cluster = .data$cleaned_cluster)
   }
 
   return(result)
