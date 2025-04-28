@@ -693,24 +693,21 @@ detect_template.Sap <- function(x,  # x is SAP object
 
   # Update threshold if specified
   if (!is.null(threshold)) {
-    # Store original threshold for reporting
     original_threshold <- monitoR::templateCutoff(template)[[1]]
 
-    # Update threshold
-    monitoR::templateCutoff(template) <- setNames(threshold, template_name)
-
-    # Update template in SAP object
-    x$templates$template_list[[template_name]] <- template
-
-    # Update threshold in template_info
-    threshold_idx <- which(x$templates$template_info$template_name == template_name)
-    if (length(threshold_idx) > 0) {
-      x$templates$template_info$threshold[threshold_idx] <- threshold
+    # Only update if different
+    if (original_threshold != threshold) {
+      monitoR::templateCutoff(template) <- setNames(threshold, template_name)
+      x$templates$template_list[[template_name]] <- template
+      threshold_idx <- which(x$templates$template_info$template_name == template_name)
+      if (length(threshold_idx) > 0) {
+        x$templates$template_info$threshold[threshold_idx] <- threshold
+      }
+      cat(sprintf("\nTemplate threshold updated from %.2f to %.2f\n",
+                  original_threshold, threshold))
+    } else {
+      cat(sprintf("\nTemplate threshold already at %.2f\n", threshold))
     }
-
-    # Report threshold update
-    cat(sprintf("\nTemplate threshold updated from %.2f to %.2f\n",
-                original_threshold, threshold))
   }
 
   # Filter metadata based on day
