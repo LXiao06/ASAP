@@ -5,7 +5,7 @@
 #' @importFrom methods getMethod
 #' @importFrom rlang `%||%` .data
 #' @importFrom tools file_path_sans_ext
-#' @importFrom grDevices colorRampPalette dev.off png rgb
+#' @importFrom grDevices colorRampPalette dev.cur dev.off png rgb
 #' @importFrom utils head tail
 #' @importFrom graphics abline axis box image layout legend lines mtext par
 #'             plot.new plot.window points rect text title

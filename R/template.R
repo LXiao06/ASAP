@@ -477,12 +477,13 @@ create_template.Sap <- function(x,              # x is Sap object
 #' @param cor.method Correlation method ("pearson" or "spearman")
 #' @param save_plot Whether to save detection plots
 #' @param plot_dir For default method: Directory to save plots
+#' @param proximity_window Time window in seconds to filter nearby detections (NULL to disable filtering).
+#'        Only the detection with the highest score within each window is retained.
 #' @param template_name For SAP objects: Name of template to use
 #' @param day For SAP objects: Numeric vector of days to process
 #' @param indices For SAP objects: Numeric vector of indices to process
 #' @param threshold For SAP objects: New threshold value
 #' @param cores For SAP objects: Number of cores for parallel processing
-#' @param proximity_window For SAP objects: Time window in seconds to filter nearby detections (NULL to disable)
 #' @param plot_percent For SAP objects: Percentage of files to plot (default: 10)
 #' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to specific methods
@@ -493,6 +494,7 @@ create_template.Sap <- function(x,              # x is Sap object
 #'   \item Validates input file and template
 #'   \item Performs correlation matching
 #'   \item Finds peaks in correlation scores
+#'   \item Optionally filters nearby detections (if proximity_window is set)
 #'   \item Optionally saves detection plots
 #' }
 #'
@@ -562,51 +564,25 @@ detect_template.default <- function(x,  # x is wav file path
                                     cor.method = "pearson",
                                     save_plot = FALSE,
                                     plot_dir = NULL,
+                                    proximity_window = NULL,
                                     ...) {
-  # Validate file path
-  if (!file.exists(x)) {
-    stop("File does not exist: ", x)
-  }
+  # Validate inputs
+  if (!file.exists(x)) stop("File does not exist: ", x)
+  if (is.null(template)) stop("template must be provided")
 
-  # Validate template
-  if (is.null(template)) {
-    stop("template must be provided")
-  }
-
-  # Set default plot directory if not provided
+  # Set default plot directory
   if (save_plot && is.null(plot_dir)) {
     plot_dir <- file.path(dirname(x), "plots", "template_matches")
   }
 
-  # Correlation matching
-  # scores <- suppressWarnings({
-  #   utils::capture.output(
-  #     corMatch_result <- monitoR::corMatch(
-  #       survey = x,
-  #       templates = template,
-  #       show.prog = FALSE,
-  #       cor.method = cor.method,
-  #       time.source = "fileinfo"
-  #     ),
-  #     type = c("output", "message"),
-  #     file = nullfile()
-  #   )
-  #   corMatch_result
-  # })
-
-  # Create null connection
+  # Suppress monitoR output
   null_con <- file(tempfile(), open = "w")
   on.exit({
-    sink(type = "output")  # Reset output sink
-    sink(type = "message")  # Reset message sink
-    close(null_con)
+    sink(type = "output"); sink(type = "message"); close(null_con)
   })
+  sink(null_con, type = "output"); sink(null_con, type = "message")
 
-  # Redirect BOTH output streams
-  sink(file = null_con, type = "output")
-  sink(file = null_con, type = "message")
-
-  # Correlation matching
+  # Perform correlation matching
   scores <- suppressWarnings(
     monitoR::corMatch(
       survey = x,
@@ -617,35 +593,50 @@ detect_template.default <- function(x,  # x is wav file path
     )
   )
 
-  # Find peaks and keep the object for plotting
-  pks <- monitoR::findPeaks(score.obj = scores)
+  # Find peaks with or without proximity filtering
+  if (is.null(proximity_window)) {
+    pks <- monitoR::findPeaks(score.obj = scores)
+  } else {
+    pks <- find_peaks_with_proximity(scores, proximity_window)
+  }
 
   # Get detections
   detections <- monitoR::getDetections(pks, id = basename(x))
 
-  # If no detections found, return NULL early
-  if (is.null(detections) || nrow(detections) == 0) {
-    return(NULL)
-  }
+  # Early return if no detections
+  if (is.null(detections) || nrow(detections) == 0) return(NULL)
 
-  # Rename id to filename and remove data.time column
-  detections <- detections |>
-    dplyr::rename(filename = .data$id) |>
+  # Process final output
+  detections <- detections %>%
+    dplyr::rename(filename = .data$id) %>%
     dplyr::select(-.data$date.time)
 
-  # Save plot if requested
+  # Generate plot with filtered detections
   if (save_plot) {
     dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
+    plot_file <- file.path(plot_dir, paste0(tools::file_path_sans_ext(basename(x)), ".png"))
 
-    plot_filename <- file.path(plot_dir,
-                               paste0(file_path_sans_ext(basename(x)),
-                                      ".png"))
+    tryCatch({
+      # Open device
+      png(plot_file, width = 1200, height = 800, res = 150)
+      on.exit(if (dev.cur() > 1) dev.off(), add = TRUE)
 
-    png(filename = plot_filename, width = 1200, height = 800, res = 150)
-    .plot <- getMethod("plot", "detectionList", where = asNamespace("monitoR"))
-    suppressMessages(.plot(pks, ask = FALSE))
-    dev.off()
+      # Get plot method once per function call
+      if (!exists("plot_detections")) {
+        plot_detections <- getMethod("plot", "detectionList", where = asNamespace("monitoR"))
+      }
+
+      # Plot
+      suppressMessages(plot_detections(pks, ask = FALSE))
+
+      # Close device
+      if (dev.cur() > 1) dev.off()
+    }, error = function(e) {
+      warning("Error creating plot for ", basename(x), ": ", e$message)
+      if (dev.cur() > 1) dev.off()
+    })
   }
+
 
   return(detections)
 }
@@ -657,12 +648,12 @@ detect_template.Sap <- function(x,  # x is SAP object
                                 indices = NULL,
                                 template_name,
                                 threshold = NULL,
-                                proximity_window = NULL,
                                 cores = NULL,
                                 cor.method = "pearson",
                                 save_plot = FALSE,
                                 plot_percent = 10,
                                 verbose = TRUE,
+                                proximity_window = NULL,
                                 ...) {
   if(verbose) message(sprintf("\n=== Starting Template Detection ==="))
 
@@ -673,19 +664,6 @@ detect_template.Sap <- function(x,  # x is SAP object
 
   if (is.null(template_name) || !template_name %in% names(x$templates$template_list)) {
     stop("template_name must be provided and must exist in the SAP object")
-  }
-
-  # Validate proximity window parameter
-  if (!is.null(proximity_window)) {
-    if (!is.numeric(proximity_window) || proximity_window <= 0) {
-      stop("proximity_window must be a positive number or NULL to disable filtering")
-    }
-  }
-
-  # Detect cores for parallel processing
-  if (is.null(cores)) {
-    cores <- parallel::detectCores() - 1
-    cores <- max(1, cores)
   }
 
   # Get the template from SAP object
@@ -714,7 +692,6 @@ detect_template.Sap <- function(x,  # x is SAP object
   if (!is.null(day)) {
     process_metadata <- x$metadata[x$metadata$day_post_hatch %in% day, ]
     days_to_process <- day
-
     if (nrow(process_metadata) == 0) {
       stop("No files found for specified day(s)")
     }
@@ -723,12 +700,15 @@ detect_template.Sap <- function(x,  # x is SAP object
     days_to_process <- unique(process_metadata$day_post_hatch)
   }
 
+  # Set number of cores
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+  }
+
   # Create plot directories if save_plot is TRUE
   if (save_plot) {
     plots_dir <- file.path(x$base_path, "plots", "template_matches")
     dir.create(plots_dir, recursive = TRUE, showWarnings = FALSE)
-
-    # Create day-specific directories
     for (d in days_to_process) {
       day_dir <- file.path(plots_dir, paste0("day_", d))
       dir.create(day_dir, recursive = TRUE, showWarnings = FALSE)
@@ -739,10 +719,7 @@ detect_template.Sap <- function(x,  # x is SAP object
   all_results <- list()
 
   for (current_day in days_to_process) {
-    # Get day-specific metadata
     day_metadata <- process_metadata[process_metadata$day_post_hatch == current_day, ]
-
-    # Apply indices if specified
     if (!is.null(indices)) {
       valid_indices <- indices[indices <= nrow(day_metadata)]
       if (length(valid_indices) > 0) {
@@ -753,47 +730,38 @@ detect_template.Sap <- function(x,  # x is SAP object
       }
     }
 
-    # Get unique files for the day
     unique_files <- which(!duplicated(day_metadata$filename))
-
     cat(sprintf("\nProcessing %d files for day %s using %d cores.\n",
                 length(unique_files), current_day, cores))
 
     # Determine which files to plot
     if (save_plot) {
       if (!is.null(indices)) {
-        files_to_plot <- unique_files  # Plot all files if indices specified
+        files_to_plot <- unique_files
       } else {
         n_plots <- ceiling(length(unique_files) * plot_percent / 100)
         files_to_plot <- sort(sample(unique_files, n_plots))
       }
     }
 
-    # Define processing function for this day
     process_file <- function(i) {
       tryCatch({
-        # Determine if this file should be plotted
         should_plot <- save_plot && (i %in% files_to_plot)
-
-        # Construct correct file path
         wavfile <- file.path(x$base_path,
                              day_metadata$day_post_hatch[i],
                              day_metadata$filename[i])
+        plot_dir <- if (should_plot) {
+          file.path(x$base_path, "plots", "template_matches",
+                    paste0("day_", day_metadata$day_post_hatch[i]))
+        } else NULL
 
-        # Set plot directory if plotting is requested
-        plot_dir <- NULL
-        if (should_plot) {
-          plot_dir <- file.path(x$base_path, "plots", "template_matches",
-                                paste0("day_", day_metadata$day_post_hatch[i]))
-        }
-
-        # Use detect_template.default
         result <- detect_template.default(
           x = wavfile,
           template = template,
           cor.method = cor.method,
           save_plot = should_plot,
           plot_dir = plot_dir,
+          proximity_window = proximity_window,
           ...
         )
 
@@ -805,9 +773,7 @@ detect_template.Sap <- function(x,  # x is SAP object
               .after = filename
             )
         }
-
         return(result)
-
       }, error = function(e) {
         warning(sprintf("Error processing file %s: %s",
                         day_metadata$filename[i], e$message))
@@ -818,12 +784,10 @@ detect_template.Sap <- function(x,  # x is SAP object
     # Parallel processing
     day_results <- parallel_apply(unique_files, process_file, cores)
 
-    # Combine results for this day
     valid_detections <- day_results[!sapply(day_results, is.null)]
     if (length(valid_detections) > 0) {
       day_detections <- do.call(rbind, valid_detections)
       all_results[[as.character(current_day)]] <- day_detections
-
       cat(sprintf("\nProcessed files in day %s. Total detections: %d\n",
                   current_day, nrow(day_detections)))
     } else {
@@ -831,91 +795,51 @@ detect_template.Sap <- function(x,  # x is SAP object
     }
   }
 
-  # Combine all results and store in SAP object
   if (length(all_results) > 0) {
     final_results <- do.call(rbind, all_results)
     row.names(final_results) <- NULL
-
-    original_detections <- nrow(final_results)
-
-    # Apply proximity filtering if proximity_window is provided
-    if (!is.null(proximity_window)) {
-      if (verbose) {
-        message(sprintf("\nFiltering detections within %.2f seconds of each other...", proximity_window))
-      }
-
-      # Apply the filtering function
-      final_results <- filter_by_proximity(final_results, proximity_window)
-
-      if (verbose) {
-        filtered_detections <- nrow(final_results)
-        removed_detections <- original_detections - filtered_detections
-        message(sprintf("Removed %d overlapping detections (%.1f%%). %d detections remain.",
-                        removed_detections,
-                        100 * removed_detections / original_detections,
-                        filtered_detections))
-      }
-    }
-
-    # Store results in template_matches
     x$templates$template_matches[[template_name]] <- final_results
-
-    # Update last modified time
     x$misc$last_modified <- Sys.time()
-
     message(sprintf("\nTotal detections across all days: %d", nrow(final_results)))
-    message(sprintf("Access detection results via: x$templates$template_matches[[\"%s\"]]",
+    message(sprintf("Access detection results via: Sap_object$templates$template_matches[[\"%s\"]]",
                     template_name))
   } else {
     warning(sprintf("No detections found for template '%s'", template_name))
   }
 
-  # Return the modified SAP object invisibly
   invisible(x)
 }
 
-
 #' @keywords internal
-filter_by_proximity <- function(detections, proximity_window) {
-  # Group by filename and filter by proximity
-  filtered_results <- detections |>
-    dplyr::group_by(filename) |>
-    dplyr::arrange(filename, time) |>
-    dplyr::group_modify(function(file_df, key) {
-      # No need to filter if there's only one detection
-      if (nrow(file_df) <= 1) {
-        return(file_df)
-      }
+find_peaks_with_proximity <- function(score.obj, proximity_window = NULL) {
+  pks <- monitoR::findPeaks(score.obj = score.obj)
 
-      # Initialize vector to track which rows to keep
-      keep_rows <- rep(TRUE, nrow(file_df))
+  # Process each template's detections
+  for (tpl_name in names(pks@templates)) {
+    dets <- pks@detections[[tpl_name]]
 
-      # Loop through each detection
-      for (i in 1:(nrow(file_df) - 1)) {
-        if (!keep_rows[i]) next  # Skip if already marked for removal
+    # Skip if no detections
+    if (is.null(dets) || nrow(dets) == 0) next
 
-        # Find detections within proximity window
-        proximity_group <- which(
-          file_df$time > file_df$time[i] &
-            file_df$time <= file_df$time[i] + proximity_window
-        )
+    # Sort by time and apply proximity filtering
+    dets <- dets[order(dets$time), ]
+    time_diff <- diff(dets$time)
+    group_ids <- cumsum(c(TRUE, time_diff > proximity_window))
 
-        if (length(proximity_group) > 0) {
-          # Include current detection in comparison
-          group_to_compare <- c(i, proximity_group)
+    filtered_dets <- dets %>%
+      dplyr::mutate(group = group_ids) %>%
+      dplyr::group_by(.data$group) %>%
+      dplyr::slice_max(.data$score, n = 1, with_ties = FALSE) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(-.data$group)
 
-          # Find detection with highest score
-          best_detection <- group_to_compare[which.max(file_df$score[group_to_compare])]
+    # Preserve original structure
+    if (nrow(filtered_dets) > 0) {
+      pks@detections[[tpl_name]] <- filtered_dets
+    } else {
+      pks@detections[[tpl_name]] <- data.frame()  # Empty but valid
+    }
+  }
 
-          # Mark all others for removal
-          keep_rows[group_to_compare[group_to_compare != best_detection]] <- FALSE
-        }
-      }
-
-      # Return filtered dataframe
-      return(file_df[keep_rows, ])
-    }) |>
-    dplyr::ungroup()
-
-  return(filtered_results)
+  return(pks)
 }

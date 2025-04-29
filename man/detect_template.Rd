@@ -14,6 +14,7 @@ detect_template(x, ...)
   cor.method = "pearson",
   save_plot = FALSE,
   plot_dir = NULL,
+  proximity_window = NULL,
   ...
 )
 
@@ -23,12 +24,12 @@ detect_template(x, ...)
   indices = NULL,
   template_name,
   threshold = NULL,
-  proximity_window = NULL,
   cores = NULL,
   cor.method = "pearson",
   save_plot = FALSE,
   plot_percent = 10,
   verbose = TRUE,
+  proximity_window = NULL,
   ...
 )
 }
@@ -45,6 +46,9 @@ detect_template(x, ...)
 
 \item{plot_dir}{For default method: Directory to save plots}
 
+\item{proximity_window}{Time window in seconds to filter nearby detections (NULL to disable filtering).
+Only the detection with the highest score within each window is retained.}
+
 \item{day}{For SAP objects: Numeric vector of days to process}
 
 \item{indices}{For SAP objects: Numeric vector of indices to process}
@@ -52,8 +56,6 @@ detect_template(x, ...)
 \item{template_name}{For SAP objects: Name of template to use}
 
 \item{threshold}{For SAP objects: New threshold value}
-
-\item{proximity_window}{For SAP objects: Time window in seconds to filter nearby detections (NULL to disable)}
 
 \item{cores}{For SAP objects: Number of cores for parallel processing}
 
@@ -80,6 +82,7 @@ For WAV files:
 \item Validates input file and template
 \item Performs correlation matching
 \item Finds peaks in correlation scores
+\item Optionally filters nearby detections (if proximity_window is set)
 \item Optionally saves detection plots
 }
 
