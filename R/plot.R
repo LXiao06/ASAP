@@ -1,16 +1,18 @@
 # Plot Traces -------------------------------------------------------------
 # Update date: Mar. 27, 2025
 
-#' Plot Traces of Amplitude Envelope or Fundamental Frequency
+#' Plot Traces of Song Features
 #'
 #' @description
-#' Creates line plot visualizations of amplitude envelopes or fundamental frequency
-#' traces from audio segments, supporting multiple visualization options.
+#' Creates line plot visualizations of various acoustic features from audio segments,
+#' including amplitude envelope, fundamental frequency, pitch goodness, and
+#' Wiener entropy. The function supports multiple visualization options.
 #'
 #' @param x An object to visualize (matrix or SAP object)
 #' @param labels Optional vector of labels to include (default: NULL, uses all labels)
 #' @param plot_type Type of plot: "individual", "average", or "combined" (default: "combined")
-#' @param feature Type of feature to plot: "env" (amplitude envelope) or "pitch" (fundamental frequency)
+#' @param feature Type of feature to plot: "env" (amplitude envelope), "pitch" (fundamental frequency),
+#'        "goodness" (pitch goodness), or "entropy" (Wiener entropy)
 #' @param alpha Transparency for individual traces (default: 0.2)
 #' @param ncol Number of columns for facet wrapping (default: 1)
 #' @param palette Color palette for plotting (default: "Set1")
@@ -27,9 +29,18 @@
 #'
 #' For SAP objects:
 #' \itemize{
-#'   \item Supports multiple segment types
-#'   \item Can plot amplitude envelope or fundamental frequency
+#'   \item Supports multiple segment types(motifs, syllables, segments)
+#'   \item Can plot multiple acoustic features (amplitude envelope, fundamental frequency,
+#'         pitch goodness, and Wiener entropy)
 #'   \item Flexible visualization options
+#' }
+#'
+#' Features:
+#' \describe{
+#'   \item{env}{Amplitude envelope - represents the overall loudness/intensity of sound over time}
+#'   \item{pitch}{Fundamental frequency (in kHz) - represents the pitch contour}
+#'   \item{goodness}{Pitch goodness - represents the periodicity/quality of pitch estimation}
+#'   \item{entropy}{Wiener entropy - measures the width and uniformity of the power spectrum}
 #' }
 #'
 #' Plot Types:
@@ -39,7 +50,9 @@
 #'   \item{combined}{Shows both individual traces and mean trace}
 #' }
 #'
-#' @return A ggplot object with the specified trace visualization
+#'
+#' @return A ggplot object with the specified trace visualization. For SAP objects,
+#'         the function returns the input object invisibly after printing the plot.
 #'
 #' @examples
 #' \dontrun{
@@ -53,6 +66,12 @@
 #'             segment_type = "motifs",
 #'             feature = "pitch",
 #'             plot_type = "individual")
+#'
+#' # Plot Wiener entropy traces
+#' plot_traces(sap_obj,
+#'             segment_type = "syllables",
+#'             feature = "entropy",
+#'             plot_type = "average")
 #'
 #' # Customize visualization
 #' plot_traces(sap_obj$features$motif$amp_env,
@@ -74,7 +93,7 @@ plot_traces <- function(x, ...) {
 plot_traces.default  <- function(x,
                               labels = NULL,
                               plot_type = c("combined", "individual", "average"),
-                              feature = c("env", "pitch", "goodness"),
+                              feature = c("env", "pitch", "goodness", "entropy"),
                               alpha = 0.2,
                               ncol = 1,
                               palette = "Set1",
@@ -151,7 +170,8 @@ plot_traces.default  <- function(x,
   y_label <- switch(feature,
                     "env" = "Amplitude Envelope",
                     "pitch" = "Fundamental Frequency (kHz)",
-                    "goodness" = "Pitch Goodness")
+                    "goodness" = "Pitch Goodness",
+                    "entropy" = "Wiener Entropy")
 
   # Create plot based on type
   if (plot_type == "individual") {
@@ -225,7 +245,7 @@ plot_traces.default  <- function(x,
 #' @export
 plot_traces.Sap <- function(x,
                             segment_type = c("motifs", "syllables", "segments"),
-                            feature = c("env", "pitch", "goodness"),
+                            feature = c("env", "pitch", "goodness","entropy"),
                             labels = NULL,
                             plot_type = c("combined", "individual", "average"),
                             alpha = 0.2,
@@ -241,16 +261,32 @@ plot_traces.Sap <- function(x,
   # Update feature type by removing 's' from segment_type
   feature_type <- sub("s$", "", segment_type)
 
+  # Check if the feature type exists in x$features
+  if (is.null(x$features) || is.null(x$features[[feature_type]])) {
+    stop(sprintf("Feature type '%s' not found in the Sap object", feature_type))
+  }
+
   # Determine the matrix based on segment and feature type
   if (feature == "env") {
-    matrix_to_plot <- x$features[[feature_type]]$amp_env
+    matrix_name <- "amp_env"
   } else if (feature == "pitch") {
-    matrix_to_plot <- x$features[[feature_type]]$fund_freq
+    matrix_name <- "fund_freq"
   } else if (feature == "goodness") {
-    matrix_to_plot <- x$features[[feature_type]]$pitch_goodness
+    matrix_name <- "pitch_goodness"
+  } else if (feature == "entropy") {
+    matrix_name <- "weiner_entropy"
   } else {
     stop("Invalid feature type")
   }
+
+  # Check if the specific feature matrix exists
+  if (is.null(x$features[[feature_type]][[matrix_name]])) {
+    stop(sprintf("Feature '%s' not available for '%s'. Check if this feature has been calculated.",
+                 feature, segment_type))
+  }
+
+  # Get the matrix to plot
+  matrix_to_plot <- x$features[[feature_type]][[matrix_name]]
 
   # Call the default method with the extracted matrix
   p <- plot_traces(matrix_to_plot,
