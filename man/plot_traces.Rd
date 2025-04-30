@@ -4,7 +4,7 @@
 \alias{plot_traces}
 \alias{plot_traces.default}
 \alias{plot_traces.Sap}
-\title{Plot Traces of Amplitude Envelope or Fundamental Frequency}
+\title{Plot Traces of Song Features}
 \usage{
 plot_traces(x, ...)
 
@@ -12,7 +12,7 @@ plot_traces(x, ...)
   x,
   labels = NULL,
   plot_type = c("combined", "individual", "average"),
-  feature = c("env", "pitch", "goodness"),
+  feature = c("env", "pitch", "goodness", "entropy"),
   alpha = 0.2,
   ncol = 1,
   palette = "Set1",
@@ -22,7 +22,7 @@ plot_traces(x, ...)
 \method{plot_traces}{Sap}(
   x,
   segment_type = c("motifs", "syllables", "segments"),
-  feature = c("env", "pitch", "goodness"),
+  feature = c("env", "pitch", "goodness", "entropy"),
   labels = NULL,
   plot_type = c("combined", "individual", "average"),
   alpha = 0.2,
@@ -40,7 +40,8 @@ plot_traces(x, ...)
 
 \item{plot_type}{Type of plot: "individual", "average", or "combined" (default: "combined")}
 
-\item{feature}{Type of feature to plot: "env" (amplitude envelope) or "pitch" (fundamental frequency)}
+\item{feature}{Type of feature to plot: "env" (amplitude envelope), "pitch" (fundamental frequency),
+"goodness" (pitch goodness), or "entropy" (Wiener entropy)}
 
 \item{alpha}{Transparency for individual traces (default: 0.2)}
 
@@ -51,11 +52,13 @@ plot_traces(x, ...)
 \item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'segments')}
 }
 \value{
-A ggplot object with the specified trace visualization
+A ggplot object with the specified trace visualization. For SAP objects,
+the function returns the input object invisibly after printing the plot.
 }
 \description{
-Creates line plot visualizations of amplitude envelopes or fundamental frequency
-traces from audio segments, supporting multiple visualization options.
+Creates line plot visualizations of various acoustic features from audio segments,
+including amplitude envelope, fundamental frequency, pitch goodness, and
+Wiener entropy. The function supports multiple visualization options.
 }
 \details{
 For matrices:
@@ -67,9 +70,18 @@ For matrices:
 
 For SAP objects:
 \itemize{
-\item Supports multiple segment types
-\item Can plot amplitude envelope or fundamental frequency
+\item Supports multiple segment types(motifs, syllables, segments)
+\item Can plot multiple acoustic features (amplitude envelope, fundamental frequency,
+pitch goodness, and Wiener entropy)
 \item Flexible visualization options
+}
+
+Features:
+\describe{
+\item{env}{Amplitude envelope - represents the overall loudness/intensity of sound over time}
+\item{pitch}{Fundamental frequency (in kHz) - represents the pitch contour}
+\item{goodness}{Pitch goodness - represents the periodicity/quality of pitch estimation}
+\item{entropy}{Wiener entropy - measures the width and uniformity of the power spectrum}
 }
 
 Plot Types:
@@ -91,6 +103,12 @@ plot_traces(sap_obj,
             segment_type = "motifs",
             feature = "pitch",
             plot_type = "individual")
+
+# Plot Wiener entropy traces
+plot_traces(sap_obj,
+            segment_type = "syllables",
+            feature = "entropy",
+            plot_type = "average")
 
 # Customize visualization
 plot_traces(sap_obj$features$motif$amp_env,
