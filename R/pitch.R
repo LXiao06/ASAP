@@ -1569,7 +1569,12 @@ pitch_goodness <- function(segment_row,
 #' @param method Character, method for template creation: "quantile" or "hmm"
 #' @param minimal_duration Numeric, minimum duration (in ms) for valid segments
 #' @param split_dips Logical, whether to split segments at significant dips in goodness
-#' @param quantile_threshold Numeric, threshold for quantile method (0-1)
+#' @param quantile_threshold Numeric, threshold for quantile method (0-1). Controls sensitivity of
+#'        pitch detection - higher values (e.g., 0.7) retain only high-quality regions,
+#'        lower values (e.g., 0.3) include more regions but may introduce noise
+#' @param hmm_trans_prob Numeric, transition probability for HMM method (0-1). Controls
+#'        state persistence - higher values (e.g., 0.95) create fewer, longer segments;
+#'        lower values (e.g., 0.8) create more, shorter segments
 #' @param random_seed Numeric, seed for reproducibility
 #' @param plot Logical, whether to plot the results
 #' @param plot_freq_lim Numeric vector of length 2, frequency limits for plotting
@@ -1585,25 +1590,57 @@ pitch_goodness <- function(segment_row,
 #' regions of reliable pitch tracking. It can optionally split segments at local minima in
 #' pitch goodness and applies minimum duration constraints.
 #'
-#' @details
-#' When using the 'hmm' method, the package 'depmixS4' is required.
-#' If not installed, the function will prompt for installation.
+#' ## Method Selection
+#' - **Quantile method**: Simple thresholding based on pitch goodness values. Works well
+#'   for clean recordings with good signal-to-noise ratio.
+#' - **HMM method**: Uses a Hidden Markov Model to identify segments. More robust to
+#'   noise and can better detect natural boundaries in the signal.
+#'
+#' ## Parameter Selection Guidelines
+#'
+#' ### Quantile Threshold (quantile_threshold)
+#' - **0.3-0.4**: Liberal threshold that includes most pitch-tracked regions. Use for high-quality recordings
+#'   where you want to maximize data retention.
+#' - **0.5-0.6**: Balanced threshold (default). Works well for most recordings.
+#' - **0.7-0.8**: Conservative threshold that only includes regions with very reliable pitch tracking.
+#'   Use for noisy recordings where precision is more important than recall.
+#'
+#' ### HMM Transition Probability (hmm_trans_prob)
+#' - **0.8-0.85**: Creates more responsive segmentation with shorter segments. Use when analyzing
+#'   rapid vocalizations with frequent transitions.
+#' - **0.9**: Balanced setting (default). Works well for most vocalizations.
+#' - **0.95-0.98**: Creates more stable segmentation with fewer, longer segments. Use for
+#'   sustained vocalizations or when you want to minimize over-segmentation.
 #'
 #' @note
 #' The HMM method requires the 'depmixS4' package to be installed.
 #'
 #' @examples
 #' \dontrun{
-#' # Default method
+#' # Default quantile method with balanced threshold
 #' sap <- refine_FF(sap,
 #'                   reference_label = "BL",
 #'                   method = "quantile",
+#'                   quantile_threshold = 0.5,
 #'                   plot = TRUE)
-#' # hmm method
+#'
+#' # Conservative quantile threshold for noisy recordings
 #' sap <- refine_FF(sap,
 #'                   reference_label = "BL",
-#'                   method = "hmm")
+#'                   method = "quantile",
+#'                   quantile_threshold = 0.7)
 #'
+#' # HMM method with default transition probability
+#' sap <- refine_FF(sap,
+#'                   reference_label = "BL",
+#'                   method = "hmm",
+#'                   hmm_trans_prob = 0.9)
+#'
+#' # HMM method for sustained vocalizations
+#' sap <- refine_FF(sap,
+#'                   reference_label = "BL",
+#'                   method = "hmm",
+#'                   hmm_trans_prob = 0.95)
 #' }
 #'
 # #'@importFrom depmixS4 depmix fit posterior
@@ -1616,6 +1653,7 @@ refine_FF <- function(x,
                      minimal_duration = 20, # in ms
                      split_dips = TRUE,
                      quantile_threshold = 0.5,
+                     hmm_trans_prob = 0.9,
                      random_seed = 222,
                      plot = TRUE,
                      plot_freq_lim = NULL,

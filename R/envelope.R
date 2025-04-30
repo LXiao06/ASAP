@@ -493,8 +493,8 @@ plot_heatmap.Sap <- function(x,
     # Calculate windows using quantiles
     segments_df <- segments_df |>
       mutate(
-        pre_window = align_time - start_time,
-        post_window = end_time - align_time
+        pre_window = .data$align_time - start_time,
+        post_window = end_time - .data$align_time
       ) |>
       arrange(day_post_hatch, duration)
 

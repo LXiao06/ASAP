@@ -29,7 +29,8 @@ utils::globalVariables(c(
   "start_time",
   "end_time",
   "label",
-  "filename"
+  "filename",
+  "duration"
 ))
 
 #' Construct file path for audio file
@@ -158,9 +159,9 @@ select_segments <- function(segments_df,
     segments_df <- segments_df |>
       dplyr::group_by(label) |>
       dplyr::slice_sample(n = n_sample) |>
-      dplyr::arrange(.original_order) |>
+      dplyr::arrange(.data$.original_order) |>
       dplyr::ungroup() |>
-      dplyr::arrange(day_post_hatch, .original_order)
+      dplyr::arrange(day_post_hatch, .data$.original_order)
   }
 
   # Handle sampling if specified
@@ -175,7 +176,7 @@ select_segments <- function(segments_df,
         n_available <- nrow(.x)
         n_to_sample <- ceiling(n_available * sample_percent / 100)
         dplyr::slice_sample(.x, n = n_to_sample)  |>
-          dplyr::arrange(.original_order)
+          dplyr::arrange(.data$.original_order)
       }) |>
       dplyr::ungroup() |>
       dplyr::arrange(day_post_hatch)
@@ -185,8 +186,8 @@ select_segments <- function(segments_df,
 
   # Final cleanup and ordering
   segments_df <- segments_df |>
-    dplyr::arrange(.original_order) |>  # Global order preservation
-    dplyr::select(-.original_order)
+    dplyr::arrange(.data$.original_order) |>  # Global order preservation
+    dplyr::select(-.data$.original_order)
 
   # Print final summary if data was modified
   if (balanced || !is.null(sample_percent)) {

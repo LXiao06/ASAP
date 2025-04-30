@@ -144,8 +144,8 @@ plot_traces.default  <- function(x,
     dplyr::mutate(time = time_points) |>
     tidyr::pivot_longer(cols = -time, names_to = "col_name", values_to = "value") |>
     dplyr::left_join(mapping_df, by = "col_name") |>
-    dplyr::select(-col_name) |>
-    dplyr::arrange(rendition_no, time)
+    dplyr::select(-.data$col_name) |>
+    dplyr::arrange(.data$rendition_no, .data$time)
 
   # Filter labels if specified
   if (!is.null(labels)) {
@@ -176,8 +176,8 @@ plot_traces.default  <- function(x,
   # Create plot based on type
   if (plot_type == "individual") {
     p <- ggplot2::ggplot(res_long,
-                         ggplot2::aes(x = time, y = value,
-                                      group = rendition_no, color = label)) +
+                         ggplot2::aes(x = .data$time, y = .data$value,
+                                      group = .data$rendition_no, color = label)) +
       ggplot2::geom_line(alpha = alpha) +
       ggplot2::facet_wrap(~label, ncol = ncol) +
       ggplot2::labs(x = "Time (s)",
@@ -191,7 +191,7 @@ plot_traces.default  <- function(x,
 
   } else if (plot_type == "average") {
     p <- ggplot2::ggplot(res_long,
-                         ggplot2::aes(x = time, y = value,
+                         ggplot2::aes(x = .data$time, y = .data$value,
                                       color = label, fill = label)) +
       ggplot2::stat_summary(fun.data = mean_se, geom = "ribbon",
                             alpha = 0.3, color = NA) +
@@ -213,15 +213,15 @@ plot_traces.default  <- function(x,
     res_combined <- dplyr::bind_rows(res_long, res_long_mean)
 
     p <- ggplot2::ggplot(res_combined,
-                         ggplot2::aes(x = time, y = value,
+                         ggplot2::aes(x = .data$time, y = .data$value,
                                       color = label, fill = label)) +
-      ggplot2::geom_line(data = . %>% dplyr::filter(plot_type == "Individual Traces"),
-                         ggplot2::aes(group = interaction(label, rendition_no)),
+      ggplot2::geom_line(data = function(x) dplyr::filter(plot_type == "Individual Traces"),
+                         ggplot2::aes(group = interaction(label, .data$rendition_no)),
                          alpha = alpha) +
-      ggplot2::stat_summary(data = . %>% dplyr::filter(plot_type == "Mean \u00B1 SE"),
+      ggplot2::stat_summary(data = function(x) dplyr::filter(plot_type == "Mean \u00B1 SE"),
                             fun.data = mean_se, geom = "ribbon",
                             alpha = 0.3, color = NA) +
-      ggplot2::stat_summary(data = . %>% dplyr::filter(plot_type == "Mean \u00B1 SE"),
+      ggplot2::stat_summary(data = function(x) dplyr::filter(plot_type == "Mean \u00B1 SE"),
                             fun = mean, geom = "line", size = 1) +
       ggplot2::facet_wrap(~plot_type, ncol = ncol) +
       ggplot2::labs(x = "Time (s)",

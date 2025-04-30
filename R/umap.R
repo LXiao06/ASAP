@@ -687,7 +687,7 @@ plot_single_umap <- function(
   }
 
   # Create base plot
-  plot <- ggplot(data, aes(x = .data[[dims[1]]], y = .data[[dims[2]]], color = color_group))
+  plot <- ggplot(data, aes(x = .data[[dims[1]]], y = .data[[dims[2]]], color = .data$color_group))
 
   # Adjust point sizes and alpha
   if (!is.null(highlight.by) && !is.null(highlight.value)) {
@@ -924,7 +924,7 @@ plot_umap2.default <- function(x,
       label_order <- x |>
         dplyr::group_by(!!rlang::sym(split.by)) |>
         dplyr::summarise(mean_val = mean(!!rlang::sym(order.by), na.rm = TRUE)) |>
-        dplyr::arrange(mean_val) |>
+        dplyr::arrange(.data$mean_val) |>
         dplyr::pull(!!rlang::sym(split.by))
 
       x[[split.by]] <- factor(x[[split.by]], levels = label_order)

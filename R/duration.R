@@ -176,7 +176,7 @@ refine_motif_boundaries <- function(x,
 
     # Apply adjustments
     motifs_join <- motifs_join |>
-      dplyr::mutate(end_limit = end_limit + purrr::map_dbl(
+      dplyr::mutate(end_limit = .data$end_limit + purrr::map_dbl(
         label,
         ~ purrr::pluck(adjustments_by_label, .x, .default = 0)
       ))
@@ -195,19 +195,19 @@ refine_motif_boundaries <- function(x,
   segments_in_motifs <- segments |>
     dplyr::inner_join(motifs_join, by = c("filename", "day_post_hatch", "label"),
                       relationship = "many-to-many") |>
-    dplyr::filter(start_time >= start_limit & start_time <= end_limit)
+    dplyr::filter(start_time >= .data$start_limit & start_time <= .data$end_limit)
 
   # Aggregate to find motif boundaries
   agg_results <- segments_in_motifs |>
-    dplyr::group_by(filename, motif_index) |>
+    dplyr::group_by(filename, .data$motif_index) |>
     dplyr::summarize(
       motif_onset = min(start_time),
       motif_offset = max(end_time),
-      first_seg_index = dplyr::first(selec[start_time == motif_onset]),
-      last_seg_index = dplyr::last(selec[end_time == motif_offset]),
+      first_seg_index = dplyr::first(.data$selec[start_time == .data$motif_onset]),
+      last_seg_index = dplyr::last(.data$selec[end_time == .data$motif_offset]),
       .groups = "drop"
     ) |>
-    dplyr::mutate(motif_duration = motif_offset - motif_onset)
+    dplyr::mutate(motif_duration = .data$motif_offset - .data$motif_onset)
 
   # Merge results back with original motifs
   updated_motifs <- motifs |>
@@ -327,7 +327,7 @@ plot_motif_boundaries <- function(x,
   # Filter and report NA values
   original_count <- nrow(segments_df)
   segments_df <- segments_df %>%
-    dplyr::filter(!is.na(motif_onset), !is.na(motif_offset))
+    dplyr::filter(!is.na(.data$motif_onset), !is.na(.data$motif_offset))
 
   removed_count <- original_count - nrow(segments_df)
 
