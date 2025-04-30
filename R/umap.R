@@ -393,13 +393,6 @@ plot_umap.default <- function(x,
                               ncol = NULL,
                               combine = TRUE,
                               ...) {
-  # Check for patchwork package
-  if (!requireNamespace("patchwork", quietly = TRUE)) {
-    warning("Package 'patchwork' is required for this function.
-            Please install it with: install.packages('patchwork')")
-    return(NULL)
-  }
-
   # Validate input
   if(!is.data.frame(x)) stop("Input must be a data frame")
 
@@ -497,7 +490,7 @@ plot_umap.default <- function(x,
       if (!is.factor(data[[split.by]])) {
         data[[split.by]] <- factor(data[[split.by]])
       }
-      p <- p + facet_wrap(as.formula(paste("~", split.by)),
+      p <- p + ggplot2::facet_wrap(as.formula(paste("~", split.by)),
                           ncol = if (length(group.by) > 1) NULL else ncol)
     }
 
@@ -508,6 +501,7 @@ plot_umap.default <- function(x,
   if (length(plots) == 1) {
     return(plots[[1]])
   } else if (combine) {
+    ensure_pkgs("patchwork")
     return(patchwork::wrap_plots(plots, ncol = ncol))
   } else {
     return(plots)
@@ -687,7 +681,8 @@ plot_single_umap <- function(
   }
 
   # Create base plot
-  plot <- ggplot(data, aes(x = .data[[dims[1]]], y = .data[[dims[2]]], color = .data$color_group))
+  ensure_pkgs("ggplot2")
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data[[dims[1]]], y = .data[[dims[2]]], color = .data$color_group))
 
   # Adjust point sizes and alpha
   if (!is.null(highlight.by) && !is.null(highlight.value)) {
@@ -772,10 +767,10 @@ plot_single_umap <- function(
 
   # Add theme and styling
   plot <- plot +
-    theme_minimal() +
-    theme(
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
       legend.position = "right",
-      plot.title = element_text(hjust = 0.5),
+      plot.title = ggplot2::element_text(hjust = 0.5),
       axis.title = ggplot2::element_blank()
     ) +
     ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3, alpha = 1)))
@@ -889,6 +884,7 @@ plot_umap2.default <- function(x,
     }
 
     # Create overlay plots
+    ensure_pkgs("ggplot2")
     all_plots <- lapply(compare_labels, function(compare_label) {
       filtered_data <- x |>
         dplyr::filter(!!rlang::sym(split.by) %in% c(base_label, compare_label))
@@ -910,7 +906,7 @@ plot_umap2.default <- function(x,
                                base_label, "vs", compare_label)) +
         ggplot2::theme_minimal()
     })
-
+    ensure_pkgs("patchwork")
     return(patchwork::wrap_plots(all_plots, ncol = ncol))
 
   } else {

@@ -623,7 +623,7 @@ detect_template.default <- function(x,  # x is wav file path
 
       # Get plot method once per function call
       if (!exists("plot_detections")) {
-        plot_detections <- getMethod("plot", "detectionList", where = asNamespace("monitoR"))
+        plot_detections <- methods::getMethod("plot", "detectionList", where = asNamespace("monitoR"))
       }
 
       # Plot

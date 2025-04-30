@@ -99,10 +99,6 @@ plot_traces.default  <- function(x,
                               palette = "Set1",
                               ...
                               ) {
-  if (!requireNamespace("tidyr", quietly = TRUE)) {
-    stop("Package 'tidyr' needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
 
   # Input validation
   plot_type <- match.arg(plot_type)
@@ -121,6 +117,9 @@ plot_traces.default  <- function(x,
   if (is.null(colnames(x))) {
     stop("Matrix must have column names as labels")
   }
+
+  # Ensure and auto-install required packages
+  ensure_pkgs("tidyr", "ggplot2")
 
   # Create data frame from matrix and make column names unique
   dat <- as.data.frame(x)
@@ -156,7 +155,7 @@ plot_traces.default  <- function(x,
       dplyr::filter(label %in% labels)
   }
 
-  # Load mean_se function from ggplot2
+  # Load mean_se function
   mean_se <- function(x) {
     x <- stats::na.omit(x)
     se <- stats::sd(x) / sqrt(length(x))

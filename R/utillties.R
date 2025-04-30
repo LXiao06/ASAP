@@ -2,7 +2,6 @@
 
 #' @importClassesFrom tuneR Wave
 #' @importFrom tuneR readWave
-#' @importFrom methods getMethod
 #' @importFrom rlang `%||%` .data
 #' @importFrom tools file_path_sans_ext
 #' @importFrom grDevices colorRampPalette dev.cur dev.off png rgb
@@ -11,12 +10,12 @@
 #'             plot.new plot.window points rect text title
 #' @importFrom dplyr mutate select filter arrange left_join bind_rows %>%
 #'             group_by n_distinct group_split case_when all_of
-#' @importFrom ggplot2 ggplot aes geom_line geom_boxplot facet_wrap labs
-#'             theme_minimal scale_color_brewer scale_fill_brewer ggtitle
-#'             theme element_text stat_summary
 #' @importFrom stats TukeyHSD aggregate aov approx as.formula dist gaussian
 #'             median na.omit prcomp quantile setNames sd time
 #' @importFrom seewave spec inputw ftwindow sfm sh th meanspec afilter sspectro
+# #' @importFrom ggplot2 ggplot aes geom_line geom_boxplot facet_wrap labs
+# #'             theme_minimal scale_color_brewer scale_fill_brewer ggtitle
+# #'             theme element_text stat_summary
 #'
 NULL
 
@@ -213,21 +212,20 @@ select_segments <- function(segments_df,
 
 #' parallel processing function
 #'
-#' @importFrom parallel detectCores makeCluster stopCluster
-#' @importFrom pbmcapply pbmclapply
-#' @importFrom pbapply pblapply
-#'
 #' @keywords internal
 parallel_apply <- function(indices, FUN, cores) {
   # Set number of cores
   if (is.null(cores)) {
+    ensure_pkgs("parallel")
     cores <- parallel::detectCores() - 1
     cores <- max(1, cores)
   }
 
+  # Determine which package is needed based on OS
   if (cores > 1) {
-    if (Sys.info()["sysname"] == "Darwin") {
-      # macOS/Linux: Use pbmcapply with multicore
+    if (Sys.info()["sysname"] %in% c("Darwin", "Linux")) {
+      # macOS/Linux needs pbmcapply
+      ensure_pkgs("pbmcapply")
       result <- pbmcapply::pbmclapply(
         indices,
         FUN,
@@ -235,7 +233,8 @@ parallel_apply <- function(indices, FUN, cores) {
         mc.preschedule = FALSE
       )
     } else {
-      # Windows: Use pbapply with PSOCK cluster
+      # Windows needs pbapply and parallel for clusters
+      ensure_pkgs("pbapply", "parallel")
       cl <- parallel::makeCluster(cores)
       on.exit(parallel::stopCluster(cl), add = TRUE)
 
@@ -246,7 +245,8 @@ parallel_apply <- function(indices, FUN, cores) {
       )
     }
   } else {
-    # Single-core with progress
+    # Single-core with progress still uses pbapply
+    ensure_pkgs("pbapply")
     result <- pbapply::pblapply(
       indices,
       FUN
@@ -262,9 +262,8 @@ parallel_apply <- function(indices, FUN, cores) {
 #'
 #' @keywords internal
 check_python_dependencies <- function(verbose = FALSE) {
-  if (!requireNamespace("reticulate", quietly = TRUE)) {
-    stop("The 'reticulate' package is required. Please install it using: install.packages('reticulate')")
-  }
+  # Check for reticulate package
+  ensure_pkgs("reticulate")
 
   # Check for librosa
   tryCatch({
@@ -524,6 +523,7 @@ anova_analysis <- function(stats_df, plot = TRUE) {
 
   # Create plot if requested
   if(plot) {
+    ensure_pkgs("ggplot2")
     p <- ggplot2::ggplot(stats_df, ggplot2::aes(x = .data$label, y = .data$mean)) +
       ggplot2::geom_boxplot() +
       ggplot2::facet_wrap(~ .data$segment_id) +
@@ -536,4 +536,61 @@ anova_analysis <- function(stats_df, plot = TRUE) {
 
   # Return ANOVA summary
   return(anova_summary)
+}
+
+#' Check if a package is available
+#'
+#' @param pkg_name Character name of the package
+#' @return TRUE if package is available, FALSE otherwise
+#' @keywords internal
+check_pkg <- function(pkg_name) {
+  # Get cached status or check if not in cache
+  has_var <- paste0("has_", pkg_name)
+  if (is.null(.pkg_env[[has_var]])) {
+    .pkg_env[[has_var]] <- requireNamespace(pkg_name, quietly = TRUE)
+  }
+
+  return(.pkg_env[[has_var]])
+}
+
+
+#' Ensure required packages are available, auto-installing if needed
+#'
+#' @param ... Character names of required packages
+#' @return Nothing, called for side effects
+#' @keywords internal
+ensure_pkgs <- function(...) {
+  pkgs <- c(...)
+  missing_pkgs <- pkgs[!sapply(pkgs, check_pkg)]
+
+  # Auto-install missing packages
+  if (length(missing_pkgs) > 0) {
+    message("Installing required packages: ", paste(missing_pkgs, collapse = ", "))
+
+    install_results <- lapply(missing_pkgs, function(pkg) {
+      tryCatch({
+        utils::install.packages(pkg)
+        pkg_available <- requireNamespace(pkg, quietly = TRUE)
+        # Update cached status
+        .pkg_env[[paste0("has_", pkg)]] <- pkg_available
+        return(pkg_available)
+      }, error = function(e) {
+        message("Failed to install ", pkg, ": ", conditionMessage(e))
+        return(FALSE)
+      })
+    })
+
+    still_missing <- missing_pkgs[!unlist(install_results)]
+
+    # If any packages couldn't be installed, throw an error
+    if (length(still_missing) > 0) {
+      stop("Failed to install required packages: ",
+           paste(still_missing, collapse = ", "),
+           ". Please install them manually with install.packages().",
+           call. = FALSE)
+    }
+  }
+
+  # At this point, all packages should be available
+  return(invisible(TRUE))
 }
