@@ -1,7 +1,7 @@
 # Analyze Spectral Features -------------------------------------------------------
 # Update date : Feb. 7, 2025
 
-' Analyze Spectral Features of Audio Segments
+#' Analyze Spectral Features of Audio Segments
 #'
 #' @description
 #' Calculates comprehensive spectral features from audio segments with support for
@@ -444,7 +444,7 @@ spectral_analysis <- function(x,
 
 #' Internal Functions from warbleR Package
 #'
-#' @name analyze_spectral
+#' @name spectral_analysis
 #' @description
 #' Internal functions adapted from the warbleR package for spectral analysis.
 #' These functions are modified versions of the original warbleR code.
@@ -459,6 +459,7 @@ spectral_analysis <- function(x,
 NULL
 
 #' Calculate Frequency Metrics
+#' @noRd
 #' @keywords internal
 calculate_freq_metrics <- function(freq_track,
                                     freq_range,
@@ -543,6 +544,7 @@ calculate_freq_metrics <- function(freq_track,
 }
 
 #' Calculate Spectral Properties (from warbleR)
+#' @noRd
 #' @keywords internal
 specprop_wrblr_int <- function(spec, f = NULL, flim = NULL, ...) {
   fhz <- f
@@ -621,6 +623,7 @@ specprop_wrblr_int <- function(spec, f = NULL, flim = NULL, ...) {
 }
 
 #' Calculate Frequency Range Detection (from warbleR)
+#' @noRd
 #' @keywords internal
 frd_wrblr_int <-function(wave,
            wl = 512,
@@ -857,6 +860,7 @@ frd_wrblr_int <-function(wave,
 }
 
 #' Track Harmonics in Audio (from warbleR)
+#' @noRd
 #' @keywords internal
 track_harmonic <- function(wave, f, wl = 512, wn = "hanning", ovlp = 0, fftw = FALSE,
                             at = NULL, tlim = NULL, threshold = 10, bandpass = NULL,

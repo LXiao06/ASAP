@@ -4,7 +4,7 @@
 \alias{analyze_spectral}
 \alias{analyze_spectral.default}
 \alias{analyze_spectral.Sap}
-\title{Internal Functions from warbleR Package}
+\title{Analyze Spectral Features of Audio Segments}
 \usage{
 analyze_spectral(x, ...)
 
@@ -87,9 +87,6 @@ For SAP objects: Updated SAP object with spectral features stored in features sl
 \description{
 Calculates comprehensive spectral features from audio segments with support for
 parallel processing and organized data structures.
-
-Internal functions adapted from the warbleR package for spectral analysis.
-These functions are modified versions of the original warbleR code.
 }
 \details{
 For data frames:
@@ -107,11 +104,6 @@ For SAP objects:
 \item Stores results in features slot
 \item Preserves segment metadata
 }
-
-Original source: warbleR package
-Citation: Araya-Salas, M. and Smith-Vidaurre, G. (2017),
-warbleR: an r package to streamline analysis of animal acoustic signals.
-Methods Ecol Evol. 8, 184-191.
 }
 \examples{
 \dontrun{
@@ -143,4 +135,3 @@ sap_obj <- analyze_spectral(sap_object,
 
 
 }
-\keyword{internal}

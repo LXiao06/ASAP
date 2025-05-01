@@ -44,5 +44,14 @@ Data frame with spectral features
 }
 \description{
 Internal function to perform spectral analysis on a single audio segment.
+
+Internal functions adapted from the warbleR package for spectral analysis.
+These functions are modified versions of the original warbleR code.
+}
+\details{
+Original source: warbleR package
+Citation: Araya-Salas, M. and Smith-Vidaurre, G. (2017),
+warbleR: an r package to streamline analysis of animal acoustic signals.
+Methods Ecol Evol. 8, 184-191.
 }
 \keyword{internal}
