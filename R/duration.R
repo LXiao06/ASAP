@@ -175,6 +175,7 @@ refine_motif_boundaries <- function(x,
     }
 
     # Apply adjustments
+    ensure_pkgs("purrr")
     motifs_join <- motifs_join |>
       dplyr::mutate(end_limit = .data$end_limit + purrr::map_dbl(
         label,

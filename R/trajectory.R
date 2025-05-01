@@ -12,6 +12,7 @@
 #' @param step_size Step size between windows (default: 0.005)
 #' @param wl Window length for spectrogram (default: 128)
 #' @param ovlp Overlap percentage (default: 50)
+#' @param fftw Logical, use FFTW or not (default: TRUE)
 #' @param flim Frequency limits (default: c(1, 12))
 #' @param cores Number of processing cores
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
@@ -85,6 +86,7 @@ create_trajectory_matrix.default <- function(
     step_size = 0.005,
     wl = 128,
     ovlp = 50,
+    fftw = TRUE,
     flim = c(1, 12),
     cores = NULL,
     ...
@@ -137,12 +139,14 @@ create_trajectory_matrix.default <- function(
 
       # Compute spectrogram
       sr <- wave@samp.rate
+      if (fftw) ensure_pkgs("fftw")
+
       spg <- seewave::spectro(
         wave,
         f = sr,
         wl = wl,
         ovlp = ovlp,
-        fftw = TRUE,
+        fftw = fftw,
         flim = flim,
         plot = FALSE,
         osc = FALSE,
@@ -181,31 +185,33 @@ create_trajectory_matrix.default <- function(
 
   # Parallel processing setup
   message(sprintf("Generating spectrograms using %d cores...", cores))
-  if (cores > 1) {
-    if (sys_type == "Linux") {
-      requireNamespace("pbmcapply", quietly = TRUE)
-      spc_list <- pbmcapply::pbmclapply(
-        segments,
-        process_segment,
-        mc.cores = cores
-      )
-    } else {
-      # cl <- parallel::makeCluster(cores)
-      # on.exit(parallel::stopCluster(cl))
-      # parallel::clusterExport(
-      #   cl,
-      #   c("construct_wav_path", "create_sliding_window"),
-      #   envir = environment()
-      # )
-      spc_list <- pbapply::pblapply(
-        segments,
-        process_segment,
-        cl = cores
-      )
-    }
-  } else {
-    spc_list <- pbapply::pblapply(segments, process_segment)
-  }
+  if (fftw) ensure_pkgs("fftw")
+  spc_list <- parallel_apply(segments, process_segment, cores)
+  # if (cores > 1) {
+  #   if (sys_type == "Linux") {
+  #     requireNamespace("pbmcapply", quietly = TRUE)
+  #     spc_list <- pbmcapply::pbmclapply(
+  #       segments,
+  #       process_segment,
+  #       mc.cores = cores
+  #     )
+  #   } else {
+  #     # cl <- parallel::makeCluster(cores)
+  #     # on.exit(parallel::stopCluster(cl))
+  #     # parallel::clusterExport(
+  #     #   cl,
+  #     #   c("construct_wav_path", "create_sliding_window"),
+  #     #   envir = environment()
+  #     # )
+  #     spc_list <- pbapply::pblapply(
+  #       segments,
+  #       process_segment,
+  #       cl = cores
+  #     )
+  #   }
+  # } else {
+  #   spc_list <- pbapply::pblapply(segments, process_segment)
+  # }
 
   # Combine results
   spc_list <- spc_list[!sapply(spc_list, is.null)]
@@ -237,6 +243,7 @@ create_trajectory_matrix.Sap <- function(
     step_size = 0.005,
     wl = 128,
     ovlp = 50,
+    fftw = TRUE,
     flim = c(1, 12),
     cores = NULL,
     verbose= TRUE,
@@ -295,6 +302,8 @@ create_trajectory_matrix.Sap <- function(
                                  seed = seed)
 
   # Call default method to generate spectrograms
+  if (fftw) ensure_pkgs("fftw")
+
   result <- create_trajectory_matrix.default(
     x = segments_df,
     wav_dir = x$base_path,
@@ -302,6 +311,7 @@ create_trajectory_matrix.Sap <- function(
     step_size = step_size,
     wl = wl,
     ovlp = ovlp,
+    fftw = fftw,
     flim = flim,
     cores = cores,
     ...

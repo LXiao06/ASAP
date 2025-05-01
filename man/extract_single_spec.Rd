@@ -4,7 +4,7 @@
 \alias{extract_single_spec}
 \title{Extract spectrogram for a single audio segment}
 \usage{
-extract_single_spec(x, wav_dir, wl, ovlp, wn, freq_range, ...)
+extract_single_spec(x, wav_dir, wl, ovlp, wn, fftw, freq_range, ...)
 }
 \description{
 Extract spectrogram for a single audio segment

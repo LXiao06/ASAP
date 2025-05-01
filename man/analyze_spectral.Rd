@@ -15,6 +15,7 @@ analyze_spectral(x, ...)
   wl = 512,
   ovlp = 50,
   wn = "hanning",
+  fftw = TRUE,
   freq_range = NULL,
   threshold = 15,
   fsmooth = 0.1,
@@ -33,6 +34,7 @@ analyze_spectral(x, ...)
   wl = 512,
   ovlp = 50,
   wn = "hanning",
+  fftw = TRUE,
   freq_range = NULL,
   threshold = 15,
   fsmooth = 0.1,
@@ -55,6 +57,8 @@ analyze_spectral(x, ...)
 \item{ovlp}{Overlap percentage (0-100) (default: 50)}
 
 \item{wn}{Window name ("hanning", "hamming", etc.)}
+
+\item{fftw}{Logical, use FFTW or not (default: TRUE)}
 
 \item{freq_range}{Frequency range c(min, max) in kHz}
 

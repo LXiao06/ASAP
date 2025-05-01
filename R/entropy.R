@@ -189,6 +189,8 @@ spectral_entropy.default <- function(x,  # x is wav file path
   )
 
   # Call sh_single_row with the constructed data
+  if (fftw) ensure_pkgs("fftw")
+
   sh_result <- sh_single_row(
     segment_row = segment_row,
     wav_dir = dirname(x),
@@ -229,6 +231,9 @@ spectral_entropy.data.frame <- function(x,
                                      ...) {
   # Match method argument
   method <- match.arg(method)
+
+  # Chcek fftw
+  if (fftw) ensure_pkgs("fftw")
 
   # Validate input
   if (!is.data.frame(x)) {
@@ -459,6 +464,9 @@ spectral_entropy.Sap <- function(x,
   # Match arguments
   method <- match.arg(method)
   segment_type <- match.arg(segment_type)
+
+  # Chcek fftw
+  if (fftw) ensure_pkgs("fftw")
 
   # Special handling for motifs
   if (segment_type == "motifs") {

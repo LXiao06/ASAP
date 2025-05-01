@@ -10,6 +10,7 @@ spectral_analysis(
   wl = 512,
   ovlp = 50,
   wn = "hanning",
+  fftw = TRUE,
   freq_range = NULL,
   threshold = 15,
   fsmooth = 0.1,

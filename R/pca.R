@@ -269,7 +269,9 @@ run_pca.Sap <- function(x,
 #'
 #' @keywords internal
 fast_pca <- function(matrix, n_components = 50, center = TRUE, scale = TRUE) {
-  #require(irlba)
+
+  ensure_pkgs("irlba")
+
   pca_result <- irlba::prcomp_irlba(matrix,
                                    n = n_components,
                                    center = center,
@@ -290,12 +292,8 @@ fast_pca <- function(matrix, n_components = 50, center = TRUE, scale = TRUE) {
 #'
 #' @keywords internal
 parallel_pca <- function(x, n_components = 50, n_cores = NULL, scale = TRUE) {
-  # Check if bigstatsr is installed
-  if (!requireNamespace("bigstatsr", quietly = TRUE)) {
-    warning("Package 'bigstatsr' is required for parallel PCA processing.
-            Please install it with: install.packages('bigstatsr')")
-    return(NULL)
-  }
+
+  ensure_pkgs("bigstatsr")
 
   # Check if input is a valid matrix
   if (!is.matrix(x)) {

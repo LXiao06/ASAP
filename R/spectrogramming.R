@@ -13,6 +13,7 @@
 #' @param ovlp Overlap percentage between windows (default: 20 )
 #' @param wn Window function name (default: "hanning")
 #' @param freq_range Frequency range to analyze in kHz (default: c(1,10) )
+#' @param fftw Logical, use FFTW or not (default: TRUE)
 #' @param segment_type Type of segments to process: "segments" or "syllables" (default: "segments")
 #' @param sample_percent Percentage of segments to sample (default: NULL)
 #' @param balanced Whether to balance samples across labels (default: FALSE)
@@ -38,6 +39,7 @@ extract_spec.default <- function(x,
                                  ovlp = 20,
                                  wn = "hanning",
                                  freq_range = c(1,10),
+                                 fftw = TRUE,
                                  ...) {
 
   # Check required columns
@@ -78,10 +80,13 @@ extract_spec.default <- function(x,
                         ovlp = ovlp,
                         wn = wn,
                         freq_range = freq_range,
+                        fftw = fftw,
                         ...)
   }
 
   # Extract spectrograms in parallel
+  if (fftw) ensure_pkgs("fftw")
+
   spectrograms <- parallel_apply(
     seq_len(nrow(x)),
     process_row,
@@ -146,6 +151,7 @@ extract_spec.Sap <- function(x,
                              ovlp = 20,
                              wn = "hanning",
                              freq_range = c(1,10),
+                             fftw = TRUE,
                              verbose = TRUE,
                              ...) {
   if(verbose) message(sprintf("\n=== Starting Spectrogram Extraction ===\n"))
@@ -166,6 +172,8 @@ extract_spec.Sap <- function(x,
                                  seed = seed)
 
   # Process segments using default method
+  if (fftw) ensure_pkgs("fftw")
+
   result <- extract_spec.default(segments_df,
                                  wav_dir = x$base_path,
                                  cores = cores,
@@ -173,6 +181,7 @@ extract_spec.Sap <- function(x,
                                  ovlp = ovlp,
                                  wn = wn,
                                  freq_range = freq_range,
+                                 fftw = fftw,
                                  ...)
 
   if (nrow(result) < nrow(segments_df)) {
@@ -210,7 +219,7 @@ extract_spec.Sap <- function(x,
 #' Extract spectrogram for a single audio segment
 #'
 #' @keywords internal
-extract_single_spec <- function(x, wav_dir, wl, ovlp, wn, freq_range, ...) {
+extract_single_spec <- function(x, wav_dir, wl, ovlp, wn, fftw, freq_range, ...) {
   tryCatch({
     # Get file path
     file_path <- construct_wav_path(x, wav_dir = wav_dir)
@@ -240,7 +249,7 @@ extract_single_spec <- function(x, wav_dir, wl, ovlp, wn, freq_range, ...) {
       wl = wl,
       ovlp = ovlp,
       wn = wn,
-      fftw = TRUE,
+      fftw = fftw,
       flimd = freq_range,
       plot = FALSE,
       osc = TRUE,
@@ -384,7 +393,7 @@ visualize_song.default <- function(x,  # wav file path
   # Read FFT data and create plot
   fft_data <- av::read_audio_fft(
     wav_path,  # individual wav file path
-    window = signal::hanning(fft_window_size),
+    window = av::hanning(fft_window_size),
     overlap = overlap,
     start_time = start_time,
     end_time = end_time

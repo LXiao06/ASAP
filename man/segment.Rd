@@ -14,6 +14,7 @@ segment(x, ...)
   end_time = NULL,
   wl = 256,
   ovlp = 80,
+  fftw = TRUE,
   flim = c(1, 10),
   silence_threshold = 0.05,
   min_syllable_ms = 50,
@@ -40,6 +41,7 @@ segment(x, ...)
   plot_percent = 10,
   wl = 256,
   ovlp = 80,
+  fftw = TRUE,
   flim = c(1, 10),
   silence_threshold = 0.05,
   min_syllable_ms = 50,
@@ -64,6 +66,8 @@ segment(x, ...)
 \item{wl}{Window length for spectrogram (default: 256)}
 
 \item{ovlp}{Overlap percentage (0-100) (default: 80)}
+
+\item{fftw}{Logical, use FFTW or not (default: TRUE)}
 
 \item{flim}{Frequency limits in kHz (default: c(1, 10))}
 

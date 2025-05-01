@@ -15,6 +15,7 @@ create_trajectory_matrix(x, ...)
   step_size = 0.005,
   wl = 128,
   ovlp = 50,
+  fftw = TRUE,
   flim = c(1, 12),
   cores = NULL,
   ...
@@ -33,6 +34,7 @@ create_trajectory_matrix(x, ...)
   step_size = 0.005,
   wl = 128,
   ovlp = 50,
+  fftw = TRUE,
   flim = c(1, 12),
   cores = NULL,
   verbose = TRUE,
@@ -53,6 +55,8 @@ create_trajectory_matrix(x, ...)
 \item{wl}{Window length for spectrogram (default: 128)}
 
 \item{ovlp}{Overlap percentage (default: 50)}
+
+\item{fftw}{Logical, use FFTW or not (default: TRUE)}
 
 \item{flim}{Frequency limits (default: c(1, 12))}
 

@@ -455,6 +455,7 @@ plot_clusters.matrix <- function(x,
 
   if (is.null(cluster_colors)) {
     n_colors <- length(unique_values)
+    ensure_pkgs("Polychrome")
     palette_colors <- Polychrome::createPalette(
       n_colors + 2,
       seedcolors = c("#ffffff", "#000000"),

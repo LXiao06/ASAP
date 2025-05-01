@@ -375,6 +375,7 @@ find_segment_neighbors <- function(
 
   # Find k-nearest neighbors using RANN
   message("Computing nearest neighbors...")
+  ensure_pkgs("RANN")
   nn.results <- RANN::nn2(
     data = segments_data,
     k = k.param

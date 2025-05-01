@@ -13,6 +13,7 @@
 #' @param wl Window length for spectral analysis (default: 512)
 #' @param ovlp Overlap percentage (0-100) (default: 50)
 #' @param wn Window name ("hanning", "hamming", etc.)
+#' @param fftw Logical, use FFTW or not (default: TRUE)
 #' @param freq_range Frequency range c(min, max) in kHz
 #' @param threshold Threshold for frequency tracking (default: 15)
 #' @param fsmooth Frequency smoothing parameter (default: 0.1)
@@ -89,6 +90,7 @@ analyze_spectral.default <- function(x,
                                      wl = 512,
                                      ovlp = 50,
                                      wn = "hanning",
+                                     fftw = TRUE,
                                      freq_range = NULL,
                                      threshold = 15,
                                      fsmooth = 0.1,
@@ -120,6 +122,7 @@ analyze_spectral.default <- function(x,
                       wl = wl,
                       ovlp = ovlp,
                       wn = wn,
+                      fftw = fftw,
                       freq_range = freq_range,
                       threshold = threshold,
                       fsmooth = fsmooth,
@@ -137,6 +140,8 @@ analyze_spectral.default <- function(x,
               nrow(x), cores))
 
   # Choose parallel processing method based on system and cores
+  if (fftw) ensure_pkgs("fftw")
+
   results <- parallel_apply(
     seq_len(nrow(x)),
     process_row,
@@ -166,6 +171,7 @@ analyze_spectral.Sap <- function(x,
                                  wl = 512,
                                  ovlp = 50,
                                  wn = "hanning",
+                                 fftw = TRUE,
                                  freq_range = NULL,
                                  threshold = 15,
                                  fsmooth = 0.1,
@@ -190,12 +196,15 @@ analyze_spectral.Sap <- function(x,
                                  seed = seed)
 
   # Process segments using default method
+  if (fftw) ensure_pkgs("fftw")
+
   result <- analyze_spectral.default(segments_df,
                                      wav_dir = x$base_path,
                                      cores = cores,
                                      wl = wl,
                                      ovlp = ovlp,
                                      wn = wn,
+                                     fftw = fftw,
                                      freq_range = freq_range,
                                      threshold = threshold,
                                      fsmooth = fsmooth,
@@ -244,6 +253,7 @@ spectral_analysis <- function(x,
                               wl = 512,
                               ovlp = 50,
                               wn = "hanning",
+                              fftw = TRUE,
                               freq_range = NULL,
                               threshold = 15,
                               fsmooth = 0.1,
@@ -315,13 +325,13 @@ spectral_analysis <- function(x,
   if (is.null(songspec)) return(NULL)
 
   # Calculate basic spectral properties
-  analysis <- .specprop_wrblr_int(spec = songspec,
+  analysis <- specprop_wrblr_int(spec = songspec,
                                   f = wave@samp.rate,
                                   flim = freq_range,
                                   plot = FALSE)
 
   # Calculate time-based features
-  m <- seewave:::sspectro(wave, f = wave@samp.rate, wl = wl_adjusted,
+  m <- sspectro(wave, f = wave@samp.rate, wl = wl_adjusted,
                           ovlp = ovlp, wn = wn)
   if (!is.matrix(m)) m <- as.matrix(m)
 
@@ -360,7 +370,7 @@ spectral_analysis <- function(x,
   }
 
   # Calculate frequency tracking with smoothing
-  freq_track <- .track_harmonic(wave = wave,
+  freq_track <- track_harmonic(wave = wave,
                                 f = wave@samp.rate,
                                 wl = wl_track,
                                 ovlp = ovlp,
@@ -368,12 +378,12 @@ spectral_analysis <- function(x,
                                 bandpass = freq_range * 1000,
                                 fsmooth = fsmooth,
                                 plot = FALSE,
-                                fftw = TRUE,
+                                fftw = fftw,
                                 dfrq = TRUE,
                                 adjust.wl = TRUE)[, 2]
 
   # Calculate frequency metrics
-  freq_metrics <- .calculate_freq_metrics(
+  freq_metrics <- calculate_freq_metrics(
     freq_track = freq_track,
     freq_range = freq_range,
     start_time = x$start_time,
@@ -450,7 +460,7 @@ NULL
 
 #' Calculate Frequency Metrics
 #' @keywords internal
-.calculate_freq_metrics <- function(freq_track,
+calculate_freq_metrics <- function(freq_track,
                                     freq_range,
                                     start_time,
                                     end_time,
@@ -491,7 +501,7 @@ NULL
   }
 
   # Calculate mean peak frequency
-  frng <- .frd_wrblr_int(wave = wave,
+  frng <- frd_wrblr_int(wave = wave,
                          wl = wl,
                          fsmooth = fsmooth,
                          threshold = threshold,
@@ -534,7 +544,7 @@ NULL
 
 #' Calculate Spectral Properties (from warbleR)
 #' @keywords internal
-.specprop_wrblr_int <- function(spec, f = NULL, flim = NULL, ...) {
+specprop_wrblr_int <- function(spec, f = NULL, flim = NULL, ...) {
   fhz <- f
 
   if (is.null(f)) {
@@ -612,8 +622,7 @@ NULL
 
 #' Calculate Frequency Range Detection (from warbleR)
 #' @keywords internal
-.frd_wrblr_int <-
-  function(wave,
+frd_wrblr_int <-function(wave,
            wl = 512,
            fsmooth = 0.1,
            threshold = 10,
@@ -849,7 +858,7 @@ NULL
 
 #' Track Harmonics in Audio (from warbleR)
 #' @keywords internal
-.track_harmonic <- function(wave, f, wl = 512, wn = "hanning", ovlp = 0, fftw = FALSE,
+track_harmonic <- function(wave, f, wl = 512, wn = "hanning", ovlp = 0, fftw = FALSE,
                             at = NULL, tlim = NULL, threshold = 10, bandpass = NULL,
                             clip = NULL, plot = TRUE, xlab = "Times (s)", ylab = "Frequency (kHz)",
                             ylim = c(0, f / 2000), adjust.wl = FALSE, dfrq = FALSE, ...) {
@@ -949,6 +958,7 @@ NULL
         maxi[i] <- max(z)
         y2[i] <- which.max(z)
       } else {
+        ensure_pkgs("pracma")
         pks <- pracma::findpeaks(z, npeaks = 5, sortstr = TRUE)[, 1:3]
         if (is.vector(pks)) pks <- matrix(pks, ncol = 3)
         pks[, 3] <- abs(pks[, 2] - y2[i - 1])
@@ -981,4 +991,28 @@ NULL
   } else {
     return(cbind(x, y))
   }
+}
+
+#' Internal Functions from seewave Package
+#' @noRd
+#'
+#' @note Adapted from seewave::sspectro by Jerome Sueur et al.
+#' @keywords internal
+sspectro <- function(wave, f, wl = 512, ovlp = 0, wn = "hanning",
+                     norm = TRUE, correction = "none") {
+  # You'll need to implement or import these functions
+  input <- inputw(wave = wave, f = f)
+  wave <- input$w
+  f <- input$f
+  rm(input)
+  n <- nrow(wave)
+  step <- seq(1, n + 1 - wl, wl - (ovlp * wl/100))
+  W <- ftwindow(wl = wl, wn = wn, correction = correction)
+  z <- apply(as.matrix(step), 1, function(x) Mod(stats::fft(wave[x:(wl +
+                                                               x - 1), ] * W)))
+  z <- z[2:(1 + wl/2), ]
+  if (norm) {
+    z <- z/max(z)
+  }
+  return(z)
 }

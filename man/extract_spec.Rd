@@ -16,6 +16,7 @@ extract_spec(x, ...)
   ovlp = 20,
   wn = "hanning",
   freq_range = c(1, 10),
+  fftw = TRUE,
   ...
 )
 
@@ -31,6 +32,7 @@ extract_spec(x, ...)
   ovlp = 20,
   wn = "hanning",
   freq_range = c(1, 10),
+  fftw = TRUE,
   verbose = TRUE,
   ...
 )
@@ -53,6 +55,8 @@ Frequency resolution: sampling rate/wl Hz per bin}
 \item{wn}{Window function name (default: "hanning")}
 
 \item{freq_range}{Frequency range to analyze in kHz (default: c(1,10) )}
+
+\item{fftw}{Logical, use FFTW or not (default: TRUE)}
 
 \item{segment_type}{Type of segments to process: "segments" or "syllables" (default: "segments")}
 

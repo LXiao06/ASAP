@@ -11,6 +11,7 @@
 #' @param end_time End time in seconds
 #' @param wl Window length for spectrogram (default: 256)
 #' @param ovlp Overlap percentage (0-100) (default: 80)
+#' @param fftw Logical, use FFTW or not (default: TRUE)
 #' @param flim Frequency limits in kHz (default: c(1, 10))
 #' @param silence_threshold Threshold for silence detection (0-1) (default: 0.05)
 #' @param min_syllable_ms Minimum syllable length in milliseconds (default: 50)
@@ -131,6 +132,7 @@ segment.default <- function(x,  # x is wav file path
                             end_time = NULL,
                             wl = 256,
                             ovlp = 80,
+                            fftw = TRUE,
                             flim = c(1, 10),
                             silence_threshold = 0.05,
                             min_syllable_ms = 50,
@@ -220,11 +222,13 @@ segment.default <- function(x,  # x is wav file path
   # sampling_rate <- wave@samp.rate
 
   # Compute Short-Time Fourier Transform
+  if (fftw) ensure_pkgs("fftw")
+
   stft_result <- seewave::spectro(
     wave,
     wl = wl,
     ovlp = ovlp,
-    fftw = TRUE,
+    fftw = fftw,
     flimd = flim,
     plot = FALSE,
     osc = TRUE,
@@ -400,6 +404,7 @@ segment.Sap <- function(x,  # x is SAP object
                         plot_percent = 10,
                         wl = 256,
                         ovlp = 80,
+                        fftw = TRUE,
                         flim = c(1, 10),
                         silence_threshold = 0.05,
                         min_syllable_ms = 50,
@@ -513,6 +518,7 @@ segment.Sap <- function(x,  # x is SAP object
         end_time = day_data$end_time[i],
         wl = wl,
         ovlp = ovlp,
+        fftw = fftw,
         flim = flim,
         silence_threshold = silence_threshold,
         min_syllable_ms = min_syllable_ms,
@@ -556,27 +562,8 @@ segment.Sap <- function(x,  # x is SAP object
     }
 
     # Parallel processing
-    if (cores > 1) {
-      if (Sys.info()["sysname"] == "Linux") {
-        day_results <- pbmcapply::pbmclapply(
-          file_indices,
-          process_segment,
-          mc.cores = cores,
-          mc.preschedule = FALSE
-        )
-      } else {
-        day_results <- pbapply::pblapply(
-          file_indices,
-          process_segment,
-          cl = cores
-        )
-      }
-    } else {
-      day_results <- pbapply::pblapply(
-        file_indices,
-        process_segment
-      )
-    }
+    if (fftw) ensure_pkgs("fftw")
+    day_results <- parallel_apply(file_indices, process_segment, cores)
 
     # Combine results for this day
     valid_detections <- day_results[!sapply(day_results, is.null)]

@@ -76,6 +76,8 @@ run_umap.default <- function(x,
                              n_threads = NULL,
                              verbose = TRUE,
                              ...) {
+  # Check uwot
+  ensure_pkgs("uwot")
 
   # Validate input
   if(!is.data.frame(x)) stop("Input data must be a data frame")
@@ -447,6 +449,7 @@ plot_umap.default <- function(x,
     unique_levels <- unique(as.character(data[[group.by[1]]]))
     unique_levels <- sort(as.numeric(unique_levels))
     n_colors <- length(unique_levels)
+    ensure_pkgs("Polychrome")
     palette_colors <- Polychrome::createPalette(
       n_colors + 2,
       seedcolors = c("#ffffff", "#000000"),
@@ -862,7 +865,6 @@ plot_umap2.default <- function(x,
                                base_color = "steelblue",
                                compare_color = "orangered",
                                ...) {
-
   # Validate input
   if(!is.data.frame(x)) stop("Input must be a data frame")
 
