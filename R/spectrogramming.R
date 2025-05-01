@@ -311,7 +311,10 @@ pad_array <- function(arr, target_length) {
 #' @param dark_mode For default method: Use dark theme (default: TRUE)
 #' @param legend For default method: Show spectrogram legend (default: FALSE)
 #' @param indices For SAP objects: Numeric vector of specific indices to visualize
-#' @param n_sample For SAP objects: Number of random samples to plot (default: 6)
+#' @param template_clips Logical. For SAP objects: whether to visualize original songs (FALSE)
+#'        or template clips (TRUE) (default: FALSE)
+#' @param n_samples For SAP objects: Number of samples to visualize if indices is NULL.
+#'          Default is 6 or max available
 #' @param random For SAP objects: Randomly sample songs if TRUE
 #' @param keep.par Preserve plotting parameters
 #' @param verbose Print processing messages
@@ -409,32 +412,56 @@ visualize_song.default <- function(x,  # wav file path
 #' @rdname visualize_song
 #' @export
 visualize_song.Sap <- function(x,  # sap object
-                               indices = NULL,
-                               n_sample = 6,
-                               random = TRUE,
-                               start_time_in_second = NULL,
-                               end_time_in_second = NULL,
-                               fft_window_size = 1024,
-                               overlap = 0.75,
-                               keep.par = TRUE,
-                               verbose = FALSE,
-                               ...) {
+                              template_clips = FALSE,
+                              indices = NULL,
+                              n_samples = NULL,
+                              random = TRUE,
+                              start_time_in_second = NULL,
+                              end_time_in_second = NULL,
+                              fft_window_size = 1024,
+                              overlap = 0.75,
+                              keep.par = TRUE,
+                              verbose = FALSE,
+                              ...) {
   # Validate inputs
   if (!inherits(x, "Sap")) {
     stop("Input must be a SAP object")
   }
 
+  # Check if clips are requested but not available
+  if ( template_clips) {
+    if (is.null(x$templates$template_info)) {
+      stop("No templates found in this SAP object. Run create_audio_clip() first.")
+    }
+
+    # Use template data
+    total_samples <- nrow(x$templates$template_info)
+    source_label <- "templates"
+  } else {
+    # Use regular metadata
+    total_samples <- nrow(x$metadata)
+    source_label <- "songs"
+  }
+
+  # Set default n_samples if null
+  if (is.null(n_samples)) {
+    # Default is 6, but limit to total available if less than 6
+    n_samples <- min(6, total_samples)
+  } else {
+    # User specified n_samples, ensure it doesn't exceed available samples
+    n_samples <- min(n_samples, total_samples)
+  }
+
   # Handle indices or sampling
   if (is.null(indices)) {
-    # Validate n_sample
-    total_samples <- nrow(x$metadata)
-    if (n_sample < 1 || n_sample > total_samples) {
-      stop(sprintf("n_sample must be between 1 and %d", total_samples))
+    # Validate n_samples
+    if (n_samples < 1) {
+      stop("n_samples must be at least 1")
     }
 
     # Select indices based on random parameter
     if (random) {
-      indices <- sample(1:total_samples, size = n_sample)
+      indices <- sample(1:total_samples, size = n_samples)
     } else {
       # Use the SAP object itself to store state instead of global environment
       if (is.null(x$._state)) {
@@ -442,7 +469,7 @@ visualize_song.Sap <- function(x,  # sap object
       }
 
       # Create a unique key for tracking indices
-      state_key <- paste0("idx_", make.names(x$base_path))
+      state_key <- paste0("idx_", make.names(source_label))
 
       # Get or initialize the last index
       if (is.null(x$._state[[state_key]])) {
@@ -452,7 +479,7 @@ visualize_song.Sap <- function(x,  # sap object
 
       # Calculate next set of indices
       start_idx <- last_idx + 1
-      end_idx <- min(start_idx + n_sample - 1, total_samples)
+      end_idx <- min(start_idx + n_samples - 1, total_samples)
 
       indices <- start_idx:end_idx
 
@@ -463,6 +490,17 @@ visualize_song.Sap <- function(x,  # sap object
       if (end_idx >= total_samples) {
         x$._state[[state_key]] <- 0
         message("Reached the end of samples. Next call will start from the beginning.")
+      }
+    }
+  } else {
+    # Validate that indices are in range
+    if ( template_clips) {
+      if (any(indices > total_samples) || any(indices < 1)) {
+        stop(sprintf("Indices must be between 1 and %d for templates", total_samples))
+      }
+    } else {
+      if (any(indices > nrow(x$metadata)) || any(indices < 1)) {
+        stop(sprintf("Indices must be between 1 and %d for songs", nrow(x$metadata)))
       }
     }
   }
@@ -476,22 +514,30 @@ visualize_song.Sap <- function(x,  # sap object
   }
 
   # Print index information before plotting
-  cat("\nPlotting the following songs:\n")
+  cat(sprintf("\nPlotting the following %s:\n", source_label))
   for (i in seq_along(indices)) {
     index <- indices[i]
-    filename <- x$metadata$filename[index]
-    day_post_hatch <- x$metadata$day_post_hatch[index]
-    label <- if ("label" %in% names(x$metadata)) {
-      sprintf(" (Label: %s)", x$metadata$label[index])
-    } else {
-      ""
-    }
 
-    cat(sprintf("Index %d: Day %s, File: %s%s\n",
-                index,
-                day_post_hatch,
-                filename,
-                label))
+    if ( template_clips) {
+      # Display clip/template information
+      clip_name <- x$templates$template_info$clip_name[index]
+      cat(sprintf("Index %d: Clip: %s\n", index, clip_name))
+    } else {
+      # Display song information
+      filename <- x$metadata$filename[index]
+      day_post_hatch <- x$metadata$day_post_hatch[index]
+      label <- if ("label" %in% names(x$metadata)) {
+        sprintf(" (Label: %s)", x$metadata$label[index])
+      } else {
+        ""
+      }
+
+      cat(sprintf("Index %d: Day %s, File: %s%s\n",
+                  index,
+                  day_post_hatch,
+                  filename,
+                  label))
+    }
   }
   cat("\n")
 
@@ -512,9 +558,26 @@ visualize_song.Sap <- function(x,  # sap object
   # Process each index
   for (i in seq_along(indices)) {
     index <- indices[i]
-    song_path <- file.path(x$base_path,
-                           x$metadata$day_post_hatch[index],
-                           x$metadata$filename[index])
+
+    if ( template_clips) {
+      # Get clip path directly from template_info
+      clip_name <- x$templates$template_info$clip_name[index]
+      song_path <- x$templates$template_info$clip_path[index]
+
+      # Set title text for clip
+      title_text <- sprintf("Template clips: %s", clip_name)
+    } else {
+      # Construct path to original song file
+      song_path <- file.path(x$base_path,
+                             x$metadata$day_post_hatch[index],
+                             x$metadata$filename[index])
+
+      # Set title text for original file
+      title_text <- sprintf("Day %s%s",
+                            x$metadata$day_post_hatch[index],
+                            if ("label" %in% names(x$metadata))
+                              sprintf(" (%s)", x$metadata$label[index]) else "")
+    }
 
     # Determine start and end times
     start_time <- if (!is.null(start_time_in_second)) start_time_in_second[i] else 0
@@ -535,10 +598,6 @@ visualize_song.Sap <- function(x,  # sap object
     )
 
     # Add title to each plot
-    title_text <- sprintf("Day %s%s",
-                          x$metadata$day_post_hatch[index],
-                          if ("label" %in% names(x$metadata))
-                            sprintf(" (%s)", x$metadata$label[index]) else "")
     title(title_text, line = 0.5)
   }
 

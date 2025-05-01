@@ -23,8 +23,9 @@ visualize_song(x, ...)
 
 \method{visualize_song}{Sap}(
   x,
+  template_clips = FALSE,
   indices = NULL,
-  n_sample = 6,
+  n_samples = NULL,
   random = TRUE,
   start_time_in_second = NULL,
   end_time_in_second = NULL,
@@ -56,9 +57,13 @@ visualize_song(x, ...)
 
 \item{verbose}{Print processing messages}
 
+\item{template_clips}{Logical. For SAP objects: whether to visualize original songs (FALSE)
+or template clips (TRUE) (default: FALSE)}
+
 \item{indices}{For SAP objects: Numeric vector of specific indices to visualize}
 
-\item{n_sample}{For SAP objects: Number of random samples to plot (default: 6)}
+\item{n_samples}{For SAP objects: Number of samples to visualize if indices is NULL.
+Default is 6 or max available}
 
 \item{random}{For SAP objects: Randomly sample songs if TRUE}
 }
