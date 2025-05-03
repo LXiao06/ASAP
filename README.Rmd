@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ASAP
+# ASAP <a href="https://lxiao06.github.io/ASAP/"><img src="man/figures/logo.png" align="right" height="139" alt="ASAP website" /></a>
 
 <!-- badges: start -->
 
@@ -23,23 +23,23 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-ASAP (Automated Sound Analysis Pipeline) is an R toolkit designed for the longitudinal analysis of birdsong development, specifically optimized for tracking and studying the long-term vocalization patterns of zebra finches. 
+ASAP (Automated Sound Analysis Pipeline) is an R toolkit designed for the longitudinal analysis of birdsong development, specifically optimized for tracking and studying the long-term vocalization patterns of zebra finches.
 
 The pipeline introduces a dedicated SAP object, which streamlines the processing of recordings from the SAP2011 system or other sound data organized with similar structures. Additionally, ASAP is built with flexibility in mind, allowing for the integration of other objects to ensure compatibility with various recording platforms.
 
 ### Key Features
 
-- **Bout Detection**: Automatically identifies periods of singing within recordings.
+-   **Bout Detection**: Automatically identifies periods of singing within recordings.
 
-- **Motif Extraction**: Extracts recurring song motifs for in-depth analysis.
+-   **Motif Extraction**: Extracts recurring song motifs for in-depth analysis.
 
-- **Syllable Segmentation**: Breaks down songs into individual syllables for detailed study.
+-   **Syllable Segmentation**: Breaks down songs into individual syllables for detailed study.
 
-- **Template Matching**: Compares and matches song patterns against predefined templates.
+-   **Template Matching**: Compares and matches song patterns against predefined templates.
 
-- **Feature Extraction**: Extracts detailed temporal and spectral features from vocalizations.
+-   **Feature Extraction**: Extracts detailed temporal and spectral features from vocalizations.
 
-- **Standardized Analytical Workflows**: Utilizes predefined workflows for consistent and efficient analysis.
+-   **Standardized Analytical Workflows**: Utilizes predefined workflows for consistent and efficient analysis.
 
 ## Installation
 

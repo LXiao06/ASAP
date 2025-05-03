@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# ASAP
+# ASAP <a href="https://lxiao06.github.io/ASAP/"><img src="man/figures/logo.png" align="right" height="139" alt="ASAP website" /></a>
 
 <!-- badges: start -->
 
