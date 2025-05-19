@@ -181,7 +181,7 @@ select_segments <- function(segments_df,
 #' parallel processing function
 #'
 #' @keywords internal
-parallel_apply <- function(indices, FUN, cores) {
+parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE) {
   # Set number of cores
   if (is.null(cores)) {
     ensure_pkgs("parallel")
@@ -198,7 +198,7 @@ parallel_apply <- function(indices, FUN, cores) {
         indices,
         FUN,
         mc.cores = cores,
-        mc.preschedule = FALSE
+        mc.preschedule = use_preschedule
       )
     } else {
       # Windows needs pbapply and parallel for clusters
@@ -223,7 +223,6 @@ parallel_apply <- function(indices, FUN, cores) {
 
   return(result)
 }
-
 
 
 #' Check Python dependencies

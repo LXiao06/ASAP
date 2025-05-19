@@ -455,28 +455,13 @@ find_bout.Sap <- function(x,  # x is SAP object
 
     }
 
-    # Choose parallel processing method based on system and cores
-    if (cores > 1) {
-      if (Sys.info()["sysname"] == "Linux") {
-        day_results <- pbmcapply::pbmclapply(
-          unique_files,
-          process_file,
-          mc.cores = cores,
-          mc.preschedule = FALSE
-        )
-      } else {
-        day_results <- pbapply::pblapply(
-          unique_files,
-          process_file,
-          cl = cores
-        )
-      }
-    } else {
-      day_results <- pbapply::pblapply(
-        unique_files,
-        process_file
-      )
-    }
+    # Use parallel_apply function for parallel processing
+    day_results <- parallel_apply(
+      indices = unique_files,
+      FUN = process_file,
+      cores = cores,
+      use_preschedule = if(is.null(list(...)$use_preschedule)) FALSE else list(...)$use_preschedule
+    )
 
     # Combine results for this day
     valid_detections <- day_results[!sapply(day_results, is.null)]
