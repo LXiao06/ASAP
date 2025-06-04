@@ -123,6 +123,17 @@ amp_env <- function(segment_row,
 #' @param ordered For SAP objects: Order by embeddings
 #' @param descending For SAP objects: Direction of ordering
 #' @param padding_quantile For SAP objects: Quantile for bout padding (default: 0.9)
+#' @param window For SAP objects: Numeric vector of length 2 (pre, post) specifying time windows
+#'   in seconds around the alignment point for bouts. When NULL (default),
+#'   windows are auto-calculated. Ignored for motifs. Example: \code{c(0.5, 1.5)}.
+#' @param reference_lines Numeric vector specifying time positions (in seconds)
+#'   relative to the alignment point where vertical dashed reference lines should
+#'   be drawn. Can include both positive and negative values.
+#' @param reference_line_color Character vector specifying the color(s) of the
+#'   reference lines. Can be a single color (applied to all lines) or a vector
+#'   of colors (one for each line). If fewer colors than lines are provided,
+#'   colors will be recycled.
+#' @param ylabel Character string specifying the label for the y-axis. (default: "Labels")
 #' @param verbose For SAP objects: Print progress messages
 #' @param main For matrix method: Plot title
 #' @param ... Additional arguments passed to specific methods
@@ -295,7 +306,10 @@ plot_heatmap.matrix <- function(x,
                                 color_palette = NULL,
                                 n_colors = 500,
                                 contrast = 3,
+                                reference_lines = NULL,
+                                reference_line_color = "black",
                                 main = "Amplitude Envelope Heatmap",
+                                ylabel = "Labels",
                                 ...) {
   # Check if input is matrix
   if (!is.matrix(x)) {
@@ -329,15 +343,17 @@ plot_heatmap.matrix <- function(x,
   # Create reversed matrix for plotting
   reversed_amp_matrix <- x[, ncol(x):1]
 
-  # # Get reversed labels and calculate positions
-  # reversed_labels <- rev(unique(colnames(x)))
-  # samples_per_label <- rev(table(colnames(x)))
-  # cumulative_positions <- cumsum(c(0, head(samples_per_label, -1)))
-  # label_positions <- cumulative_positions + samples_per_label/2
-  # hline_positions <- cumsum(samples_per_label)[-length(samples_per_label)]
-
   # Calculate positions using reserved order
   current_labels <- colnames(x)
+
+  # Extract numeric part from dph labels
+  if (any(grepl("dph", current_labels))) {
+    numeric_labels <- gsub("dph", "", current_labels)
+    numeric_values <- as.numeric(numeric_labels)
+    current_labels <- numeric_labels
+  }
+
+  # reverse the order
   reversed_labels <- rev(unique(current_labels))
 
   ordered_labels <- factor(current_labels, levels = unique(current_labels))
@@ -346,6 +362,16 @@ plot_heatmap.matrix <- function(x,
   cumulative_positions <- cumsum(c(0, head(samples_per_label, -1)))
   label_positions <- cumulative_positions + samples_per_label/2
   hline_positions <- cumsum(samples_per_label)[-length(samples_per_label)]
+
+  # Handle reference lines
+  if (!is.null(reference_lines)) {
+    # Ensure reference_line_color has the same length as reference_lines
+    if (length(reference_line_color) == 1) {
+      reference_line_color <- rep(reference_line_color, length(reference_lines))
+    } else if (length(reference_line_color) != length(reference_lines)) {
+      reference_line_color <- rep(reference_line_color, length.out = length(reference_lines))
+    }
+  }
 
   # Set color palette
   if (is.null(color_palette)) {
@@ -359,13 +385,12 @@ plot_heatmap.matrix <- function(x,
                                          max(reversed_amp_matrix)/contrast,
                                          length.out = n_colors),
                                 border = "transparent",
-                                ylab = "Labels",
+                                ylab = ylabel,
                                 xlab = "Time (s)",
                                 main = main,
                                 scales = list(
                                   x = list(
                                     at = seq(0, nrow(reversed_amp_matrix), length.out = 5),
-                                    #at = pretty(1:nrow(reversed_amp_matrix), n = 5),
                                     labels = sprintf("%.1f", seq(0, time_window, length.out = 5))
                                   ),
                                   y = list(
@@ -375,9 +400,21 @@ plot_heatmap.matrix <- function(x,
                                 ),
                                 panel = function(x, y, z, ...) {
                                   lattice::panel.levelplot(x, y, z, ...)
+
+                                  # Draw horizontal lines between labels
                                   lattice::panel.abline(h = hline_positions,
                                                         col = "white",
                                                         lwd = 2)
+
+                                  # Draw vertical reference lines if provided
+                                  if (!is.null(reference_lines)) {
+                                    for (i in seq_along(reference_lines)) {
+                                      lattice::panel.abline(v = reference_lines[i],
+                                                            col = reference_line_color[i],
+                                                            lwd = 3,
+                                                            lty = 2)  # dashed lines
+                                    }
+                                  }
                                 },
                                 aspect = "fill",
                                 colorkey = list(
@@ -393,7 +430,6 @@ plot_heatmap.matrix <- function(x,
                                     labels = sprintf("%.1f", seq(0, 1, length.out = 3))
                                   )
                                 ))
-
 
   print(heatmap)
 }
@@ -415,12 +451,51 @@ plot_heatmap.Sap <- function(x,
                              ordered = FALSE,
                              descending = TRUE,
                              padding_quantile = 0.9,
+                             window = NULL,
+                             reference_lines = NULL,
+                             reference_line_color = "white",
+                             ylabel = "Labels",
                              verbose = TRUE,
                              ...) {
   if(verbose) message(sprintf("\n=== Starting Heatmap Plotting ===\n"))
 
   # Input validation
   segment_type <- match.arg(segment_type)
+
+  # Validate window argument
+  if (!is.null(window)) {
+    if (segment_type != "bouts") {
+      warning("'window' argument is only used when segment_type = 'bouts'. Ignoring...")
+      window <- NULL
+    } else {
+      if (!is.numeric(window) || length(window) != 2) {
+        stop("'window' must be a numeric vector of length 2")
+      }
+      if (any(window <= 0)) {
+        stop("'window' values must be positive")
+      }
+    }
+  }
+
+  # Validate reference_lines argument
+  if (!is.null(reference_lines)) {
+    if (!is.numeric(reference_lines)) {
+      stop("'reference_lines' must be a numeric vector")
+    }
+
+    # Validate and prepare reference_line_color
+    if (length(reference_line_color) == 1) {
+      # Single color for all lines
+      reference_line_color <- rep(reference_line_color, length(reference_lines))
+    } else if (length(reference_line_color) != length(reference_lines)) {
+      # Recycle colors if different length
+      reference_line_color <- rep(reference_line_color, length.out = length(reference_lines))
+      if (verbose) {
+        message(sprintf("Note: Recycling %d colors for %d reference lines",
+                        length(unique(reference_line_color)), length(reference_lines)))
+      }
+    }
+  }
 
   # Special handling for motifs
   if (segment_type == "motifs") {
@@ -451,7 +526,7 @@ plot_heatmap.Sap <- function(x,
     # For non-motif segment types
   } else {
     segments_df <- x[[segment_type]]
-    }
+  }
 
   # Validation
   if (!inherits(segments_df, "segment") || nrow(segments_df) == 0) {
@@ -484,13 +559,19 @@ plot_heatmap.Sap <- function(x,
               msmooth = msmooth)
     }
     time_window <- segments_df$duration[1]
+    alignment_point <- segments_df$detection_time[1] - start_time[1]
+
+    # Get sampling rate for motifs
+    test_env <- amp_env(segments_df[1,], wav_dir = x$base_path, msmooth = msmooth)
+    samples_per_second <- length(test_env) / segments_df$duration[1]
+
   } else if (segment_type == "bouts") {
     required_cols <- c("start_time", "end_time", "align_time")
     if (!all(required_cols %in% colnames(segments_df))) {
       stop("Bouts require: start_time, end_time, align_time columns")
     }
 
-    # Calculate windows using quantiles
+    # Calculate windows using quantiles (existing method)
     segments_df <- segments_df |>
       mutate(
         pre_window = .data$align_time - start_time,
@@ -498,8 +579,26 @@ plot_heatmap.Sap <- function(x,
       ) |>
       arrange(day_post_hatch, duration)
 
-    max_pre_window <- quantile(segments_df$pre_window, padding_quantile, na.rm = TRUE)
-    max_post_window <- quantile(segments_df$post_window, padding_quantile, na.rm = TRUE)
+    # Determine max_pre_window and max_post_window
+    if (!is.null(window)) {
+      # Use provided window values
+      max_pre_window <- window[1]
+      max_post_window <- window[2]
+
+      if (verbose) {
+        message(sprintf("Using provided window: pre=%.3f, post=%.3f seconds",
+                        max_pre_window, max_post_window))
+      }
+    } else {
+      # Calculate windows using quantiles (existing method)
+      max_pre_window <- quantile(segments_df$pre_window, padding_quantile, na.rm = TRUE)
+      max_post_window <- quantile(segments_df$post_window, padding_quantile, na.rm = TRUE)
+
+      if (verbose) {
+        message(sprintf("Auto-calculated window: pre=%.3f, post=%.3f seconds (quantile=%.2f)",
+                        max_pre_window, max_post_window, padding_quantile))
+      }
+    }
 
     # Get sampling rate
     test_row <- segments_df[1, ]
@@ -518,6 +617,7 @@ plot_heatmap.Sap <- function(x,
       )
     }
     time_window <- max_pre_window + max_post_window
+    alignment_point <- max_pre_window   # Alignment point for bouts (in seconds from start)
   }
 
   # Generate amplitude envelope matrix using parallel processing
@@ -550,12 +650,39 @@ plot_heatmap.Sap <- function(x,
     amp_matrix[!is.finite(amp_matrix)] <- 0
   }
 
+  # Convert reference lines from seconds to sample positions if provided
+  reference_line_positions <- NULL
+  final_reference_colors <- NULL
+  if (!is.null(reference_lines) && !is.null(samples_per_second)) {
+    # Convert time positions relative to alignment point to absolute sample positions
+    reference_line_positions <- (alignment_point + reference_lines) * samples_per_second
+
+    # Filter out positions that would be outside the matrix
+    valid_positions <- reference_line_positions >= 1 & reference_line_positions <= nrow(amp_matrix)
+    reference_line_positions <- reference_line_positions[valid_positions]
+    final_reference_colors <- reference_line_color[valid_positions]
+
+    if (length(reference_line_positions) < length(reference_lines) && verbose) {
+      message(sprintf("Note: %d reference line(s) outside the display window were removed",
+                      length(reference_lines) - length(reference_line_positions)))
+    }
+
+    if (verbose && length(reference_line_positions) > 0) {
+      color_info <- paste(paste0(reference_lines[valid_positions], "s (", final_reference_colors, ")"),
+                          collapse = ", ")
+      message(sprintf("Reference lines at time positions: %s (relative to alignment)", color_info))
+    }
+  }
+
   # Store attributes in amp_matrix
   attr(amp_matrix, "msmooth") <- msmooth
   # Store segments_df in attributes for future reference
   attr(amp_matrix, "segments_df") <- segments_df
   attr(amp_matrix, "segment_type") <- segment_type
   attr(amp_matrix, "time_window") <- time_window
+  if (!is.null(window) && segment_type == "bouts") {
+    attr(amp_matrix, "window") <- window
+  }
 
   # Set column names as labels
   colnames(amp_matrix) <- segments_df$label
@@ -580,7 +707,11 @@ plot_heatmap.Sap <- function(x,
                color_palette = color_palette,
                n_colors = n_colors,
                contrast = contrast,
-               main = paste("Heatmap of", segment_type))
+               reference_lines = reference_line_positions,
+               reference_line_color = final_reference_colors,
+               main = paste("Heatmap of", segment_type),
+               ylabel = ylabel,
+               ...)
 
   invisible(x)
 }

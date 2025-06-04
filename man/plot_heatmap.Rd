@@ -25,7 +25,10 @@ plot_heatmap(x, ...)
   color_palette = NULL,
   n_colors = 500,
   contrast = 3,
+  reference_lines = NULL,
+  reference_line_color = "black",
   main = "Amplitude Envelope Heatmap",
+  ylabel = "Labels",
   ...
 )
 
@@ -45,6 +48,10 @@ plot_heatmap(x, ...)
   ordered = FALSE,
   descending = TRUE,
   padding_quantile = 0.9,
+  window = NULL,
+  reference_lines = NULL,
+  reference_line_color = "white",
+  ylabel = "Labels",
   verbose = TRUE,
   ...
 )
@@ -66,7 +73,18 @@ plot_heatmap(x, ...)
 
 \item{labels}{Optional vector of labels to include}
 
+\item{reference_lines}{Numeric vector specifying time positions (in seconds)
+relative to the alignment point where vertical dashed reference lines should
+be drawn. Can include both positive and negative values.}
+
+\item{reference_line_color}{Character vector specifying the color(s) of the
+reference lines. Can be a single color (applied to all lines) or a vector
+of colors (one for each line). If fewer colors than lines are provided,
+colors will be recycled.}
+
 \item{main}{For matrix method: Plot title}
+
+\item{ylabel}{Character string specifying the label for the y-axis. (default: "Labels")}
 
 \item{segment_type}{For SAP objects: Type of segments ('motifs', 'bouts', 'syllables', 'segments')}
 
@@ -85,6 +103,10 @@ plot_heatmap(x, ...)
 \item{descending}{For SAP objects: Direction of ordering}
 
 \item{padding_quantile}{For SAP objects: Quantile for bout padding (default: 0.9)}
+
+\item{window}{For SAP objects: Numeric vector of length 2 (pre, post) specifying time windows
+in seconds around the alignment point for bouts. When NULL (default),
+windows are auto-calculated. Ignored for motifs. Example: \code{c(0.5, 1.5)}.}
 
 \item{verbose}{For SAP objects: Print progress messages}
 }
