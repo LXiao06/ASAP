@@ -11,7 +11,7 @@ plot_traces(x, ...)
 \method{plot_traces}{default}(
   x,
   labels = NULL,
-  plot_type = c("combined", "individual", "average"),
+  plot_type = c("combined", "individual", "average", "cv"),
   feature = c("env", "pitch", "goodness", "entropy"),
   alpha = 0.2,
   ncol = 1,
@@ -24,7 +24,7 @@ plot_traces(x, ...)
   segment_type = c("motifs", "syllables", "segments"),
   feature = c("env", "pitch", "goodness", "entropy"),
   labels = NULL,
-  plot_type = c("combined", "individual", "average"),
+  plot_type = c("combined", "individual", "average", "cv"),
   alpha = 0.2,
   ncol = 1,
   palette = "Set1",
@@ -38,7 +38,7 @@ plot_traces(x, ...)
 
 \item{labels}{Optional vector of labels to include (default: NULL, uses all labels)}
 
-\item{plot_type}{Type of plot: "individual", "average", or "combined" (default: "combined")}
+\item{plot_type}{Type of plot: "individual", "average", "cv", or "combined" (default: "combined")}
 
 \item{feature}{Type of feature to plot: "env" (amplitude envelope), "pitch" (fundamental frequency),
 "goodness" (pitch goodness), or "entropy" (Wiener entropy)}
@@ -88,6 +88,8 @@ Plot Types:
 \describe{
 \item{individual}{Shows each rendition's trace, faceted by label}
 \item{average}{Displays mean trace with standard error}
+\item{cv}{Shows coefficient of variation (CV) over time - displays relative variability
+as a percentage at each time point for each label}
 \item{combined}{Shows both individual traces and mean trace}
 }
 }
@@ -109,6 +111,12 @@ plot_traces(sap_obj,
             segment_type = "syllables",
             feature = "entropy",
             plot_type = "average")
+
+# Plot coefficient of variation to examine variability
+plot_traces(sap_obj,
+            segment_type = "motifs",
+            feature = "pitch",
+            plot_type = "cv")
 
 # Customize visualization
 plot_traces(sap_obj$features$motif$amp_env,
