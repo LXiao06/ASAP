@@ -1,5 +1,5 @@
 # Plot Traces -------------------------------------------------------------
-# Update date: Mar. 27, 2025
+# Update date: Jun 3, 2025
 
 #' Plot Traces of Song Features
 #'
@@ -10,7 +10,7 @@
 #'
 #' @param x An object to visualize (matrix or SAP object)
 #' @param labels Optional vector of labels to include (default: NULL, uses all labels)
-#' @param plot_type Type of plot: "individual", "average", or "combined" (default: "combined")
+#' @param plot_type Type of plot: "individual", "average", "cv", or "combined" (default: "combined")
 #' @param feature Type of feature to plot: "env" (amplitude envelope), "pitch" (fundamental frequency),
 #'        "goodness" (pitch goodness), or "entropy" (Wiener entropy)
 #' @param alpha Transparency for individual traces (default: 0.2)
@@ -47,6 +47,8 @@
 #' \describe{
 #'   \item{individual}{Shows each rendition's trace, faceted by label}
 #'   \item{average}{Displays mean trace with standard error}
+#'   \item{cv}{Shows coefficient of variation (CV) over time - displays relative variability
+#'         as a percentage at each time point for each label}
 #'   \item{combined}{Shows both individual traces and mean trace}
 #' }
 #'
@@ -73,6 +75,12 @@
 #'             feature = "entropy",
 #'             plot_type = "average")
 #'
+#' # Plot coefficient of variation to examine variability
+#' plot_traces(sap_obj,
+#'             segment_type = "motifs",
+#'             feature = "pitch",
+#'             plot_type = "cv")
+#'
 #' # Customize visualization
 #' plot_traces(sap_obj$features$motif$amp_env,
 #'             labels = c("BL", "Post"),
@@ -90,15 +98,15 @@ plot_traces <- function(x, ...) {
 
 #' @rdname plot_traces
 #' @export
-plot_traces.default  <- function(x,
-                              labels = NULL,
-                              plot_type = c("combined", "individual", "average"),
-                              feature = c("env", "pitch", "goodness", "entropy"),
-                              alpha = 0.2,
-                              ncol = 1,
-                              palette = "Set1",
-                              ...
-                              ) {
+plot_traces.default <- function(x,
+                                labels = NULL,
+                                plot_type = c("combined", "individual", "average", "cv"),
+                                feature = c("env", "pitch", "goodness", "entropy"),
+                                alpha = 0.2,
+                                ncol = 1,
+                                palette = "Set1",
+                                ...
+) {
 
   # Input validation
   plot_type <- match.arg(plot_type)
@@ -165,6 +173,23 @@ plot_traces.default  <- function(x,
                ymax = mean + se)
   }
 
+  # Add CV calculation function
+  calculate_cv <- function(x) {
+    x <- stats::na.omit(x)
+    if (length(x) < 2) {
+      return(data.frame(y = NA))
+    }
+    mean_val <- mean(x)
+    sd_val <- stats::sd(x)
+    # Avoid division by zero
+    if (abs(mean_val) < .Machine$double.eps) {
+      cv <- NA
+    } else {
+      cv <- (sd_val / abs(mean_val)) * 100
+    }
+    data.frame(y = cv)
+  }
+
   # Set y-axis label based on trace type
   y_label <- switch(feature,
                     "env" = "Amplitude Envelope",
@@ -201,6 +226,19 @@ plot_traces.default  <- function(x,
       ggplot2::scale_fill_brewer(palette = palette) +
       ggplot2::ggtitle(paste("Mean", y_label, "with Standard Error"))
 
+  } else if (plot_type == "cv") {
+    p <- ggplot2::ggplot(res_long,
+                         ggplot2::aes(x = .data$time, y = .data$value,
+                                      color = label)) +
+      ggplot2::stat_summary(fun.data = calculate_cv, geom = "line", size = 1) +
+      ggplot2::labs(x = "Time (s)",
+                    y = "Coefficient of Variation (%)",
+                    color = "Label") +
+      ggplot2::theme_minimal() +
+      ggplot2::scale_color_brewer(palette = palette) +
+      ggplot2::ggtitle(paste("Coefficient of Variation of", y_label)) +
+      ggplot2::theme(legend.position = "right")
+
   } else if (plot_type == "combined") {
     # Create combined data for both plots
     res_long <- res_long |>
@@ -214,13 +252,13 @@ plot_traces.default  <- function(x,
     p <- ggplot2::ggplot(res_combined,
                          ggplot2::aes(x = .data$time, y = .data$value,
                                       color = label, fill = label)) +
-      ggplot2::geom_line(data = function(x) dplyr::filter(plot_type == "Individual Traces"),
+      ggplot2::geom_line(data = function(x) dplyr::filter(x, plot_type == "Individual Traces"),
                          ggplot2::aes(group = interaction(label, .data$rendition_no)),
                          alpha = alpha) +
-      ggplot2::stat_summary(data = function(x) dplyr::filter(plot_type == "Mean \u00B1 SE"),
+      ggplot2::stat_summary(data = function(x) dplyr::filter(x, plot_type == "Mean \u00B1 SE"),
                             fun.data = mean_se, geom = "ribbon",
                             alpha = 0.3, color = NA) +
-      ggplot2::stat_summary(data = function(x) dplyr::filter(plot_type == "Mean \u00B1 SE"),
+      ggplot2::stat_summary(data = function(x) dplyr::filter(x, plot_type == "Mean \u00B1 SE"),
                             fun = mean, geom = "line", size = 1) +
       ggplot2::facet_wrap(~plot_type, ncol = ncol) +
       ggplot2::labs(x = "Time (s)",
@@ -234,7 +272,7 @@ plot_traces.default  <- function(x,
       ggplot2::theme(legend.position = "right",
                      strip.text = ggplot2::element_text(size = 12, face = "bold"))
   } else {
-    stop("Invalid plot_type. Choose 'individual', 'average', or 'combined'")
+    stop("Invalid plot_type. Choose 'individual', 'average', 'combined', or 'cv'")
   }
 
   return(p)
@@ -246,7 +284,7 @@ plot_traces.Sap <- function(x,
                             segment_type = c("motifs", "syllables", "segments"),
                             feature = c("env", "pitch", "goodness","entropy"),
                             labels = NULL,
-                            plot_type = c("combined", "individual", "average"),
+                            plot_type = c("combined", "individual", "average", "cv"),
                             alpha = 0.2,
                             ncol = 1,
                             palette = "Set1",
