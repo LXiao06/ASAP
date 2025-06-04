@@ -59,7 +59,10 @@ multiple data sources and visualization options.</p>
 <span>  color_palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_colors <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  contrast <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  reference_lines <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  reference_line_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Amplitude Envelope Heatmap"</span>,</span>
+<span>  ylabel <span class="op">=</span> <span class="st">"Labels"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -80,6 +83,10 @@ multiple data sources and visualization options.</p>
 <span>  ordered <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  descending <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  padding_quantile <span class="op">=</span> <span class="fl">0.9</span>,</span>
+<span>  window <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  reference_lines <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  reference_line_color <span class="op">=</span> <span class="st">"white"</span>,</span>
+<span>  ylabel <span class="op">=</span> <span class="st">"Labels"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -121,8 +128,25 @@ multiple data sources and visualization options.</p>
 <dd><p>Optional vector of labels to include</p></dd>
 
 
+<dt id="arg-reference-lines">reference_lines<a class="anchor" aria-label="anchor" href="#arg-reference-lines"></a></dt>
+<dd><p>Numeric vector specifying time positions (in seconds)
+relative to the alignment point where vertical dashed reference lines should
+be drawn. Can include both positive and negative values.</p></dd>
+
+
+<dt id="arg-reference-line-color">reference_line_color<a class="anchor" aria-label="anchor" href="#arg-reference-line-color"></a></dt>
+<dd><p>Character vector specifying the color(s) of the
+reference lines. Can be a single color (applied to all lines) or a vector
+of colors (one for each line). If fewer colors than lines are provided,
+colors will be recycled.</p></dd>
+
+
 <dt id="arg-main">main<a class="anchor" aria-label="anchor" href="#arg-main"></a></dt>
 <dd><p>For matrix method: Plot title</p></dd>
+
+
+<dt id="arg-ylabel">ylabel<a class="anchor" aria-label="anchor" href="#arg-ylabel"></a></dt>
+<dd><p>Character string specifying the label for the y-axis. (default: "Labels")</p></dd>
 
 
 <dt id="arg-segment-type">segment_type<a class="anchor" aria-label="anchor" href="#arg-segment-type"></a></dt>
@@ -159,6 +183,12 @@ multiple data sources and visualization options.</p>
 
 <dt id="arg-padding-quantile">padding_quantile<a class="anchor" aria-label="anchor" href="#arg-padding-quantile"></a></dt>
 <dd><p>For SAP objects: Quantile for bout padding (default: 0.9)</p></dd>
+
+
+<dt id="arg-window">window<a class="anchor" aria-label="anchor" href="#arg-window"></a></dt>
+<dd><p>For SAP objects: Numeric vector of length 2 (pre, post) specifying time windows
+in seconds around the alignment point for bouts. When NULL (default),
+windows are auto-calculated. Ignored for motifs. Example: <code>c(0.5, 1.5)</code>.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
