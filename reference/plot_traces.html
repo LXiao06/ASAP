@@ -48,7 +48,7 @@ Wiener entropy. The function supports multiple visualization options.</p>
 <span><span class="fu">plot_traces</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"combined"</span>, <span class="st">"individual"</span>, <span class="st">"average"</span><span class="op">)</span>,</span>
+<span>  plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"combined"</span>, <span class="st">"individual"</span>, <span class="st">"average"</span>, <span class="st">"cv"</span><span class="op">)</span>,</span>
 <span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"env"</span>, <span class="st">"pitch"</span>, <span class="st">"goodness"</span>, <span class="st">"entropy"</span><span class="op">)</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -62,7 +62,7 @@ Wiener entropy. The function supports multiple visualization options.</p>
 <span>  segment_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"motifs"</span>, <span class="st">"syllables"</span>, <span class="st">"segments"</span><span class="op">)</span>,</span>
 <span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"env"</span>, <span class="st">"pitch"</span>, <span class="st">"goodness"</span>, <span class="st">"entropy"</span><span class="op">)</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"combined"</span>, <span class="st">"individual"</span>, <span class="st">"average"</span><span class="op">)</span>,</span>
+<span>  plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"combined"</span>, <span class="st">"individual"</span>, <span class="st">"average"</span>, <span class="st">"cv"</span><span class="op">)</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Set1"</span>,</span>
@@ -87,7 +87,7 @@ Wiener entropy. The function supports multiple visualization options.</p>
 
 
 <dt id="arg-plot-type">plot_type<a class="anchor" aria-label="anchor" href="#arg-plot-type"></a></dt>
-<dd><p>Type of plot: "individual", "average", or "combined" (default: "combined")</p></dd>
+<dd><p>Type of plot: "individual", "average", "cv", or "combined" (default: "combined")</p></dd>
 
 
 <dt id="arg-feature">feature<a class="anchor" aria-label="anchor" href="#arg-feature"></a></dt>
@@ -144,6 +144,10 @@ pitch goodness, and Wiener entropy)</p></li>
 <dt>average</dt>
 <dd><p>Displays mean trace with standard error</p></dd>
 
+<dt>cv</dt>
+<dd><p>Shows coefficient of variation (CV) over time - displays relative variability
+as a percentage at each time point for each label</p></dd>
+
 <dt>combined</dt>
 <dd><p>Shows both individual traces and mean trace</p></dd>
 
@@ -169,6 +173,12 @@ pitch goodness, and Wiener entropy)</p></li>
 <span class="r-in"><span>            segment_type <span class="op">=</span> <span class="st">"syllables"</span>,</span></span>
 <span class="r-in"><span>            feature <span class="op">=</span> <span class="st">"entropy"</span>,</span></span>
 <span class="r-in"><span>            plot_type <span class="op">=</span> <span class="st">"average"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Plot coefficient of variation to examine variability</span></span></span>
+<span class="r-in"><span><span class="fu">plot_traces</span><span class="op">(</span><span class="va">sap_obj</span>,</span></span>
+<span class="r-in"><span>            segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
+<span class="r-in"><span>            feature <span class="op">=</span> <span class="st">"pitch"</span>,</span></span>
+<span class="r-in"><span>            plot_type <span class="op">=</span> <span class="st">"cv"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Customize visualization</span></span></span>
 <span class="r-in"><span><span class="fu">plot_traces</span><span class="op">(</span><span class="va">sap_obj</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">amp_env</span>,</span></span>
