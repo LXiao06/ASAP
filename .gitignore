@@ -9,3 +9,4 @@
 inst/*/
 dev/
 docs
+tests/
