@@ -559,7 +559,7 @@ plot_heatmap.Sap <- function(x,
               msmooth = msmooth)
     }
     time_window <- segments_df$duration[1]
-    alignment_point <- segments_df$detection_time[1] - start_time[1]
+    alignment_point <- segments_df$detection_time[1] - segments_df$start_time[1]
 
     # Get sampling rate for motifs
     test_env <- amp_env(segments_df[1,], wav_dir = x$base_path, msmooth = msmooth)
