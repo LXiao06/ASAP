@@ -8,4 +8,5 @@
 .Ruserdata
 inst/*/
 dev/
+tests/
 docs

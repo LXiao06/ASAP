@@ -15,4 +15,3 @@ Nothing, called for side effects
 \description{
 Ensure required packages are available, auto-installing if needed
 }
-\keyword{internal}

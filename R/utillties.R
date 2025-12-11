@@ -525,7 +525,7 @@ check_pkg <- function(pkg_name) {
 #'
 #' @param ... Character names of required packages
 #' @return Nothing, called for side effects
-#' @keywords internal
+#' @export
 ensure_pkgs <- function(...) {
   pkgs <- c(...)
   missing_pkgs <- pkgs[!sapply(pkgs, check_pkg)]

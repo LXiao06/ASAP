@@ -26,7 +26,8 @@
 compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
   if(verbose) message(sprintf("\n=== Starting compute WAV file durations ===\n"))
 
-  # Validate SAP structure
+  # Validate SAP object and structure
+  if (!inherits(x, "Sap")) stop("Input must be a SAP object")
   if (is.null(x$base_path)) stop("sap$base_path must contain WAV directory path")
   if (is.null(x$metadata)) stop("sap$metadata is missing")
 
