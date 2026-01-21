@@ -25,7 +25,7 @@
 #' @param fftw Logical, use FFTW or not (default: TRUE)
 #' @param freq_range Frequency range for analysis c(min, max) in Hz (default: c(500, 15000))
 #' @param threshold Amplitude threshold for power spectrum (default: 10)
-#' @param method Entropy type ("weiner" or "shannon")
+#' @param method Entropy type ("wiener" or "shannon")
 #' @param normalize Logical, whether to normalize entropy values (default: FALSE)
 #' @param plot Logical, whether to plot results (default: TRUE)
 #' @param plot_entropy_lim Optional limits for entropy plot c(min, max)
@@ -87,7 +87,7 @@
 #' entropy <- spectral_entropy("path/to/sound.wav",
 #'                           start_time = 1,
 #'                           end_time = 2,
-#'                           method = "weiner",
+#'                           method = "wiener",
 #'                           normalize = FALSE)
 #'
 #' # Calculate normalized Shannon entropy for multiple segments using data frame method
@@ -100,12 +100,12 @@
 #' # Method for Sap objects
 #' sap <- spectral_entropy(sap,
 #'                        segment_type = "motifs",
-#'                        method = "weiner",
+#'                        method = "wiener",
 #'                        normalize = FALSE,
 #'                        plot = TRUE)
 #'
 #' # Access the entropy matrix
-#' wiener_entropy <- sap$features$motif$weiner_entropy
+#' wiener_entropy <- sap$features$motif$wiener_entropy
 #'
 #' # Method for entropy matrices
 #' # Plot existing entropy matrix with custom settings
@@ -139,7 +139,7 @@ spectral_entropy.default <- function(x,  # x is wav file path
                                      fftw = TRUE,
                                      freq_range = c(500, 15000),
                                      threshold = 10,
-                                     method = c("weiner", "shannon"),
+                                     method = c("wiener", "shannon"),
                                      normalize = FALSE,
                                      plot = TRUE,
                                      ...) {
@@ -221,7 +221,7 @@ spectral_entropy.data.frame <- function(x,
                                      fftw = TRUE,
                                      freq_range = c(500, 15000),
                                      threshold = 10,
-                                     method = c("weiner", "shannon"),
+                                     method = c("wiener", "shannon"),
                                      normalize = FALSE,
                                      plot = TRUE,
                                      plot_entropy_lim = NULL,
@@ -449,7 +449,7 @@ spectral_entropy.Sap <- function(x,
                                  fftw = TRUE,
                                  freq_range = c(500, 15000),
                                  threshold = 10,
-                                 method = c("weiner", "shannon"),
+                                 method = c("wiener", "shannon"),
                                  normalize = FALSE,
                                  plot = TRUE,
                                  plot_entropy_lim = NULL,
@@ -653,7 +653,7 @@ spectral_entropy.matrix <- function(x,
 
   # Configure color mapping
   if (is.null(color_palette)) {
-    method <- attr(x, "method") %||% "weiner"
+    method <- attr(x, "method") %||% "wiener"
     normalize <- attr(x, "normalize") %||% FALSE
 
     if(normalize) {
@@ -748,7 +748,7 @@ spectral_entropy.matrix <- function(x,
 #' @param fftw Logical, use FFTW or not (default: TRUE)
 #' @param freq_range Frequency range for analysis c(min, max) in Hz
 #' @param threshold Threshold for power spectrum (default: 10)
-#' @param method Entropy method ("weiner" or "shannon")
+#' @param method Entropy method ("wiener" or "shannon")
 #' @param normalize Logical, whether to normalize entropy values
 #' @param plot Logical, whether to plot results (default: TRUE)
 #'
@@ -764,7 +764,7 @@ sh_single_row <- function(segment_row,
                          fftw = TRUE,
                          freq_range = c(500, 15000),
                          threshold = 10,
-                         method = c("weiner", "shannon"),
+                         method = c("wiener", "shannon"),
                          normalize = FALSE,
                          plot = TRUE) {
 
@@ -869,7 +869,7 @@ sh_single_row <- function(segment_row,
 #' @param fftw Logical, use FFTW or not
 #' @param freq_range Frequency range for analysis c(min, max) in Hz
 #' @param threshold Amplitude threshold
-#' @param method Entropy method ("weiner" or "shannon")
+#' @param method Entropy method ("wiener" or "shannon")
 #' @param normalize Logical, whether to normalize entropy values
 #'
 #' @return Matrix with columns: time and entropy values
@@ -885,7 +885,7 @@ csh2 <- function(wave,
                  fftw = FALSE,
                  freq_range = NULL,
                  threshold = NULL,
-                 method = c("weiner", "shannon"),
+                 method = c("wiener", "shannon"),
                  normalize = FALSE) {
 
   # Match method argument
@@ -934,11 +934,11 @@ csh2 <- function(wave,
 #' Internal function to calculate entropy
 #'
 #' @description
-#' Returns Weiner or Shannon entropy of an input vector such as the spectrum of a sound.
+#' Returns Wiener or Shannon entropy of an input vector such as the spectrum of a sound.
 #' This is a modified version of soundgen::getEntropy function.
 #'
 #' @param x numeric vector
-#' @param method character: "weiner" or "shannon"
+#' @param method character: "wiener" or "shannon"
 #' @param normalize logical: whether to normalize the output to [0,1]
 #' @param convertNonPositive numeric: value to replace non-positive values
 #'
@@ -949,14 +949,14 @@ csh2 <- function(wave,
 #' - Tchernichovski, O., Nottebohm, F., Ho, C. E., Pesaran, B., & Mitra, P. P. (2000).
 #'   A procedure for an automated measurement of song similarity.
 #'   Animal Behaviour, 59(6), 1167-1176.
-#' - Weiner entropy implementation follows SAP2011 algorithm
+#' - Wiener entropy implementation follows SAP2011 algorithm
 #' - Original soundgen package: Anikin, A. (2019). Soundgen: An open-source tool
 #'   for synthesizing nonverbal vocalizations. Behavior Research Methods, 51(2), 778-792.
 #'
 #' @keywords internal
 #' @noRd
 getH <- function(x,
-                 method = c("weiner", "shannon"),
+                 method = c("wiener", "shannon"),
                  normalize = FALSE,
                  convertNonPositive = 1e-10) {
   # match the method argument
@@ -967,7 +967,7 @@ getH <- function(x,
     return(NA)
   x[x <= 0] = convertNonPositive
 
-  if (method == "weiner") {
+  if (method == "wiener") {
     # SAP2011 log-scaled Wiener entropy (default)
     sum_log = sum(log(x))
     log_sum = log(sum_x/length(x))
@@ -988,7 +988,7 @@ getH <- function(x,
     }
   }
   else {
-    stop("Implemented entropy methods: \"shannon\" or \"weiner\"")
+    stop("Implemented entropy methods: \"shannon\" or \"wiener\"")
   }
   entropy
 }
@@ -1005,7 +1005,7 @@ getH <- function(x,
 #' @param x A Sap object containing spectral entropy and pitch goodness measurements
 #' @param segment_type Character, type of segments to analyze: "motifs", "syllables", or "segments"
 #' @param reference_label Character, label to use as reference for template creation
-#' @param matrix Character, type of entropy matrix to refine: "weiner" or "shannon"
+#' @param matrix Character, type of entropy matrix to refine: "wiener" or "shannon"
 #' @param method Character, method for template creation: "quantile" or "hmm"
 #' @param minimal_duration Numeric, minimum duration (in ms) for segments (default: 20)
 #' @param split_dips Logical, whether to split segments at local minima (default: TRUE)
@@ -1032,7 +1032,7 @@ getH <- function(x,
 #' sap <- refine_sh(sap,
 #'                  segment_type = "motifs",
 #'                  reference_label = "a",
-#'                  matrix = "weiner",
+#'                  matrix = "wiener",
 #'                  method = "quantile",
 #'                  plot = TRUE)
 #'
@@ -1058,7 +1058,7 @@ getH <- function(x,
 refine_sh <- function(x,
                       segment_type = c("motifs", "syllables", "segments"),
                       reference_label,
-                      matrix = c("weiner", "shannon"),
+                      matrix = c("wiener", "shannon"),
                       method = c("quantile", "hmm"),
                       minimal_duration = 20, # in ms
                       split_dips = TRUE,

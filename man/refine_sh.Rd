@@ -8,7 +8,7 @@ refine_sh(
   x,
   segment_type = c("motifs", "syllables", "segments"),
   reference_label,
-  matrix = c("weiner", "shannon"),
+  matrix = c("wiener", "shannon"),
   method = c("quantile", "hmm"),
   minimal_duration = 20,
   split_dips = TRUE,
@@ -29,7 +29,7 @@ refine_sh(
 
 \item{reference_label}{Character, label to use as reference for template creation}
 
-\item{matrix}{Character, type of entropy matrix to refine: "weiner" or "shannon"}
+\item{matrix}{Character, type of entropy matrix to refine: "wiener" or "shannon"}
 
 \item{method}{Character, method for template creation: "quantile" or "hmm"}
 
@@ -73,7 +73,7 @@ in the Sap object and can be visualized as a heatmap with the template overlay.
 sap <- refine_sh(sap,
                  segment_type = "motifs",
                  reference_label = "a",
-                 matrix = "weiner",
+                 matrix = "wiener",
                  method = "quantile",
                  plot = TRUE)
 

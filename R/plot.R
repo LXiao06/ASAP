@@ -311,7 +311,7 @@ plot_traces.Sap <- function(x,
   } else if (feature == "goodness") {
     matrix_name <- "pitch_goodness"
   } else if (feature == "entropy") {
-    matrix_name <- "weiner_entropy"
+    matrix_name <- "wiener_entropy"
   } else {
     stop("Invalid feature type")
   }
