@@ -2,3 +2,8 @@ url: https://lxiao06.github.io/ASAP/
 template:
   bootstrap: 5
 
+articles:
+  - title: "Getting Started"
+    navbar: ~
+    contents:
+      - single_wav_analysis
