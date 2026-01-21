@@ -18,6 +18,10 @@ of spectral uniformity or complexity in sound signals."><meta property="og:image
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/single_wav_analysis.html">Single WAV File Analysis with ASAP</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -52,7 +56,7 @@ of spectral uniformity or complexity in sound signals.</p>
 <span>  fftw <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">15000</span><span class="op">)</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"weiner"</span>, <span class="st">"shannon"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wiener"</span>, <span class="st">"shannon"</span><span class="op">)</span>,</span>
 <span>  normalize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -68,7 +72,7 @@ of spectral uniformity or complexity in sound signals.</p>
 <span>  fftw <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">15000</span><span class="op">)</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"weiner"</span>, <span class="st">"shannon"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wiener"</span>, <span class="st">"shannon"</span><span class="op">)</span>,</span>
 <span>  normalize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_entropy_lim <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -94,7 +98,7 @@ of spectral uniformity or complexity in sound signals.</p>
 <span>  fftw <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">15000</span><span class="op">)</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"weiner"</span>, <span class="st">"shannon"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wiener"</span>, <span class="st">"shannon"</span><span class="op">)</span>,</span>
 <span>  normalize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_entropy_lim <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -167,7 +171,7 @@ of spectral uniformity or complexity in sound signals.</p>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>Entropy type ("weiner" or "shannon")</p></dd>
+<dd><p>Entropy type ("wiener" or "shannon")</p></dd>
 
 
 <dt id="arg-normalize">normalize<a class="anchor" aria-label="anchor" href="#arg-normalize"></a></dt>
@@ -283,7 +287,7 @@ of spectral uniformity or complexity in sound signals.</p>
 <span class="r-in"><span><span class="va">entropy</span> <span class="op">&lt;-</span> <span class="fu">spectral_entropy</span><span class="op">(</span><span class="st">"path/to/sound.wav"</span>,</span></span>
 <span class="r-in"><span>                          start_time <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>                          end_time <span class="op">=</span> <span class="fl">2</span>,</span></span>
-<span class="r-in"><span>                          method <span class="op">=</span> <span class="st">"weiner"</span>,</span></span>
+<span class="r-in"><span>                          method <span class="op">=</span> <span class="st">"wiener"</span>,</span></span>
 <span class="r-in"><span>                          normalize <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Calculate normalized Shannon entropy for multiple segments using data frame method</span></span></span>
@@ -296,12 +300,12 @@ of spectral uniformity or complexity in sound signals.</p>
 <span class="r-in"><span><span class="co"># Method for Sap objects</span></span></span>
 <span class="r-in"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu">spectral_entropy</span><span class="op">(</span><span class="va">sap</span>,</span></span>
 <span class="r-in"><span>                       segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
-<span class="r-in"><span>                       method <span class="op">=</span> <span class="st">"weiner"</span>,</span></span>
+<span class="r-in"><span>                       method <span class="op">=</span> <span class="st">"wiener"</span>,</span></span>
 <span class="r-in"><span>                       normalize <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>                       plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Access the entropy matrix</span></span></span>
-<span class="r-in"><span><span class="va">wiener_entropy</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">weiner_entropy</span></span></span>
+<span class="r-in"><span><span class="va">wiener_entropy</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">wiener_entropy</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Method for entropy matrices</span></span></span>
 <span class="r-in"><span><span class="co"># Plot existing entropy matrix with custom settings</span></span></span>

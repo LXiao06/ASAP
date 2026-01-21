@@ -12,7 +12,7 @@ refine_sh(
   x,
   segment_type = c("motifs", "syllables", "segments"),
   reference_label,
-  matrix = c("weiner", "shannon"),
+  matrix = c("wiener", "shannon"),
   method = c("quantile", "hmm"),
   minimal_duration = 20,
   split_dips = TRUE,
@@ -45,7 +45,7 @@ refine_sh(
 
 - matrix:
 
-  Character, type of entropy matrix to refine: "weiner" or "shannon"
+  Character, type of entropy matrix to refine: "wiener" or "shannon"
 
 - method:
 
@@ -126,7 +126,7 @@ if (FALSE) { # \dontrun{
 sap <- refine_sh(sap,
                  segment_type = "motifs",
                  reference_label = "a",
-                 matrix = "weiner",
+                 matrix = "wiener",
                  method = "quantile",
                  plot = TRUE)
 

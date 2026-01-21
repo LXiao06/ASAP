@@ -20,7 +20,7 @@ spectral_entropy(
   fftw = TRUE,
   freq_range = c(500, 15000),
   threshold = 10,
-  method = c("weiner", "shannon"),
+  method = c("wiener", "shannon"),
   normalize = FALSE,
   plot = TRUE,
   ...
@@ -36,7 +36,7 @@ spectral_entropy(
   fftw = TRUE,
   freq_range = c(500, 15000),
   threshold = 10,
-  method = c("weiner", "shannon"),
+  method = c("wiener", "shannon"),
   normalize = FALSE,
   plot = TRUE,
   plot_entropy_lim = NULL,
@@ -62,7 +62,7 @@ spectral_entropy(
   fftw = TRUE,
   freq_range = c(500, 15000),
   threshold = 10,
-  method = c("weiner", "shannon"),
+  method = c("wiener", "shannon"),
   normalize = FALSE,
   plot = TRUE,
   plot_entropy_lim = NULL,
@@ -139,7 +139,7 @@ spectral_entropy(
 
 - method:
 
-  Entropy type ("weiner" or "shannon")
+  Entropy type ("wiener" or "shannon")
 
 - normalize:
 
@@ -274,7 +274,7 @@ if (FALSE) { # \dontrun{
 entropy <- spectral_entropy("path/to/sound.wav",
                           start_time = 1,
                           end_time = 2,
-                          method = "weiner",
+                          method = "wiener",
                           normalize = FALSE)
 
 # Calculate normalized Shannon entropy for multiple segments using data frame method
@@ -287,12 +287,12 @@ entropy_list <- spectral_entropy(segments,
 # Method for Sap objects
 sap <- spectral_entropy(sap,
                        segment_type = "motifs",
-                       method = "weiner",
+                       method = "wiener",
                        normalize = FALSE,
                        plot = TRUE)
 
 # Access the entropy matrix
-wiener_entropy <- sap$features$motif$weiner_entropy
+wiener_entropy <- sap$features$motif$wiener_entropy
 
 # Method for entropy matrices
 # Plot existing entropy matrix with custom settings

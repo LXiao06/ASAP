@@ -20,6 +20,10 @@ of the pitch goodness values from a reference label."><meta property="og:image" 
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/single_wav_analysis.html">Single WAV File Analysis with ASAP</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -46,7 +50,7 @@ of the pitch goodness values from a reference label.</p>
 <span>  <span class="va">x</span>,</span>
 <span>  segment_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"motifs"</span>, <span class="st">"syllables"</span>, <span class="st">"segments"</span><span class="op">)</span>,</span>
 <span>  <span class="va">reference_label</span>,</span>
-<span>  matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"weiner"</span>, <span class="st">"shannon"</span><span class="op">)</span>,</span>
+<span>  matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wiener"</span>, <span class="st">"shannon"</span><span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"quantile"</span>, <span class="st">"hmm"</span><span class="op">)</span>,</span>
 <span>  minimal_duration <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  split_dips <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -78,7 +82,7 @@ of the pitch goodness values from a reference label.</p>
 
 
 <dt id="arg-matrix">matrix<a class="anchor" aria-label="anchor" href="#arg-matrix"></a></dt>
-<dd><p>Character, type of entropy matrix to refine: "weiner" or "shannon"</p></dd>
+<dd><p>Character, type of entropy matrix to refine: "wiener" or "shannon"</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
@@ -155,7 +159,7 @@ Journal of Statistical Software, 36(7), 1-21.</p>
 <span class="r-in"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu">refine_sh</span><span class="op">(</span><span class="va">sap</span>,</span></span>
 <span class="r-in"><span>                 segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
 <span class="r-in"><span>                 reference_label <span class="op">=</span> <span class="st">"a"</span>,</span></span>
-<span class="r-in"><span>                 matrix <span class="op">=</span> <span class="st">"weiner"</span>,</span></span>
+<span class="r-in"><span>                 matrix <span class="op">=</span> <span class="st">"wiener"</span>,</span></span>
 <span class="r-in"><span>                 method <span class="op">=</span> <span class="st">"quantile"</span>,</span></span>
 <span class="r-in"><span>                 plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
