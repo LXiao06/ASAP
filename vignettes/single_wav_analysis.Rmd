@@ -79,8 +79,8 @@ bouts <- find_bout(wav_file,
                    min_duration = 0.7,      # Minimum bout length in seconds
                    plot = TRUE)             # Show detection plot
 
-# View detected bouts
-bouts
+# View detected bouts as a table
+knitr::kable(bouts, digits = 3)
 ```
 
 ### Key parameters
@@ -107,8 +107,8 @@ syllables <- segment(wav_file,
                      min_level_db = 10,       # Starting threshold (dB)
                      verbose = FALSE)
 
-# View detected syllables
-syllables
+# View detected syllables as a table
+knitr::kable(syllables, digits = 3)
 ```
 
 ### Understanding the output
@@ -179,16 +179,27 @@ pitch_result <- FF(wav_file,
 The amplitude envelope represents the temporal dynamics of sound intensity. 
 Use `amp_env()` on segmented data to extract envelope profiles.
 
-```{r amplitude-envelope, fig.height=4}
-# First, we need a segment data frame with proper structure
-# Using the first syllable from our segmentation
-if (!is.null(syllables) && nrow(syllables) > 0) {
-  # Extract amplitude envelope for the first syllable
-  env <- amp_env(syllables[1, ], 
-                 wav_dir = dirname(wav_file),
-                 msmooth = c(256, 50),  # Smoothing parameters
-                 norm = TRUE,           # Normalize to 0-1
-                 plot = TRUE)
+```{r amplitude-envelope-bout, fig.height=4}
+# Extract amplitude envelope for the second bout
+if (!is.null(bouts) && nrow(bouts) >= 2) {
+  env_bout <- amp_env(bouts[2, ], 
+                      wav_dir = dirname(wav_file),
+                      msmooth = c(256, 50),
+                      norm = TRUE,
+                      plot = TRUE)
+}
+```
+
+We can also extract the envelope for individual syllables:
+
+```{r amplitude-envelope-syllable, fig.height=4}
+# Extract amplitude envelope for the 7th syllable
+if (!is.null(syllables) && nrow(syllables) >= 7) {
+  env_syl <- amp_env(syllables[7, ], 
+                     wav_dir = dirname(wav_file),
+                     msmooth = c(256, 50),
+                     norm = TRUE,
+                     plot = TRUE)
 }
 ```
 
@@ -213,7 +224,7 @@ visualize_song(wav_file, start_time_in_second = 0, end_time_in_second = 10)
 # 2. Detect bouts
 bouts <- find_bout(wav_file, rms_threshold = 0.1, min_duration = 0.7)
 
-# 3. Segment syllables (focusing on first bout)
+# 3. Segment syllables
 if (!is.null(bouts) && nrow(bouts) > 0) {
   syllables <- segment(wav_file,
                        start_time = bouts$start_time[1],
@@ -229,29 +240,15 @@ entropy <- spectral_entropy(wav_file,
 pitch <- FF(wav_file,
             start_time = bouts$start_time[1],
             end_time = bouts$end_time[1])
+
+# 5. Extract amplitude envelope
+env <- amp_env(bouts[1, ], 
+               wav_dir = dirname(wav_file),
+               msmooth = c(256, 50),
+               norm = TRUE,
+               plot = TRUE)
 ```
 
-## Next Steps
-
-For analyzing multiple recordings across developmental time points, see the 
-main ASAP workflow using SAP objects:
-
-```{r next-steps, eval=FALSE}
-# Create a SAP object for batch analysis
-sap <- create_sap_object(
-  base_path = "/path/to/recordings",
-  subfolders_to_include = c("day1", "day2", "day3"),
-  labels = c("Pre", "During", "Post")
-)
-
-# Then use the pipeline functions:
-sap <- sap |>
-  find_bout() |>
-  segment() |>
-  analyze_spectral() |>
-  find_clusters() |>
-  run_umap()
-```
 
 ## Session Info
 
