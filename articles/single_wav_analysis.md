@@ -79,12 +79,14 @@ bouts <- find_bout(wav_file,
 
 ``` r
 
-# View detected bouts
-bouts
-#>         filename selec start_time end_time
-#> 1 zf_example.wav     1   1.056508 3.552653
-#> 2 zf_example.wav     2   4.156372 4.945850
+# View detected bouts as a table
+knitr::kable(bouts, digits = 3)
 ```
+
+| filename       | selec | start_time | end_time |
+|:---------------|------:|-----------:|---------:|
+| zf_example.wav |     1 |      1.057 |    3.553 |
+| zf_example.wav |     2 |      4.156 |    4.946 |
 
 ### Key parameters
 
@@ -116,61 +118,37 @@ syllables <- segment(wav_file,
 
 ``` r
 
-# View detected syllables
-syllables
-#>          filename selec threshold     .start      .end start_time end_time
-#> 1  zf_example.wav     1        10 0.06146572 0.1229314   1.061466 1.122931
-#> 2  zf_example.wav     2        10 0.15130024 0.1985816   1.151300 1.198582
-#> 3  zf_example.wav     3        10 0.26004728 0.3120567   1.260047 1.312057
-#> 4  zf_example.wav     4        10 0.35933806 0.4113475   1.359338 1.411348
-#> 5  zf_example.wav     5        10 0.44444444 0.5200946   1.444444 1.520095
-#> 6  zf_example.wav     6        10 0.54846336 0.6099291   1.548463 1.609929
-#> 7  zf_example.wav     7        10 0.62411348 0.8368794   1.624113 1.836879
-#> 8  zf_example.wav     8        10 0.87470449 0.9834515   1.874704 1.983452
-#> 9  zf_example.wav     9        10 0.99290780 1.0496454   1.992908 2.049645
-#> 10 zf_example.wav    10        10 1.09219858 1.2151300   2.092199 2.215130
-#> 11 zf_example.wav    11        10 1.33333333 1.5366430   2.333333 2.536643
-#> 12 zf_example.wav    12        10 1.66903073 1.7352246   2.669031 2.735225
-#> 13 zf_example.wav    13        10 1.75413712 1.8392435   2.754137 2.839243
-#> 14 zf_example.wav    14        10 1.85815603 1.9196217   2.858156 2.919622
-#> 15 zf_example.wav    15        10 1.93380615 2.1560284   2.933806 3.156028
-#> 16 zf_example.wav    16        10 2.18439716 2.2931442   3.184397 3.293144
-#> 17 zf_example.wav    17        10 2.30732861 2.3593381   3.307329 3.359338
-#> 18 zf_example.wav    18        10 2.40189125 2.5437352   3.401891 3.543735
-#> 19 zf_example.wav    19        10 3.17730496 3.2387707   4.177305 4.238771
-#> 20 zf_example.wav    20        10 3.27186761 3.3427896   4.271868 4.342790
-#> 21 zf_example.wav    21        10 3.35224586 3.4373522   4.352246 4.437352
-#> 22 zf_example.wav    22        10 3.45626478 3.5130024   4.456265 4.513002
-#> 23 zf_example.wav    23        10 3.52718676 3.7541371   4.527187 4.754137
-#> 24 zf_example.wav    24        10 3.77777778 3.8817967   4.777778 4.881797
-#> 25 zf_example.wav    25        10 3.90070922 3.9479905   4.900709 4.947991
-#>      duration silence_gap
-#> 1  0.06146572          NA
-#> 2  0.04728132 0.028368794
-#> 3  0.05200946 0.061465721
-#> 4  0.05200946 0.047281324
-#> 5  0.07565012 0.033096927
-#> 6  0.06146572 0.028368794
-#> 7  0.21276596 0.014184397
-#> 8  0.10874704 0.037825059
-#> 9  0.05673759 0.009456265
-#> 10 0.12293144 0.042553191
-#> 11 0.20330969 0.118203310
-#> 12 0.06619385 0.132387707
-#> 13 0.08510638 0.018912530
-#> 14 0.06146572 0.018912530
-#> 15 0.22222222 0.014184397
-#> 16 0.10874704 0.028368794
-#> 17 0.05200946 0.014184397
-#> 18 0.14184397 0.042553191
-#> 19 0.06146572 0.633569740
-#> 20 0.07092199 0.033096927
-#> 21 0.08510638 0.009456265
-#> 22 0.05673759 0.018912530
-#> 23 0.22695035 0.014184397
-#> 24 0.10401891 0.023640662
-#> 25 0.04728132 0.018912530
+# View detected syllables as a table
+knitr::kable(syllables, digits = 3)
 ```
+
+| filename       | selec | threshold | .start |  .end | start_time | end_time | duration | silence_gap |
+|:---------------|------:|----------:|-------:|------:|-----------:|---------:|---------:|------------:|
+| zf_example.wav |     1 |        10 |  0.061 | 0.123 |      1.061 |    1.123 |    0.061 |          NA |
+| zf_example.wav |     2 |        10 |  0.151 | 0.199 |      1.151 |    1.199 |    0.047 |       0.028 |
+| zf_example.wav |     3 |        10 |  0.260 | 0.312 |      1.260 |    1.312 |    0.052 |       0.061 |
+| zf_example.wav |     4 |        10 |  0.359 | 0.411 |      1.359 |    1.411 |    0.052 |       0.047 |
+| zf_example.wav |     5 |        10 |  0.444 | 0.520 |      1.444 |    1.520 |    0.076 |       0.033 |
+| zf_example.wav |     6 |        10 |  0.548 | 0.610 |      1.548 |    1.610 |    0.061 |       0.028 |
+| zf_example.wav |     7 |        10 |  0.624 | 0.837 |      1.624 |    1.837 |    0.213 |       0.014 |
+| zf_example.wav |     8 |        10 |  0.875 | 0.983 |      1.875 |    1.983 |    0.109 |       0.038 |
+| zf_example.wav |     9 |        10 |  0.993 | 1.050 |      1.993 |    2.050 |    0.057 |       0.009 |
+| zf_example.wav |    10 |        10 |  1.092 | 1.215 |      2.092 |    2.215 |    0.123 |       0.043 |
+| zf_example.wav |    11 |        10 |  1.333 | 1.537 |      2.333 |    2.537 |    0.203 |       0.118 |
+| zf_example.wav |    12 |        10 |  1.669 | 1.735 |      2.669 |    2.735 |    0.066 |       0.132 |
+| zf_example.wav |    13 |        10 |  1.754 | 1.839 |      2.754 |    2.839 |    0.085 |       0.019 |
+| zf_example.wav |    14 |        10 |  1.858 | 1.920 |      2.858 |    2.920 |    0.061 |       0.019 |
+| zf_example.wav |    15 |        10 |  1.934 | 2.156 |      2.934 |    3.156 |    0.222 |       0.014 |
+| zf_example.wav |    16 |        10 |  2.184 | 2.293 |      3.184 |    3.293 |    0.109 |       0.028 |
+| zf_example.wav |    17 |        10 |  2.307 | 2.359 |      3.307 |    3.359 |    0.052 |       0.014 |
+| zf_example.wav |    18 |        10 |  2.402 | 2.544 |      3.402 |    3.544 |    0.142 |       0.043 |
+| zf_example.wav |    19 |        10 |  3.177 | 3.239 |      4.177 |    4.239 |    0.061 |       0.634 |
+| zf_example.wav |    20 |        10 |  3.272 | 3.343 |      4.272 |    4.343 |    0.071 |       0.033 |
+| zf_example.wav |    21 |        10 |  3.352 | 3.437 |      4.352 |    4.437 |    0.085 |       0.009 |
+| zf_example.wav |    22 |        10 |  3.456 | 3.513 |      4.456 |    4.513 |    0.057 |       0.019 |
+| zf_example.wav |    23 |        10 |  3.527 | 3.754 |      4.527 |    4.754 |    0.227 |       0.014 |
+| zf_example.wav |    24 |        10 |  3.778 | 3.882 |      4.778 |    4.882 |    0.104 |       0.024 |
+| zf_example.wav |    25 |        10 |  3.901 | 3.948 |      4.901 |    4.948 |    0.047 |       0.019 |
 
 ### Understanding the output
 
@@ -252,19 +230,32 @@ intensity. Use
 segmented data to extract envelope profiles.
 
 ``` r
-# First, we need a segment data frame with proper structure
-# Using the first syllable from our segmentation
-if (!is.null(syllables) && nrow(syllables) > 0) {
-  # Extract amplitude envelope for the first syllable
-  env <- amp_env(syllables[1, ], 
-                 wav_dir = dirname(wav_file),
-                 msmooth = c(256, 50),  # Smoothing parameters
-                 norm = TRUE,           # Normalize to 0-1
-                 plot = TRUE)
+# Extract amplitude envelope for the second bout
+if (!is.null(bouts) && nrow(bouts) >= 2) {
+  env_bout <- amp_env(bouts[2, ], 
+                      wav_dir = dirname(wav_file),
+                      msmooth = c(256, 50),
+                      norm = TRUE,
+                      plot = TRUE)
 }
 ```
 
-![](single_wav_analysis_files/figure-html/amplitude-envelope-1.png)
+![](single_wav_analysis_files/figure-html/amplitude-envelope-bout-1.png)
+
+We can also extract the envelope for individual syllables:
+
+``` r
+# Extract amplitude envelope for the 7th syllable
+if (!is.null(syllables) && nrow(syllables) >= 7) {
+  env_syl <- amp_env(syllables[7, ], 
+                     wav_dir = dirname(wav_file),
+                     msmooth = c(256, 50),
+                     norm = TRUE,
+                     plot = TRUE)
+}
+```
+
+![](single_wav_analysis_files/figure-html/amplitude-envelope-syllable-1.png)
 
 ### Smoothing parameters
 
@@ -287,7 +278,7 @@ visualize_song(wav_file, start_time_in_second = 0, end_time_in_second = 10)
 # 2. Detect bouts
 bouts <- find_bout(wav_file, rms_threshold = 0.1, min_duration = 0.7)
 
-# 3. Segment syllables (focusing on first bout)
+# 3. Segment syllables
 if (!is.null(bouts) && nrow(bouts) > 0) {
   syllables <- segment(wav_file,
                        start_time = bouts$start_time[1],
@@ -303,28 +294,13 @@ entropy <- spectral_entropy(wav_file,
 pitch <- FF(wav_file,
             start_time = bouts$start_time[1],
             end_time = bouts$end_time[1])
-```
 
-## Next Steps
-
-For analyzing multiple recordings across developmental time points, see
-the main ASAP workflow using SAP objects:
-
-``` r
-# Create a SAP object for batch analysis
-sap <- create_sap_object(
-  base_path = "/path/to/recordings",
-  subfolders_to_include = c("day1", "day2", "day3"),
-  labels = c("Pre", "During", "Post")
-)
-
-# Then use the pipeline functions:
-sap <- sap |>
-  find_bout() |>
-  segment() |>
-  analyze_spectral() |>
-  find_clusters() |>
-  run_umap()
+# 5. Extract amplitude envelope
+env <- amp_env(bouts[1, ], 
+               wav_dir = dirname(wav_file),
+               msmooth = c(256, 50),
+               norm = TRUE,
+               plot = TRUE)
 ```
 
 ## Session Info
