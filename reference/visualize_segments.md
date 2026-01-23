@@ -11,7 +11,7 @@ visualize_segments(x, ...)
 # Default S3 method
 visualize_segments(
   x,
-  wav_file_dir,
+  wav_dir,
   n_samples = NULL,
   seed = NULL,
   fft_window_size = 1024,
@@ -48,7 +48,7 @@ visualize_segments(
 
   Additional arguments passed to specific methods
 
-- wav_file_dir:
+- wav_dir:
 
   For default method: Directory containing WAV files
 
@@ -133,7 +133,7 @@ song_df <- data.frame(
   end_time = c(30, 40)
 )
 visualize_segments(song_df,
-                   wav_file_dir = "path/to/wav/files",
+                   wav_dir = "path/to/wav/files",
                    n_samples = 5)
 
 # Basic SAP object visualization
