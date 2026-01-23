@@ -615,7 +615,7 @@ visualize_song.Sap <- function(x,  # sap object
 #' Creates multi-panel spectrogram visualizations of audio segments from various sources.
 #'
 #' @param x An object to visualize, either a data frame or SAP object
-#' @param wav_file_dir For default method: Directory containing WAV files
+#' @param wav_dir For default method: Directory containing WAV files
 #' @param n_samples Number of samples to display
 #' @param seed Random seed for sample selection
 #' @param fft_window_size Size of FFT window (default: 1024)
@@ -656,7 +656,7 @@ visualize_song.Sap <- function(x,  # sap object
 #'   end_time = c(30, 40)
 #' )
 #' visualize_segments(song_df,
-#'                    wav_file_dir = "path/to/wav/files",
+#'                    wav_dir = "path/to/wav/files",
 #'                    n_samples = 5)
 #'
 #' # Basic SAP object visualization
@@ -689,7 +689,7 @@ visualize_segments <- function(x, ...) {
 #' @rdname visualize_segments
 #' @export
 visualize_segments.default  <- function(x,
-                                        wav_file_dir,
+                                        wav_dir,
                                         n_samples = NULL,
                                         seed = NULL,
                                         fft_window_size = 1024,
@@ -705,8 +705,8 @@ visualize_segments.default  <- function(x,
   }
 
   # Validate directory
-  if (!dir.exists(wav_file_dir)) {
-    stop("WAV file directory does not exist: ", wav_file_dir)
+  if (!dir.exists(wav_dir)) {
+    stop("WAV file directory does not exist: ", wav_dir)
   }
 
   # Set seed if provided
@@ -733,9 +733,9 @@ visualize_segments.default  <- function(x,
   for (i in 1:n_to_plot) {
     # Use the path constructor function
     if (is.null(x$day_post_hatch)) {
-      full_path <- file.path(wav_file_dir, x$filename[i])
+      full_path <- file.path(wav_dir, x$filename[i])
     } else {
-      full_path <- file.path(wav_file_dir, x$day_post_hatch[i], x$filename[i])
+      full_path <- file.path(wav_dir, x$day_post_hatch[i], x$filename[i])
     }
 
     visualize_song.default(

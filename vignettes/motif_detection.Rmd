@@ -85,14 +85,14 @@ find motifs throughout the recording. We select a syllable that:
 Based on the spectrogram, we'll use syllable "d" which occurs around 0.72-0.84 
 seconds within our clip.
 
-```{r create-template, fig.height=4, fig.width=3}
+```{r create-template, fig.height=4, fig.width=3, out.width="40%"}
 # First, visualize the template region
 visualize_song(wav_file,
                start_time_in_second = 1 + 0.72,
                end_time_in_second = 1 + 0.84)
 ```
 
-```{r make-template}
+```{r make-template, out.width="40%"}
 # Create the template
 template <- create_template(clip_path,
                             template_name = "d",
@@ -145,7 +145,7 @@ Let's visualize the detected motifs to verify our detection worked correctly:
 ```{r visualize-motifs, fig.height=8}
 # Visualize all extracted motifs
 visualize_segments(motifs, 
-                   wav_file_dir = dirname(wav_file),
+                   wav_dir = dirname(wav_file),
                    n_samples = min(nrow(motifs), 4))
 ```
 

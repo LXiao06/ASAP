@@ -296,7 +296,7 @@ plot_heatmap.default <- function(x,
   )
 
   class(result) <- c("segment_heatmap", class(result))
-  return(result)
+  invisible(result)
 }
 
 #' @rdname plot_heatmap

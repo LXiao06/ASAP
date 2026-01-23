@@ -10,7 +10,7 @@ visualize_segments(x, ...)
 
 \method{visualize_segments}{default}(
   x,
-  wav_file_dir,
+  wav_dir,
   n_samples = NULL,
   seed = NULL,
   fft_window_size = 1024,
@@ -40,7 +40,7 @@ visualize_segments(x, ...)
 
 \item{...}{Additional arguments passed to specific methods}
 
-\item{wav_file_dir}{For default method: Directory containing WAV files}
+\item{wav_dir}{For default method: Directory containing WAV files}
 
 \item{n_samples}{Number of samples to display}
 
@@ -93,7 +93,7 @@ song_df <- data.frame(
   end_time = c(30, 40)
 )
 visualize_segments(song_df,
-                   wav_file_dir = "path/to/wav/files",
+                   wav_dir = "path/to/wav/files",
                    n_samples = 5)
 
 # Basic SAP object visualization
