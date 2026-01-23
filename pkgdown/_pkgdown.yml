@@ -1,0 +1,12 @@
+url: https://lxiao06.github.io/ASAP/
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#1e88e5"
+    link-color: "#1e88e5"
+
+articles:
+  - title: "Getting Started"
+    navbar: ~
+    contents:
+      - single_wav_analysis
