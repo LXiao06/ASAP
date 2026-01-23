@@ -342,13 +342,13 @@ sap <- sap |>
   create_audio_clip(indices = 1, start_time = 1, end_time = 2.5, 
                     clip_names = "m1") |>
   create_template(template_name = "d", clip_name = "m1",
-                  start_time = 0.72, end_time = 0.84,  # Optimized from this vignette
+                  start_time = 0.72, end_time = 0.84,  # Optimized
                   freq_min = 1, freq_max = 10, 
-                  threshold = 0.5,                     # Filter low-scoring matches
+                  threshold = 0.5,            # Filter low-scoring matches
                   write_template = TRUE) |>
   detect_template(template_name = "d",
-                  threshold = 0.5,                     # Can adjust threshold here too
-                  proximity_window = 1) |>             # Remove duplicate detections
+                  threshold = 0.5,            # Can adjust threshold here too
+                  proximity_window = 1) |>    # Remove duplicate detections
   find_motif(template_name = "d", pre_time = 0.7, lag_time = 0.5) |>
   analyze_spectral(balanced = TRUE) |>
   find_clusters() |>
@@ -359,16 +359,6 @@ sap |>
   plot_heatmap(balanced = TRUE) |>
   plot_umap(split.by = "label")
 ```
-
-### Bulk Processing Parameters
-
-When processing longitudinal recordings with SAP objects, these
-additional parameters become important:
-
-| Parameter          | Location                                                                                                                                                                | Description                                                                                                                                                                                                                                      |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `threshold`        | [`create_template()`](https://lxiao06.github.io/ASAP/reference/create_template.md) / [`detect_template()`](https://lxiao06.github.io/ASAP/reference/detect_template.md) | Minimum correlation score (0-1). Lower values = more detections (potentially more false positives). Can be adjusted in [`detect_template()`](https://lxiao06.github.io/ASAP/reference/detect_template.md) to refine without recreating template. |
-| `proximity_window` | [`detect_template()`](https://lxiao06.github.io/ASAP/reference/detect_template.md)                                                                                      | Time window (seconds) for filtering duplicate detections. Set to ~motif duration to ensure one detection per motif.                                                                                                                              |
 
 ## Session Info
 

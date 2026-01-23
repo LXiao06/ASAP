@@ -204,7 +204,7 @@ region:</p>
 <span>                            freq_min <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                            freq_max <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>                            write_template <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="motif_detection_files/figure-html/make-template-1.png" class="r-plt" alt="" width="40%"></p>
+<p><img src="motif_detection_files/figure-html/make-template-1.png" class="r-plt" alt="" width="20%"></p>
 <pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Automatic point selection.</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -594,13 +594,13 @@ optimized above:</p>
 <span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">2.5</span>, </span>
 <span>                    clip_names <span class="op">=</span> <span class="st">"m1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, clip_name <span class="op">=</span> <span class="st">"m1"</span>,</span>
-<span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>, end_time <span class="op">=</span> <span class="fl">0.84</span>,  <span class="co"># Optimized from this vignette</span></span>
+<span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>, end_time <span class="op">=</span> <span class="fl">0.84</span>,  <span class="co"># Optimized</span></span>
 <span>                  freq_min <span class="op">=</span> <span class="fl">1</span>, freq_max <span class="op">=</span> <span class="fl">10</span>, </span>
-<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,                     <span class="co"># Filter low-scoring matches</span></span>
+<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,            <span class="co"># Filter low-scoring matches</span></span>
 <span>                  write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>,</span>
-<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,                     <span class="co"># Can adjust threshold here too</span></span>
-<span>                  proximity_window <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span>             <span class="co"># Remove duplicate detections</span></span>
+<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,            <span class="co"># Can adjust threshold here too</span></span>
+<span>                  proximity_window <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span>    <span class="co"># Remove duplicate detections</span></span>
 <span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, pre_time <span class="op">=</span> <span class="fl">0.7</span>, lag_time <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -610,42 +610,6 @@ optimized above:</p>
 <span><span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span>split.by <span class="op">=</span> <span class="st">"label"</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="bulk-processing-parameters">Bulk Processing Parameters<a class="anchor" aria-label="anchor" href="#bulk-processing-parameters"></a>
-</h3>
-<p>When processing longitudinal recordings with SAP objects, these
-additional parameters become important:</p>
-<table class="table">
-<colgroup>
-<col width="32%">
-<col width="29%">
-<col width="38%">
-</colgroup>
-<thead><tr class="header">
-<th>Parameter</th>
-<th>Location</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>threshold</code></td>
-<td>
-<code><a href="../reference/create_template.html">create_template()</a></code> / <code><a href="../reference/detect_template.html">detect_template()</a></code>
-</td>
-<td>Minimum correlation score (0-1). Lower values = more detections
-(potentially more false positives). Can be adjusted in
-<code><a href="../reference/detect_template.html">detect_template()</a></code> to refine without recreating
-template.</td>
-</tr>
-<tr class="even">
-<td><code>proximity_window</code></td>
-<td><code><a href="../reference/detect_template.html">detect_template()</a></code></td>
-<td>Time window (seconds) for filtering duplicate detections. Set to
-~motif duration to ensure one detection per motif.</td>
-</tr>
-</tbody>
-</table>
-</div>
 </div>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>

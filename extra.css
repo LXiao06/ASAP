@@ -143,3 +143,21 @@ aside nav a.active,
     background-color: #e3f2fd;
     color: #1e88e5;
 }
+
+/* Section spacing for vignettes/articles */
+.contents h2 {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid #eee;
+}
+
+/* First h2 shouldn't have top border */
+.contents h2:first-of-type {
+    border-top: none;
+    margin-top: 1em;
+}
+
+/* Subsection spacing */
+.contents h3 {
+    margin-top: 2em;
+}
