@@ -71,6 +71,12 @@
 motifs</strong> from a single zebra finch WAV file using ASAP’s template
 matching workflow. A motif is the stereotyped sequence of syllables that
 adult male zebra finches repeat during singing.</p>
+<p><strong>Purpose of this vignette</strong>: This tutorial provides the
+fundamental concepts for template-based motif detection in ASAP. You’ll
+learn how to interactively optimize template parameters using a single
+recording before applying them to bulk processing. The emphasis is on
+developing a reliable “anchor” template that will serve as the
+foundation for detecting motifs across longitudinal recordings.</p>
 <p>The workflow involves:</p>
 <ol style="list-style-type: decimal">
 <li>
@@ -81,7 +87,7 @@ rendition</li>
 containing the motif</li>
 <li>
 <strong>Creating a template</strong> - Select a distinctive syllable
-as a template</li>
+as an anchor point</li>
 <li>
 <strong>Detecting the template</strong> - Find all occurrences of
 the template</li>
@@ -92,6 +98,12 @@ template detections</li>
 <strong>Visualizing results</strong> - View extracted motifs and
 amplitude heatmaps</li>
 </ol>
+<blockquote>
+<p><strong>Iterative Optimization</strong>: Steps 3-6 should be repeated
+multiple times to refine template parameters until reliable detection is
+achieved. This optimization is crucial before proceeding to bulk
+processing.</p>
+</blockquote>
 </div>
 <div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
@@ -138,14 +150,43 @@ complete motif.</p>
 <span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/ASAP/extdata/templates/clip_zf_example.wav"</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="create-a-template">3. Create a Template<a class="anchor" aria-label="anchor" href="#create-a-template"></a>
+<h2 id="create-a-template-critical-step">3. Create a Template (Critical Step)<a class="anchor" aria-label="anchor" href="#create-a-template-critical-step"></a>
 </h2>
-<p>A template is a short audio segment of a distinctive syllable that
-we’ll use to find motifs throughout the recording. We select a syllable
-that: - Is acoustically distinctive - Occurs once per motif - Has clear
-boundaries</p>
-<p>Based on the spectrogram, we’ll use syllable “d” which occurs around
-0.72-0.84 seconds within our clip.</p>
+<p>Creating a good template is <strong>the most critical step</strong>
+in the motif detection workflow. The template serves as an “anchor
+point” that ASAP uses to locate motifs throughout recordings. A poorly
+chosen template will result in missed detections or false positives.</p>
+<div class="section level3">
+<h3 id="characteristics-of-a-good-template-syllable">Characteristics of a Good Template Syllable<a class="anchor" aria-label="anchor" href="#characteristics-of-a-good-template-syllable"></a>
+</h3>
+<p>When selecting a syllable for template creation, look for one
+that:</p>
+<ul>
+<li>
+<strong>Is acoustically distinctive</strong> - Has unique spectral
+features that differentiate it from other syllables and background
+noise</li>
+<li>
+<strong>Occurs exactly once per motif</strong> - Ensures one-to-one
+mapping between detections and motifs</li>
+<li>
+<strong>Has clear temporal boundaries</strong> - Sharp onset and
+offset for precise alignment</li>
+<li>
+<strong>Is consistently produced</strong> - Appears reliably across
+all motif renditions</li>
+<li>
+<strong>Is stable across development</strong> - If analyzing
+longitudinal data, choose a syllable that remains recognizable over
+time</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="template-selection-process">Template Selection Process<a class="anchor" aria-label="anchor" href="#template-selection-process"></a>
+</h3>
+<p>Based on the spectrogram above, we’ll use syllable “d” which occurs
+around 0.72-0.84 seconds within our clip. Let’s visualize this specific
+region:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># First, visualize the template region</span></span>
 <span><span class="fu"><a href="../reference/visualize_song.html">visualize_song</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
@@ -153,6 +194,7 @@ boundaries</p>
 <span>               end_time_in_second <span class="op">=</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.84</span><span class="op">)</span></span></code></pre></div>
 <p><img src="motif_detection_files/figure-html/create-template-1.png" class="r-plt" alt="" width="40%"></p>
 <pre><code><span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre>
+<p>Now create the template with specified frequency bounds:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create the template</span></span>
 <span><span class="va">template</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span><span class="va">clip_path</span>,</span>
@@ -180,6 +222,35 @@ boundaries</p>
 <span><span class="co">#&gt;   n.points score.cutoff</span></span>
 <span><span class="co">#&gt; d     1050          0.6</span></span></code></pre>
 </div>
+<div class="section level3">
+<h3 id="key-template-parameters">Key Template Parameters<a class="anchor" aria-label="anchor" href="#key-template-parameters"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="30%">
+<col width="44%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Description</th>
+<th>Optimization Tips</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>start_time/end_time</code></td>
+<td>Syllable boundaries</td>
+<td>Adjust to capture complete syllable without gaps</td>
+</tr>
+<tr class="even">
+<td><code>freq_min/freq_max</code></td>
+<td>Frequency range (kHz)</td>
+<td>Narrow range reduces noise; 1-10 kHz typical for zebra finch</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div class="section level2">
 <h2 id="detect-template-occurrences">4. Detect Template Occurrences<a class="anchor" aria-label="anchor" href="#detect-template-occurrences"></a>
 </h2>
@@ -187,8 +258,10 @@ boundaries</p>
 recording:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run template detection on the original WAV file</span></span>
+<span><span class="co"># proximity_window filters out multiple detections within the same motif</span></span>
 <span><span class="va">template_matches</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">wav_file</span>,</span>
 <span>                                    template <span class="op">=</span> <span class="va">template</span>,</span>
+<span>                                    proximity_window <span class="op">=</span> <span class="fl">1</span>,  <span class="co"># Filter detections within 1s</span></span>
 <span>                                    save_plot <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># View detection results</span></span>
@@ -221,12 +294,66 @@ recording:</p>
 </tr>
 </tbody>
 </table>
+<div class="section level3">
+<h3 id="key-detection-parameters">Key Detection Parameters<a class="anchor" aria-label="anchor" href="#key-detection-parameters"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="34%">
+<col width="40%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Description</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>proximity_window</code></td>
+<td>Time window (seconds) to filter nearby detections</td>
+<td>Eliminates false positives within a motif duration. Only the
+highest-scoring detection within each window is retained.</td>
+</tr>
+<tr class="even">
+<td><code>threshold</code></td>
+<td>Minimum correlation score (0-1)</td>
+<td>Set during template creation; detections below this score are
+discarded(available for sap method)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="evaluating-detection-quality">Evaluating Detection Quality<a class="anchor" aria-label="anchor" href="#evaluating-detection-quality"></a>
+</h3>
+<p>Review the detection results carefully:</p>
+<ul>
+<li>
+<strong>Score column</strong>: Higher scores indicate better
+matches. If scores are uniformly low, the template may need
+adjustment.</li>
+<li>
+<strong>Number of detections</strong>: Should match expected motif
+count based on visual inspection.</li>
+<li>
+<strong>Detection spacing</strong>: Detections should be evenly
+spaced if motifs occur regularly.</li>
+</ul>
+<p>If detection results are unsatisfactory, <strong>return to Step
+3</strong> and try:</p>
+<ul>
+<li>Different syllable selection</li>
+<li>Adjusting time boundaries</li>
+<li>Modifying frequency range</li>
+</ul>
+</div>
 </div>
 <div class="section level2">
 <h2 id="extract-motif-boundaries">5. Extract Motif Boundaries<a class="anchor" aria-label="anchor" href="#extract-motif-boundaries"></a>
 </h2>
-<p>Once we have template detections, we define motif boundaries by
-extending a fixed time window before and after each detection:</p>
+<p>Once we have reliable template detections, we define motif boundaries
+by extending a fixed time window before and after each detection:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define motif boundaries around each detection</span></span>
 <span><span class="co"># pre_time: how much before the template to include</span></span>
@@ -272,6 +399,34 @@ extending a fixed time window before and after each detection:</p>
 </tr>
 </tbody>
 </table>
+<div class="section level3">
+<h3 id="adjusting-prelag-times">Adjusting Pre/Lag Times<a class="anchor" aria-label="anchor" href="#adjusting-prelag-times"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="24%">
+<col width="28%">
+<col width="46%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Description</th>
+<th>Adjustment Strategy</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>pre_time</code></td>
+<td>Time before template anchor</td>
+<td>Should capture syllables preceding the anchor</td>
+</tr>
+<tr class="even">
+<td><code>lag_time</code></td>
+<td>Time after template anchor</td>
+<td>Should capture syllables following the anchor</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="section level2">
 <h2 id="visualize-detected-motifs">6. Visualize Detected Motifs<a class="anchor" aria-label="anchor" href="#visualize-detected-motifs"></a>
@@ -287,22 +442,40 @@ correctly:</p>
 <span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre></div>
 <p><img src="motif_detection_files/figure-html/visualize-motifs-1.png" class="r-plt" alt="" width="100%"></p>
 <pre><code><span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre>
+<div class="section level3">
+<h3 id="quality-check">Quality Check<a class="anchor" aria-label="anchor" href="#quality-check"></a>
+</h3>
+<p>Examine the extracted motifs:</p>
+<ul>
+<li>Are all motifs complete (no truncation at boundaries)?</li>
+<li>Are motifs properly aligned?</li>
+<li>Are there any false positives (non-motif sounds)?</li>
+<li>Is the temporal structure consistent across renditions?</li>
+</ul>
+<p>If issues are found, <strong>iterate back through Steps 3-6</strong>
+with adjusted parameters.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="amplitude-envelope-heatmap">7. Amplitude Envelope Heatmap<a class="anchor" aria-label="anchor" href="#amplitude-envelope-heatmap"></a>
 </h2>
-<p>We can create a heatmap of amplitude envelopes across all detected
-motifs to see the temporal structure:</p>
+<p>Once satisfied with detection quality, create a heatmap of amplitude
+envelopes across all detected motifs to visualize the temporal
+structure:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot amplitude envelope heatmap</span></span>
 <span><span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span><span class="va">motifs</span>, wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="motif_detection_files/figure-html/plot-heatmap-1.png" class="r-plt" alt="" width="100%"></p>
+<p>A well-detected set of motifs will show consistent vertical banding
+patterns corresponding to syllables across all renditions.</p>
 </div>
 <div class="section level2">
 <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>
-<p>This vignette demonstrated the core ASAP workflow for finding
-motifs:</p>
+<p>This vignette demonstrated the core ASAP workflow for finding motifs
+in a single recording. The key insight is that <strong>template
+optimization is an iterative process</strong> — Steps 3-6 should be
+repeated until detection results are satisfactory.</p>
 <table class="table">
 <colgroup>
 <col width="20%">
@@ -353,7 +526,7 @@ motifs:</p>
 </tbody>
 </table>
 <div class="section level3">
-<h3 id="key-parameters">Key Parameters<a class="anchor" aria-label="anchor" href="#key-parameters"></a>
+<h3 id="key-parameters-reference">Key Parameters Reference<a class="anchor" aria-label="anchor" href="#key-parameters-reference"></a>
 </h3>
 <table class="table">
 <colgroup>
@@ -380,38 +553,54 @@ motifs:</p>
 <tr class="odd">
 <td><code>pre_time</code></td>
 <td>Time before template for motif start</td>
-<td>0.5-0.8s</td>
+<td>0.2-0.8s</td>
 </tr>
 <tr class="even">
 <td><code>lag_time</code></td>
 <td>Time after template for motif end</td>
-<td>0.3-0.6s</td>
+<td>0.2-0.8s</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="section level3">
-<h3 id="full-pipeline-with-sap-objects">Full Pipeline with SAP Objects<a class="anchor" aria-label="anchor" href="#full-pipeline-with-sap-objects"></a>
-</h3>
-<p>For analyzing multiple recordings across time points, ASAP provides a
-streamlined pipeline using SAP objects:</p>
+</div>
+<div class="section level2">
+<h2 id="next-steps-bulk-processing-with-sap-objects">Next Steps: Bulk Processing with SAP Objects<a class="anchor" aria-label="anchor" href="#next-steps-bulk-processing-with-sap-objects"></a>
+</h2>
+<p>Once you have optimized template parameters using a single recording
+(as demonstrated in this vignette), you can apply them to bulk
+processing of longitudinal recordings using SAP objects.</p>
+<p>The following vignettes cover bulk processing workflows:</p>
+<ul>
+<li>
+<strong>Constructing SAP Objects</strong> - How to organize and
+import longitudinal recording data</li>
+<li>
+<strong>Detecting Motifs from Longitudinal Recordings</strong> -
+Applying optimized templates across multiple recordings</li>
+</ul>
+<p>Here’s a preview of the SAP object pipeline using the parameters we
+optimized above:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create SAP object</span></span>
+<code class="sourceCode R"><span><span class="co"># Create SAP object from organized recording folders</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_sap_object.html">create_sap_object</a></span><span class="op">(</span></span>
 <span>  base_path <span class="op">=</span> <span class="st">"/path/to/recordings"</span>,</span>
 <span>  subfolders_to_include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"190"</span>, <span class="st">"201"</span>, <span class="st">"203"</span><span class="op">)</span>,</span>
 <span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span>, <span class="st">"Rec"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Run motif detection pipeline</span></span>
+<span><span class="co"># Run motif detection pipeline with optimized parameters</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">2.5</span>, </span>
 <span>                    clip_names <span class="op">=</span> <span class="st">"m1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, clip_name <span class="op">=</span> <span class="st">"m1"</span>,</span>
-<span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>, end_time <span class="op">=</span> <span class="fl">0.84</span>,</span>
+<span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>, end_time <span class="op">=</span> <span class="fl">0.84</span>,  <span class="co"># Optimized from this vignette</span></span>
 <span>                  freq_min <span class="op">=</span> <span class="fl">1</span>, freq_max <span class="op">=</span> <span class="fl">10</span>, </span>
-<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>, write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,                     <span class="co"># Filter low-scoring matches</span></span>
+<span>                  write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>,</span>
+<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,                     <span class="co"># Can adjust threshold here too</span></span>
+<span>                  proximity_window <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span>             <span class="co"># Remove duplicate detections</span></span>
 <span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, pre_time <span class="op">=</span> <span class="fl">0.7</span>, lag_time <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -421,6 +610,41 @@ streamlined pipeline using SAP objects:</p>
 <span><span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span>split.by <span class="op">=</span> <span class="st">"label"</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="bulk-processing-parameters">Bulk Processing Parameters<a class="anchor" aria-label="anchor" href="#bulk-processing-parameters"></a>
+</h3>
+<p>When processing longitudinal recordings with SAP objects, these
+additional parameters become important:</p>
+<table class="table">
+<colgroup>
+<col width="32%">
+<col width="29%">
+<col width="38%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Location</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>threshold</code></td>
+<td>
+<code><a href="../reference/create_template.html">create_template()</a></code> / <code><a href="../reference/detect_template.html">detect_template()</a></code>
+</td>
+<td>Minimum correlation score (0-1). Lower values = more detections
+(potentially more false positives). Can be adjusted in
+<code><a href="../reference/detect_template.html">detect_template()</a></code> to refine without recreating
+template.</td>
+</tr>
+<tr class="even">
+<td><code>proximity_window</code></td>
+<td><code><a href="../reference/detect_template.html">detect_template()</a></code></td>
+<td>Time window (seconds) for filtering duplicate detections. Set to
+~motif duration to ensure one detection per motif.</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section level2">
