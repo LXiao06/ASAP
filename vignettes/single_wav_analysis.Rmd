@@ -108,7 +108,7 @@ syllables <- segment(wav_file,
                      verbose = FALSE)
 
 # View detected syllables as a table
-knitr::kable(syllables, digits = 3)
+knitr::kable(syllables, digits = 2)
 ```
 
 ### Understanding the output

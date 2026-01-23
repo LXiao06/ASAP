@@ -9,4 +9,4 @@
 inst/*/
 dev/
 docs
-tests/
+tests/vignettes/*.R
