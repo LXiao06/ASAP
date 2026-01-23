@@ -10,3 +10,4 @@ articles:
     navbar: ~
     contents:
       - single_wav_analysis
+      - motif_detection

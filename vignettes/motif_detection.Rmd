@@ -1,0 +1,222 @@
+---
+title: "Finding Motifs in Zebra Finch Song"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Finding Motifs in Zebra Finch Song}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 5,
+  out.width = "100%"
+)
+```
+
+## Introduction
+
+This vignette demonstrates how to find and extract **song motifs** from a single 
+zebra finch WAV file using ASAP's template matching workflow. A motif is the 
+stereotyped sequence of syllables that adult male zebra finches repeat during 
+singing.
+
+The workflow involves:
+
+1. **Visualizing the song** - Identify a clear motif rendition
+2. **Creating an audio clip** - Extract a segment containing the motif
+3. **Creating a template** - Select a distinctive syllable as a template
+4. **Detecting the template** - Find all occurrences of the template
+5. **Extracting motifs** - Define motif boundaries around template detections
+6. **Visualizing results** - View extracted motifs and amplitude heatmaps
+
+## Setup
+
+```{r setup}
+library(ASAP)
+
+# Get path to example WAV file included with the package
+wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
+```
+
+## 1. Visualize the Song
+
+First, let's look at the full recording to identify motif structure:
+
+```{r visualize-full, fig.height=4}
+visualize_song(wav_file)
+```
+
+We can see multiple motif renditions in this recording. Let's zoom in on a 
+clear section to identify a good reference motif:
+
+```{r visualize-segment, fig.height=4}
+visualize_song(wav_file, 
+               start_time_in_second = 1, 
+               end_time_in_second = 2.5)
+```
+
+## 2. Create an Audio Clip
+
+To create a template, we first extract an audio clip containing a clear motif.
+We'll use the segment from 1-2.5 seconds which contains a complete motif.
+
+```{r create-clip}
+# Create an audio clip from the WAV file
+clip_path <- create_audio_clip(wav_file,
+                               start_time = 1,
+                               end_time = 2.5)
+
+# View the created clip path
+clip_path
+```
+
+## 3. Create a Template
+
+A template is a short audio segment of a distinctive syllable that we'll use to 
+find motifs throughout the recording. We select a syllable that:
+- Is acoustically distinctive
+- Occurs once per motif
+- Has clear boundaries
+
+Based on the spectrogram, we'll use syllable "d" which occurs around 0.72-0.84 
+seconds within our clip.
+
+```{r create-template, fig.height=4, fig.width=3}
+# First, visualize the template region
+visualize_song(wav_file,
+               start_time_in_second = 1 + 0.72,
+               end_time_in_second = 1 + 0.84)
+```
+
+```{r make-template}
+# Create the template
+template <- create_template(clip_path,
+                            template_name = "d",
+                            start_time = 0.72,
+                            end_time = 0.84,
+                            freq_min = 1,
+                            freq_max = 10,
+                            write_template = FALSE)
+
+# View template info
+template
+```
+
+## 4. Detect Template Occurrences
+
+Now we search for all occurrences of this template throughout the recording:
+
+```{r detect-template, fig.height=6}
+# Run template detection on the original WAV file
+template_matches <- detect_template(x = wav_file,
+                                    template = template,
+                                    save_plot = FALSE)
+
+# View detection results
+knitr::kable(template_matches, digits = 2)
+```
+
+## 5. Extract Motif Boundaries
+
+Once we have template detections, we define motif boundaries by extending 
+a fixed time window before and after each detection:
+
+```{r extract-motifs}
+# Define motif boundaries around each detection
+# pre_time: how much before the template to include
+# lag_time: how much after the template to include
+motifs <- find_motif(template_matches,
+                     pre_time = 0.7,
+                     lag_time = 0.5,
+                     wav_dir = dirname(wav_file))
+
+# View extracted motifs
+knitr::kable(motifs, digits = 2)
+```
+
+## 6. Visualize Detected Motifs
+
+Let's visualize the detected motifs to verify our detection worked correctly:
+
+```{r visualize-motifs, fig.height=8}
+# Visualize all extracted motifs
+visualize_segments(motifs, 
+                   wav_file_dir = dirname(wav_file),
+                   n_samples = min(nrow(motifs), 4))
+```
+
+## 7. Amplitude Envelope Heatmap
+
+We can create a heatmap of amplitude envelopes across all detected motifs to 
+see the temporal structure:
+
+```{r plot-heatmap, fig.height=3, fig.width=8}
+# Plot amplitude envelope heatmap
+plot_heatmap(motifs, wav_dir = dirname(wav_file))
+```
+
+## Summary
+
+This vignette demonstrated the core ASAP workflow for finding motifs:
+
+| Step | Function | Description |
+|------|----------|-------------|
+| 1 | `visualize_song()` | View spectrogram to identify motifs |
+| 2 | `create_audio_clip()` | Extract a reference motif segment |
+| 3 | `create_template()` | Create a template from a distinctive syllable |
+| 4 | `detect_template()` | Find all template occurrences |
+| 5 | `find_motif()` | Define motif boundaries around detections |
+| 6 | `visualize_segments()` | View extracted motif spectrograms |
+| 7 | `plot_heatmap()` | Visualize amplitude envelope patterns |
+
+### Key Parameters
+
+| Parameter | Description | Typical Value |
+|-----------|-------------|---------------|
+| `start_time/end_time` | Template time limits (seconds) | 0.1-0.2s duration |
+| `freq_min/freq_max` | Frequency range (kHz) | 1-10 kHz for zebra finch |
+| `pre_time` | Time before template for motif start | 0.5-0.8s |
+| `lag_time` | Time after template for motif end | 0.3-0.6s |
+
+### Full Pipeline with SAP Objects
+
+For analyzing multiple recordings across time points, ASAP provides a 
+streamlined pipeline using SAP objects:
+
+```{r full-pipeline, eval=FALSE}
+# Create SAP object
+sap <- create_sap_object(
+  base_path = "/path/to/recordings",
+  subfolders_to_include = c("190", "201", "203"),
+  labels = c("BL", "Post", "Rec")
+)
+
+# Run motif detection pipeline
+sap <- sap |>
+  create_audio_clip(indices = 1, start_time = 1, end_time = 2.5, 
+                    clip_names = "m1") |>
+  create_template(template_name = "d", clip_name = "m1",
+                  start_time = 0.72, end_time = 0.84,
+                  freq_min = 1, freq_max = 10, 
+                  threshold = 0.5, write_template = TRUE) |>
+  detect_template(template_name = "d") |>
+  find_motif(template_name = "d", pre_time = 0.7, lag_time = 0.5) |>
+  analyze_spectral(balanced = TRUE) |>
+  find_clusters() |>
+  run_umap()
+
+# Visualize results
+sap |>
+  plot_heatmap(balanced = TRUE) |>
+  plot_umap(split.by = "label")
+```
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
