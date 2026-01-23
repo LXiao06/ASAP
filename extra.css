@@ -1,0 +1,145 @@
+/* Custom CSS for ASAP pkgdown site */
+/* Based on warbleR styling */
+
+body {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    font-size: 19px;
+    font-weight: 200;
+}
+
+#sidebar {
+    font-size: 16px
+}
+
+#sidebar p {
+    font-size: 16px
+}
+
+.contents h1,
+.contents h2,
+.contents h3,
+.contents h4 {
+    padding-top: 60px;
+    margin-top: -50px;
+}
+
+h4 {
+    font-size: 19px;
+}
+
+h3 {
+    font-size: 22px;
+}
+
+h2 {
+    font-size: 26px;
+}
+
+h1 {
+    font-size: 30px;
+}
+
+pre {
+    border: 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+    background: #e9f7ed;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    padding-left: 20px;
+    padding-right: 20px;
+    line-height: 21px;
+    font-size: 15px;
+}
+
+pre code {
+    color: #182125;
+    background: #e9f7ed;
+}
+
+code {
+    word-wrap: break-word;
+    font-size: 85%;
+    font-family: Consolas, Monaco, "Courier New", monospace;
+    border-radius: 0;
+}
+
+.nav-pills>li>a {
+    border-radius: 0;
+}
+
+.navbar-default .navbar-nav>.active>a,
+.navbar-default .navbar-nav>.active>a:focus,
+.navbar-default .navbar-nav>.active>a:hover {
+    color: #1e88e5;
+}
+
+.navbar-default .navbar-nav>li>a {
+    color: #1e88e5;
+}
+
+table p {
+    font-size: 85%;
+}
+
+.ref-index h2 {
+    font-size: 24px;
+}
+
+/* Blue headings */
+h1,
+h2 {
+    color: #1e88e5;
+}
+
+/* Sidebar TOC header */
+.sidebar-section h2,
+aside h2,
+.toc-heading {
+    color: #1e88e5 !important;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Wider search box */
+.navbar .form-control,
+#search-input {
+    min-width: 180px;
+}
+
+/* Content/sidebar ratio */
+@media (min-width: 992px) {
+    .col-md-9 {
+        flex: 0 0 80%;
+        max-width: 80%;
+    }
+
+    .col-md-3 {
+        flex: 0 0 20%;
+        max-width: 20%;
+    }
+}
+
+/* Sidebar TOC link styling */
+aside nav a,
+.sidebar nav a {
+    color: #333;
+    font-size: 0.95rem;
+    padding: 0.25rem 0;
+}
+
+aside nav a:hover,
+.sidebar nav a:hover {
+    color: #1e88e5;
+}
+
+aside nav a.active,
+.sidebar nav a.active {
+    background-color: #e3f2fd;
+    color: #1e88e5;
+}
