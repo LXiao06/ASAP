@@ -24,14 +24,25 @@ zebra finch WAV file using ASAP's template matching workflow. A motif is the
 stereotyped sequence of syllables that adult male zebra finches repeat during 
 singing.
 
+**Purpose of this vignette**: This tutorial provides the fundamental concepts for 
+template-based motif detection in ASAP. You'll learn how to interactively 
+optimize template parameters using a single recording before applying them to 
+bulk processing. The emphasis is on developing a reliable "anchor" template 
+that will serve as the foundation for detecting motifs across longitudinal 
+recordings.
+
 The workflow involves:
 
 1. **Visualizing the song** - Identify a clear motif rendition
 2. **Creating an audio clip** - Extract a segment containing the motif
-3. **Creating a template** - Select a distinctive syllable as a template
+3. **Creating a template** - Select a distinctive syllable as an anchor point
 4. **Detecting the template** - Find all occurrences of the template
 5. **Extracting motifs** - Define motif boundaries around template detections
 6. **Visualizing results** - View extracted motifs and amplitude heatmaps
+
+> **Iterative Optimization**: Steps 3-6 should be repeated multiple times 
+> to refine template parameters until reliable detection is achieved. This 
+> optimization is crucial before proceeding to bulk processing.
 
 ## Setup
 
@@ -74,16 +85,31 @@ clip_path <- create_audio_clip(wav_file,
 clip_path
 ```
 
-## 3. Create a Template
+## 3. Create a Template (Critical Step)
 
-A template is a short audio segment of a distinctive syllable that we'll use to 
-find motifs throughout the recording. We select a syllable that:
-- Is acoustically distinctive
-- Occurs once per motif
-- Has clear boundaries
+Creating a good template is **the most critical step** in the motif detection 
+workflow. The template serves as an "anchor point" that ASAP uses to locate 
+motifs throughout recordings. A poorly chosen template will result in missed 
+detections or false positives.
 
-Based on the spectrogram, we'll use syllable "d" which occurs around 0.72-0.84 
-seconds within our clip.
+### Characteristics of a Good Template Syllable
+
+When selecting a syllable for template creation, look for one that:
+
+- **Is acoustically distinctive** - Has unique spectral features that 
+  differentiate it from other syllables and background noise
+- **Occurs exactly once per motif** - Ensures one-to-one mapping between 
+  detections and motifs
+- **Has clear temporal boundaries** - Sharp onset and offset for precise 
+  alignment
+- **Is consistently produced** - Appears reliably across all motif renditions
+- **Is stable across development** - If analyzing longitudinal data, choose 
+  a syllable that remains recognizable over time
+
+### Template Selection Process
+
+Based on the spectrogram above, we'll use syllable "d" which occurs around 
+0.72-0.84 seconds within our clip. Let's visualize this specific region:
 
 ```{r create-template, fig.height=4, fig.width=3, out.width="40%"}
 # First, visualize the template region
@@ -91,6 +117,8 @@ visualize_song(wav_file,
                start_time_in_second = 1 + 0.72,
                end_time_in_second = 1 + 0.84)
 ```
+
+Now create the template with specified frequency bounds:
 
 ```{r make-template, out.width="40%"}
 # Create the template
@@ -106,24 +134,57 @@ template <- create_template(clip_path,
 template
 ```
 
+### Key Template Parameters
+
+| Parameter | Description | Optimization Tips |
+|-----------|-------------|-------------------|
+| `start_time/end_time` | Syllable boundaries | Adjust to capture complete syllable without gaps |
+| `freq_min/freq_max` | Frequency range (kHz) | Narrow range reduces noise; 1-10 kHz typical for zebra finch |
+
 ## 4. Detect Template Occurrences
 
 Now we search for all occurrences of this template throughout the recording:
 
 ```{r detect-template, fig.height=6}
 # Run template detection on the original WAV file
+# proximity_window filters out multiple detections within the same motif
 template_matches <- detect_template(x = wav_file,
                                     template = template,
+                                    proximity_window = 1,  # Filter detections within 1s
                                     save_plot = FALSE)
 
 # View detection results
 knitr::kable(template_matches, digits = 2)
 ```
 
+### Key Detection Parameters
+
+| Parameter | Description | Purpose |
+|-----------|-------------|--------|
+| `proximity_window` | Time window (seconds) to filter nearby detections | Eliminates false positives within a motif duration. Only the highest-scoring detection within each window is retained. |
+| `threshold` | Minimum correlation score (0-1) | Set during template creation; detections below this score are discarded(available for sap method) |
+
+### Evaluating Detection Quality
+
+Review the detection results carefully:
+
+- **Score column**: Higher scores indicate better matches. If scores are 
+  uniformly low, the template may need adjustment.
+- **Number of detections**: Should match expected motif count based on 
+  visual inspection.
+- **Detection spacing**: Detections should be evenly spaced if motifs occur 
+  regularly.
+
+If detection results are unsatisfactory, **return to Step 3** and try:
+
+- Different syllable selection
+- Adjusting time boundaries
+- Modifying frequency range
+
 ## 5. Extract Motif Boundaries
 
-Once we have template detections, we define motif boundaries by extending 
-a fixed time window before and after each detection:
+Once we have reliable template detections, we define motif boundaries by 
+extending a fixed time window before and after each detection:
 
 ```{r extract-motifs}
 # Define motif boundaries around each detection
@@ -138,6 +199,13 @@ motifs <- find_motif(template_matches,
 knitr::kable(motifs, digits = 2)
 ```
 
+### Adjusting Pre/Lag Times
+
+| Parameter | Description | Adjustment Strategy |
+|-----------|-------------|---------------------|
+| `pre_time` | Time before template anchor | Should capture syllables preceding the anchor |
+| `lag_time` | Time after template anchor | Should capture syllables following the anchor |
+
 ## 6. Visualize Detected Motifs
 
 Let's visualize the detected motifs to verify our detection worked correctly:
@@ -149,19 +217,35 @@ visualize_segments(motifs,
                    n_samples = min(nrow(motifs), 4))
 ```
 
+### Quality Check
+
+Examine the extracted motifs:
+
+- Are all motifs complete (no truncation at boundaries)?
+- Are motifs properly aligned?
+- Are there any false positives (non-motif sounds)?
+- Is the temporal structure consistent across renditions?
+
+If issues are found, **iterate back through Steps 3-6** with adjusted parameters.
+
 ## 7. Amplitude Envelope Heatmap
 
-We can create a heatmap of amplitude envelopes across all detected motifs to 
-see the temporal structure:
+Once satisfied with detection quality, create a heatmap of amplitude envelopes 
+across all detected motifs to visualize the temporal structure:
 
 ```{r plot-heatmap, fig.height=3, fig.width=8}
 # Plot amplitude envelope heatmap
 plot_heatmap(motifs, wav_dir = dirname(wav_file))
 ```
 
+A well-detected set of motifs will show consistent vertical banding patterns 
+corresponding to syllables across all renditions.
+
 ## Summary
 
-This vignette demonstrated the core ASAP workflow for finding motifs:
+This vignette demonstrated the core ASAP workflow for finding motifs in a single 
+recording. The key insight is that **template optimization is an iterative process** 
+— Steps 3-6 should be repeated until detection results are satisfactory.
 
 | Step | Function | Description |
 |------|----------|-------------|
@@ -173,37 +257,51 @@ This vignette demonstrated the core ASAP workflow for finding motifs:
 | 6 | `visualize_segments()` | View extracted motif spectrograms |
 | 7 | `plot_heatmap()` | Visualize amplitude envelope patterns |
 
-### Key Parameters
+### Key Parameters Reference
 
 | Parameter | Description | Typical Value |
 |-----------|-------------|---------------|
 | `start_time/end_time` | Template time limits (seconds) | 0.1-0.2s duration |
 | `freq_min/freq_max` | Frequency range (kHz) | 1-10 kHz for zebra finch |
-| `pre_time` | Time before template for motif start | 0.5-0.8s |
-| `lag_time` | Time after template for motif end | 0.3-0.6s |
+| `pre_time` | Time before template for motif start | 0.2-0.8s |
+| `lag_time` | Time after template for motif end | 0.2-0.8s |
 
-### Full Pipeline with SAP Objects
+## Next Steps: Bulk Processing with SAP Objects
 
-For analyzing multiple recordings across time points, ASAP provides a 
-streamlined pipeline using SAP objects:
+Once you have optimized template parameters using a single recording 
+(as demonstrated in this vignette), you can apply them to bulk processing 
+of longitudinal recordings using SAP objects.
+
+The following vignettes cover bulk processing workflows:
+
+- **Constructing SAP Objects** - How to organize and import longitudinal 
+  recording data
+- **Detecting Motifs from Longitudinal Recordings** - Applying optimized 
+  templates across multiple recordings
+
+Here's a preview of the SAP object pipeline using the parameters we 
+optimized above:
 
 ```{r full-pipeline, eval=FALSE}
-# Create SAP object
+# Create SAP object from organized recording folders
 sap <- create_sap_object(
   base_path = "/path/to/recordings",
   subfolders_to_include = c("190", "201", "203"),
   labels = c("BL", "Post", "Rec")
 )
 
-# Run motif detection pipeline
+# Run motif detection pipeline with optimized parameters
 sap <- sap |>
   create_audio_clip(indices = 1, start_time = 1, end_time = 2.5, 
                     clip_names = "m1") |>
   create_template(template_name = "d", clip_name = "m1",
-                  start_time = 0.72, end_time = 0.84,
+                  start_time = 0.72, end_time = 0.84,  # Optimized from this vignette
                   freq_min = 1, freq_max = 10, 
-                  threshold = 0.5, write_template = TRUE) |>
-  detect_template(template_name = "d") |>
+                  threshold = 0.5,                     # Filter low-scoring matches
+                  write_template = TRUE) |>
+  detect_template(template_name = "d",
+                  threshold = 0.5,                     # Can adjust threshold here too
+                  proximity_window = 1) |>             # Remove duplicate detections
   find_motif(template_name = "d", pre_time = 0.7, lag_time = 0.5) |>
   analyze_spectral(balanced = TRUE) |>
   find_clusters() |>
@@ -214,6 +312,16 @@ sap |>
   plot_heatmap(balanced = TRUE) |>
   plot_umap(split.by = "label")
 ```
+
+### Bulk Processing Parameters
+
+When processing longitudinal recordings with SAP objects, these additional 
+parameters become important:
+
+| Parameter | Location | Description |
+|-----------|----------|-------------|
+| `threshold` | `create_template()` / `detect_template()` | Minimum correlation score (0-1). Lower values = more detections (potentially more false positives). Can be adjusted in `detect_template()` to refine without recreating template. |
+| `proximity_window` | `detect_template()` | Time window (seconds) for filtering duplicate detections. Set to ~motif duration to ensure one detection per motif. |
 
 ## Session Info
 
