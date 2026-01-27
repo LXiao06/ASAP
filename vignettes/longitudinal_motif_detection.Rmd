@@ -1,0 +1,133 @@
+---
+title: "Longitudinal Motif Detection"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Longitudinal Motif Detection}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 5,
+  out.width = "100%",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+This vignette demonstrates how to detect and analyze song motifs across 
+**longitudinal recordings** using SAP objects and optimized template parameters.
+
+**Prerequisites**: Before reading this vignette, we recommend completing:
+
+- [Overview: Basic Audio Analysis](single_wav_analysis.html) - Core ASAP functions
+- [Motif Detection](motif_detection.html) - Template optimization workflow
+- [Constructing SAP Objects](construct_sap_object.html) - SAP object creation
+
+## Overview
+
+The longitudinal motif detection workflow applies the template parameters you 
+optimized on a single recording (see [Motif Detection](motif_detection.html)) 
+across all recordings in a SAP object.
+
+## Complete Pipeline
+
+```{r pipeline}
+library(ASAP)
+
+# Load or create SAP object
+sap <- create_sap_object(
+  base_path = "/path/to/recordings",
+  subfolders_to_include = c("190", "201", "203"),
+  labels = c("Baseline", "Post", "Recovery")
+)
+
+# Run the complete motif detection pipeline
+sap <- sap |>
+  # Step 1: Create audio clip from reference recording
+  create_audio_clip(indices = 1, 
+                    start_time = 1, 
+                    end_time = 2.5, 
+                    clip_names = "motif_ref") |>
+  
+  # Step 2: Create template with optimized parameters
+  create_template(template_name = "syllable_d", 
+                  clip_name = "motif_ref",
+                  start_time = 0.72, 
+                  end_time = 0.84,
+                  freq_min = 1, 
+                  freq_max = 10, 
+                  threshold = 0.5, 
+                  write_template = TRUE) |>
+  
+  # Step 3: Detect template across all recordings
+  detect_template(template_name = "syllable_d",
+                  threshold = 0.5,
+                  proximity_window = 1) |>
+  
+  # Step 4: Extract motif boundaries
+  find_motif(template_name = "syllable_d", 
+             pre_time = 0.7, 
+             lag_time = 0.5)
+```
+
+## Visualizing Results
+
+```{r visualize}
+# View detection summary
+summary(sap$motifs)
+
+# Visualize sample motifs from each time point
+visualize_segments(sap, 
+                   segment_type = "motifs", 
+                   n_samples = 3)
+
+# Create amplitude envelope heatmap
+sap |> plot_heatmap(balanced = TRUE)
+```
+
+## Feature Extraction and Analysis
+
+```{r features}
+# Extract spectral features
+sap <- sap |>
+  analyze_spectral(balanced = TRUE) |>
+  find_clusters() |>
+  run_umap()
+
+# Visualize UMAP by time point
+sap |> plot_umap(split.by = "label")
+```
+
+## Key Parameters for Bulk Processing
+
+| Parameter | Location | Description |
+|-----------|----------|-------------|
+| `threshold` | `create_template()` / `detect_template()` | Minimum correlation score. Adjust in `detect_template()` to refine without recreating template. |
+| `proximity_window` | `detect_template()` | Filter duplicate detections within this time window (seconds). |
+| `balanced` | `analyze_spectral()` / `plot_heatmap()` | Balance samples across time points. |
+
+## Tips for Longitudinal Analysis
+
+1. **Optimize parameters first**: Use the single-file workflow in 
+   [Motif Detection](motif_detection.html) before bulk processing.
+
+2. **Check detection quality**: Visualize sample detections from each time point 
+   to verify template works across developmental stages.
+
+3. **Adjust threshold if needed**: If detection rates vary significantly across 
+   time points, consider adjusting the threshold in `detect_template()`.
+
+4. **Use balanced sampling**: When comparing across time points, use 
+   `balanced = TRUE` to ensure equal representation.
+
+## Session Info
+
+```{r session-info, eval = TRUE}
+sessionInfo()
+```

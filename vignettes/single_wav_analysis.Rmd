@@ -1,8 +1,8 @@
 ---
-title: "Single WAV File Analysis with ASAP"
+title: "Overview: Basic Audio Analysis"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Single WAV File Analysis with ASAP}
+  %\VignetteIndexEntry{Overview: Basic Audio Analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -6,8 +6,14 @@ template:
     link-color: "#1e88e5"
 
 articles:
-  - title: "Getting Started"
-    navbar: ~
+  - title: "Single WAV File Analysis"
+    desc: "Learn ASAP functions using individual audio files"
     contents:
       - single_wav_analysis
       - motif_detection
+
+  - title: "Longitudinal Recording Analysis with SAP Object"
+    desc: "Batch processing of recordings across developmental time points"
+    contents:
+      - construct_sap_object
+      - longitudinal_motif_detection
