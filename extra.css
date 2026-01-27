@@ -16,8 +16,8 @@ body {
     font-size: 16px
 }
 
+/* Anchor link offset (for scroll-to behavior) */
 .contents h1,
-.contents h2,
 .contents h3,
 .contents h4 {
     padding-top: 60px;
@@ -146,7 +146,7 @@ aside nav a.active,
 
 /* Section spacing for vignettes/articles */
 .contents h2 {
-    margin-top: 5em;
+    margin-top: 3em;
     padding-top: 1em;
     border-top: 1px solid #eee;
 }
@@ -159,5 +159,5 @@ aside nav a.active,
 
 /* Subsection spacing */
 .contents h3 {
-    margin-top: 4em;
+    margin-top: 2em;
 }
