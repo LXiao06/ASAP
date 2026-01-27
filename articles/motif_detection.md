@@ -1,4 +1,4 @@
-# Finding Motifs in Zebra Finch Song
+# Motif Detection
 
 ## Introduction
 
@@ -313,18 +313,20 @@ results are satisfactory.
 | `pre_time`            | Time before template for motif start | 0.2-0.8s                 |
 | `lag_time`            | Time after template for motif end    | 0.2-0.8s                 |
 
-## Next Steps: Bulk Processing with SAP Objects
+## Next Steps: Longitudinal Recording Analysis with SAP Object
 
 Once you have optimized template parameters using a single recording (as
 demonstrated in this vignette), you can apply them to bulk processing of
 longitudinal recordings using SAP objects.
 
-The following vignettes cover bulk processing workflows:
+The following vignettes cover the longitudinal analysis workflow:
 
-- **Constructing SAP Objects** - How to organize and import longitudinal
-  recording data
-- **Detecting Motifs from Longitudinal Recordings** - Applying optimized
-  templates across multiple recordings
+- [**Constructing SAP
+  Objects**](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md) -
+  How to organize and import longitudinal recording data
+- [**Longitudinal Motif
+  Detection**](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md) -
+  Applying optimized templates across multiple recordings
 
 Here’s a preview of the SAP object pipeline using the parameters we
 optimized above:
