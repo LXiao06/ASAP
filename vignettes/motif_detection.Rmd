@@ -111,7 +111,7 @@ When selecting a syllable for template creation, look for one that:
 Based on the spectrogram above, we'll use syllable "d" which occurs around 
 0.72-0.84 seconds within our clip. Let's visualize this specific region:
 
-```{r create-template, fig.height=4, fig.width=3, out.width="40%"}
+```{r create-template, fig.height=4, fig.width=3, out.width="40%", fig.align = "center"}
 # First, visualize the template region
 visualize_song(wav_file,
                start_time_in_second = 1 + 0.72,
@@ -120,7 +120,7 @@ visualize_song(wav_file,
 
 Now create the template with specified frequency bounds:
 
-```{r make-template, out.width="20%"}
+```{r make-template, out.width="40%", fig.align = "center"}
 # Create the template
 template <- create_template(clip_path,
                             template_name = "d",
