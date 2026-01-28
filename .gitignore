@@ -11,3 +11,7 @@ dev/
 docs
 tests/
 vignettes/*.R
+
+# Vignettes figures: only track .png files
+vignettes/figures/*
+!vignettes/figures/*.png

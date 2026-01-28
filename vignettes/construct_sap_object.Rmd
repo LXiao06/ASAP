@@ -13,15 +13,14 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.width = 10,
   fig.height = 5,
-  out.width = "100%",
-  eval = FALSE
+  out.width = "100%"
 )
 ```
 
 ## Introduction
 
 This vignette demonstrates how to construct and organize **SAP (Song Analysis Pipeline) objects** for longitudinal analysis of zebra finch vocalizations. SAP objects serve as the central data structure in ASAP, managing recordings across multiple developmental time points.
-
+  
 **Prerequisites**: Before reading this vignette, we recommend completing:
 
 - [Overview: Basic Audio Analysis](single_wav_analysis.html) - Core ASAP functions
@@ -49,7 +48,7 @@ Each subfolder represents a developmental time point (days post hatch).
 
 ## Creating a SAP Object
 
-```{r create-sap}
+```{r create-sap, eval = FALSE}
 library(ASAP)
 
 # Create SAP object from organized recording folders
@@ -64,6 +63,20 @@ print(sap)
 summary(sap)
 ```
 
+**Example output:**
+
+```{r sap-print-output, echo = FALSE, eval = TRUE, comment = ""}
+cat("SAP Object
+===========
+Base path: /path/to/recordings
+Time points: 3 (190, 201, 203)
+Labels: Baseline, Post, Recovery
+Total files: 847
+  - 190 (Baseline): 312 files
+  - 201 (Post): 285 files
+  - 203 (Recovery): 250 files")
+```
+
 ### Key Arguments
 
 | Argument | Description |
@@ -74,7 +87,7 @@ summary(sap)
 
 ## Exploring SAP Object Contents
 
-```{r explore-sap}
+```{r explore-sap, eval = FALSE}
 # View metadata
 head(sap$metadata)
 
@@ -83,6 +96,16 @@ table(sap$metadata$label)
 
 # Visualize sample recordings
 visualize_song(sap, n_samples = 4, random = TRUE)
+```
+
+```{r visualize-sap-output, echo = FALSE, eval = TRUE, out.width = "100%", fig.cap = "Sample spectrograms from SAP object across time points."}
+# Placeholder for pre-computed image
+# To add: save image from R session and place in vignettes/figures/
+if (file.exists("figures/sap_visualize_song.png")) {
+  knitr::include_graphics("figures/sap_visualize_song.png")
+} else {
+  message("Image placeholder: figures/sap_visualize_song.png")
+}
 ```
 
 ## SAP Object Structure
@@ -106,6 +129,6 @@ Once you have created a SAP object, proceed to:
 
 ## Session Info
 
-```{r session-info, eval = TRUE}
+```{r session-info}
 sessionInfo()
 ```
