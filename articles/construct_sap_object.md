@@ -52,6 +52,18 @@ print(sap)
 summary(sap)
 ```
 
+**Example output:**
+
+    SAP Object
+    ===========
+    Base path: /path/to/recordings
+    Time points: 3 (190, 201, 203)
+    Labels: Baseline, Post, Recovery
+    Total files: 847
+      - 190 (Baseline): 312 files
+      - 201 (Post): 285 files
+      - 203 (Recovery): 250 files
+
 ### Key Arguments
 
 | Argument                | Description                                        |
@@ -72,6 +84,11 @@ table(sap$metadata$label)
 # Visualize sample recordings
 visualize_song(sap, n_samples = 4, random = TRUE)
 ```
+
+![Sample spectrograms from SAP object across time
+points.](figures/sap_visualize_song.png)
+
+Sample spectrograms from SAP object across time points.
 
 ## SAP Object Structure
 

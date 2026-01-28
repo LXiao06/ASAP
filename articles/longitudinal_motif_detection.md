@@ -67,6 +67,22 @@ sap <- sap |>
              lag_time = 0.5)
 ```
 
+**Example output:**
+
+    === Starting Template Detection ===
+
+    Processing 312 files for day 190 using 7 cores.
+    Processed files in day 190. Total detections: 1247
+
+    Processing 285 files for day 201 using 7 cores.
+    Processed files in day 201. Total detections: 1089
+
+    Processing 250 files for day 203 using 7 cores.
+    Processed files in day 203. Total detections: 956
+
+    Total detections across all days: 3292
+    Access detection results via: sap$templates$template_matches[["syllable_d"]]
+
 ## Visualizing Results
 
 ``` r
@@ -77,10 +93,25 @@ summary(sap$motifs)
 visualize_segments(sap, 
                    segment_type = "motifs", 
                    n_samples = 3)
+```
 
+![Sample motif spectrograms across developmental time
+points.](figures/longitudinal_segments.png)
+
+Sample motif spectrograms across developmental time points.
+
+### Amplitude Envelope Heatmap
+
+``` r
 # Create amplitude envelope heatmap
 sap |> plot_heatmap(balanced = TRUE)
 ```
+
+![Amplitude envelope heatmap showing temporal structure across time
+points.](figures/longitudinal_heatmap.png)
+
+Amplitude envelope heatmap showing temporal structure across time
+points.
 
 ## Feature Extraction and Analysis
 
@@ -95,7 +126,13 @@ sap <- sap |>
 sap |> plot_umap(split.by = "label")
 ```
 
-## Key Parameters for Bulk Processing
+![UMAP visualization of motif features colored by developmental time
+point.](figures/longitudinal_umap.png)
+
+UMAP visualization of motif features colored by developmental time
+point.
+
+## Key Parameters for Longitudinal Analysis
 
 | Parameter          | Location                                                                                                                                                                | Description                                                                                                                                                    |
 |--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
