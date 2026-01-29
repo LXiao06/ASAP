@@ -274,7 +274,7 @@ of longitudinal recordings using SAP objects.
 
 The following vignettes cover the longitudinal analysis workflow:
 
-- [**Constructing SAP Objects**](construct_sap_object.html) - How to organize 
+- [**Constructing SAP Object**](construct_sap_object.html) - How to organize 
   and import longitudinal recording data
 - [**Longitudinal Motif Detection**](longitudinal_motif_detection.html) - 
   Applying optimized templates across multiple recordings

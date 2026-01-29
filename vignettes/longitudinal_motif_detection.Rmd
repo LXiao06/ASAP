@@ -26,7 +26,7 @@ This vignette demonstrates how to detect and analyze song motifs across
 
 - [Overview: Basic Audio Analysis](single_wav_analysis.html) - Core ASAP functions
 - [Motif Detection](motif_detection.html) - Template optimization workflow
-- [Constructing SAP Objects](construct_sap_object.html) - SAP object creation
+- [Constructing SAP Object](construct_sap_object.html) - SAP object creation
 
 ## Overview
 
