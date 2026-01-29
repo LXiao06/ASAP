@@ -16,7 +16,7 @@ completing:
   Detection](https://lxiao06.github.io/ASAP/articles/motif_detection.md) -
   Template optimization workflow
 - [Constructing SAP
-  Objects](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md) -
+  Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md) -
   SAP object creation
 
 ## Overview

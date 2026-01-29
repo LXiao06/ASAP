@@ -14,6 +14,6 @@ Learn ASAP functions using individual audio files
 Batch processing of recordings across developmental time points
 
 - [Constructing SAP
-  Objects](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md):
+  Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md):
 - [Longitudinal Motif
   Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md):

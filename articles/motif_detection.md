@@ -322,7 +322,7 @@ longitudinal recordings using SAP objects.
 The following vignettes cover the longitudinal analysis workflow:
 
 - [**Constructing SAP
-  Objects**](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md) -
+  Object**](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md) -
   How to organize and import longitudinal recording data
 - [**Longitudinal Motif
   Detection**](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md) -
