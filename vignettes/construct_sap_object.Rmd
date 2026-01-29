@@ -202,24 +202,35 @@ rename_to_sap_format <- function(input_dir, output_dir, bird_id) {
 }
 ```
 
-### Option 2: Custom Metadata Data Frame
+### Option 2: Custom Metadata Object
 
-Alternatively, you can create a metadata data frame directly and bypass 
-filename parsing entirely.
+For datasets that don't follow ASAP's naming convention—or for **multi-modal 
+experiments** with synchronized neural/behavioral data—you can create a 
+custom metadata object directly.
 
-### Multi-Modal Recording Support
+```{r custom-object, eval = FALSE}
+# List your audio files
+my_files <- list.files("/path/to/recordings", pattern = "\\.wav$", 
+                        recursive = TRUE, full.names = TRUE)
 
-This flexible approach also works for **multi-modal recording data**, where 
-song recordings are synchronized with other data types such as:
+# Create metadata with your own parsing logic
+my_metadata <- data.frame(
+  filename = basename(my_files),
+  bird_id = extract_bird_id(my_files),
+  day_post_hatch = extract_day(my_files),
+  recording_date = extract_date(my_files),
+  recording_time = extract_time(my_files),
+  label = assign_labels(my_files),
+  
+  # Optional: add columns for multi-modal synchronization
+  photometry_file = get_matched_photometry(my_files),
+  neural_timestamp = get_neural_sync(my_files),
+  stringsAsFactors = FALSE
+)
+```
 
-- **Fiber photometry** (dopamine/calcium signals)
-- **Electrophysiology** recordings
-- **Behavioral video** timestamps
-
-By organizing your data with consistent naming conventions, you can integrate 
-song analysis with neural or behavioral data streams.
-
-For a detailed example of multi-modal data processing with ASAP, see:
+This approach supports integration with fiber photometry, electrophysiology, 
+or behavioral video data. For a complete example, see:
 [Juvenile DA Analysis - Data Processing](https://lxiao06.github.io/Juvenile_DA_analysis/data_processing.html)
 
 ## Next Steps
