@@ -286,7 +286,7 @@ if (!is.null(bouts) && nrow(bouts) > 0) {
                        min_level_db = 10)
 }
 
-# 4. Analyze acoustic features
+# 4. Analyze spectral features
 entropy <- spectral_entropy(wav_file, 
                             start_time = bouts$start_time[1],
                             end_time = bouts$end_time[1])

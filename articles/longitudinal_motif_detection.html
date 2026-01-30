@@ -84,6 +84,9 @@ SAP object creation</li>
 <p>The longitudinal motif detection workflow applies the template
 parameters you optimized on a single recording (see <a href="motif_detection.html">Motif Detection</a>) across all recordings
 in a SAP object.</p>
+<div class="float">
+<img src="figures/longitudinal_pipeline.png" alt="Longitudinal Motif Detection Pipeline"><div class="figcaption">Longitudinal Motif Detection Pipeline</div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="complete-pipeline">Complete Pipeline<a class="anchor" aria-label="anchor" href="#complete-pipeline"></a>
@@ -100,13 +103,10 @@ in a SAP object.</p>
 <span></span>
 <span><span class="co"># Run the complete motif detection pipeline</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="co"># Step 1: Create audio clip from reference recording</span></span>
 <span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, </span>
 <span>                    start_time <span class="op">=</span> <span class="fl">1</span>, </span>
 <span>                    end_time <span class="op">=</span> <span class="fl">2.5</span>, </span>
 <span>                    clip_names <span class="op">=</span> <span class="st">"motif_ref"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  </span>
-<span>  <span class="co"># Step 2: Create template with optimized parameters</span></span>
 <span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>, </span>
 <span>                  clip_name <span class="op">=</span> <span class="st">"motif_ref"</span>,</span>
 <span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>, </span>
@@ -115,16 +115,48 @@ in a SAP object.</p>
 <span>                  freq_max <span class="op">=</span> <span class="fl">10</span>, </span>
 <span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>, </span>
 <span>                  write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  </span>
-<span>  <span class="co"># Step 3: Detect template across all recordings</span></span>
 <span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>,</span>
 <span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>                  proximity_window <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  </span>
-<span>  <span class="co"># Step 4: Extract motif boundaries</span></span>
 <span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>, </span>
 <span>             pre_time <span class="op">=</span> <span class="fl">0.7</span>, </span>
 <span>             lag_time <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="understanding-sap-object-behavior">Understanding SAP Object Behavior<a class="anchor" aria-label="anchor" href="#understanding-sap-object-behavior"></a>
+</h3>
+<p><strong>1. Metadata-Based Lazy Loading</strong></p>
+<p>After creating the SAP object, you have a metadata index (stored in
+<code>sap$metadata</code>) that references all audio files by their
+paths and timestamps. The actual WAV file data is <strong>not loaded
+into memory</strong>—files are read on-demand during analysis. This
+means:</p>
+<ul>
+<li>The SAP object remains lightweight even with thousands of
+recordings</li>
+<li>
+<strong>All subsequent pipeline steps require the original WAV files
+to be accessible</strong> at their original paths</li>
+<li>If you move or delete the audio files, the pipeline will fail</li>
+</ul>
+<p><strong>2. Centralized Result Storage</strong></p>
+<p>The SAP object stores all analysis results in a structured format,
+making it easy to access detection outcomes:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Access template detection results</span></span>
+<span><span class="va">sap</span><span class="op">$</span><span class="va">templates</span><span class="op">$</span><span class="va">template_matches</span><span class="op">[[</span><span class="st">"syllable_d"</span><span class="op">]</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Access extracted motif boundaries (onset/offset timestamps)</span></span>
+<span><span class="va">sap</span><span class="op">$</span><span class="va">motifs</span>  <span class="co"># Data frame with start_time, end_time for each detected motif</span></span>
+<span></span>
+<span><span class="co"># Access spectral features (if analyze_spectral() was run)</span></span>
+<span><span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">spectral_feature</span></span></code></pre></div>
+<p><strong>3. Optional Template Detection Visualizations</strong></p>
+<p>If you set <code>write_template = TRUE</code> in
+<code><a href="../reference/create_template.html">create_template()</a></code>, spectrogram images of template
+detections are saved to a local directory (typically
+<code>templates/</code> within your base path). These images are
+<strong>not stored in the SAP object</strong> but can be useful for
+quality control and manual inspection of detection accuracy.</p>
 <p><strong>Example output:</strong></p>
 <pre><code>=== Starting Template Detection ===
 
@@ -140,10 +172,11 @@ Processed files in day 203. Total detections: 956
 Total detections across all days: 3292
 Access detection results via: sap$templates$template_matches[["syllable_d"]]</code></pre>
 </div>
+</div>
 <div class="section level2">
 <h2 id="visualizing-results">Visualizing Results<a class="anchor" aria-label="anchor" href="#visualizing-results"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># View detection summary</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">motifs</span><span class="op">)</span></span>
 <span></span>
@@ -159,7 +192,7 @@ Sample motif spectrograms across developmental time points.
 <div class="section level3">
 <h3 id="amplitude-envelope-heatmap">Amplitude Envelope Heatmap<a class="anchor" aria-label="anchor" href="#amplitude-envelope-heatmap"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create amplitude envelope heatmap</span></span>
 <span><span class="va">sap</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
@@ -173,7 +206,7 @@ points.
 <div class="section level2">
 <h2 id="feature-extraction-and-analysis">Feature Extraction and Analysis<a class="anchor" aria-label="anchor" href="#feature-extraction-and-analysis"></a>
 </h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract spectral features</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -248,7 +281,7 @@ representation.</p></li>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
