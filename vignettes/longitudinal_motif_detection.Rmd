@@ -34,6 +34,8 @@ The longitudinal motif detection workflow applies the template parameters you
 optimized on a single recording (see [Motif Detection](motif_detection.html)) 
 across all recordings in a SAP object.
 
+![Longitudinal Motif Detection Pipeline](figures/longitudinal_pipeline.png)
+
 ## Complete Pipeline
 
 ```{r pipeline, eval = FALSE}
@@ -48,13 +50,10 @@ sap <- create_sap_object(
 
 # Run the complete motif detection pipeline
 sap <- sap |>
-  # Step 1: Create audio clip from reference recording
   create_audio_clip(indices = 1, 
                     start_time = 1, 
                     end_time = 2.5, 
                     clip_names = "motif_ref") |>
-  
-  # Step 2: Create template with optimized parameters
   create_template(template_name = "syllable_d", 
                   clip_name = "motif_ref",
                   start_time = 0.72, 
@@ -63,17 +62,50 @@ sap <- sap |>
                   freq_max = 10, 
                   threshold = 0.5, 
                   write_template = TRUE) |>
-  
-  # Step 3: Detect template across all recordings
   detect_template(template_name = "syllable_d",
                   threshold = 0.5,
                   proximity_window = 1) |>
-  
-  # Step 4: Extract motif boundaries
   find_motif(template_name = "syllable_d", 
              pre_time = 0.7, 
              lag_time = 0.5)
 ```
+
+### Understanding SAP Object Behavior
+
+**1. Metadata-Based Lazy Loading**
+
+After creating the SAP object, you have a metadata index (stored in `sap$metadata`) 
+that references all audio files by their paths and timestamps. The actual WAV file 
+data is **not loaded into memory**—files are read on-demand during analysis. This 
+means:
+
+- The SAP object remains lightweight even with thousands of recordings
+- **All subsequent pipeline steps require the original WAV files to be accessible** 
+  at their original paths
+- If you move or delete the audio files, the pipeline will fail
+
+**2. Centralized Result Storage**
+
+The SAP object stores all analysis results in a structured format, making it easy 
+to access detection outcomes:
+
+```r
+# Access template detection results
+sap$templates$template_matches[["syllable_d"]]
+
+# Access extracted motif boundaries (onset/offset timestamps)
+sap$motifs  # Data frame with start_time, end_time for each detected motif
+
+# Access spectral features (if analyze_spectral() was run)
+sap$features$motif$spectral_feature
+```
+
+**3. Optional Template Detection Visualizations**
+
+If you set `write_template = TRUE` in `create_template()`, spectrogram images 
+of template detections are saved to a local directory (typically `templates/` 
+within your base path). These images are **not stored in the SAP object** but 
+can be useful for quality control and manual inspection of detection accuracy.
 
 **Example output:**
 
