@@ -192,7 +192,7 @@ run_umap.Sap <- function(x,
     }
 
     # Identify metadata columns
-    standard_meta <- c("filename", "day_post_hatch", "label", "start_time", "end_time")
+    standard_meta <- c("filename", "day_post_hatch", "label", "start_time", "end_time", "detection_time")
     metadata_cols <- which(names(feature_data) %in% standard_meta)
     if ("duration" %in% names(feature_data) && length(unique(feature_data$duration)) == 1) {
       metadata_cols <- c(metadata_cols, which(names(feature_data) == "duration"))
@@ -239,6 +239,20 @@ run_umap.Sap <- function(x,
       UMAP1 = umap_coords[,1],
       UMAP2 = umap_coords[,2]
     )
+    
+    # Add detection_time from original motifs if available and not already present
+    if (segment_type == "motifs" && !"detection_time" %in% names(umap_result)) {
+      original_motifs <- x[[segment_type]]
+      if (!is.null(original_motifs) && "detection_time" %in% names(original_motifs)) {
+        # Merge detection_time based on matching keys
+        merge_keys <- intersect(names(umap_result), c("filename", "start_time", "end_time"))
+        if (length(merge_keys) > 0) {
+          detection_time_data <- original_motifs[, c(merge_keys, "detection_time"), drop = FALSE]
+          umap_result <- merge(umap_result, detection_time_data, 
+                              by = merge_keys, all.x = TRUE, sort = FALSE)
+        }
+      }
+    }
 
     # Merge with clusters if they exist
     if (!is.null(x$features[[feature_type]][["clusters"]])) {
