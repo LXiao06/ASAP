@@ -11,5 +11,4 @@
 ^docs$
 ^pkgdown$
 ^tests$
-^vignettes/figures/S237$
-^vignettes/figures/generate_images\.R$
+^vignettes/figures/(?!.*\\.png$).*$
