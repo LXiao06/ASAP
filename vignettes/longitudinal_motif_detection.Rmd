@@ -34,7 +34,9 @@ The longitudinal motif detection workflow applies the template parameters you
 optimized on a single recording (see [Motif Detection](motif_detection.html)) 
 across all recordings in a SAP object.
 
-![Longitudinal Motif Detection Pipeline](figures/longitudinal_pipeline.png){width=60%}
+<div style="text-align: center;">
+  <img src="figures/longitudinal_pipeline.png" alt="Longitudinal Motif Detection Pipeline" width="60%">
+</div>
 
 ## Complete Pipeline
 
@@ -212,10 +214,10 @@ if (file.exists("figures/longitudinal_umap.png")) {
 
 ### Ordered Heatmap by Acoustic Similarity
 
-As mentioned above, ordering motifs by acoustic similarity creates a **cleaner, 
-more organized heatmap** that addresses the visual noise from duration variability. 
 After extracting features and clustering, motifs are ordered by their cluster 
-membership and latent feature structure rather than chronological order:
+membership and latent feature structure rather than chronological order. Typically,
+ordering motifs by acoustic similarity creates a **cleaner, more organized heatmap** 
+that addresses the visual noise from duration variability. 
 
 ```{r heatmap-ordered, eval = FALSE}
 # Create heatmap ordered by cluster membership
