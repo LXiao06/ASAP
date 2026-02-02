@@ -29,8 +29,6 @@ across all recordings in a SAP object.
 ![Longitudinal Motif Detection
 Pipeline](figures/longitudinal_pipeline.png)
 
-Longitudinal Motif Detection Pipeline
-
 ## Complete Pipeline
 
 ``` r
@@ -204,11 +202,11 @@ point.
 
 ### Ordered Heatmap by Acoustic Similarity
 
-As mentioned above, ordering motifs by acoustic similarity creates a
-**cleaner, more organized heatmap** that addresses the visual noise from
-duration variability. After extracting features and clustering, motifs
-are ordered by their cluster membership and latent feature structure
-rather than chronological order:
+After extracting features and clustering, motifs are ordered by their
+cluster membership and latent feature structure rather than
+chronological order. Typically, ordering motifs by acoustic similarity
+creates a **cleaner, more organized heatmap** that addresses the visual
+noise from duration variability.
 
 ``` r
 # Create heatmap ordered by cluster membership
