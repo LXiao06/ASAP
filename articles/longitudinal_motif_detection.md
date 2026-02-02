@@ -40,7 +40,7 @@ library(ASAP)
 sap <- create_sap_object(
   base_path = "/path/to/recordings",
   subfolders_to_include = c("190", "201", "203"),
-  labels = c("Baseline", "Post", "Recovery")
+  labels = c("BL", "Post", "Rec")
 )
 
 # Run the complete motif detection pipeline
@@ -97,8 +97,8 @@ sap$features$motif$spectral_feature
 
 **3. Optional Template Detection Visualizations**
 
-If you set `write_template = TRUE` in
-[`create_template()`](https://lxiao06.github.io/ASAP/reference/create_template.md),
+If you set `save_plot = TRUE` in
+[`detect_template()`](https://lxiao06.github.io/ASAP/reference/detect_template.md),
 spectrogram images of template detections are saved to a local directory
 (typically `templates/` within your base path). These images are **not
 stored in the SAP object** but can be useful for quality control and
@@ -123,9 +123,6 @@ manual inspection of detection accuracy.
 ## Visualizing Results
 
 ``` r
-# View detection summary
-summary(sap$motifs)
-
 # Visualize sample motifs from each time point
 visualize_segments(sap, 
                    segment_type = "motifs", 
@@ -139,9 +136,23 @@ Sample motif spectrograms across developmental time points.
 
 ### Amplitude Envelope Heatmap
 
+Amplitude envelope heatmaps visualize the temporal structure of detected
+motifs. **The `balanced` argument** ensures equal representation across
+time points (e.g., same number of motifs from each developmental stage),
+which improves statistical comparisons.
+
+However, **motif durations can vary** across renditions—some motifs may
+be shorter than others due to natural variability or developmental
+changes. This duration variability can make heatmaps appear misaligned
+or noisy, with vertical bands appearing blurred or offset. To address
+this issue, we can extract acoustic features from individual motifs,
+cluster them based on these features within each developmental stage,
+and order them by their latent feature structure (see “Ordered Heatmap”
+section below).
+
 ``` r
-# Create amplitude envelope heatmap
-sap |> plot_heatmap(balanced = TRUE)
+# Create amplitude envelope heatmap with balanced sampling
+plot_heatmap(sap, balanced = TRUE)
 ```
 
 ![Amplitude envelope heatmap showing temporal structure across time
@@ -152,22 +163,71 @@ points.
 
 ## Feature Extraction and Analysis
 
+Extracting spectral features allows you to quantify motif acoustic
+properties and identify clusters of similar motifs. This is particularly
+useful for:
+
+- **Grouping motifs by acoustic similarity** rather than just temporal
+  alignment
+- **Identifying developmental changes** in song structure
+- **Reducing noise** in downstream visualizations
+
 ``` r
-# Extract spectral features
+# Extract spectral features (frequency, entropy, duration, etc.)
 sap <- sap |>
   analyze_spectral(balanced = TRUE) |>
-  find_clusters() |>
-  run_umap()
+  find_clusters() |>              # Group acoustically similar motifs
+  run_umap()                       # Dimensionality reduction for visualization
 
 # Visualize UMAP by time point
-sap |> plot_umap(split.by = "label")
+plot_umap(sap, split.by = "label")
 ```
+
+**Results interpretation:**
+
+- [`analyze_spectral()`](https://lxiao06.github.io/ASAP/reference/analyze_spectral.md)
+  extracts ~30 acoustic features per motif (mean frequency, entropy,
+  duration, spectral slope, etc.) and stores them in
+  `sap$features$motif$spectral_feature`
+- [`find_clusters()`](https://lxiao06.github.io/ASAP/reference/find_clusters.md)
+  uses hierarchical clustering to group motifs by acoustic similarity,
+  adding a `cluster` column to the feature data
+- [`run_umap()`](https://lxiao06.github.io/ASAP/reference/run_umap.md)
+  reduces high-dimensional feature space to 2D for visualization,
+  storing coordinates in `sap$umap$motif`
 
 ![UMAP visualization of motif features colored by developmental time
 point.](figures/longitudinal_umap.png)
 
 UMAP visualization of motif features colored by developmental time
 point.
+
+### Ordered Heatmap by Acoustic Similarity
+
+As mentioned above, ordering motifs by acoustic similarity creates a
+**cleaner, more organized heatmap** that addresses the visual noise from
+duration variability. After extracting features and clustering, motifs
+are ordered by their cluster membership and latent feature structure
+rather than chronological order:
+
+``` r
+# Create heatmap ordered by cluster membership
+plot_heatmap(sap, balanced = TRUE, ordered = TRUE)
+```
+
+**Why this helps:**
+
+- Motifs with similar acoustic properties are grouped together
+- Vertical bands align better because acoustically similar motifs tend
+  to have similar durations
+- Developmental patterns become more apparent when organized by acoustic
+  structure
+- Reduces visual noise from duration variability
+
+![Ordered amplitude envelope heatmap grouped by acoustic
+similarity.](figures/longitudinal_heatmap_ordered.png)
+
+Ordered amplitude envelope heatmap grouped by acoustic similarity.
 
 ## Key Parameters for Longitudinal Analysis
 

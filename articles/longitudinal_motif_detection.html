@@ -85,7 +85,7 @@ SAP object creation</li>
 parameters you optimized on a single recording (see <a href="motif_detection.html">Motif Detection</a>) across all recordings
 in a SAP object.</p>
 <div class="float">
-<img src="figures/longitudinal_pipeline.png" alt="Longitudinal Motif Detection Pipeline"><div class="figcaption">Longitudinal Motif Detection Pipeline</div>
+<img src="figures/longitudinal_pipeline.png" style="width:60.0%" alt="Longitudinal Motif Detection Pipeline"><div class="figcaption">Longitudinal Motif Detection Pipeline</div>
 </div>
 </div>
 <div class="section level2">
@@ -98,7 +98,7 @@ in a SAP object.</p>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_sap_object.html">create_sap_object</a></span><span class="op">(</span></span>
 <span>  base_path <span class="op">=</span> <span class="st">"/path/to/recordings"</span>,</span>
 <span>  subfolders_to_include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"190"</span>, <span class="st">"201"</span>, <span class="st">"203"</span><span class="op">)</span>,</span>
-<span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Baseline"</span>, <span class="st">"Post"</span>, <span class="st">"Recovery"</span><span class="op">)</span></span>
+<span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span>, <span class="st">"Rec"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Run the complete motif detection pipeline</span></span>
@@ -151,8 +151,8 @@ making it easy to access detection outcomes:</p>
 <span><span class="co"># Access spectral features (if analyze_spectral() was run)</span></span>
 <span><span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">spectral_feature</span></span></code></pre></div>
 <p><strong>3. Optional Template Detection Visualizations</strong></p>
-<p>If you set <code>write_template = TRUE</code> in
-<code><a href="../reference/create_template.html">create_template()</a></code>, spectrogram images of template
+<p>If you set <code>save_plot = TRUE</code> in
+<code><a href="../reference/detect_template.html">detect_template()</a></code>, spectrogram images of template
 detections are saved to a local directory (typically
 <code>templates/</code> within your base path). These images are
 <strong>not stored in the SAP object</strong> but can be useful for
@@ -177,10 +177,7 @@ Access detection results via: sap$templates$template_matches[["syllable_d"]]</co
 <h2 id="visualizing-results">Visualizing Results<a class="anchor" aria-label="anchor" href="#visualizing-results"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># View detection summary</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">motifs</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualize sample motifs from each time point</span></span>
+<code class="sourceCode R"><span><span class="co"># Visualize sample motifs from each time point</span></span>
 <span><span class="fu"><a href="../reference/visualize_segments.html">visualize_segments</a></span><span class="op">(</span><span class="va">sap</span>, </span>
 <span>                   segment_type <span class="op">=</span> <span class="st">"motifs"</span>, </span>
 <span>                   n_samples <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
@@ -192,9 +189,22 @@ Sample motif spectrograms across developmental time points.
 <div class="section level3">
 <h3 id="amplitude-envelope-heatmap">Amplitude Envelope Heatmap<a class="anchor" aria-label="anchor" href="#amplitude-envelope-heatmap"></a>
 </h3>
+<p>Amplitude envelope heatmaps visualize the temporal structure of
+detected motifs. <strong>The <code>balanced</code> argument</strong>
+ensures equal representation across time points (e.g., same number of
+motifs from each developmental stage), which improves statistical
+comparisons.</p>
+<p>However, <strong>motif durations can vary</strong> across
+renditions—some motifs may be shorter than others due to natural
+variability or developmental changes. This duration variability can make
+heatmaps appear misaligned or noisy, with vertical bands appearing
+blurred or offset. To address this issue, we can extract acoustic
+features from individual motifs, cluster them based on these features
+within each developmental stage, and order them by their latent feature
+structure (see “Ordered Heatmap” section below).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create amplitude envelope heatmap</span></span>
-<span><span class="va">sap</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Create amplitude envelope heatmap with balanced sampling</span></span>
+<span><span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span><span class="va">sap</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="figures/longitudinal_heatmap.png" class="r-plt" alt="Amplitude envelope heatmap showing temporal structure across time points." width="100%"><p class="caption">
 Amplitude envelope heatmap showing temporal structure across time
@@ -206,20 +216,76 @@ points.
 <div class="section level2">
 <h2 id="feature-extraction-and-analysis">Feature Extraction and Analysis<a class="anchor" aria-label="anchor" href="#feature-extraction-and-analysis"></a>
 </h2>
+<p>Extracting spectral features allows you to quantify motif acoustic
+properties and identify clusters of similar motifs. This is particularly
+useful for:</p>
+<ul>
+<li>
+<strong>Grouping motifs by acoustic similarity</strong> rather than
+just temporal alignment</li>
+<li>
+<strong>Identifying developmental changes</strong> in song
+structure</li>
+<li>
+<strong>Reducing noise</strong> in downstream visualizations</li>
+</ul>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Extract spectral features</span></span>
+<code class="sourceCode R"><span><span class="co"># Extract spectral features (frequency, entropy, duration, etc.)</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span>              <span class="co"># Group acoustically similar motifs</span></span>
+<span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span><span class="op">)</span>                       <span class="co"># Dimensionality reduction for visualization</span></span>
 <span></span>
 <span><span class="co"># Visualize UMAP by time point</span></span>
-<span><span class="va">sap</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span>split.by <span class="op">=</span> <span class="st">"label"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span><span class="va">sap</span>, split.by <span class="op">=</span> <span class="st">"label"</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Results interpretation:</strong></p>
+<ul>
+<li>
+<code><a href="../reference/analyze_spectral.html">analyze_spectral()</a></code> extracts ~30 acoustic features per
+motif (mean frequency, entropy, duration, spectral slope, etc.) and
+stores them in <code>sap$features$motif$spectral_feature</code>
+</li>
+<li>
+<code><a href="../reference/find_clusters.html">find_clusters()</a></code> uses hierarchical clustering to group
+motifs by acoustic similarity, adding a <code>cluster</code> column to
+the feature data</li>
+<li>
+<code><a href="../reference/run_umap.html">run_umap()</a></code> reduces high-dimensional feature space to 2D
+for visualization, storing coordinates in
+<code>sap$umap$motif</code>
+</li>
+</ul>
 <div class="figure">
 <img src="figures/longitudinal_umap.png" class="r-plt" alt="UMAP visualization of motif features colored by developmental time point." width="100%"><p class="caption">
 UMAP visualization of motif features colored by developmental time
 point.
 </p>
+</div>
+<div class="section level3">
+<h3 id="ordered-heatmap-by-acoustic-similarity">Ordered Heatmap by Acoustic Similarity<a class="anchor" aria-label="anchor" href="#ordered-heatmap-by-acoustic-similarity"></a>
+</h3>
+<p>As mentioned above, ordering motifs by acoustic similarity creates a
+<strong>cleaner, more organized heatmap</strong> that addresses the
+visual noise from duration variability. After extracting features and
+clustering, motifs are ordered by their cluster membership and latent
+feature structure rather than chronological order:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create heatmap ordered by cluster membership</span></span>
+<span><span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span><span class="va">sap</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Why this helps:</strong></p>
+<ul>
+<li>Motifs with similar acoustic properties are grouped together</li>
+<li>Vertical bands align better because acoustically similar motifs tend
+to have similar durations</li>
+<li>Developmental patterns become more apparent when organized by
+acoustic structure</li>
+<li>Reduces visual noise from duration variability</li>
+</ul>
+<div class="figure">
+<img src="figures/longitudinal_heatmap_ordered.png" class="r-plt" alt="Ordered amplitude envelope heatmap grouped by acoustic similarity." width="100%"><p class="caption">
+Ordered amplitude envelope heatmap grouped by acoustic similarity.
+</p>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -281,7 +347,7 @@ representation.</p></li>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
