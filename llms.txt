@@ -208,3 +208,5 @@ Batch processing of recordings across developmental time points
   Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md):
 - [Longitudinal Motif
   Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md):
+- [Longitudinal Bout
+  Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.md):
