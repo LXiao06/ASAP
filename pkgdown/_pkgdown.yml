@@ -17,3 +17,4 @@ articles:
     contents:
       - construct_sap_object
       - longitudinal_motif_detection
+      - longitudinal_bout_detection
