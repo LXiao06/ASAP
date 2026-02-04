@@ -35,20 +35,53 @@ understanding song structure and production.
 - Identifying practice patterns and song maturation
 
 **Relationship to motif detection**: While motif detection identifies
-specific song elements, bout detection captures the broader temporal
-structure of vocalization. When used together (with `summary = TRUE`),
-you can analyze how motifs are organized within bouts across
-developmental time points.
+specific, repeatable vocal sequences, bout detection captures the
+broader temporal structure of vocalization. When used together (with
+`summary = TRUE`), you can analyze how motifs are organized within bouts
+across developmental time points.
 
 ## Complete Pipeline
 
 The bout detection workflow processes all recordings in a SAP object to
 identify bouts across multiple time points.
 
+### Option 1: Load SAP Object from Previous Analysis
+
+If you’ve already completed motif detection (see [Longitudinal Motif
+Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md)),
+you can load that SAP object and add bout detection:
+
 ``` r
 library(ASAP)
 
-# Load or create SAP object
+# Load SAP object from previous motif detection vignette
+sap <- readRDS("longitudinal_motif_analysis.rds")
+
+# Add bout detection with motif-bout relationships
+sap <- sap |>
+  find_bout(
+    rms_threshold = 0.1,
+    min_duration = 0.4,
+    gap_duration = 0.3,
+    freq_range = c(3, 5),
+    summary = TRUE  # Include motif-bout relationships
+  )
+
+# Visualize results
+plot_heatmap(sap, segment_type = "bouts", balanced = TRUE)
+```
+
+### Option 2: Create New SAP Object
+
+Alternatively, you can create a new SAP object from scratch (see
+[Constructing SAP
+Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md)
+for detailed instructions):
+
+``` r
+library(ASAP)
+
+# Create SAP object
 sap <- create_sap_object(
   base_path = "/path/to/recordings",
   subfolders_to_include = c("190", "201", "203"),
@@ -61,14 +94,13 @@ sap <- sap |>
     rms_threshold = 0.1,
     min_duration = 0.4,
     gap_duration = 0.3,
-    freq_range = c(3, 5),
-    summary = TRUE  # Include motif-bout relationships
+    freq_range = c(3, 5)
   )
-
-# Visualize results
-sap |>
-  plot_heatmap(segment_type = "bouts", balanced = TRUE)
 ```
+
+**Note**: When creating a new SAP object without prior motif detection,
+`summary = TRUE` will not add motif-bout relationship columns (n_motifs,
+align_time, etc.).
 
 ### Understanding SAP Object Behavior
 
@@ -103,6 +135,28 @@ columns are included:
 - `align_time`: Time of first motif (useful for alignment)
 - `bout_number_day`: Sequential bout number within each day
 - `bout_gap`: Time interval from previous bout (within same file)
+
+### (Optional) Saving SAP Object
+
+After completing bout detection, you can save the SAP object for later
+use:
+
+``` r
+# Save the SAP object with bout detection results
+saveRDS(sap, "longitudinal_bout_analysis.rds")
+
+# Later, load it back
+sap <- readRDS("longitudinal_bout_analysis.rds")
+```
+
+**What gets saved:** - All metadata and file references - Bout detection
+results - Motif data (if previously detected) - All spectral features
+and analysis results
+
+**Important notes:** - The original WAV files are **not** included in
+the saved object - You must keep the WAV files at their original paths
+to run additional analyses - The saved `.rds` file is typically much
+smaller than the audio data
 
 ## Visualizing Results
 
@@ -146,29 +200,15 @@ improves statistical comparisons of bout structure across development.
 When `summary = TRUE` is enabled and motif data exists,
 [`find_bout()`](https://lxiao06.github.io/ASAP/reference/find_bout.md)
 calculates additional metrics that reveal the relationship between bouts
-and motifs:
+and motifs.
 
-``` r
-# Detect bouts with summary statistics
-sap <- sap |>
-  find_bout(min_duration = 0.4, summary = TRUE)
+**Example bout summary table** (showing first 10 bouts):
 
-# Analyze bout-motif relationships
-library(dplyr)
+![Bout Summary Statistics Table](figures/bout_summary_table.png)
 
-bout_analysis <- sap$bouts |>
-  group_by(label) |>
-  summarise(
-    mean_bout_duration = mean(end_time - start_time),
-    mean_motifs_per_bout = mean(n_motifs, na.rm = TRUE),
-    mean_bout_gap = mean(bout_gap, na.rm = TRUE),
-    total_bouts = n()
-  )
+Bout Summary Statistics Table
 
-print(bout_analysis)
-```
-
-**Key metrics explained**:
+The table includes all detected bouts with the following columns:
 
 - **`n_motifs`**: Count of motifs within each bout
   - Reveals motif density and bout complexity
@@ -185,42 +225,64 @@ print(bout_analysis)
 
 ### Interpreting Developmental Changes
 
-Bout statistics can reveal important developmental patterns:
+Bout statistics can reveal important developmental patterns. The plots
+below show three key bout metrics across developmental stages:
 
-``` r
-# Track changes across development
-developmental_trends <- sap$bouts |>
-  group_by(day_post_hatch, label) |>
-  summarise(
-    bout_rate = n() / length(unique(filename)),  # Bouts per file
-    avg_duration = mean(end_time - start_time),
-    avg_motifs = mean(n_motifs, na.rm = TRUE),
-    .groups = "drop"
-  ) |>
-  arrange(day_post_hatch)
+![Developmental Trends in Bout
+Structure](figures/bout_developmental_trends.png)
 
-# Visualize trends
-library(ggplot2)
+Developmental Trends in Bout Structure
 
-ggplot(developmental_trends, aes(x = day_post_hatch, y = avg_motifs, color = label)) +
-  geom_line() +
-  geom_point() +
-  labs(
-    title = "Motif Density in Bouts Across Development",
-    x = "Day Post Hatch",
-    y = "Average Motifs per Bout"
-  ) +
-  theme_minimal()
-```
+**Understanding the visualization**:
 
-**Common developmental patterns**:
+- **Boxplots** (colored boxes and whiskers):
+  - **Box**: Middle 50% of data (interquartile range, IQR)
+  - **Line in box**: Median value
+  - **Whiskers**: Extend to 1.5× IQR or min/max values
+  - **Small dots**: Individual outliers beyond whiskers
+- **Red diamonds with error bars**:
+  - **Diamond**: Mean (average) value
+  - **Error bars**: Standard error of the mean (SEM = SD/√n)
+- **Significance brackets** (if present):
+  - Lines above boxes show significant pairwise differences
+  - `*` p \< 0.05, `**` p \< 0.01, `***` p \< 0.001
 
-- **Bout duration**: Often increases as song becomes more stereotyped
-- **Motif density**: Typically increases with practice and maturation
-- **Bout rate**: May vary with developmental stage and practice
-  intensity
-- **Inter-bout intervals**: Can reveal changes in song production
-  patterns
+**Statistical Analysis**:
+
+Non-parametric testing is used because temporal birdsong metrics often
+show skewed distributions and non-constant variance across development:
+
+- **Kruskal-Wallis Test**: An overall test to determine if significant
+  differences exist across the three stages (**BL**, **Post**, **Rec**).
+- **Pairwise Wilcoxon Tests**: Post-hoc comparisons to identify specific
+  differences between pairs of stages (e.g., comparing Baseline to
+  Recovery).
+- **Bonferroni Correction**: Applied to p-values to adjust for multiple
+  comparisons and prevent false discoveries.
+- **Significance Markers**: Brackets and stars (`*`) in the plot
+  indicate significant pairwise differences based on these adjusted
+  p-values.
+
+**Key Metrics & Observed Trends**:
+
+1.  **Bout Duration (s)**: The total time from the start to the end of a
+    detected bout.
+    - **Observed Trend**: In this dataset, bout duration **decreases**
+      significantly across the three stages (**BL** \> **Post** \>
+      **Rec**). This indicates shorter vocal sequences as the experiment
+      progresses.
+2.  **Inter-Bout Interval (s)**: The silent gap duration between
+    consecutive bouts within a recording session.
+    - **Observed Trend**: In this dataset, the interval between bouts
+      remains **stable** across all time points (**BL**, **Post**,
+      **Rec**). No statistically significant changes were observed,
+      indicating that the timing between singing bouts was preserved
+      despite changes to the bouts themselves.
+3.  **Motifs per Bout**: The discrete count of motif renditions within a
+    single bout.
+    - **Observed Trend**: The number of motifs per bout **decreases**
+      across stages. Bouts become less dense with motifs, matching the
+      overall reduction in bout duration.
 
 ## Key Parameters for Bout Detection
 

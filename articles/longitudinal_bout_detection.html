@@ -95,20 +95,49 @@ understanding song structure and production.</p>
 <li>Identifying practice patterns and song maturation</li>
 </ul>
 <p><strong>Relationship to motif detection</strong>: While motif
-detection identifies specific song elements, bout detection captures the
-broader temporal structure of vocalization. When used together (with
-<code>summary = TRUE</code>), you can analyze how motifs are organized
-within bouts across developmental time points.</p>
+detection identifies specific, repeatable vocal sequences, bout
+detection captures the broader temporal structure of vocalization. When
+used together (with <code>summary = TRUE</code>), you can analyze how
+motifs are organized within bouts across developmental time points.</p>
 </div>
 <div class="section level2">
 <h2 id="complete-pipeline">Complete Pipeline<a class="anchor" aria-label="anchor" href="#complete-pipeline"></a>
 </h2>
 <p>The bout detection workflow processes all recordings in a SAP object
 to identify bouts across multiple time points.</p>
+<div class="section level3">
+<h3 id="option-1-load-sap-object-from-previous-analysis">Option 1: Load SAP Object from Previous Analysis<a class="anchor" aria-label="anchor" href="#option-1-load-sap-object-from-previous-analysis"></a>
+</h3>
+<p>If you’ve already completed motif detection (see <a href="longitudinal_motif_detection.html">Longitudinal Motif
+Detection</a>), you can load that SAP object and add bout detection:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lxiao06.github.io/ASAP/">ASAP</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Load or create SAP object</span></span>
+<span><span class="co"># Load SAP object from previous motif detection vignette</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"longitudinal_motif_analysis.rds"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Add bout detection with motif-bout relationships</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span></span>
+<span>    rms_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>    min_duration <span class="op">=</span> <span class="fl">0.4</span>,</span>
+<span>    gap_duration <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>    freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>    summary <span class="op">=</span> <span class="cn">TRUE</span>  <span class="co"># Include motif-bout relationships</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Visualize results</span></span>
+<span><span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span><span class="va">sap</span>, segment_type <span class="op">=</span> <span class="st">"bouts"</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="option-2-create-new-sap-object">Option 2: Create New SAP Object<a class="anchor" aria-label="anchor" href="#option-2-create-new-sap-object"></a>
+</h3>
+<p>Alternatively, you can create a new SAP object from scratch (see <a href="construct_sap_object.html">Constructing SAP Object</a> for
+detailed instructions):</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lxiao06.github.io/ASAP/">ASAP</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create SAP object</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_sap_object.html">create_sap_object</a></span><span class="op">(</span></span>
 <span>  base_path <span class="op">=</span> <span class="st">"/path/to/recordings"</span>,</span>
 <span>  subfolders_to_include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"190"</span>, <span class="st">"201"</span>, <span class="st">"203"</span><span class="op">)</span>,</span>
@@ -121,13 +150,12 @@ to identify bouts across multiple time points.</p>
 <span>    rms_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>    min_duration <span class="op">=</span> <span class="fl">0.4</span>,</span>
 <span>    gap_duration <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>    freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span>    summary <span class="op">=</span> <span class="cn">TRUE</span>  <span class="co"># Include motif-bout relationships</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualize results</span></span>
-<span><span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"bouts"</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span>    freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p><strong>Note</strong>: When creating a new SAP object without prior
+motif detection, <code>summary = TRUE</code> will not add motif-bout
+relationship columns (n_motifs, align_time, etc.).</p>
+</div>
 <div class="section level3">
 <h3 id="understanding-sap-object-behavior">Understanding SAP Object Behavior<a class="anchor" aria-label="anchor" href="#understanding-sap-object-behavior"></a>
 </h3>
@@ -152,7 +180,7 @@ efficient batch processing</li>
 <div class="section level3">
 <h3 id="example-output">Example Output<a class="anchor" aria-label="anchor" href="#example-output"></a>
 </h3>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># View bout detection summary</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">bouts</span><span class="op">)</span></span>
 <span></span>
@@ -178,6 +206,25 @@ day</li>
 file)</li>
 </ul>
 </div>
+<div class="section level3">
+<h3 id="optional-saving-sap-object">(Optional) Saving SAP Object<a class="anchor" aria-label="anchor" href="#optional-saving-sap-object"></a>
+</h3>
+<p>After completing bout detection, you can save the SAP object for
+later use:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Save the SAP object with bout detection results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">sap</span>, <span class="st">"longitudinal_bout_analysis.rds"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Later, load it back</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"longitudinal_bout_analysis.rds"</span><span class="op">)</span></span></code></pre></div>
+<p><strong>What gets saved:</strong> - All metadata and file references
+- Bout detection results - Motif data (if previously detected) - All
+spectral features and analysis results</p>
+<p><strong>Important notes:</strong> - The original WAV files are
+<strong>not</strong> included in the saved object - You must keep the
+WAV files at their original paths to run additional analyses - The saved
+<code>.rds</code> file is typically much smaller than the audio data</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="visualizing-results">Visualizing Results<a class="anchor" aria-label="anchor" href="#visualizing-results"></a>
@@ -187,7 +234,7 @@ file)</li>
 </h3>
 <p>Visualize sample bouts from each time point to verify detection
 quality:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Visualize 3 random bouts per time point</span></span>
 <span><span class="fu"><a href="../reference/visualize_segments.html">visualize_segments</a></span><span class="op">(</span><span class="va">sap</span>, segment_type <span class="op">=</span> <span class="st">"bouts"</span>, n_samples <span class="op">=</span> <span class="fl">3</span>, by_column <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
@@ -199,7 +246,7 @@ quality:</p>
 </h3>
 <p>Amplitude envelope heatmaps visualize the temporal structure of
 detected bouts across developmental stages.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create amplitude envelope heatmap with balanced sampling</span></span>
 <span><span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span><span class="va">sap</span>, segment_type <span class="op">=</span> <span class="st">"bouts"</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
@@ -219,26 +266,13 @@ structure across development.</p>
 </h3>
 <p>When <code>summary = TRUE</code> is enabled and motif data exists,
 <code><a href="../reference/find_bout.html">find_bout()</a></code> calculates additional metrics that reveal the
-relationship between bouts and motifs:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Detect bouts with summary statistics</span></span>
-<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span>min_duration <span class="op">=</span> <span class="fl">0.4</span>, summary <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Analyze bout-motif relationships</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">bout_analysis</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">bouts</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">label</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
-<span>    mean_bout_duration <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span><span class="op">)</span>,</span>
-<span>    mean_motifs_per_bout <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">n_motifs</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    mean_bout_gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">bout_gap</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    total_bouts <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bout_analysis</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Key metrics explained</strong>:</p>
+relationship between bouts and motifs.</p>
+<p><strong>Example bout summary table</strong> (showing first 10
+bouts):</p>
+<div class="float">
+<img src="figures/bout_summary_table.png" style="width:100.0%" alt="Bout Summary Statistics Table"><div class="figcaption">Bout Summary Statistics Table</div>
+</div>
+<p>The table includes all detected bouts with the following columns:</p>
 <ul>
 <li>
 <strong><code>n_motifs</code></strong>: Count of motifs within each
@@ -277,46 +311,107 @@ bout
 <div class="section level3">
 <h3 id="interpreting-developmental-changes">Interpreting Developmental Changes<a class="anchor" aria-label="anchor" href="#interpreting-developmental-changes"></a>
 </h3>
-<p>Bout statistics can reveal important developmental patterns:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Track changes across development</span></span>
-<span><span class="va">developmental_trends</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">bouts</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">day_post_hatch</span>, <span class="va">label</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
-<span>    bout_rate <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">filename</span><span class="op">)</span><span class="op">)</span>,  <span class="co"># Bouts per file</span></span>
-<span>    avg_duration <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span><span class="op">)</span>,</span>
-<span>    avg_motifs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">n_motifs</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">day_post_hatch</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualize trends</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">developmental_trends</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">day_post_hatch</span>, y <span class="op">=</span> <span class="va">avg_motifs</span>, color <span class="op">=</span> <span class="va">label</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Motif Density in Bouts Across Development"</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Day Post Hatch"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Average Motifs per Bout"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Common developmental patterns</strong>:</p>
+<p>Bout statistics can reveal important developmental patterns. The
+plots below show three key bout metrics across developmental stages:</p>
+<div class="float">
+<img src="figures/bout_developmental_trends.png" style="width:100.0%" alt="Developmental Trends in Bout Structure"><div class="figcaption">Developmental Trends in Bout Structure</div>
+</div>
+<p><strong>Understanding the visualization</strong>:</p>
 <ul>
 <li>
-<strong>Bout duration</strong>: Often increases as song becomes more
-stereotyped</li>
+<strong>Boxplots</strong> (colored boxes and whiskers):
+<ul>
 <li>
-<strong>Motif density</strong>: Typically increases with practice
-and maturation</li>
+<strong>Box</strong>: Middle 50% of data (interquartile range,
+IQR)</li>
 <li>
-<strong>Bout rate</strong>: May vary with developmental stage and
-practice intensity</li>
+<strong>Line in box</strong>: Median value</li>
 <li>
-<strong>Inter-bout intervals</strong>: Can reveal changes in song
-production patterns</li>
+<strong>Whiskers</strong>: Extend to 1.5× IQR or min/max values</li>
+<li>
+<strong>Small dots</strong>: Individual outliers beyond
+whiskers</li>
 </ul>
+</li>
+<li>
+<strong>Red diamonds with error bars</strong>:
+<ul>
+<li>
+<strong>Diamond</strong>: Mean (average) value</li>
+<li>
+<strong>Error bars</strong>: Standard error of the mean (SEM =
+SD/√n)</li>
+</ul>
+</li>
+<li>
+<strong>Significance brackets</strong> (if present):
+<ul>
+<li>Lines above boxes show significant pairwise differences</li>
+<li>
+<code>*</code> p &lt; 0.05, <code>**</code> p &lt; 0.01,
+<code>***</code> p &lt; 0.001</li>
+</ul>
+</li>
+</ul>
+<p><strong>Statistical Analysis</strong>:</p>
+<p>Non-parametric testing is used because temporal birdsong metrics
+often show skewed distributions and non-constant variance across
+development:</p>
+<ul>
+<li>
+<strong>Kruskal-Wallis Test</strong>: An overall test to determine
+if significant differences exist across the three stages
+(<strong>BL</strong>, <strong>Post</strong>, <strong>Rec</strong>).</li>
+<li>
+<strong>Pairwise Wilcoxon Tests</strong>: Post-hoc comparisons to
+identify specific differences between pairs of stages (e.g., comparing
+Baseline to Recovery).</li>
+<li>
+<strong>Bonferroni Correction</strong>: Applied to p-values to
+adjust for multiple comparisons and prevent false discoveries.</li>
+<li>
+<strong>Significance Markers</strong>: Brackets and stars
+(<code>*</code>) in the plot indicate significant pairwise differences
+based on these adjusted p-values.</li>
+</ul>
+<p><strong>Key Metrics &amp; Observed Trends</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Bout Duration (s)</strong>: The total time from the start to
+the end of a detected bout.
+<ul>
+<li>
+<strong>Observed Trend</strong>: In this dataset, bout duration
+<strong>decreases</strong> significantly across the three stages
+(<strong>BL</strong> &gt; <strong>Post</strong> &gt;
+<strong>Rec</strong>). This indicates shorter vocal sequences as the
+experiment progresses.</li>
+</ul>
+</li>
+<li>
+<strong>Inter-Bout Interval (s)</strong>: The silent gap duration
+between consecutive bouts within a recording session.
+<ul>
+<li>
+<strong>Observed Trend</strong>: In this dataset, the interval
+between bouts remains <strong>stable</strong> across all time points
+(<strong>BL</strong>, <strong>Post</strong>, <strong>Rec</strong>). No
+statistically significant changes were observed, indicating that the
+timing between singing bouts was preserved despite changes to the bouts
+themselves.</li>
+</ul>
+</li>
+<li>
+<strong>Motifs per Bout</strong>: The discrete count of motif
+renditions within a single bout.
+<ul>
+<li>
+<strong>Observed Trend</strong>: The number of motifs per bout
+<strong>decreases</strong> across stages. Bouts become less dense with
+motifs, matching the overall reduction in bout duration.</li>
+</ul>
+</li>
+</ol>
 </div>
 </div>
 <div class="section level2">
@@ -461,8 +556,8 @@ understand bout-motif relationships:</p>
 <span></span>
 <span><span class="co"># Now you can analyze motif density in bouts</span></span>
 <span><span class="va">sap</span><span class="op">$</span><span class="va">bouts</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">label</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>avg_motifs_per_bout <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">n_motifs</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">label</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">summarise</span><span class="op">(</span>avg_motifs_per_bout <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">n_motifs</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="balance-sampling-for-comparisons">4. Balance Sampling for Comparisons<a class="anchor" aria-label="anchor" href="#balance-sampling-for-comparisons"></a>
