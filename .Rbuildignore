@@ -6,9 +6,10 @@
 ^LICENSE\.md$
 ^README\.Rmd$
 ^\.github$
-^man/figures/.*$
+^man/figures$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
 ^tests$
 ^vignettes/figures/(?!.*\\.png$).*$
+^shiny_app$
