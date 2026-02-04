@@ -1,0 +1,12 @@
+# ASAP Shiny App Environment Variables
+# Copy this file to .Renviron and fill in your actual values
+# DO NOT commit .Renviron to git!
+
+# OpenAI API Key (get from https://platform.openai.com/api-keys)
+OPENAI_API_KEY=your-api-key-here
+
+# Optional: Data directory for ASAP analysis
+ASAP_DATA_DIR=/path/to/your/data
+
+# Optional: Model selection (gpt-4, gpt-3.5-turbo, gpt-4-turbo)
+OPENAI_MODEL=gpt-3.5-turbo

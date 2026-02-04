@@ -1,0 +1,20 @@
+# Environment variables (contains API keys)
+.Renviron
+
+# R session data
+.RData
+.Rhistory
+
+# Temporary files
+*.tmp
+*.log
+
+# User uploaded data
+data/
+uploads/
+
+# Generated templates
+templates/
+
+# macOS
+.DS_Store

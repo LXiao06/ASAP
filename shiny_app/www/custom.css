@@ -1,0 +1,158 @@
+/* ============================================================================
+   Custom CSS for ASAP Shiny App
+   ============================================================================ */
+
+/* Global styles */
+:root {
+  --asap-primary: #2C3E50;
+  --asap-secondary: #18BC9C;
+  --asap-accent: #3498DB;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Card enhancements */
+.card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  font-weight: 600;
+  border-bottom: 2px solid var(--asap-secondary);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--asap-primary);
+  border-color: var(--asap-primary);
+}
+
+.btn-primary:hover {
+  background-color: #1a252f;
+  border-color: #1a252f;
+}
+
+/* AI Assistant chat styles */
+#chat_display {
+  font-size: 0.9rem;
+}
+
+#chat_display .bg-primary {
+  background-color: var(--asap-primary) !important;
+}
+
+/* Slider customization */
+.irs--shiny .irs-bar {
+  background: var(--asap-secondary);
+  border-color: var(--asap-secondary);
+}
+
+.irs--shiny .irs-from,
+.irs--shiny .irs-to,
+.irs--shiny .irs-single {
+  background: var(--asap-secondary);
+}
+
+/* File input styling */
+.btn-file {
+  background-color: var(--asap-accent);
+  border-color: var(--asap-accent);
+  color: white;
+}
+
+/* Navbar enhancements */
+.navbar-brand img {
+  filter: brightness(0) invert(1);
+}
+
+/* Alert customization */
+.alert-info {
+  background-color: #e8f4f8;
+  border-color: var(--asap-accent);
+  color: #0c5460;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  border-color: var(--asap-secondary);
+  color: #155724;
+}
+
+/* Loading spinner */
+.fa-spinner {
+  color: var(--asap-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  #chat_display {
+    height: 300px !important;
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+button,
+.btn {
+  transition: all 0.3s ease;
+}
+
+/* Tooltip styling */
+.popover {
+  max-width: 300px;
+}
+
+/* Table styling */
+.dataTables_wrapper {
+  font-size: 0.9rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: var(--asap-secondary) !important;
+  border-color: var(--asap-secondary) !important;
+}
+
+/* Sidebar styling - make it resizable */
+.bslib-sidebar-layout {
+  --bslib-sidebar-width: 450px;
+}
+
+/* Hide slider tick marks for cleaner look */
+.irs-grid {
+  display: none;
+}
+
+/* Compact slider labels */
+.irs--shiny .irs-min,
+.irs--shiny .irs-max {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* Make cards more compact in sidebar */
+.sidebar .card {
+  margin-bottom: 0.75rem;
+}
+
+.sidebar .card-body {
+  padding: 0.5rem;
+}
+
+/* Reduce spacing in form inputs */
+.form-group {
+  margin-bottom: 0.75rem;
+}
