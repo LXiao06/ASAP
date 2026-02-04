@@ -127,6 +127,31 @@ Total detections across all days: 3292
 Access detection results via: sap$templates$template_matches[[\"syllable_d\"]]")
 ```
 
+### (Optional) Saving SAP Object
+
+After completing the motif detection pipeline, you can save the SAP object for 
+later use or to share with collaborators:
+
+```{r save-sap, eval = FALSE}
+# Save the complete SAP object with all results
+saveRDS(sap, "longitudinal_motif_analysis.rds")
+
+# Later, load it back
+sap <- readRDS("longitudinal_motif_analysis.rds")
+```
+
+**What gets saved:**
+- All metadata and file references
+- Template detection results
+- Motif boundaries
+- Spectral features and UMAP coordinates
+- Cluster assignments
+
+**Important notes:**
+- The original WAV files are **not** included in the saved object
+- You must keep the WAV files at their original paths to run additional analyses
+- The saved `.rds` file is typically much smaller than the audio data
+
 ## Visualizing Results
 
 ```{r visualize, eval = FALSE}
