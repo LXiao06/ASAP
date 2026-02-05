@@ -274,10 +274,9 @@ show skewed distributions and non-constant variance across development:
 2.  **Inter-Bout Interval (s)**: The silent gap duration between
     consecutive bouts within a recording session.
     - **Observed Trend**: In this dataset, the interval between bouts
-      remains **stable** across all time points (**BL**, **Post**,
-      **Rec**). No statistically significant changes were observed,
-      indicating that the timing between singing bouts was preserved
-      despite changes to the bouts themselves.
+      remains **stable** across stages. No statistically significant
+      changes were observed, indicating that the timing between singing
+      bouts was preserved despite changes to the bouts themselves.
 3.  **Motifs per Bout**: The discrete count of motif renditions within a
     single bout.
     - **Observed Trend**: The number of motifs per bout **decreases**
