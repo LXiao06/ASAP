@@ -154,7 +154,9 @@ detailed instructions):</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Note</strong>: When creating a new SAP object without prior
 motif detection, <code>summary = TRUE</code> will not add motif-bout
-relationship columns (n_motifs, align_time, etc.).</p>
+relationship columns (n_motifs, align_time, etc.). Additionally, because
+template matching is not performed, it is possible to detect false
+positives such as innate vocalizations or background noise.</p>
 </div>
 <div class="section level3">
 <h3 id="understanding-sap-object-behavior">Understanding SAP Object Behavior<a class="anchor" aria-label="anchor" href="#understanding-sap-object-behavior"></a>
@@ -245,12 +247,12 @@ quality:</p>
 <h3 id="amplitude-envelope-heatmap">Amplitude Envelope Heatmap<a class="anchor" aria-label="anchor" href="#amplitude-envelope-heatmap"></a>
 </h3>
 <p>Amplitude envelope heatmaps visualize the temporal structure of
-detected bouts across developmental stages.</p>
+detected bouts across song developmental stages.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create amplitude envelope heatmap with balanced sampling</span></span>
 <span><span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span><span class="va">sap</span>, segment_type <span class="op">=</span> <span class="st">"bouts"</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
-<img src="figures/longitudinal_bout_heatmap.png" style="width:70.0%" alt="Bout Amplitude Envelope Heatmap"><div class="figcaption">Bout Amplitude Envelope Heatmap</div>
+<img src="figures/longitudinal_bout_heatmap.png" style="width:100.0%" alt="Bout Amplitude Envelope Heatmap"><div class="figcaption">Bout Amplitude Envelope Heatmap</div>
 </div>
 <p><strong>The <code>balanced</code> argument</strong> ensures equal
 representation across time points (e.g., same number of bouts from each
@@ -374,43 +376,9 @@ adjust for multiple comparisons and prevent false discoveries.</li>
 (<code>*</code>) in the plot indicate significant pairwise differences
 based on these adjusted p-values.</li>
 </ul>
-<p><strong>Key Metrics &amp; Observed Trends</strong>:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Bout Duration (s)</strong>: The total time from the start to
-the end of a detected bout.
-<ul>
-<li>
-<strong>Observed Trend</strong>: In this dataset, bout duration
-<strong>decreases</strong> significantly across the three stages
-(<strong>BL</strong> &gt; <strong>Post</strong> &gt;
-<strong>Rec</strong>). This indicates shorter vocal sequences as the
-experiment progresses.</li>
-</ul>
-</li>
-<li>
-<strong>Inter-Bout Interval (s)</strong>: The silent gap duration
-between consecutive bouts within a recording session.
-<ul>
-<li>
-<strong>Observed Trend</strong>: In this dataset, the interval
-between bouts remains <strong>stable</strong> across stages. No
-statistically significant changes were observed, indicating that the
-timing between singing bouts was preserved despite changes to the bouts
-themselves.</li>
-</ul>
-</li>
-<li>
-<strong>Motifs per Bout</strong>: The discrete count of motif
-renditions within a single bout.
-<ul>
-<li>
-<strong>Observed Trend</strong>: The number of motifs per bout
-<strong>decreases</strong> across stages. Bouts become less dense with
-motifs, matching the overall reduction in bout duration.</li>
-</ul>
-</li>
-</ol>
+<p><strong>Summary of Vocal Bout Changes</strong>: - Bouts become
+progressively shorter and contain fewer motifs from BL to Post to Rec. -
+The timing between bouts remains unchanged across stages.</p>
 </div>
 </div>
 <div class="section level2">

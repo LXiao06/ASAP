@@ -100,7 +100,9 @@ sap <- sap |>
 
 **Note**: When creating a new SAP object without prior motif detection,
 `summary = TRUE` will not add motif-bout relationship columns (n_motifs,
-align_time, etc.).
+align_time, etc.). Additionally, because template matching is not
+performed, it is possible to detect false positives such as innate
+vocalizations or background noise.
 
 ### Understanding SAP Object Behavior
 
@@ -177,7 +179,7 @@ Sample Bouts Across Time Points
 ### Amplitude Envelope Heatmap
 
 Amplitude envelope heatmaps visualize the temporal structure of detected
-bouts across developmental stages.
+bouts across song developmental stages.
 
 ``` r
 # Create amplitude envelope heatmap with balanced sampling
@@ -263,25 +265,9 @@ show skewed distributions and non-constant variance across development:
   indicate significant pairwise differences based on these adjusted
   p-values.
 
-**Key Metrics & Observed Trends**:
-
-1.  **Bout Duration (s)**: The total time from the start to the end of a
-    detected bout.
-    - **Observed Trend**: In this dataset, bout duration **decreases**
-      significantly across the three stages (**BL** \> **Post** \>
-      **Rec**). This indicates shorter vocal sequences as the experiment
-      progresses.
-2.  **Inter-Bout Interval (s)**: The silent gap duration between
-    consecutive bouts within a recording session.
-    - **Observed Trend**: In this dataset, the interval between bouts
-      remains **stable** across stages. No statistically significant
-      changes were observed, indicating that the timing between singing
-      bouts was preserved despite changes to the bouts themselves.
-3.  **Motifs per Bout**: The discrete count of motif renditions within a
-    single bout.
-    - **Observed Trend**: The number of motifs per bout **decreases**
-      across stages. Bouts become less dense with motifs, matching the
-      overall reduction in bout duration.
+**Summary of Vocal Bout Changes**: - Bouts become progressively shorter
+and contain fewer motifs from BL to Post to Rec. - The timing between
+bouts remains unchanged across stages.
 
 ## Key Parameters for Bout Detection
 
