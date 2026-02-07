@@ -7,6 +7,9 @@
 
 ## Citation
 
+Source:
+[`DESCRIPTION`](https://github.com/LXiao06/ASAP/blob/HEAD/DESCRIPTION)
+
 Xiao L (2026). *ASAP: Automated Sound Analysis Pipeline for Avian
 Vocalization Research*. R package version 0.3.3,
 <https://lxiao06.github.io/ASAP/>.
