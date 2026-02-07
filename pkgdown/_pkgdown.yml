@@ -5,6 +5,13 @@ template:
     primary: "#1e88e5"
     link-color: "#1e88e5"
 
+repo:
+  url:
+    home: https://github.com/LXiao06/ASAP
+    source: https://github.com/LXiao06/ASAP/blob/HEAD/
+    issue: https://github.com/LXiao06/ASAP/issues/
+    user: https://github.com/LXiao06/
+
 articles:
   - title: "Single WAV File Analysis"
     desc: "Learn ASAP functions using individual audio files"

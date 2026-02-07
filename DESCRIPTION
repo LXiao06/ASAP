@@ -61,4 +61,5 @@ Suggests:
     rmarkdown,
     tidyr,
     uwot (>= 0.1.10)
-URL: https://lxiao06.github.io/ASAP/
+URL: https://lxiao06.github.io/ASAP/, https://github.com/LXiao06/ASAP
+BugReports: https://github.com/LXiao06/ASAP/issues
