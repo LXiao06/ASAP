@@ -162,3 +162,88 @@ aside nav a.active,
 .contents h3 {
     margin-top: 2em;
 }
+
+/* ============================================================
+   Get Started – tutorial card grid  (Seurat-style)
+   ============================================================ */
+
+/* Section header on the articles index page */
+.articles-index h2.section-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1e88e5;
+    border-bottom: 2px solid #e3f2fd;
+    padding-bottom: 0.4rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive card grid */
+.tutorial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.4rem;
+    margin-bottom: 3rem;
+}
+
+/* Individual card */
+.tutorial-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
+.tutorial-card:hover {
+    box-shadow: 0 6px 24px rgba(30, 136, 229, 0.18);
+    transform: translateY(-3px);
+    text-decoration: none;
+}
+
+/* Card thumbnail */
+.tutorial-card .card-img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: #f5f8ff;
+}
+
+/* Card body */
+.tutorial-card .card-body {
+    padding: 1rem 1.1rem 1.2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.tutorial-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e88e5;
+    margin-bottom: 0.4rem;
+    line-height: 1.35;
+}
+
+.tutorial-card .card-desc {
+    font-size: 0.875rem;
+    color: #555;
+    line-height: 1.5;
+    flex: 1;
+}
+
+.tutorial-card .card-tag {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #1e88e5;
+    opacity: 0.75;
+}

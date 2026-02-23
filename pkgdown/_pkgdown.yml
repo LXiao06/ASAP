@@ -4,6 +4,7 @@ template:
   bslib:
     primary: "#1e88e5"
     link-color: "#1e88e5"
+  assets: pkgdown/
 
 repo:
   url:
@@ -12,7 +13,20 @@ repo:
     issue: https://github.com/LXiao06/ASAP/issues/
     user: https://github.com/LXiao06/
 
+navbar:
+  structure:
+    left:  [intro, get_started, reference, news]
+    right: [search, github]
+  components:
+    get_started:
+      text: "Get Started"
+      href: articles/index.html
+
 articles:
+  - title: ~
+    contents:
+      - index
+
   - title: "Single WAV File Analysis"
     desc: "Learn ASAP functions using individual audio files"
     contents:
