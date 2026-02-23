@@ -1,4 +1,4 @@
-# ASAP
+# ASAP [![ASAP website](reference/figures/logo.png)](https://lxiao06.github.io/ASAP/)
 
 ## Overview
 

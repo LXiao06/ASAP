@@ -1,64 +1,72 @@
 # Get Started
 
-ASAP (Automated Sound Analysis Pipeline) provides an integrated suite of
-tools for processing, analysing, and visualising avian
-vocalizations—from single audio files to large longitudinal datasets.  
-Choose a tutorial below to get started.
+ASAP (Automated Sound Analysis Pipeline) provides an integrated toolkit
+for processing, analysing, and visualising avian vocalizations — from
+single audio files to large longitudinal datasets. Choose a tutorial
+below to get started.
 
-------------------------------------------------------------------------
+Single WAV File Analysis
 
-## Single WAV File Analysis
+Learn ASAP functions using individual audio files.
 
-[![Visualising a song
-recording](figures/sap_visualize_song.png)](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.md)
+[](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.md)
 
-    <div class="card-title">Visualising Song Recordings</div>
-    <div class="card-desc">
-      Load a single WAV file, create a SAP object, and plot spectrograms to
-      explore the raw audio signal.
-    </div>
-    <span class="card-tag">Beginner · ~10 min</span>
+![Basic audio analysis — amplitude envelope and
+spectrogram](figures/basic_audio_analysis.png)
 
-[![Motif detection on a single
-file](figures/longitudinal_segments.png)](https://lxiao06.github.io/ASAP/articles/motif_detection.md)
+Overview & Basic Audio Analysis
 
-    <div class="card-title">Motif Detection (Single File)</div>
-    <div class="card-desc">
-      Build a template, run cross-correlation–based detection, and extract
-      motif segments from a single recording.
-    </div>
-    <span class="card-tag">Beginner · ~15 min</span>
+Load WAV files, visualise spectrograms, and explore the basic audio
+analysis tools that underpin the ASAP workflow.
 
-------------------------------------------------------------------------
+Beginner · ~10 min
 
-## Longitudinal Recording Analysis with SAP Object
+[](https://lxiao06.github.io/ASAP/articles/motif_detection.md)
 
-[![Constructing a SAP
-object](figures/sap_visualize_song.png)](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md)
+![Motif detection spectrogram](figures/motif_detection.png)
 
-    <div class="card-title">Construct a SAP Object</div>
-    <div class="card-desc">
-      Organise multi-day recording directories into a typed SAP object for
-      reproducible longitudinal analysis.
-    </div>
-    <span class="card-tag">Intermediate · ~10 min</span>
+Motif Detection
 
-[![Longitudinal motif detection
-heatmap](figures/longitudinal_heatmap_ordered.png)](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md)
+Build a cross-correlation template, detect motif occurrences in a single
+recording, and review the detected segments.
 
-    <div class="card-title">Longitudinal Motif Detection</div>
-    <div class="card-desc">
-      Detect, align, and cluster motifs across developmental time points.  
-      Visualise changes in acoustic structure with heatmaps and UMAP embeddings.
-    </div>
-    <span class="card-tag">Intermediate · ~25 min</span>
+Beginner · ~15 min
 
-[![Bout structure across
-development](figures/bout_developmental_trends.png)](https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.md)
+Longitudinal Recording Analysis with SAP Object
 
-    <div class="card-title">Longitudinal Bout Detection</div>
-    <div class="card-desc">
-      Detect song bouts across recordings, summarise motif-bout relationships,
-      and track developmental changes in bout duration and motif density.
-    </div>
-    <span class="card-tag">Intermediate · ~20 min</span>
+Batch processing of recordings across developmental time points.
+
+[](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md)
+
+![ASAP package logo](figures/logo.png)
+
+Constructing a SAP Object
+
+Organise multi-day recording directories into a typed SAP object for
+reproducible longitudinal analysis.
+
+Intermediate · ~10 min
+
+[](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md)
+
+![Longitudinal motif heatmap across
+development](figures/longitudinal_heatmap.png)
+
+Longitudinal Motif Detection
+
+Detect and align motifs across developmental time points. Visualise
+acoustic changes with amplitude heatmaps and UMAP embeddings.
+
+Intermediate · ~25 min
+
+[](https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.md)
+
+![Longitudinal bout amplitude
+heatmap](figures/longitudinal_bout_heatmap.png)
+
+Longitudinal Bout Detection
+
+Detect song bouts across recordings, summarise motif-bout relationships,
+and track changes in bout duration and density over development.
+
+Intermediate · ~20 min

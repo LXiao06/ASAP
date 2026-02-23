@@ -50,7 +50,8 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Get Started</h1>
+
+      <h1>Get Started</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/LXiao06/ASAP/blob/HEAD/vignettes/index.Rmd" class="external-link"><code>vignettes/index.Rmd</code></a></small>
@@ -59,86 +60,207 @@
 
     
     
-<p><link rel="stylesheet" href="../pkgdown/extra.css"></p>
-<p style="font-size:1.1rem; color:#555; max-width:720px; margin-bottom:2.5rem;">
-ASAP (Automated Sound Analysis Pipeline) provides an integrated suite of
-tools for processing, analysing, and visualising avian
-vocalizations—from single audio files to large longitudinal
-datasets.<br>
-Choose a tutorial below to get started.
+<style>
+/* ── intro blurb ── */
+.gs-intro {
+  font-size: 1.05rem;
+  color: #444;
+  max-width: 760px;
+  margin: 0 0 2.5rem;
+  line-height: 1.7;
+}
+
+/* ── section heading ── */
+.gs-section {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e88e5;
+  border-bottom: 2px solid #e3f2fd;
+  padding-bottom: 0.4rem;
+  margin: 2.8rem 0 1.4rem;
+}
+
+/* ── card grid ── */
+.gs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── single card ── */
+.gs-card {
+  border: 1px solid #dde4ef;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none !important;
+  color: inherit !important;
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.gs-card:hover {
+  box-shadow: 0 6px 22px rgba(30,136,229,.18);
+  transform: translateY(-3px);
+}
+
+/* ── thumbnail ── */
+.gs-card-img-wrap {
+  width: 100%;
+  padding-top: 62%;        /* slightly taller box gives images more breathing room */
+  position: relative;
+  overflow: hidden;
+  background: #0d0d0d;     /* neutral dark bg for contain mode */
+}
+.gs-card-img-wrap img {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ── card body ── */
+.gs-card-body {
+  padding: .9rem 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.gs-card-title {
+  font-size: .97rem;
+  font-weight: 700;
+  color: #1e88e5;
+  margin-bottom: .35rem;
+  line-height: 1.3;
+}
+.gs-card-desc {
+  font-size: .83rem;
+  color: #555;
+  line-height: 1.55;
+  flex: 1;
+}
+.gs-card-tag {
+  display: inline-block;
+  margin-top: .7rem;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #1e88e5;
+  opacity: .75;
+}
+</style>
+<p class="gs-intro">
+  ASAP (Automated Sound Analysis Pipeline) provides an integrated toolkit for
+  processing, analysing, and visualising avian vocalizations — from single
+  audio files to large longitudinal datasets. Choose a tutorial below to get
+  started.
 </p>
-<hr>
-<div class="section level2 section-title">
-<h2 class="section-title" id="single-wav-file-analysis">Single WAV File Analysis<a class="anchor" aria-label="anchor" href="#single-wav-file-analysis"></a>
-</h2>
-<div class="tutorial-grid">
-<!-- Card 1 -->
-<a class="tutorial-card" href="single_wav_analysis.html">
-<img class="card-img" src="figures/sap_visualize_song.png" alt="Visualising a song recording"><div class="card-body">
-<pre><code>&lt;div class="card-title"&gt;Visualising Song Recordings&lt;/div&gt;
-&lt;div class="card-desc"&gt;
-  Load a single WAV file, create a SAP object, and plot spectrograms to
-  explore the raw audio signal.
-&lt;/div&gt;
-&lt;span class="card-tag"&gt;Beginner · ~10 min&lt;/span&gt;</code></pre>
+
+<!-- ══════════════════════════════════════ -->
+<!--  SECTION 1 – Single WAV File Analysis -->
+<!-- ══════════════════════════════════════ -->
+<div class="gs-section">Single WAV File Analysis</div>
+<p style="color:#666;font-size:.93rem;margin:-0.8rem 0 1.2rem;">
+  Learn ASAP functions using individual audio files.
+</p>
+
+<div class="gs-grid">
+
+  <!-- Card 1 -->
+  <a class="gs-card" href="single_wav_analysis.html">
+    <div class="gs-card-img-wrap">
+      <img src="figures/basic_audio_analysis.png" alt="Basic audio analysis — amplitude envelope and spectrogram">
 </div>
-<p></p></a>
-<!-- Card 2 -->
-<a class="tutorial-card" href="motif_detection.html">
-<img class="card-img" src="figures/longitudinal_segments.png" alt="Motif detection on a single file"><div class="card-body">
-<pre><code>&lt;div class="card-title"&gt;Motif Detection (Single File)&lt;/div&gt;
-&lt;div class="card-desc"&gt;
-  Build a template, run cross-correlation–based detection, and extract
-  motif segments from a single recording.
-&lt;/div&gt;
-&lt;span class="card-tag"&gt;Beginner · ~15 min&lt;/span&gt;</code></pre>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Overview &amp; Basic Audio Analysis</div>
+      <div class="gs-card-desc">
+        Load WAV files, visualise spectrograms, and explore the basic audio
+        analysis tools that underpin the ASAP workflow.
+      </div>
+      <span class="gs-card-tag">Beginner · ~10 min</span>
+    </div>
+  </a>
+
+  <!-- Card 2 -->
+  <a class="gs-card" href="motif_detection.html">
+    <div class="gs-card-img-wrap">
+      <img src="figures/motif_detection.png" alt="Motif detection spectrogram">
 </div>
-<p></p></a>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Motif Detection</div>
+      <div class="gs-card-desc">
+        Build a cross-correlation template, detect motif occurrences in a
+        single recording, and review the detected segments.
+      </div>
+      <span class="gs-card-tag">Beginner · ~15 min</span>
+    </div>
+  </a>
+
 </div>
-<hr>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  SECTION 2 – Longitudinal Recording Analysis (SAP Object) -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="gs-section">Longitudinal Recording Analysis with SAP Object</div>
+<p style="color:#666;font-size:.93rem;margin:-0.8rem 0 1.2rem;">
+  Batch processing of recordings across developmental time points.
+</p>
+
+<div class="gs-grid">
+
+  <!-- Card 3 -->
+  <a class="gs-card" href="construct_sap_object.html">
+    <div class="gs-card-img-wrap" style="background:#fff;">
+      <img src="figures/logo.png" alt="ASAP package logo">
 </div>
-<div class="section level2 section-title">
-<h2 class="section-title" id="longitudinal-recording-analysis-with-sap-object">Longitudinal Recording Analysis with SAP
-Object<a class="anchor" aria-label="anchor" href="#longitudinal-recording-analysis-with-sap-object"></a>
-</h2>
-<div class="tutorial-grid">
-<!-- Card 3 -->
-<a class="tutorial-card" href="construct_sap_object.html">
-<img class="card-img" src="figures/sap_visualize_song.png" alt="Constructing a SAP object"><div class="card-body">
-<pre><code>&lt;div class="card-title"&gt;Construct a SAP Object&lt;/div&gt;
-&lt;div class="card-desc"&gt;
-  Organise multi-day recording directories into a typed SAP object for
-  reproducible longitudinal analysis.
-&lt;/div&gt;
-&lt;span class="card-tag"&gt;Intermediate · ~10 min&lt;/span&gt;</code></pre>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Constructing a SAP Object</div>
+      <div class="gs-card-desc">
+        Organise multi-day recording directories into a typed SAP object
+        for reproducible longitudinal analysis.
+      </div>
+      <span class="gs-card-tag">Intermediate · ~10 min</span>
+    </div>
+  </a>
+
+  <!-- Card 4 -->
+  <a class="gs-card" href="longitudinal_motif_detection.html">
+    <div class="gs-card-img-wrap" style="background:#fff;">
+      <img src="figures/longitudinal_heatmap.png" alt="Longitudinal motif heatmap across development">
 </div>
-<p></p></a>
-<!-- Card 4 -->
-<a class="tutorial-card" href="longitudinal_motif_detection.html">
-<img class="card-img" src="figures/longitudinal_heatmap_ordered.png" alt="Longitudinal motif detection heatmap"><div class="card-body">
-<pre><code>&lt;div class="card-title"&gt;Longitudinal Motif Detection&lt;/div&gt;
-&lt;div class="card-desc"&gt;
-  Detect, align, and cluster motifs across developmental time points.  
-  Visualise changes in acoustic structure with heatmaps and UMAP embeddings.
-&lt;/div&gt;
-&lt;span class="card-tag"&gt;Intermediate · ~25 min&lt;/span&gt;</code></pre>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Longitudinal Motif Detection</div>
+      <div class="gs-card-desc">
+        Detect and align motifs across developmental time points. Visualise
+        acoustic changes with amplitude heatmaps and UMAP embeddings.
+      </div>
+      <span class="gs-card-tag">Intermediate · ~25 min</span>
+    </div>
+  </a>
+
+  <!-- Card 5 -->
+  <a class="gs-card" href="longitudinal_bout_detection.html">
+    <div class="gs-card-img-wrap" style="background:#fff;">
+      <img src="figures/longitudinal_bout_heatmap.png" alt="Longitudinal bout amplitude heatmap">
 </div>
-<p></p></a>
-<!-- Card 5 -->
-<a class="tutorial-card" href="longitudinal_bout_detection.html">
-<img class="card-img" src="figures/bout_developmental_trends.png" alt="Bout structure across development"><div class="card-body">
-<pre><code>&lt;div class="card-title"&gt;Longitudinal Bout Detection&lt;/div&gt;
-&lt;div class="card-desc"&gt;
-  Detect song bouts across recordings, summarise motif-bout relationships,
-  and track developmental changes in bout duration and motif density.
-&lt;/div&gt;
-&lt;span class="card-tag"&gt;Intermediate · ~20 min&lt;/span&gt;</code></pre>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Longitudinal Bout Detection</div>
+      <div class="gs-card-desc">
+        Detect song bouts across recordings, summarise motif-bout
+        relationships, and track changes in bout duration and density
+        over development.
+      </div>
+      <span class="gs-card-tag">Intermediate · ~20 min</span>
+    </div>
+  </a>
+
 </div>
-<p></p></a>
-</div>
-</div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
-    </nav></aside>
+  </main>
 </div>
 
 
