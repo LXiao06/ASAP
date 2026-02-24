@@ -42,7 +42,7 @@ Batch processing of recordings across developmental time points.
 
 Constructing a SAP Object
 
-Organise multi-day recording directories into a typed SAP object for
+Organise multi-day recording directories into a SAP object for
 reproducible longitudinal analysis.
 
 Intermediate · ~10 min
@@ -70,3 +70,29 @@ Detect song bouts across recordings, summarise motif-bout relationships,
 and track changes in bout duration and density over development.
 
 Intermediate · ~20 min
+
+[](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.md)
+
+![UMAP of syllable segments coloured by
+cluster](figures/longitudinal_umap.png)
+
+Longitudinal Syllable Segmentation
+
+Segment detected bouts into individual syllables, extract spectral
+features, cluster segments, and visualise the acoustic structure with
+UMAP dimensionality reduction.
+
+Advanced · ~25 min
+
+[](https://lxiao06.github.io/ASAP/articles/syllable_labeling.md)
+
+![Syllable cluster heatmap after
+labeling](figures/longitudinal_heatmap_ordered.png)
+
+Syllable Labeling
+
+Assign letter identities to syllable clusters using automatic
+DBSCAN-based labeling and manual refinement. Verify the final syllable
+inventory across developmental stages.
+
+Advanced · ~20 min
