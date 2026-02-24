@@ -173,7 +173,7 @@ vignette: >
     <div class="gs-card-body">
       <div class="gs-card-title">Constructing a SAP Object</div>
       <div class="gs-card-desc">
-        Organise multi-day recording directories into a typed SAP object
+        Organise multi-day recording directories into a SAP object
         for reproducible longitudinal analysis.
       </div>
       <span class="gs-card-tag">Intermediate &middot; ~10 min</span>
@@ -210,6 +210,40 @@ vignette: >
         over development.
       </div>
       <span class="gs-card-tag">Intermediate &middot; ~20 min</span>
+    </div>
+  </a>
+
+  <!-- Card 6 -->
+  <a class="gs-card" href="longitudinal_syllable_segmentation.html">
+    <div class="gs-card-img-wrap" style="background:#fff;">
+      <img src="figures/longitudinal_umap.png"
+           alt="UMAP of syllable segments coloured by cluster">
+    </div>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Longitudinal Syllable Segmentation</div>
+      <div class="gs-card-desc">
+        Segment detected bouts into individual syllables, extract spectral
+        features, cluster segments, and visualise the acoustic structure
+        with UMAP dimensionality reduction.
+      </div>
+      <span class="gs-card-tag">Advanced &middot; ~25 min</span>
+    </div>
+  </a>
+
+  <!-- Card 7 -->
+  <a class="gs-card" href="syllable_labeling.html">
+    <div class="gs-card-img-wrap" style="background:#fff;">
+      <img src="figures/longitudinal_heatmap_ordered.png"
+           alt="Syllable cluster heatmap after labeling">
+    </div>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Syllable Labeling</div>
+      <div class="gs-card-desc">
+        Assign letter identities to syllable clusters using automatic
+        DBSCAN-based labeling and manual refinement. Verify the final
+        syllable inventory across developmental stages.
+      </div>
+      <span class="gs-card-tag">Advanced &middot; ~20 min</span>
     </div>
   </a>
 
