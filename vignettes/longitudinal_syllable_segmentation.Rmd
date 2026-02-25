@@ -27,17 +27,15 @@ structure with UMAP embeddings.
 **Prerequisites**: Before reading this vignette, we recommend completing:
 
 - [Overview: Basic Audio Analysis](single_wav_analysis.html) — Core ASAP functions
-- [Motif Detection](motif_detection.html) — Template optimisation workflow
 - [Constructing a SAP Object](construct_sap_object.html) — SAP object creation
-- [Longitudinal Motif Detection](longitudinal_motif_detection.html) — Detecting
-  motifs across development
+- [Longitudinal Bout Detection](longitudinal_bout_detection.html) — Detecting
+  song bouts across development
 
 **What you will learn**:
 
-1. How to segment detected bouts or motifs into individual syllables
-2. How to extract spectral features from each segment
-3. How to cluster segments using UMAP dimensionality reduction
-4. How to visualise clustering results to guide subsequent labelling
+1. How to segment detected bouts into individual syllables
+2. How to extract features, cluster, and run UMAP on syllable segments
+3. How to visualise clustering results to guide subsequent labelling
 
 ---
 
@@ -49,51 +47,25 @@ library(ASAP)
 
 ---
 
-## Step 1 — Load or create a SAP object
+## Step 1 — Load a SAP object
 
 A SAP object organises all recordings across developmental time points. Here we
-assume you have already run motif detection (see
-[Longitudinal Motif Detection](longitudinal_motif_detection.html)) and a summary
-of bouts (see [Longitudinal Bout Detection](longitudinal_bout_detection.html)).
+assume you have already populated the object with detected bouts (see
+[Longitudinal Bout Detection](longitudinal_bout_detection.html)).
 
 ```{r sap_object}
-sap <- create_sap_object(
-  base_path    = "/path/to/recordings",          # folder containing day sub-directories
-  subfolders_to_include = c("190", "201", "203"),
-  labels       = c("BL", "Post", "Rec")
-)
+sap <- readRDS("longitudinal_bout_analysis.rds")
 ```
 
-Run the motif detection and bout detection steps first so that `sap$motifs` and
-`sap$bouts` are populated before segmentation:
-
-```{r motif_pipeline}
-sap <- sap |>
-  create_audio_clip(indices   = 1,
-                    start_time = 1,
-                    end_time   = 2.5,
-                    clip_names = "motif_ref") |>
-  create_template(template_name = "syllable_d",
-                  clip_name     = "motif_ref",
-                  start_time    = 0.72,
-                  end_time      = 0.84,
-                  freq_min      = 1,
-                  freq_max      = 10,
-                  threshold     = 0.5,
-                  write_template = TRUE) |>
-  detect_template(template_name = "syllable_d") |>
-  find_motif(template_name = "syllable_d",
-             pre_time      = 0.7,
-             lag_time      = 0.5) |>
-  find_bout(min_duration = 0.4, summary = TRUE)
-```
 
 ---
 
-## Step 2 — Segment bouts into syllables
+## Step 2 — Segment bouts (or motifs) into syllables
 
-`segment()` analyses each detected bout (or motif) and uses adaptive
-spectrogram thresholding to locate individual syllables.
+`segment()` uses adaptive spectrogram thresholding to locate individual
+syllables within each detected bout or motif. Before running batch segmentation
+across all recordings, it is good practice to **preview the result on a single
+example** so you can tune the parameters first.
 
 ### Key parameters
 
@@ -106,22 +78,125 @@ spectrogram thresholding to locate individual syllables.
 | `max_syllable_ms` | Maximum syllable length | `150 – 300 ms` |
 | `min_level_db` | Lower dB bound for adaptive search | `5 – 15 dB` |
 | `db_delta` | Step size for dB search | `5 – 10 dB` |
+| `search_direction` | Direction for dB threshold search: `"up"` (quiet recordings) or `"down"` (loud, clear recordings) | `"up"` |
+| `plot_percent` | *(SAP method only)* Percentage of segments for which a PNG is saved | `10` |
+
+### 2a — Interactive parameter tuning with default method
+
+The quickest way to explore parameters is to call `segment()` directly on a
+**WAV file path**. This invokes default method, which plots the detection
+envelope and spectrogram boundaries immediately in your IDE — no files are
+written. Set `save_plot = FALSE` (the default) so the result appears in the
+plot pane right away.
+
+Try the **4th bout** first:
+
+```{r preview_bout}
+example_bout <- sap$bouts[4, ]
+
+segment(
+  file.path(sap$base_path, example_bout$day_post_hatch, example_bout$filename),
+  start_time        = example_bout$start_time,
+  end_time          = example_bout$end_time,
+  flim              = c(1, 8),
+  silence_threshold = 0.02,
+  min_syllable_ms   = 20,
+  max_syllable_ms   = 240,
+  min_level_db      = 10,
+  search_direction  = "up",   # "up" (start from min_level_db) suits variable recordings
+  save_plot         = FALSE   # plot appears in IDE, nothing written to disk
+)
+```
+
+![Segmentation result for the 4th detected bout — envelope (top) and spectrogram with detected syllable boundaries (bottom)](figures/segment_example_bout.png){width=100%}
+
+```markdown
+Then try the **22nd motif**. Note that syllables touching the start or end
+boundaries of the time window could be excluded; this "boundary effect" is an artifact
+that results in only complete syllables being carried forward for analysis.
+```
+
+```{r preview_motif}
+example_motif <- sap$motifs[22, ]
+
+segment(
+  file.path(sap$base_path, example_motif$day_post_hatch, example_motif$filename),
+  start_time        = example_motif$start_time,
+  end_time          = example_motif$end_time,
+  flim              = c(1, 8),
+  silence_threshold = 0.02,
+  min_syllable_ms   = 20,
+  max_syllable_ms   = 240,
+  min_level_db      = 10,
+  search_direction  = "up",
+  save_plot         = FALSE
+)
+```
+
+![Segmentation result for the 22nd detected motif — note the tighter, more stereotyped structure compared to the full bout above](figures/segment_example_motif.png){width=100%}
+
+Inspect the plot pane after each call. Adjust `silence_threshold` or
+`min_level_db` and re-run until boundaries look clean, then use those same
+values in the next two steps.
+
+### 2b — Spot-check a subset with Sap mehtod
+
+Once you have rough parameters, you can verify a small subset of recordings
+before committing to the full batch. Passing a SAP object to `segment()`
+invokes Sap method, which accepts an `indices` argument so you can target
+specific bouts or motifs. Set `save_plot = TRUE` — the function will write
+PNGs to a default directory inside your project so you can browse them at
+your own pace. Use `plot_percent` to control what fraction of segments are
+saved (100 % here since we only process a handful).
+
+```{r preview_sap}
+# Check bouts 1–5 only and save all plots for inspection
+segment(
+  sap,
+  segment_type      = "bouts",
+  indices           = 1:5,
+  flim              = c(1, 8),
+  silence_threshold = 0.02,
+  min_syllable_ms   = 20,
+  max_syllable_ms   = 240,
+  min_level_db      = 10,
+  db_delta          = 10,
+  search_direction  = "up",
+  save_plot         = TRUE,
+  plot_percent      = 100     # save all 5 plots for this spot-check
+)
+```
+
+The PNGs are saved to the default output directory reported in the console.
+When you are satisfied with the boundaries, carry those parameters into the
+batch call below.
+
+### 2c — Batch segmentation across all recordings
+
+Once you are happy with the parameters, run `segment()` via the SAP object to
+process every detected bout across all recordings. To keep the run fast,
+set `plot_percent` to a small value (e.g. `10`) so only a random 10 % of
+detection plots are saved — sufficient for a final sanity check without the
+overhead of writing thousands of PNGs.
 
 ```{r segmentation}
 sap <- sap |>
   segment(
     segment_type      = "bouts",   # segment within each detected bout
-    flim              = c(1, 8),   # focus on 1–8 kHz (zebra finch song range)
-    silence_threshold = 0.02,
+    flim              = c(1, 8),   # 1–8 kHz (zebra finch song range)
+    silence_threshold = 0.02,      # tuned from interactive preview above
     min_syllable_ms   = 20,
     max_syllable_ms   = 240,
     min_level_db      = 10,
-    db_delta          = 10
+    db_delta          = 10,
+    search_direction  = "up",
+    save_plot         = TRUE,
+    plot_percent      = 10         # save 10% of plots to avoid slowing batch processing
   )
 ```
 
-After this step the detected syllable boundaries are stored in `sap$segments`.
-You can inspect them directly:
+Detected syllable boundaries are stored in `sap$segments`. You can inspect
+them directly:
 
 ```{r inspect_segments}
 head(sap$segments)
@@ -129,86 +204,32 @@ head(sap$segments)
 #> S237_42674.wav    190            BL    1-1   1.135      1.178    0.043    ...
 ```
 
-### Visualise detection on a single file (optional)
-
-To check the segmentation quality on one recording, use `segment()` on a single
-WAV file path:
-
-```{r single_file_check}
-wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
-
-syl <- segment(
-  wav_file,
-  start_time        = 1,
-  end_time          = 5,
-  flim              = c(1, 8),
-  silence_threshold = 0.01,
-  min_syllable_ms   = 20,
-  max_syllable_ms   = 240,
-  min_level_db      = 10,
-  verbose           = FALSE
-)
-```
-
-The plot shows the detection envelope (top panel) and spectrogram with
-syllable boundaries overlaid (bottom panel). Adjust `silence_threshold` or
-`min_level_db` if too many or too few segments are detected.
-
 ---
 
-## Step 3 — Extract spectral features from segments
+## Step 3 — Extract features, cluster, and run UMAP
 
-`analyze_spectral()` computes a bank of acoustic features for every detected
-segment. Passing `segment_type = "segments"` tells the function to use
-`sap$segments` rather than the motif data.
+The next steps mirror the workflow from Motif Detection, except here we are operating on individual syllable segments (`segment_type = "segments"`) rather than whole motifs. We extract spectral features using `analyze_spectral()`, group them by acoustic similarity using `find_clusters()`, and project them to 2D space with `run_umap()`.
 
-```{r spectral}
+```{r feature_clustering_umap}
 sap <- sap |>
   analyze_spectral(
     segment_type    = "segments",
-    frequence_range = c(1, 10)   # kHz
-  )
-```
-
-Features are stored in `sap$features$segment$feat.mat` (raw feature matrix) and
-will be used in the next step for clustering.
-
----
-
-## Step 4 — Cluster segments
-
-`find_clusters()` groups the acoustic features using hierarchical or
-density-based methods to reveal natural groupings in the data.
-
-```{r cluster}
-sap <- sap |>
-  find_clusters(segment_type = "segments")
-```
-
-Cluster membership is stored alongside each segment's feature vector in
-`sap$features$segment$feat.embeds`.
-
----
-
-## Step 5 — UMAP dimensionality reduction
-
-UMAP projects the high-dimensional feature space to 2D, making it easy to
-visually inspect how syllable clusters separate.
-
-```{r umap}
-sap <- sap |>
+    frequence_range = c(1, 10)
+  ) |>
+  find_clusters(
+    segment_type = "segments"
+  ) |>
   run_umap(
     segment_type = "segments",
-    min_dist     = 0.3          # controls cluster compactness (0.1 – 0.5)
+    min_dist     = 0.3
   )
 ```
 
-The 2-D coordinates are appended to `sap$features$segment$feat.embeds` as
-`UMAP1` and `UMAP2`.
+The 2-D coordinates are appended to `sap$features$segment$feat.embeds` as `UMAP1` and `UMAP2`.
 
 ---
 
-## Step 6 — Visualise UMAP
+## Step 4 — Visualise UMAP
 
 `plot_umap()` renders an interactive scatter plot of segments in UMAP space,
 coloured and faceted to reveal developmental differences.
@@ -222,7 +243,7 @@ sap <- sap |>
   )
 ```
 
-![UMAP of syllable segments coloured by cluster, split by developmental stage](figures/longitudinal_umap.png){width=100%}
+![UMAP of syllable segments coloured by cluster, split by developmental stage](figures/longitudinal_syllable_umap.png){width=100%}
 
 Each panel shows one developmental stage (BL, Post, Rec). Distinct clouds of
 points that remain stable across panels correspond to acoustically consistent
@@ -245,14 +266,15 @@ clouds may suggest that the segmentation parameters need adjustment.
 ```{r full_pipeline}
 library(ASAP)
 
+# -- Create SAP object --
 sap <- create_sap_object(
   base_path             = "/path/to/recordings",
   subfolders_to_include = c("190", "201", "203"),
   labels                = c("BL", "Post", "Rec")
 )
 
+# -- Motif&Bout detection --
 sap <- sap |>
-  # -- Motif detection (prerequisites) --
   create_audio_clip(indices = 1, start_time = 1, end_time = 2.5,
                     clip_names = "motif_ref") |>
   create_template(template_name = "syllable_d", clip_name = "motif_ref",
@@ -267,7 +289,9 @@ sap <- sap |>
   segment(segment_type = "bouts", flim = c(1, 8),
           silence_threshold = 0.02,
           min_syllable_ms = 20, max_syllable_ms = 240,
-          min_level_db = 10, db_delta = 10) |>
+          min_level_db = 10, db_delta = 10,
+          search_direction = "up",
+          save_plot = TRUE, plot_percent = 10) |>
   analyze_spectral(segment_type = "segments", frequence_range = c(1, 10)) |>
   find_clusters(segment_type = "segments") |>
   run_umap(segment_type = "segments", min_dist = 0.3) |>
