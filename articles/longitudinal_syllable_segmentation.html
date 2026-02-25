@@ -73,21 +73,17 @@ recommend completing:</p>
 <a href="single_wav_analysis.html">Overview: Basic Audio
 Analysis</a> — Core ASAP functions</li>
 <li>
-<a href="motif_detection.html">Motif Detection</a> — Template
-optimisation workflow</li>
-<li>
 <a href="construct_sap_object.html">Constructing a SAP Object</a> —
 SAP object creation</li>
 <li>
-<a href="longitudinal_motif_detection.html">Longitudinal Motif
-Detection</a> — Detecting motifs across development</li>
+<a href="longitudinal_bout_detection.html">Longitudinal Bout
+Detection</a> — Detecting song bouts across development</li>
 </ul>
 <p><strong>What you will learn</strong>:</p>
 <ol style="list-style-type: decimal">
-<li>How to segment detected bouts or motifs into individual
-syllables</li>
-<li>How to extract spectral features from each segment</li>
-<li>How to cluster segments using UMAP dimensionality reduction</li>
+<li>How to segment detected bouts into individual syllables</li>
+<li>How to extract features, cluster, and run UMAP on syllable
+segments</li>
 <li>How to visualise clustering results to guide subsequent
 labelling</li>
 </ol>
@@ -101,48 +97,24 @@ labelling</li>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="step-1-load-or-create-a-sap-object">Step 1 — Load or create a SAP object<a class="anchor" aria-label="anchor" href="#step-1-load-or-create-a-sap-object"></a>
+<h2 id="step-1-load-a-sap-object">Step 1 — Load a SAP object<a class="anchor" aria-label="anchor" href="#step-1-load-a-sap-object"></a>
 </h2>
 <p>A SAP object organises all recordings across developmental time
-points. Here we assume you have already run motif detection (see <a href="longitudinal_motif_detection.html">Longitudinal Motif
-Detection</a>) and a summary of bouts (see <a href="longitudinal_bout_detection.html">Longitudinal Bout
+points. Here we assume you have already populated the object with
+detected bouts (see <a href="longitudinal_bout_detection.html">Longitudinal Bout
 Detection</a>).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_sap_object.html">create_sap_object</a></span><span class="op">(</span></span>
-<span>  base_path    <span class="op">=</span> <span class="st">"/path/to/recordings"</span>,          <span class="co"># folder containing day sub-directories</span></span>
-<span>  subfolders_to_include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"190"</span>, <span class="st">"201"</span>, <span class="st">"203"</span><span class="op">)</span>,</span>
-<span>  labels       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span>, <span class="st">"Rec"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Run the motif detection and bout detection steps first so that
-<code>sap$motifs</code> and <code>sap$bouts</code> are populated before
-segmentation:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices   <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                    start_time <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                    end_time   <span class="op">=</span> <span class="fl">2.5</span>,</span>
-<span>                    clip_names <span class="op">=</span> <span class="st">"motif_ref"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>,</span>
-<span>                  clip_name     <span class="op">=</span> <span class="st">"motif_ref"</span>,</span>
-<span>                  start_time    <span class="op">=</span> <span class="fl">0.72</span>,</span>
-<span>                  end_time      <span class="op">=</span> <span class="fl">0.84</span>,</span>
-<span>                  freq_min      <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                  freq_max      <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>                  threshold     <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>                  write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>,</span>
-<span>             pre_time      <span class="op">=</span> <span class="fl">0.7</span>,</span>
-<span>             lag_time      <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span>min_duration <span class="op">=</span> <span class="fl">0.4</span>, summary <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"longitudinal_bout_analysis.rds"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="step-2-segment-bouts-into-syllables">Step 2 — Segment bouts into syllables<a class="anchor" aria-label="anchor" href="#step-2-segment-bouts-into-syllables"></a>
+<h2 id="step-2-segment-bouts-or-motifs-into-syllables">Step 2 — Segment bouts (or motifs) into syllables<a class="anchor" aria-label="anchor" href="#step-2-segment-bouts-or-motifs-into-syllables"></a>
 </h2>
-<p><code><a href="../reference/segment.html">segment()</a></code> analyses each detected bout (or motif) and
-uses adaptive spectrogram thresholding to locate individual
-syllables.</p>
+<p><code><a href="../reference/segment.html">segment()</a></code> uses adaptive spectrogram thresholding to
+locate individual syllables within each detected bout or motif. Before
+running batch segmentation across all recordings, it is good practice to
+<strong>preview the result on a single example</strong> so you can tune
+the parameters first.</p>
 <div class="section level3">
 <h3 id="key-parameters">Key parameters<a class="anchor" aria-label="anchor" href="#key-parameters"></a>
 </h3>
@@ -194,93 +166,164 @@ syllables.</p>
 <td>Step size for dB search</td>
 <td><code>5 – 10 dB</code></td>
 </tr>
+<tr class="even">
+<td><code>search_direction</code></td>
+<td>Direction for dB threshold search: <code>"up"</code> (quiet
+recordings) or <code>"down"</code> (loud, clear recordings)</td>
+<td><code>"up"</code></td>
+</tr>
+<tr class="odd">
+<td><code>plot_percent</code></td>
+<td>
+<em>(SAP method only)</em> Percentage of segments for which a PNG is
+saved</td>
+<td><code>10</code></td>
+</tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
-<span>    segment_type      <span class="op">=</span> <span class="st">"bouts"</span>,   <span class="co"># segment within each detected bout</span></span>
-<span>    flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,   <span class="co"># focus on 1–8 kHz (zebra finch song range)</span></span>
-<span>    silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
-<span>    min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>    max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
-<span>    min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>    db_delta          <span class="op">=</span> <span class="fl">10</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p>After this step the detected syllable boundaries are stored in
-<code>sap$segments</code>. You can inspect them directly:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">segments</span><span class="op">)</span></span>
-<span><span class="co">#&gt; filename          day_post_hatch label selec start_time end_time duration ...</span></span>
-<span><span class="co">#&gt; S237_42674.wav    190            BL    1-1   1.135      1.178    0.043    ...</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="visualise-detection-on-a-single-file-optional">Visualise detection on a single file (optional)<a class="anchor" aria-label="anchor" href="#visualise-detection-on-a-single-file-optional"></a>
+<h3 id="a-interactive-parameter-tuning-with-default-method">2a — Interactive parameter tuning with default method<a class="anchor" aria-label="anchor" href="#a-interactive-parameter-tuning-with-default-method"></a>
 </h3>
-<p>To check the segmentation quality on one recording, use
-<code><a href="../reference/segment.html">segment()</a></code> on a single WAV file path:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">wav_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"zf_example.wav"</span>, package <span class="op">=</span> <span class="st">"ASAP"</span><span class="op">)</span></span>
+<p>The quickest way to explore parameters is to call
+<code><a href="../reference/segment.html">segment()</a></code> directly on a <strong>WAV file path</strong>.
+This invokes default method, which plots the detection envelope and
+spectrogram boundaries immediately in your IDE — no files are written.
+Set <code>save_plot = FALSE</code> (the default) so the result appears
+in the plot pane right away.</p>
+<p>Try the <strong>4th bout</strong> first:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">example_bout</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">bouts</span><span class="op">[</span><span class="fl">4</span>, <span class="op">]</span></span>
 <span></span>
-<span><span class="va">syl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
-<span>  <span class="va">wav_file</span>,</span>
-<span>  start_time        <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  end_time          <span class="op">=</span> <span class="fl">5</span>,</span>
+<span><span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">base_path</span>, <span class="va">example_bout</span><span class="op">$</span><span class="va">day_post_hatch</span>, <span class="va">example_bout</span><span class="op">$</span><span class="va">filename</span><span class="op">)</span>,</span>
+<span>  start_time        <span class="op">=</span> <span class="va">example_bout</span><span class="op">$</span><span class="va">start_time</span>,</span>
+<span>  end_time          <span class="op">=</span> <span class="va">example_bout</span><span class="op">$</span><span class="va">end_time</span>,</span>
 <span>  flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
-<span>  silence_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
 <span>  min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
 <span>  min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  verbose           <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,   <span class="co"># "up" (start from min_level_db) suits variable recordings</span></span>
+<span>  save_plot         <span class="op">=</span> <span class="cn">FALSE</span>   <span class="co"># plot appears in IDE, nothing written to disk</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>The plot shows the detection envelope (top panel) and spectrogram
-with syllable boundaries overlaid (bottom panel). Adjust
-<code>silence_threshold</code> or <code>min_level_db</code> if too many
-or too few segments are detected.</p>
+<div class="float">
+<img src="figures/segment_example_bout.png" style="width:100.0%" alt="Segmentation result for the 4th detected bout — envelope (top) and spectrogram with detected syllable boundaries (bottom)"><div class="figcaption">Segmentation result for the 4th detected bout —
+envelope (top) and spectrogram with detected syllable boundaries
+(bottom)</div>
+</div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>Then try the **22nd motif**. Note that syllables touching the start or end</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>boundaries of the time window could be excluded; this "boundary effect" is an artifact</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>that results in only complete syllables being carried forward for analysis.</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">example_motif</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">motifs</span><span class="op">[</span><span class="fl">22</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">base_path</span>, <span class="va">example_motif</span><span class="op">$</span><span class="va">day_post_hatch</span>, <span class="va">example_motif</span><span class="op">$</span><span class="va">filename</span><span class="op">)</span>,</span>
+<span>  start_time        <span class="op">=</span> <span class="va">example_motif</span><span class="op">$</span><span class="va">start_time</span>,</span>
+<span>  end_time          <span class="op">=</span> <span class="va">example_motif</span><span class="op">$</span><span class="va">end_time</span>,</span>
+<span>  flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
+<span>  min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
+<span>  min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,</span>
+<span>  save_plot         <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="float">
+<img src="figures/segment_example_motif.png" style="width:100.0%" alt="Segmentation result for the 22nd detected motif — note the tighter, more stereotyped structure compared to the full bout above"><div class="figcaption">Segmentation result for the 22nd detected motif
+— note the tighter, more stereotyped structure compared to the full bout
+above</div>
+</div>
+<p>Inspect the plot pane after each call. Adjust
+<code>silence_threshold</code> or <code>min_level_db</code> and re-run
+until boundaries look clean, then use those same values in the next two
+steps.</p>
+</div>
+<div class="section level3">
+<h3 id="b-spot-check-a-subset-with-sap-mehtod">2b — Spot-check a subset with Sap mehtod<a class="anchor" aria-label="anchor" href="#b-spot-check-a-subset-with-sap-mehtod"></a>
+</h3>
+<p>Once you have rough parameters, you can verify a small subset of
+recordings before committing to the full batch. Passing a SAP object to
+<code><a href="../reference/segment.html">segment()</a></code> invokes Sap method, which accepts an
+<code>indices</code> argument so you can target specific bouts or
+motifs. Set <code>save_plot = TRUE</code> — the function will write PNGs
+to a default directory inside your project so you can browse them at
+your own pace. Use <code>plot_percent</code> to control what fraction of
+segments are saved (100 % here since we only process a handful).</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Check bouts 1–5 only and save all plots for inspection</span></span>
+<span><span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
+<span>  <span class="va">sap</span>,</span>
+<span>  segment_type      <span class="op">=</span> <span class="st">"bouts"</span>,</span>
+<span>  indices           <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,</span>
+<span>  flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
+<span>  min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
+<span>  min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  db_delta          <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,</span>
+<span>  save_plot         <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  plot_percent      <span class="op">=</span> <span class="fl">100</span>     <span class="co"># save all 5 plots for this spot-check</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The PNGs are saved to the default output directory reported in the
+console. When you are satisfied with the boundaries, carry those
+parameters into the batch call below.</p>
+</div>
+<div class="section level3">
+<h3 id="c-batch-segmentation-across-all-recordings">2c — Batch segmentation across all recordings<a class="anchor" aria-label="anchor" href="#c-batch-segmentation-across-all-recordings"></a>
+</h3>
+<p>Once you are happy with the parameters, run <code><a href="../reference/segment.html">segment()</a></code>
+via the SAP object to process every detected bout across all recordings.
+To keep the run fast, set <code>plot_percent</code> to a small value
+(e.g. <code>10</code>) so only a random 10 % of detection plots are
+saved — sufficient for a final sanity check without the overhead of
+writing thousands of PNGs.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
+<span>    segment_type      <span class="op">=</span> <span class="st">"bouts"</span>,   <span class="co"># segment within each detected bout</span></span>
+<span>    flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,   <span class="co"># 1–8 kHz (zebra finch song range)</span></span>
+<span>    silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,      <span class="co"># tuned from interactive preview above</span></span>
+<span>    min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>    max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
+<span>    min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    db_delta          <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    search_direction  <span class="op">=</span> <span class="st">"up"</span>,</span>
+<span>    save_plot         <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    plot_percent      <span class="op">=</span> <span class="fl">10</span>         <span class="co"># save 10% of plots to avoid slowing batch processing</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p>Detected syllable boundaries are stored in <code>sap$segments</code>.
+You can inspect them directly:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">segments</span><span class="op">)</span></span>
+<span><span class="co">#&gt; filename          day_post_hatch label selec start_time end_time duration ...</span></span>
+<span><span class="co">#&gt; S237_42674.wav    190            BL    1-1   1.135      1.178    0.043    ...</span></span></code></pre></div>
 <hr>
 </div>
 </div>
 <div class="section level2">
-<h2 id="step-3-extract-spectral-features-from-segments">Step 3 — Extract spectral features from segments<a class="anchor" aria-label="anchor" href="#step-3-extract-spectral-features-from-segments"></a>
+<h2 id="step-3-extract-features-cluster-and-run-umap">Step 3 — Extract features, cluster, and run UMAP<a class="anchor" aria-label="anchor" href="#step-3-extract-features-cluster-and-run-umap"></a>
 </h2>
-<p><code><a href="../reference/analyze_spectral.html">analyze_spectral()</a></code> computes a bank of acoustic features
-for every detected segment. Passing
-<code>segment_type = "segments"</code> tells the function to use
-<code>sap$segments</code> rather than the motif data.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>The next steps mirror the workflow from Motif Detection, except here
+we are operating on individual syllable segments
+(<code>segment_type = "segments"</code>) rather than whole motifs. We
+extract spectral features using <code><a href="../reference/analyze_spectral.html">analyze_spectral()</a></code>, group
+them by acoustic similarity using <code><a href="../reference/find_clusters.html">find_clusters()</a></code>, and
+project them to 2D space with <code><a href="../reference/run_umap.html">run_umap()</a></code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span></span>
 <span>    segment_type    <span class="op">=</span> <span class="st">"segments"</span>,</span>
-<span>    frequence_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>   <span class="co"># kHz</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p>Features are stored in <code>sap$features$segment$feat.mat</code>
-(raw feature matrix) and will be used in the next step for
-clustering.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="step-4-cluster-segments">Step 4 — Cluster segments<a class="anchor" aria-label="anchor" href="#step-4-cluster-segments"></a>
-</h2>
-<p><code><a href="../reference/find_clusters.html">find_clusters()</a></code> groups the acoustic features using
-hierarchical or density-based methods to reveal natural groupings in the
-data.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span><span class="op">)</span></span></code></pre></div>
-<p>Cluster membership is stored alongside each segment’s feature vector
-in <code>sap$features$segment$feat.embeds</code>.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="step-5-umap-dimensionality-reduction">Step 5 — UMAP dimensionality reduction<a class="anchor" aria-label="anchor" href="#step-5-umap-dimensionality-reduction"></a>
-</h2>
-<p>UMAP projects the high-dimensional feature space to 2D, making it
-easy to visually inspect how syllable clusters separate.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
+<span>    frequence_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span></span>
+<span>    segment_type <span class="op">=</span> <span class="st">"segments"</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span></span>
 <span>    segment_type <span class="op">=</span> <span class="st">"segments"</span>,</span>
-<span>    min_dist     <span class="op">=</span> <span class="fl">0.3</span>          <span class="co"># controls cluster compactness (0.1 – 0.5)</span></span>
+<span>    min_dist     <span class="op">=</span> <span class="fl">0.3</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>The 2-D coordinates are appended to
 <code>sap$features$segment$feat.embeds</code> as <code>UMAP1</code> and
@@ -288,7 +331,7 @@ easy to visually inspect how syllable clusters separate.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="step-6-visualise-umap">Step 6 — Visualise UMAP<a class="anchor" aria-label="anchor" href="#step-6-visualise-umap"></a>
+<h2 id="step-4-visualise-umap">Step 4 — Visualise UMAP<a class="anchor" aria-label="anchor" href="#step-4-visualise-umap"></a>
 </h2>
 <p><code><a href="../reference/plot_umap.html">plot_umap()</a></code> renders an interactive scatter plot of
 segments in UMAP space, coloured and faceted to reveal developmental
@@ -301,7 +344,7 @@ differences.</p>
 <span>    label        <span class="op">=</span> <span class="cn">TRUE</span>       <span class="co"># show cluster numbers on the plot</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <div class="float">
-<img src="figures/longitudinal_umap.png" style="width:100.0%" alt="UMAP of syllable segments coloured by cluster, split by developmental stage"><div class="figcaption">UMAP of syllable segments coloured by cluster,
+<img src="figures/longitudinal_syllable_umap.png" style="width:100.0%" alt="UMAP of syllable segments coloured by cluster, split by developmental stage"><div class="figcaption">UMAP of syllable segments coloured by cluster,
 split by developmental stage</div>
 </div>
 <p>Each panel shows one developmental stage (BL, Post, Rec). Distinct
@@ -337,14 +380,15 @@ range</li>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lxiao06.github.io/ASAP/">ASAP</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># -- Create SAP object --</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_sap_object.html">create_sap_object</a></span><span class="op">(</span></span>
 <span>  base_path             <span class="op">=</span> <span class="st">"/path/to/recordings"</span>,</span>
 <span>  subfolders_to_include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"190"</span>, <span class="st">"201"</span>, <span class="st">"203"</span><span class="op">)</span>,</span>
 <span>  labels                <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span>, <span class="st">"Rec"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># -- Motif&amp;Bout detection --</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="co"># -- Motif detection (prerequisites) --</span></span>
 <span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
 <span>                    clip_names <span class="op">=</span> <span class="st">"motif_ref"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>, clip_name <span class="op">=</span> <span class="st">"motif_ref"</span>,</span>
@@ -359,7 +403,9 @@ range</li>
 <span>  <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"bouts"</span>, flim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
 <span>          silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
 <span>          min_syllable_ms <span class="op">=</span> <span class="fl">20</span>, max_syllable_ms <span class="op">=</span> <span class="fl">240</span>,</span>
-<span>          min_level_db <span class="op">=</span> <span class="fl">10</span>, db_delta <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>          min_level_db <span class="op">=</span> <span class="fl">10</span>, db_delta <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>          search_direction <span class="op">=</span> <span class="st">"up"</span>,</span>
+<span>          save_plot <span class="op">=</span> <span class="cn">TRUE</span>, plot_percent <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span>, frequence_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span>, min_dist <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">|&gt;</span></span>
