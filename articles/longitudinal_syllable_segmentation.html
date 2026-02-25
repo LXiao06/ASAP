@@ -204,18 +204,16 @@ in the plot pane right away.</p>
 <span>  min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
 <span>  min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,   <span class="co"># "up" (start from min_level_db) suits variable recordings</span></span>
-<span>  save_plot         <span class="op">=</span> <span class="cn">FALSE</span>   <span class="co"># plot appears in IDE, nothing written to disk</span></span>
+<span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,   <span class="co"># start from min_level_db suits variable recordings</span></span>
+<span>  save_plot         <span class="op">=</span> <span class="cn">FALSE</span>   <span class="co"># plot appears in IDE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/segment_example_bout.png" style="width:100.0%" alt="Segmentation result for the 4th detected bout — envelope (top) and spectrogram with detected syllable boundaries (bottom)"><div class="figcaption">Segmentation result for the 4th detected bout —
 envelope (top) and spectrogram with detected syllable boundaries
 (bottom)</div>
 </div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>Then try the **22nd motif**. Note that syllables touching the start or end</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>boundaries of the time window could be excluded; this "boundary effect" is an artifact</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>that results in only complete syllables being carried forward for analysis.</span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>Then try the <strong>22nd motif</strong>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">example_motif</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">motifs</span><span class="op">[</span><span class="fl">22</span>, <span class="op">]</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
@@ -231,9 +229,11 @@ envelope (top) and spectrogram with detected syllable boundaries
 <span>  save_plot         <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="float">
-<img src="figures/segment_example_motif.png" style="width:100.0%" alt="Segmentation result for the 22nd detected motif — note the tighter, more stereotyped structure compared to the full bout above"><div class="figcaption">Segmentation result for the 22nd detected motif
-— note the tighter, more stereotyped structure compared to the full bout
-above</div>
+<img src="figures/segment_example_motif.png" style="width:100.0%" alt="Segmentation result for the 22nd detected motif — Note that syllables touching the start or end boundaries of the time window could be excluded; this “boundary effect” is an artifact that results in only complete syllables being carried forward for analysis."><div class="figcaption">Segmentation result for the 22nd detected motif
+— Note that syllables touching the start or end boundaries of the time
+window could be excluded; this “boundary effect” is an artifact that
+results in only complete syllables being carried forward for
+analysis.</div>
 </div>
 <p>Inspect the plot pane after each call. Adjust
 <code>silence_threshold</code> or <code>min_level_db</code> and re-run
@@ -241,22 +241,29 @@ until boundaries look clean, then use those same values in the next two
 steps.</p>
 </div>
 <div class="section level3">
-<h3 id="b-spot-check-a-subset-with-sap-mehtod">2b — Spot-check a subset with Sap mehtod<a class="anchor" aria-label="anchor" href="#b-spot-check-a-subset-with-sap-mehtod"></a>
+<h3 id="b-spot-check-a-subset-with-sap-method">2b — Spot-check a subset with Sap method<a class="anchor" aria-label="anchor" href="#b-spot-check-a-subset-with-sap-method"></a>
 </h3>
 <p>Once you have rough parameters, you can verify a small subset of
-recordings before committing to the full batch. Passing a SAP object to
-<code><a href="../reference/segment.html">segment()</a></code> invokes Sap method, which accepts an
-<code>indices</code> argument so you can target specific bouts or
-motifs. Set <code>save_plot = TRUE</code> — the function will write PNGs
-to a default directory inside your project so you can browse them at
-your own pace. Use <code>plot_percent</code> to control what fraction of
-segments are saved (100 % here since we only process a handful).</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Check bouts 1–5 only and save all plots for inspection</span></span>
-<span><span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
+recordings before committing to the full batch. The Sap method accepts
+two composable filter arguments:</p>
+<ul>
+<li>
+<strong><code>day</code></strong> — first restricts the pool of
+bouts/motifs to those from the specified recording day(s) (matched
+against <code>day_post_hatch</code>).</li>
+<li>
+<strong><code>indices</code></strong> — then selects specific row
+numbers <strong>within that day’s filtered pool</strong>. If
+<code>day</code> is omitted, indices apply across all days.</li>
+</ul>
+<p>They work together, not as alternatives. For example, to check bouts
+1–5 from the baseline day only:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
 <span>  <span class="va">sap</span>,</span>
 <span>  segment_type      <span class="op">=</span> <span class="st">"bouts"</span>,</span>
-<span>  indices           <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,</span>
+<span>  day               <span class="op">=</span> <span class="fl">190</span>,    <span class="co"># restrict to BL (day_post_hatch = 190)</span></span>
+<span>  indices           <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,    <span class="co"># then pick rows 1–5 within that day</span></span>
 <span>  flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
 <span>  silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
 <span>  min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
@@ -265,8 +272,11 @@ segments are saved (100 % here since we only process a handful).</p>
 <span>  db_delta          <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,</span>
 <span>  save_plot         <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  plot_percent      <span class="op">=</span> <span class="fl">100</span>     <span class="co"># save all 5 plots for this spot-check</span></span>
+<span>  plot_percent      <span class="op">=</span> <span class="fl">100</span>     <span class="co"># save all plots in this spot-check</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p>Omit <code>indices</code> to process <strong>all</strong> bouts from
+that day, or omit <code>day</code> to apply <code>indices</code> across
+the full dataset regardless of recording day.</p>
 <p>The PNGs are saved to the default output directory reported in the
 console. When you are satisfied with the boundaries, carry those
 parameters into the batch call below.</p>
@@ -280,7 +290,7 @@ To keep the run fast, set <code>plot_percent</code> to a small value
 (e.g. <code>10</code>) so only a random 10 % of detection plots are
 saved — sufficient for a final sanity check without the overhead of
 writing thousands of PNGs.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
 <span>    segment_type      <span class="op">=</span> <span class="st">"bouts"</span>,   <span class="co"># segment within each detected bout</span></span>
@@ -296,7 +306,7 @@ writing thousands of PNGs.</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>Detected syllable boundaries are stored in <code>sap$segments</code>.
 You can inspect them directly:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">segments</span><span class="op">)</span></span>
 <span><span class="co">#&gt; filename          day_post_hatch label selec start_time end_time duration ...</span></span>
 <span><span class="co">#&gt; S237_42674.wav    190            BL    1-1   1.135      1.178    0.043    ...</span></span></code></pre></div>
@@ -306,13 +316,16 @@ You can inspect them directly:</p>
 <div class="section level2">
 <h2 id="step-3-extract-features-cluster-and-run-umap">Step 3 — Extract features, cluster, and run UMAP<a class="anchor" aria-label="anchor" href="#step-3-extract-features-cluster-and-run-umap"></a>
 </h2>
-<p>The next steps mirror the workflow from Motif Detection, except here
-we are operating on individual syllable segments
-(<code>segment_type = "segments"</code>) rather than whole motifs. We
-extract spectral features using <code><a href="../reference/analyze_spectral.html">analyze_spectral()</a></code>, group
-them by acoustic similarity using <code><a href="../reference/find_clusters.html">find_clusters()</a></code>, and
-project them to 2D space with <code><a href="../reference/run_umap.html">run_umap()</a></code>.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<p>The workflow here is identical to the one described in <a href="longitudinal_motif_detection.html">Longitudinal Motif
+Detection</a> — the same <code><a href="../reference/analyze_spectral.html">analyze_spectral()</a></code>,
+<code><a href="../reference/find_clusters.html">find_clusters()</a></code>, and <code><a href="../reference/run_umap.html">run_umap()</a></code> functions are
+used in exactly the same order. The only difference is the <strong>vocal
+element</strong> being analysed: in the motif tutorial the functions
+operate on whole motifs (<code>segment_type = "motifs"</code>, which is
+the default), whereas here we pass
+<code>segment_type = "segments"</code> to work on the individual
+syllables we just detected.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span></span>
 <span>    segment_type    <span class="op">=</span> <span class="st">"segments"</span>,</span>
@@ -336,9 +349,8 @@ project them to 2D space with <code><a href="../reference/run_umap.html">run_uma
 <p><code><a href="../reference/plot_umap.html">plot_umap()</a></code> renders an interactive scatter plot of
 segments in UMAP space, coloured and faceted to reveal developmental
 differences.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span><span class="va">sap</span>,</span>
 <span>    segment_type <span class="op">=</span> <span class="st">"segments"</span>,</span>
 <span>    split.by     <span class="op">=</span> <span class="st">"label"</span>,   <span class="co"># one panel per developmental stage</span></span>
 <span>    label        <span class="op">=</span> <span class="cn">TRUE</span>       <span class="co"># show cluster numbers on the plot</span></span>
@@ -377,7 +389,7 @@ range</li>
 <div class="section level2">
 <h2 id="complete-pipeline-copy-paste-reference">Complete pipeline (copy-paste reference)<a class="anchor" aria-label="anchor" href="#complete-pipeline-copy-paste-reference"></a>
 </h2>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lxiao06.github.io/ASAP/">ASAP</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># -- Create SAP object --</span></span>
@@ -387,7 +399,7 @@ range</li>
 <span>  labels                <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span>, <span class="st">"Rec"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># -- Motif&amp;Bout detection --</span></span>
+<span><span class="co"># -- Motif &amp; Bout detection --</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
 <span>                    clip_names <span class="op">=</span> <span class="st">"motif_ref"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -423,7 +435,7 @@ labelling.</p>
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>

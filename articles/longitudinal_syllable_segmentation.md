@@ -93,8 +93,8 @@ segment(
   min_syllable_ms   = 20,
   max_syllable_ms   = 240,
   min_level_db      = 10,
-  search_direction  = "up",   # "up" (start from min_level_db) suits variable recordings
-  save_plot         = FALSE   # plot appears in IDE, nothing written to disk
+  search_direction  = "up",   # start from min_level_db suits variable recordings
+  save_plot         = FALSE   # plot appears in IDE
 )
 ```
 
@@ -105,11 +105,7 @@ spectrogram with detected syllable boundaries
 Segmentation result for the 4th detected bout — envelope (top) and
 spectrogram with detected syllable boundaries (bottom)
 
-``` markdown
-Then try the **22nd motif**. Note that syllables touching the start or end
-boundaries of the time window could be excluded; this "boundary effect" is an artifact
-that results in only complete syllables being carried forward for analysis.
-```
+Then try the **22nd motif**.
 
 ``` r
 example_motif <- sap$motifs[22, ]
@@ -128,35 +124,41 @@ segment(
 )
 ```
 
-![Segmentation result for the 22nd detected motif — note the tighter,
-more stereotyped structure compared to the full bout
-above](figures/segment_example_motif.png)
+![Segmentation result for the 22nd detected motif — Note that syllables
+touching the start or end boundaries of the time window could be
+excluded; this “boundary effect” is an artifact that results in only
+complete syllables being carried forward for
+analysis.](figures/segment_example_motif.png)
 
-Segmentation result for the 22nd detected motif — note the tighter, more
-stereotyped structure compared to the full bout above
+Segmentation result for the 22nd detected motif — Note that syllables
+touching the start or end boundaries of the time window could be
+excluded; this “boundary effect” is an artifact that results in only
+complete syllables being carried forward for analysis.
 
 Inspect the plot pane after each call. Adjust `silence_threshold` or
 `min_level_db` and re-run until boundaries look clean, then use those
 same values in the next two steps.
 
-### 2b — Spot-check a subset with Sap mehtod
+### 2b — Spot-check a subset with Sap method
 
 Once you have rough parameters, you can verify a small subset of
-recordings before committing to the full batch. Passing a SAP object to
-[`segment()`](https://lxiao06.github.io/ASAP/reference/segment.md)
-invokes Sap method, which accepts an `indices` argument so you can
-target specific bouts or motifs. Set `save_plot = TRUE` — the function
-will write PNGs to a default directory inside your project so you can
-browse them at your own pace. Use `plot_percent` to control what
-fraction of segments are saved (100 % here since we only process a
-handful).
+recordings before committing to the full batch. The Sap method accepts
+two composable filter arguments:
+
+- **`day`** — first restricts the pool of bouts/motifs to those from the
+  specified recording day(s) (matched against `day_post_hatch`).
+- **`indices`** — then selects specific row numbers **within that day’s
+  filtered pool**. If `day` is omitted, indices apply across all days.
+
+They work together, not as alternatives. For example, to check bouts 1–5
+from the baseline day only:
 
 ``` r
-# Check bouts 1–5 only and save all plots for inspection
 segment(
   sap,
   segment_type      = "bouts",
-  indices           = 1:5,
+  day               = 190,    # restrict to BL (day_post_hatch = 190)
+  indices           = 1:5,    # then pick rows 1–5 within that day
   flim              = c(1, 8),
   silence_threshold = 0.02,
   min_syllable_ms   = 20,
@@ -165,9 +167,12 @@ segment(
   db_delta          = 10,
   search_direction  = "up",
   save_plot         = TRUE,
-  plot_percent      = 100     # save all 5 plots for this spot-check
+  plot_percent      = 100     # save all plots in this spot-check
 )
 ```
+
+Omit `indices` to process **all** bouts from that day, or omit `day` to
+apply `indices` across the full dataset regardless of recording day.
 
 The PNGs are saved to the default output directory reported in the
 console. When you are satisfied with the boundaries, carry those
@@ -211,15 +216,18 @@ head(sap$segments)
 
 ## Step 3 — Extract features, cluster, and run UMAP
 
-The next steps mirror the workflow from Motif Detection, except here we
-are operating on individual syllable segments
-(`segment_type = "segments"`) rather than whole motifs. We extract
-spectral features using
+The workflow here is identical to the one described in [Longitudinal
+Motif
+Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md)
+— the same
 [`analyze_spectral()`](https://lxiao06.github.io/ASAP/reference/analyze_spectral.md),
-group them by acoustic similarity using
 [`find_clusters()`](https://lxiao06.github.io/ASAP/reference/find_clusters.md),
-and project them to 2D space with
-[`run_umap()`](https://lxiao06.github.io/ASAP/reference/run_umap.md).
+and [`run_umap()`](https://lxiao06.github.io/ASAP/reference/run_umap.md)
+functions are used in exactly the same order. The only difference is the
+**vocal element** being analysed: in the motif tutorial the functions
+operate on whole motifs (`segment_type = "motifs"`, which is the
+default), whereas here we pass `segment_type = "segments"` to work on
+the individual syllables we just detected.
 
 ``` r
 sap <- sap |>
@@ -248,8 +256,7 @@ renders an interactive scatter plot of segments in UMAP space, coloured
 and faceted to reveal developmental differences.
 
 ``` r
-sap <- sap |>
-  plot_umap(
+plot_umap(sap,
     segment_type = "segments",
     split.by     = "label",   # one panel per developmental stage
     label        = TRUE       # show cluster numbers on the plot
@@ -293,7 +300,7 @@ sap <- create_sap_object(
   labels                = c("BL", "Post", "Rec")
 )
 
-# -- Motif&Bout detection --
+# -- Motif & Bout detection --
 sap <- sap |>
   create_audio_clip(indices = 1, start_time = 1, end_time = 2.5,
                     clip_names = "motif_ref") |>
