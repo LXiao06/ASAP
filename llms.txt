@@ -265,7 +265,7 @@ Intermediate · ~20 min
 [](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.md)
 
 ![UMAP of syllable segments coloured by
-cluster](figures/longitudinal_umap.png)
+cluster](figures/longitudinal_syllable_umap.png)
 
 Longitudinal Syllable Segmentation
 
