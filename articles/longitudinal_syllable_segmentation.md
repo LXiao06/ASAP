@@ -27,6 +27,32 @@ completing:
 
 ------------------------------------------------------------------------
 
+## Overview
+
+**What is syllable segmentation?** Individual song bouts contain
+multiple syllables — discrete acoustic units that are the building
+blocks of the song motif. Syllable segmentation identifies where each
+syllable starts and ends within a bout or motif recording.
+
+**Why segment syllables?** Syllable-level analysis enables:
+
+- Identifying the full syllable repertoire of an individual bird
+- Tracking changes in syllable acoustic structure across development
+- Grouping syllables by acoustic similarity for downstream labelling
+- Comparing syllable distributions across developmental stages
+
+**Relationship to previous steps**: Motif detection (see [Longitudinal
+Motif
+Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.md))
+and bout detection (see [Longitudinal Bout
+Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.md))
+provide the time windows within which
+[`segment()`](https://lxiao06.github.io/ASAP/reference/segment.md)
+searches for syllable boundaries. In this vignette we segment within
+bouts (`segment_type = "bouts"`).
+
+------------------------------------------------------------------------
+
 ## Setup
 
 ``` r
@@ -35,7 +61,7 @@ library(ASAP)
 
 ------------------------------------------------------------------------
 
-## Step 1 — Load a SAP object
+## Load a SAP object
 
 A SAP object organises all recordings across developmental time points.
 Here we assume you have already populated the object with detected bouts
@@ -48,7 +74,7 @@ sap <- readRDS("longitudinal_bout_analysis.rds")
 
 ------------------------------------------------------------------------
 
-## Step 2 — Segment bouts (or motifs) into syllables
+## Segment bouts (or motifs) into syllables
 
 [`segment()`](https://lxiao06.github.io/ASAP/reference/segment.md) uses
 adaptive spectrogram thresholding to locate individual syllables within
@@ -212,9 +238,31 @@ head(sap$segments)
 #> S237_42674.wav    190            BL    1-1   1.135      1.178    0.043    ...
 ```
 
+### Saving the SAP object
+
+After batch segmentation, save the updated SAP object so you can reload
+it directly in the [Syllable
+Labelling](https://lxiao06.github.io/ASAP/articles/syllable_labeling.md)
+tutorial without re-running segmentation:
+
+``` r
+saveRDS(sap, "longitudinal_syllable_analysis.rds")
+
+# Reload later with:
+# sap <- readRDS("longitudinal_syllable_analysis.rds")
+```
+
+**What gets saved:** - All metadata, motif, and bout data from earlier
+steps - Detected syllable boundaries (`sap$segments`)
+
+**Important notes:** - The original WAV files are **not** included in
+the saved object - You must keep WAV files at their original paths to
+run additional analyses - The saved `.rds` file is typically much
+smaller than the audio data
+
 ------------------------------------------------------------------------
 
-## Step 3 — Extract features, cluster, and run UMAP
+## Extract features, cluster, and run UMAP
 
 The workflow here is identical to the one described in [Longitudinal
 Motif
@@ -233,7 +281,7 @@ the individual syllables we just detected.
 sap <- sap |>
   analyze_spectral(
     segment_type    = "segments",
-    frequence_range = c(1, 10)
+    freq_range      = c(1, 10)
   ) |>
   find_clusters(
     segment_type = "segments"
@@ -249,7 +297,7 @@ as `UMAP1` and `UMAP2`.
 
 ------------------------------------------------------------------------
 
-## Step 4 — Visualise UMAP
+## Visualise UMAP
 
 [`plot_umap()`](https://lxiao06.github.io/ASAP/reference/plot_umap.md)
 renders an interactive scatter plot of segments in UMAP space, coloured
@@ -319,7 +367,7 @@ sap <- sap |>
           min_level_db = 10, db_delta = 10,
           search_direction = "up",
           save_plot = TRUE, plot_percent = 10) |>
-  analyze_spectral(segment_type = "segments", frequence_range = c(1, 10)) |>
+  analyze_spectral(segment_type = "segments", freq_range = c(1, 10)) |>
   find_clusters(segment_type = "segments") |>
   run_umap(segment_type = "segments", min_dist = 0.3) |>
   plot_umap(segment_type = "segments", split.by = "label", label = TRUE)

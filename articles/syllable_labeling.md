@@ -31,6 +31,16 @@ library(ASAP)
 
 ------------------------------------------------------------------------
 
+## Load the SAP object
+
+This tutorial continues directly from [Longitudinal Syllable
+Segmentation](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.md).
+Load the SAP object saved at the end of that tutorial:
+
+``` r
+sap <- readRDS("longitudinal_syllable_analysis.rds")
+```
+
 ## Step 1 — Inspect raw segment clusters
 
 Before assigning letter labels it is useful to view how segments are
@@ -201,7 +211,7 @@ sap |>
 ```
 
 ![UMAP of syllables coloured by letter label, split by developmental
-stage](figures/longitudinal_umap.png)
+stage](figures/longitudinal_syllable_umap_labeled.png)
 
 UMAP of syllables coloured by letter label, split by developmental stage
 

@@ -93,13 +93,22 @@ and cluster assignments.</p>
 <hr>
 </div>
 <div class="section level2">
+<h2 id="load-the-sap-object">Load the SAP object<a class="anchor" aria-label="anchor" href="#load-the-sap-object"></a>
+</h2>
+<p>This tutorial continues directly from <a href="longitudinal_syllable_segmentation.html">Longitudinal Syllable
+Segmentation</a>. Load the SAP object saved at the end of that
+tutorial:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"longitudinal_syllable_analysis.rds"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="step-1-inspect-raw-segment-clusters">Step 1 — Inspect raw segment clusters<a class="anchor" aria-label="anchor" href="#step-1-inspect-raw-segment-clusters"></a>
 </h2>
 <p>Before assigning letter labels it is useful to view how segments are
 distributed across clusters. <code><a href="../reference/plot_clusters.html">plot_clusters()</a></code> renders a
 heatmap-style raster where each row is a segment and columns represent
 time within the motif, coloured by cluster identity.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"segment"</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Inspect the output:</p>
@@ -172,7 +181,7 @@ automatically.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/auto_label.html">auto_label</a></span><span class="op">(</span></span>
 <span>    eps_time          <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -186,7 +195,7 @@ automatically.</p>
 <code>sap$features$syllable$feat.embeds</code>, which contains a
 <code>cluster</code> column with integer cluster IDs. Visualise the
 auto-labelled clusters:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"syllable"</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -220,7 +229,7 @@ integers to the letter codes that match your syllable vocabulary.</p>
 </h3>
 <p>Run in an <strong>interactive R session</strong> (e.g. RStudio
 console) to be prompted for each cluster:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/manual_label.html">manual_label</a></span><span class="op">(</span><span class="va">sap</span>, data_type <span class="op">=</span> <span class="st">"syllable"</span>, interactive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found clusters: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14</span></span>
 <span><span class="co">#&gt;</span></span>
@@ -241,7 +250,7 @@ SAP object and re-used automatically in subsequent calls.</p>
 Clusters that share the same letter are treated as the same syllable
 type. This approach is <strong>fully reproducible</strong> without
 interactive input.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Inspect the cluster plot above, then define the mapping</span></span>
 <span><span class="va">map_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  cluster  <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">14</span>,</span>
@@ -266,7 +275,7 @@ step.</p>
 </h3>
 <p>The label map is stored as an attribute of the feature
 embeddings:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stored_map</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">syllable</span><span class="op">$</span><span class="va">feat.embeds</span>, <span class="st">"label_map"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">stored_map</span><span class="op">)</span></span></code></pre></div>
 <hr>
@@ -281,7 +290,7 @@ stages.</p>
 <div class="section level3">
 <h3 id="heatmap-by-syllable-type">Heatmap by syllable type<a class="anchor" aria-label="anchor" href="#heatmap-by-syllable-type"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>label_type <span class="op">=</span> <span class="st">"post"</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>In the “post-label” heatmap each colour corresponds to one
@@ -291,7 +300,7 @@ stages (BL, Post, Rec) indicates stable syllable identity.</p>
 <div class="section level3">
 <h3 id="umap-coloured-by-syllable-letter">UMAP coloured by syllable letter<a class="anchor" aria-label="anchor" href="#umap-coloured-by-syllable-letter"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span></span>
 <span>    segment_type <span class="op">=</span> <span class="st">"syllables"</span>,</span>
@@ -300,7 +309,7 @@ stages (BL, Post, Rec) indicates stable syllable identity.</p>
 <span>    label        <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <div class="float">
-<img src="figures/longitudinal_umap.png" style="width:100.0%" alt="UMAP of syllables coloured by letter label, split by developmental stage"><div class="figcaption">UMAP of syllables coloured by letter label,
+<img src="figures/longitudinal_syllable_umap_labeled.png" style="width:100.0%" alt="UMAP of syllables coloured by letter label, split by developmental stage"><div class="figcaption">UMAP of syllables coloured by letter label,
 split by developmental stage</div>
 </div>
 <hr>
@@ -309,7 +318,7 @@ split by developmental stage</div>
 <div class="section level2">
 <h2 id="complete-labelling-pipeline-copy-paste-reference">Complete labelling pipeline (copy-paste reference)<a class="anchor" aria-label="anchor" href="#complete-labelling-pipeline-copy-paste-reference"></a>
 </h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lxiao06.github.io/ASAP/">ASAP</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># -- Assumes segmentation pipeline has already been run --</span></span>
@@ -335,7 +344,7 @@ split by developmental stage</div>
 <h2 id="accessing-syllable-data-downstream">Accessing syllable data downstream<a class="anchor" aria-label="anchor" href="#accessing-syllable-data-downstream"></a>
 </h2>
 <p>All labelled syllables are stored in <code>sap$syllables</code>:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">syllables</span><span class="op">)</span></span>
 <span><span class="co">#&gt; filename          day_post_hatch label cluster syllable UMAP1   UMAP2</span></span>
 <span><span class="co">#&gt; S237_42674.wav    190            BL    4       b        -1.23   2.45</span></span>
@@ -349,7 +358,7 @@ split by developmental stage</div>
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
