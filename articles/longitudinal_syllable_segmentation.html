@@ -231,8 +231,8 @@ in the plot pane right away.</p>
 <span>  min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
 <span>  min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,   <span class="co"># start from min_level_db suits variable recordings</span></span>
-<span>  save_plot         <span class="op">=</span> <span class="cn">FALSE</span>   <span class="co"># plot appears in IDE</span></span>
+<span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>, <span class="co"># start from min_level_db suits variable recordings</span></span>
+<span>  save_plot         <span class="op">=</span> <span class="cn">FALSE</span> <span class="co"># plot appears in IDE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/segment_example_bout.png" style="width:100.0%" alt="Segmentation result for the 4th detected bout — envelope (top) and spectrogram with detected syllable boundaries (bottom)"><div class="figcaption">Segmentation result for the 4th detected bout —
@@ -244,16 +244,19 @@ envelope (top) and spectrogram with detected syllable boundaries
 <code class="sourceCode R"><span><span class="va">example_motif</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">motifs</span><span class="op">[</span><span class="fl">22</span>, <span class="op">]</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">base_path</span>, <span class="va">example_motif</span><span class="op">$</span><span class="va">day_post_hatch</span>, <span class="va">example_motif</span><span class="op">$</span><span class="va">filename</span><span class="op">)</span>,</span>
-<span>  start_time        <span class="op">=</span> <span class="va">example_motif</span><span class="op">$</span><span class="va">start_time</span>,</span>
-<span>  end_time          <span class="op">=</span> <span class="va">example_motif</span><span class="op">$</span><span class="va">end_time</span>,</span>
-<span>  flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span></span>
+<span>    <span class="va">sap</span><span class="op">$</span><span class="va">base_path</span>, <span class="va">example_motif</span><span class="op">$</span><span class="va">day_post_hatch</span>,</span>
+<span>    <span class="va">example_motif</span><span class="op">$</span><span class="va">filename</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  start_time <span class="op">=</span> <span class="va">example_motif</span><span class="op">$</span><span class="va">start_time</span>,</span>
+<span>  end_time <span class="op">=</span> <span class="va">example_motif</span><span class="op">$</span><span class="va">end_time</span>,</span>
+<span>  flim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
 <span>  silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
-<span>  min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
-<span>  min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,</span>
-<span>  save_plot         <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  min_syllable_ms <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  max_syllable_ms <span class="op">=</span> <span class="fl">240</span>,</span>
+<span>  min_level_db <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  search_direction <span class="op">=</span> <span class="st">"up"</span>,</span>
+<span>  save_plot <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/segment_example_motif.png" style="width:100.0%" alt="Segmentation result for the 22nd detected motif — Note that syllables touching the start or end boundaries of the time window could be excluded; this “boundary effect” is an artifact that results in only complete syllables being carried forward for analysis."><div class="figcaption">Segmentation result for the 22nd detected motif
@@ -289,8 +292,8 @@ numbers <strong>within that day’s filtered pool</strong>. If
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
 <span>  <span class="va">sap</span>,</span>
 <span>  segment_type      <span class="op">=</span> <span class="st">"bouts"</span>,</span>
-<span>  day               <span class="op">=</span> <span class="fl">190</span>,    <span class="co"># restrict to BL (day_post_hatch = 190)</span></span>
-<span>  indices           <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,    <span class="co"># then pick rows 1–5 within that day</span></span>
+<span>  day               <span class="op">=</span> <span class="fl">190</span>, <span class="co"># restrict to BL (day_post_hatch = 190)</span></span>
+<span>  indices           <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="co"># then pick rows 1–5 within that day</span></span>
 <span>  flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
 <span>  silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
 <span>  min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
@@ -299,7 +302,7 @@ numbers <strong>within that day’s filtered pool</strong>. If
 <span>  db_delta          <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  search_direction  <span class="op">=</span> <span class="st">"up"</span>,</span>
 <span>  save_plot         <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  plot_percent      <span class="op">=</span> <span class="fl">100</span>     <span class="co"># save all plots in this spot-check</span></span>
+<span>  plot_percent      <span class="op">=</span> <span class="fl">100</span> <span class="co"># save all plots in this spot-check</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Omit <code>indices</code> to process <strong>all</strong> bouts from
 that day, or omit <code>day</code> to apply <code>indices</code> across
@@ -320,16 +323,16 @@ writing thousands of PNGs.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
-<span>    segment_type      <span class="op">=</span> <span class="st">"bouts"</span>,   <span class="co"># segment within each detected bout</span></span>
-<span>    flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,   <span class="co"># 1–8 kHz (zebra finch song range)</span></span>
-<span>    silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,      <span class="co"># tuned from interactive preview above</span></span>
+<span>    segment_type      <span class="op">=</span> <span class="st">"bouts"</span>, <span class="co"># segment within each detected bout</span></span>
+<span>    flim              <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>, <span class="co"># 1–8 kHz (zebra finch song range)</span></span>
+<span>    silence_threshold <span class="op">=</span> <span class="fl">0.02</span>, <span class="co"># tuned from interactive preview above</span></span>
 <span>    min_syllable_ms   <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>    max_syllable_ms   <span class="op">=</span> <span class="fl">240</span>,</span>
 <span>    min_level_db      <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>    db_delta          <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>    search_direction  <span class="op">=</span> <span class="st">"up"</span>,</span>
 <span>    save_plot         <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    plot_percent      <span class="op">=</span> <span class="fl">10</span>         <span class="co"># save 10% of plots to avoid slowing batch processing</span></span>
+<span>    plot_percent      <span class="op">=</span> <span class="fl">10</span> <span class="co"># save 10% of plots to avoid slowing batch processing</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>Detected syllable boundaries are stored in <code>sap$segments</code>.
 You can inspect them directly:</p>
@@ -350,7 +353,7 @@ syllables we just detected.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span></span>
-<span>    segment_type    <span class="op">=</span> <span class="st">"segments"</span></span>
+<span>    segment_type <span class="op">=</span> <span class="st">"segments"</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span></span>
 <span>    segment_type <span class="op">=</span> <span class="st">"segments"</span></span>
@@ -375,7 +378,7 @@ Labelling</a> tutorial. The embeddings are required by
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">sap</span>, <span class="st">"longitudinal_syllable_analysis.rds"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Reload later with:</span></span>
-<span><span class="co"># sap &lt;- readRDS("longitudinal_syllable_analysis.rds")</span></span></code></pre></div>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"longitudinal_syllable_analysis.rds"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>What gets saved:</strong> - All metadata, motif, and bout
 data from earlier steps - Detected syllable boundaries
 (<code>sap$segments</code>) - Spectral features
@@ -396,10 +399,10 @@ segments in UMAP space, coloured and faceted to reveal developmental
 differences.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span><span class="va">sap</span>,</span>
-<span>    segment_type <span class="op">=</span> <span class="st">"segments"</span>,</span>
-<span>    split.by     <span class="op">=</span> <span class="st">"label"</span>,   <span class="co"># one panel per developmental stage</span></span>
-<span>    label        <span class="op">=</span> <span class="cn">TRUE</span>       <span class="co"># show cluster numbers on the plot</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>  segment_type <span class="op">=</span> <span class="st">"segments"</span>,</span>
+<span>  split.by     <span class="op">=</span> <span class="st">"label"</span>, <span class="co"># one panel per developmental stage</span></span>
+<span>  label        <span class="op">=</span> <span class="cn">TRUE</span> <span class="co"># show cluster numbers on the plot</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/longitudinal_syllable_umap.png" style="width:100.0%" alt="UMAP of syllable segments coloured by cluster, split by developmental stage"><div class="figcaption">UMAP of syllable segments coloured by cluster,
 split by developmental stage</div>
@@ -446,23 +449,28 @@ range</li>
 <span></span>
 <span><span class="co"># -- Motif &amp; Bout detection --</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
-<span>                    clip_names <span class="op">=</span> <span class="st">"motif_ref"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>, clip_name <span class="op">=</span> <span class="st">"motif_ref"</span>,</span>
-<span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>, end_time <span class="op">=</span> <span class="fl">0.84</span>,</span>
-<span>                  freq_min <span class="op">=</span> <span class="fl">1</span>, freq_max <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>, write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span></span>
+<span>    indices <span class="op">=</span> <span class="fl">1</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>    clip_names <span class="op">=</span> <span class="st">"motif_ref"</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span></span>
+<span>    template_name <span class="op">=</span> <span class="st">"syllable_d"</span>, clip_name <span class="op">=</span> <span class="st">"motif_ref"</span>,</span>
+<span>    start_time <span class="op">=</span> <span class="fl">0.72</span>, end_time <span class="op">=</span> <span class="fl">0.84</span>,</span>
+<span>    freq_min <span class="op">=</span> <span class="fl">1</span>, freq_max <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    threshold <span class="op">=</span> <span class="fl">0.5</span>, write_template <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>, pre_time <span class="op">=</span> <span class="fl">0.7</span>, lag_time <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span>min_duration <span class="op">=</span> <span class="fl">0.4</span>, summary <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span></span>
 <span>  <span class="co"># -- Segmentation pipeline --</span></span>
-<span>  <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"bouts"</span>, flim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
-<span>          silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
-<span>          min_syllable_ms <span class="op">=</span> <span class="fl">20</span>, max_syllable_ms <span class="op">=</span> <span class="fl">240</span>,</span>
-<span>          min_level_db <span class="op">=</span> <span class="fl">10</span>, db_delta <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>          search_direction <span class="op">=</span> <span class="st">"up"</span>,</span>
-<span>          save_plot <span class="op">=</span> <span class="cn">TRUE</span>, plot_percent <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span></span>
+<span>    segment_type <span class="op">=</span> <span class="st">"bouts"</span>, flim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>    silence_threshold <span class="op">=</span> <span class="fl">0.02</span>,</span>
+<span>    min_syllable_ms <span class="op">=</span> <span class="fl">20</span>, max_syllable_ms <span class="op">=</span> <span class="fl">240</span>,</span>
+<span>    min_level_db <span class="op">=</span> <span class="fl">10</span>, db_delta <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    search_direction <span class="op">=</span> <span class="st">"up"</span>,</span>
+<span>    save_plot <span class="op">=</span> <span class="cn">TRUE</span>, plot_percent <span class="op">=</span> <span class="fl">10</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span>, min_dist <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">|&gt;</span></span>
