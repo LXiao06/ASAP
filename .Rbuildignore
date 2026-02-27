@@ -11,4 +11,4 @@
 ^docs$
 ^pkgdown$
 ^tests$
-^vignettes/figures/(?!.*\\.png$).*$
+^vignettes/
