@@ -97,7 +97,7 @@ The label_map data frame must have:
 
 ## Tips for Interactive Labeling
 
-- View clusters first using plot_cluster(..., label_type = "pre")
+- View clusters first using plot_cluster(..., label_type = "auto")
 
 - Consider similar acoustic features when assigning same letter
 
@@ -166,7 +166,7 @@ sap <- auto_label(sap)
 # 2. View clusters
 plot_cluster(sap,
             data_type = "syllable",
-            label_type = "pre")
+            label_type = "auto")
 
 # 3. Manually label clusters
 sap <- manual_label(sap, data_type = "syllable")
@@ -174,6 +174,6 @@ sap <- manual_label(sap, data_type = "syllable")
 # 4. View syllable labels
 plot_cluster(sap,
             data_type = "syllable",
-            label_type = "post")
+            label_type = "manual")
 } # }
 ```

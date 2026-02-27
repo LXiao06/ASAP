@@ -238,31 +238,7 @@ head(sap$segments)
 #> S237_42674.wav    190            BL    1-1   1.135      1.178    0.043    ...
 ```
 
-### Saving the SAP object
-
-After batch segmentation, save the updated SAP object so you can reload
-it directly in the [Syllable
-Labelling](https://lxiao06.github.io/ASAP/articles/syllable_labeling.md)
-tutorial without re-running segmentation:
-
-``` r
-saveRDS(sap, "longitudinal_syllable_analysis.rds")
-
-# Reload later with:
-# sap <- readRDS("longitudinal_syllable_analysis.rds")
-```
-
-**What gets saved:** - All metadata, motif, and bout data from earlier
-steps - Detected syllable boundaries (`sap$segments`)
-
-**Important notes:** - The original WAV files are **not** included in
-the saved object - You must keep WAV files at their original paths to
-run additional analyses - The saved `.rds` file is typically much
-smaller than the audio data
-
 ------------------------------------------------------------------------
-
-## Extract features, cluster, and run UMAP
 
 The workflow here is identical to the one described in [Longitudinal
 Motif
@@ -280,8 +256,7 @@ the individual syllables we just detected.
 ``` r
 sap <- sap |>
   analyze_spectral(
-    segment_type    = "segments",
-    freq_range      = c(1, 10)
+    segment_type    = "segments"
   ) |>
   find_clusters(
     segment_type = "segments"
@@ -294,6 +269,32 @@ sap <- sap |>
 
 The 2-D coordinates are appended to `sap$features$segment$feat.embeds`
 as `UMAP1` and `UMAP2`.
+
+### Saving the SAP object
+
+Now that the SAP object contains segment boundaries, spectral features,
+cluster assignments, and UMAP embeddings, save it so you can continue
+directly in the [Syllable
+Labelling](https://lxiao06.github.io/ASAP/articles/syllable_labeling.md)
+tutorial. The embeddings are required by
+[`auto_label()`](https://lxiao06.github.io/ASAP/reference/auto_label.md):
+
+``` r
+saveRDS(sap, "longitudinal_syllable_analysis.rds")
+
+# Reload later with:
+# sap <- readRDS("longitudinal_syllable_analysis.rds")
+```
+
+**What gets saved:** - All metadata, motif, and bout data from earlier
+steps - Detected syllable boundaries (`sap$segments`) - Spectral
+features (`sap$features$segment$feat.mat`) - Cluster assignments and
+UMAP embeddings (`sap$features$segment$feat.embeds`)
+
+**Important notes:** - The original WAV files are **not** included in
+the saved object - You must keep WAV files at their original paths to
+run additional analyses - The saved `.rds` file is typically much
+smaller than the audio data
 
 ------------------------------------------------------------------------
 
@@ -367,7 +368,7 @@ sap <- sap |>
           min_level_db = 10, db_delta = 10,
           search_direction = "up",
           save_plot = TRUE, plot_percent = 10) |>
-  analyze_spectral(segment_type = "segments", freq_range = c(1, 10)) |>
+  analyze_spectral(segment_type = "segments") |>
   find_clusters(segment_type = "segments") |>
   run_umap(segment_type = "segments", min_dist = 0.3) |>
   plot_umap(segment_type = "segments", split.by = "label", label = TRUE)

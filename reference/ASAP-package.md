@@ -19,6 +19,10 @@ Useful links:
 
 - <https://lxiao06.github.io/ASAP/>
 
+- <https://github.com/LXiao06/ASAP>
+
+- Report bugs at <https://github.com/LXiao06/ASAP/issues>
+
 ## Author
 
 **Maintainer**: Lei Xiao <Leixiao2006@gmail.com>

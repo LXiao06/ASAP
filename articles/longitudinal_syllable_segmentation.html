@@ -336,31 +336,7 @@ You can inspect them directly:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">segments</span><span class="op">)</span></span>
 <span><span class="co">#&gt; filename          day_post_hatch label selec start_time end_time duration ...</span></span>
 <span><span class="co">#&gt; S237_42674.wav    190            BL    1-1   1.135      1.178    0.043    ...</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="saving-the-sap-object">Saving the SAP object<a class="anchor" aria-label="anchor" href="#saving-the-sap-object"></a>
-</h3>
-<p>After batch segmentation, save the updated SAP object so you can
-reload it directly in the <a href="syllable_labeling.html">Syllable
-Labelling</a> tutorial without re-running segmentation:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">sap</span>, <span class="st">"longitudinal_syllable_analysis.rds"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Reload later with:</span></span>
-<span><span class="co"># sap &lt;- readRDS("longitudinal_syllable_analysis.rds")</span></span></code></pre></div>
-<p><strong>What gets saved:</strong> - All metadata, motif, and bout
-data from earlier steps - Detected syllable boundaries
-(<code>sap$segments</code>)</p>
-<p><strong>Important notes:</strong> - The original WAV files are
-<strong>not</strong> included in the saved object - You must keep WAV
-files at their original paths to run additional analyses - The saved
-<code>.rds</code> file is typically much smaller than the audio data</p>
 <hr>
-</div>
-</div>
-<div class="section level2">
-<h2 id="extract-features-cluster-and-run-umap">Extract features, cluster, and run UMAP<a class="anchor" aria-label="anchor" href="#extract-features-cluster-and-run-umap"></a>
-</h2>
 <p>The workflow here is identical to the one described in <a href="longitudinal_motif_detection.html">Longitudinal Motif
 Detection</a> — the same <code><a href="../reference/analyze_spectral.html">analyze_spectral()</a></code>,
 <code><a href="../reference/find_clusters.html">find_clusters()</a></code>, and <code><a href="../reference/run_umap.html">run_umap()</a></code> functions are
@@ -370,11 +346,10 @@ operate on whole motifs (<code>segment_type = "motifs"</code>, which is
 the default), whereas here we pass
 <code>segment_type = "segments"</code> to work on the individual
 syllables we just detected.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span></span>
-<span>    segment_type    <span class="op">=</span> <span class="st">"segments"</span>,</span>
-<span>    freq_range      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span></span>
+<span>    segment_type    <span class="op">=</span> <span class="st">"segments"</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span></span>
 <span>    segment_type <span class="op">=</span> <span class="st">"segments"</span></span>
@@ -386,7 +361,31 @@ syllables we just detected.</p>
 <p>The 2-D coordinates are appended to
 <code>sap$features$segment$feat.embeds</code> as <code>UMAP1</code> and
 <code>UMAP2</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="saving-the-sap-object">Saving the SAP object<a class="anchor" aria-label="anchor" href="#saving-the-sap-object"></a>
+</h3>
+<p>Now that the SAP object contains segment boundaries, spectral
+features, cluster assignments, and UMAP embeddings, save it so you can
+continue directly in the <a href="syllable_labeling.html">Syllable
+Labelling</a> tutorial. The embeddings are required by
+<code><a href="../reference/auto_label.html">auto_label()</a></code>:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">sap</span>, <span class="st">"longitudinal_syllable_analysis.rds"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Reload later with:</span></span>
+<span><span class="co"># sap &lt;- readRDS("longitudinal_syllable_analysis.rds")</span></span></code></pre></div>
+<p><strong>What gets saved:</strong> - All metadata, motif, and bout
+data from earlier steps - Detected syllable boundaries
+(<code>sap$segments</code>) - Spectral features
+(<code>sap$features$segment$feat.mat</code>) - Cluster assignments and
+UMAP embeddings (<code>sap$features$segment$feat.embeds</code>)</p>
+<p><strong>Important notes:</strong> - The original WAV files are
+<strong>not</strong> included in the saved object - You must keep WAV
+files at their original paths to run additional analyses - The saved
+<code>.rds</code> file is typically much smaller than the audio data</p>
 <hr>
+</div>
 </div>
 <div class="section level2">
 <h2 id="visualise-umap">Visualise UMAP<a class="anchor" aria-label="anchor" href="#visualise-umap"></a>
@@ -463,7 +462,7 @@ range</li>
 <span>          min_level_db <span class="op">=</span> <span class="fl">10</span>, db_delta <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>          search_direction <span class="op">=</span> <span class="st">"up"</span>,</span>
 <span>          save_plot <span class="op">=</span> <span class="cn">TRUE</span>, plot_percent <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span>, freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span>, min_dist <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"segments"</span>, split.by <span class="op">=</span> <span class="st">"label"</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>

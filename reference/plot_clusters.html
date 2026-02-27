@@ -54,7 +54,7 @@ numeric cluster IDs (pre manual labeling) and alphabetic syllable labels (post m
 <span><span class="fu">plot_clusters</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  data_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"segment"</span>, <span class="st">"syllable"</span><span class="op">)</span>,</span>
-<span>  label_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pre"</span>, <span class="st">"post"</span><span class="op">)</span>,</span>
+<span>  label_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"manual"</span><span class="op">)</span>,</span>
 <span>  time_resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  cluster_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_percent <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -150,12 +150,12 @@ numeric cluster IDs (pre manual labeling) and alphabetic syllable labels (post m
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The function provides two main visualization approaches:</p><ol><li><p>Pre-labeling visualization (label_type = "pre"):</p><ul><li><p>Shows numerical cluster IDs from automatic clustering</p></li>
+    <p>The function provides two main visualization approaches:</p><ol><li><p>Pre-labeling visualization (label_type = "auto"):</p><ul><li><p>Shows numerical cluster IDs from automatic clustering</p></li>
 <li><p>Uses data from x$features$segment/syllable$feat.embeds</p></li>
 <li><p>Clusters are represented by numbers (1, 2, 3, etc.)</p></li>
 <li><p>Useful for evaluating automatic clustering results</p></li>
 </ul></li>
-<li><p>Post-labeling visualization (label_type = "post"):</p><ul><li><p>Shows alphabetic syllable labels from manual annotation</p></li>
+<li><p>Post-labeling visualization (label_type = "manual"):</p><ul><li><p>Shows alphabetic syllable labels from manual annotation</p></li>
 <li><p>Uses data from x$syllables (created by manual_label())</p></li>
 <li><p>Syllables are represented by letters (a, b, c, etc.)</p></li>
 <li><p>Useful for viewing manual syllable classifications</p></li>
@@ -191,12 +191,12 @@ numeric cluster IDs (pre manual labeling) and alphabetic syllable labels (post m
 <span class="r-in"><span><span class="co"># Basic cluster visualization</span></span></span>
 <span class="r-in"><span><span class="fu">plot_clusters</span><span class="op">(</span><span class="va">sap</span>,</span></span>
 <span class="r-in"><span>            data_type <span class="op">=</span> <span class="st">"syllable"</span>,</span></span>
-<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"pre"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"auto"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Ordered by UMAP with specific conditions</span></span></span>
 <span class="r-in"><span><span class="fu">plot_clusters</span><span class="op">(</span><span class="va">sap</span>,</span></span>
 <span class="r-in"><span>            data_type <span class="op">=</span> <span class="st">"syllable"</span>,</span></span>
-<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"pre"</span>,</span></span>
+<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"auto"</span>,</span></span>
 <span class="r-in"><span>            ordered <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>            labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -204,12 +204,12 @@ numeric cluster IDs (pre manual labeling) and alphabetic syllable labels (post m
 <span class="r-in"><span><span class="co"># After running manual_label()</span></span></span>
 <span class="r-in"><span><span class="fu">plot_clusters</span><span class="op">(</span><span class="va">sap</span>,</span></span>
 <span class="r-in"><span>            data_type <span class="op">=</span> <span class="st">"syllable"</span>,</span></span>
-<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"post"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"manual"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Balanced sampling across conditions</span></span></span>
 <span class="r-in"><span><span class="fu">plot_clusters</span><span class="op">(</span><span class="va">sap</span>,</span></span>
 <span class="r-in"><span>            data_type <span class="op">=</span> <span class="st">"syllable"</span>,</span></span>
-<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"post"</span>,</span></span>
+<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"manual"</span>,</span></span>
 <span class="r-in"><span>            balanced <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>            labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span>, <span class="st">"Rec"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>

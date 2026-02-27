@@ -17,7 +17,7 @@ plot_clusters(x, labels = NULL, cluster_colors = NULL, main = NULL, ...)
 plot_clusters(
   x,
   data_type = c("segment", "syllable"),
-  label_type = c("pre", "post"),
+  label_type = c("auto", "manual"),
   time_resolution = 1000,
   cluster_colors = NULL,
   sample_percent = NULL,
@@ -121,7 +121,7 @@ Invisibly returns x
 
 The function provides two main visualization approaches:
 
-1.  Pre-labeling visualization (label_type = "pre"):
+1.  Pre-labeling visualization (label_type = "auto"):
 
     - Shows numerical cluster IDs from automatic clustering
 
@@ -131,7 +131,7 @@ The function provides two main visualization approaches:
 
     - Useful for evaluating automatic clustering results
 
-2.  Post-labeling visualization (label_type = "post"):
+2.  Post-labeling visualization (label_type = "manual"):
 
     - Shows alphabetic syllable labels from manual annotation
 
@@ -183,12 +183,12 @@ plot_clusters(mat)
 # Basic cluster visualization
 plot_clusters(sap,
             data_type = "syllable",
-            label_type = "pre")
+            label_type = "auto")
 
 # Ordered by UMAP with specific conditions
 plot_clusters(sap,
             data_type = "syllable",
-            label_type = "pre",
+            label_type = "auto",
             ordered = TRUE,
             labels = c("BL", "Post"))
 
@@ -196,12 +196,12 @@ plot_clusters(sap,
 # After running manual_label()
 plot_clusters(sap,
             data_type = "syllable",
-            label_type = "post")
+            label_type = "manual")
 
 # Balanced sampling across conditions
 plot_clusters(sap,
             data_type = "syllable",
-            label_type = "post",
+            label_type = "manual",
             balanced = TRUE,
             labels = c("BL", "Post", "Rec"))
 } # }

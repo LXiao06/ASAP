@@ -116,7 +116,7 @@ maps, with persistent storage of label assignments.</p>
     <h2 id="tips-for-interactive-labeling">Tips for Interactive Labeling<a class="anchor" aria-label="anchor" href="#tips-for-interactive-labeling"></a></h2>
 
 
-<ul><li><p>View clusters first using plot_cluster(..., label_type = "pre")</p></li>
+<ul><li><p>View clusters first using plot_cluster(..., label_type = "auto")</p></li>
 <li><p>Consider similar acoustic features when assigning same letter</p></li>
 <li><p>Use 'q' to exit without saving if mistakes are made</p></li>
 <li><p>Review label summary after completion</p></li>
@@ -179,7 +179,7 @@ maps, with persistent storage of label assignments.</p>
 <span class="r-in"><span><span class="co"># 2. View clusters</span></span></span>
 <span class="r-in"><span><span class="fu">plot_cluster</span><span class="op">(</span><span class="va">sap</span>,</span></span>
 <span class="r-in"><span>            data_type <span class="op">=</span> <span class="st">"syllable"</span>,</span></span>
-<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"pre"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"auto"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 3. Manually label clusters</span></span></span>
 <span class="r-in"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu">manual_label</span><span class="op">(</span><span class="va">sap</span>, data_type <span class="op">=</span> <span class="st">"syllable"</span><span class="op">)</span></span></span>
@@ -187,7 +187,7 @@ maps, with persistent storage of label assignments.</p>
 <span class="r-in"><span><span class="co"># 4. View syllable labels</span></span></span>
 <span class="r-in"><span><span class="fu">plot_cluster</span><span class="op">(</span><span class="va">sap</span>,</span></span>
 <span class="r-in"><span>            data_type <span class="op">=</span> <span class="st">"syllable"</span>,</span></span>
-<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"post"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>            label_type <span class="op">=</span> <span class="st">"manual"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

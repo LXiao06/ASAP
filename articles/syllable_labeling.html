@@ -63,7 +63,7 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>This vignette shows how to assign meaningful <strong>syllable
+<p>This vignette shows how to assign user-defined <strong>syllable
 identity labels</strong> (e.g. <code>a</code>, <code>b</code>,
 <code>c</code>, …) to the clusters discovered during segmentation.</p>
 <p><strong>Prerequisites</strong>: Complete <a href="longitudinal_syllable_segmentation.html">Longitudinal Syllable
@@ -86,6 +86,31 @@ and cluster assignments.</p>
 <hr>
 </div>
 <div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p>Because defining a syllable repertoire is an inherently subjective
+task relying on a researcher’s specific criteria or project context, we
+avoid assuming that automated clusters are perfectly accurate out of the
+box. Syllable labelling bridges the gap between raw, objective data
+clustering and your final, supervised categorisation.</p>
+<ul>
+<li>
+<strong>Automatic labelling</strong> (<code><a href="../reference/auto_label.html">auto_label()</a></code>)
+provides a fast and objective initial pass. It uses density-based
+clustering (DBSCAN) across both temporal position and acoustic features
+(UMAP) to group similar segments together.</li>
+<li>
+<strong>Manual labelling</strong> (<code><a href="../reference/manual_label.html">manual_label()</a></code>)
+allows you to exercise your expert judgment: reviewing the automated
+clusters, merging them where appropriate, and assigning standard
+alphabetic names (e.g., ‘a’, ‘b’, ‘c’) based on your own visual
+inspection and interpretation.</li>
+</ul>
+<p>Combining both approaches ensures accuracy while saving time on large
+longitudinal datasets.</p>
+<hr>
+</div>
+<div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -102,15 +127,17 @@ tutorial:</p>
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"longitudinal_syllable_analysis.rds"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="step-1-inspect-raw-segment-clusters">Step 1 — Inspect raw segment clusters<a class="anchor" aria-label="anchor" href="#step-1-inspect-raw-segment-clusters"></a>
+<h2 id="inspect-raw-segment-clusters">Inspect raw segment clusters<a class="anchor" aria-label="anchor" href="#inspect-raw-segment-clusters"></a>
 </h2>
 <p>Before assigning letter labels it is useful to view how segments are
 distributed across clusters. <code><a href="../reference/plot_clusters.html">plot_clusters()</a></code> renders a
 heatmap-style raster where each row is a segment and columns represent
 time within the motif, coloured by cluster identity.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"segment"</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span><span class="va">sap</span>, data_type <span class="op">=</span> <span class="st">"segment"</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="float">
+<img src="figures/longitudinal_segment_heatmap.png" style="width:100.0%" alt="Segment density map"><div class="figcaption">Segment density map</div>
+</div>
 <p>Inspect the output:</p>
 <ul>
 <li>
@@ -128,7 +155,7 @@ consistently detected; check segmentation parameters.</li>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="step-2-automatic-syllable-labelling">Step 2 — Automatic syllable labelling<a class="anchor" aria-label="anchor" href="#step-2-automatic-syllable-labelling"></a>
+<h2 id="automatic-syllable-labelling">Automatic syllable labelling<a class="anchor" aria-label="anchor" href="#automatic-syllable-labelling"></a>
 </h2>
 <p><code><a href="../reference/auto_label.html">auto_label()</a></code> performs two-stage DBSCAN clustering —
 first in temporal space (position and duration within the motif), then
@@ -198,6 +225,9 @@ auto-labelled clusters:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"syllable"</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="float">
+<img src="figures/longitudinal_syllable_heatmap.png" style="width:100.0%" alt="Auto-labelled clusters density map"><div class="figcaption">Auto-labelled clusters density map</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="tuning-tips">Tuning tips<a class="anchor" aria-label="anchor" href="#tuning-tips"></a>
@@ -219,7 +249,7 @@ stricter temporal separation.</li>
 </div>
 </div>
 <div class="section level2">
-<h2 id="step-3-manual-syllable-labelling">Step 3 — Manual syllable labelling<a class="anchor" aria-label="anchor" href="#step-3-manual-syllable-labelling"></a>
+<h2 id="manual-syllable-labelling">Manual syllable labelling<a class="anchor" aria-label="anchor" href="#manual-syllable-labelling"></a>
 </h2>
 <p>After <code><a href="../reference/auto_label.html">auto_label()</a></code> you know how many integer-coded
 clusters exist. Use <code><a href="../reference/manual_label.html">manual_label()</a></code> to convert those
@@ -282,7 +312,7 @@ embeddings:</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="step-4-visualise-the-final-syllable-inventory">Step 4 — Visualise the final syllable inventory<a class="anchor" aria-label="anchor" href="#step-4-visualise-the-final-syllable-inventory"></a>
+<h2 id="visualise-the-final-syllable-inventory">Visualise the final syllable inventory<a class="anchor" aria-label="anchor" href="#visualise-the-final-syllable-inventory"></a>
 </h2>
 <p>After labelling, inspect the full syllable heatmap and the UMAP
 coloured by syllable letter to verify consistency across developmental
@@ -292,33 +322,97 @@ stages.</p>
 </h3>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>label_type <span class="op">=</span> <span class="st">"post"</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p>In the “post-label” heatmap each colour corresponds to one
+<span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>label_type <span class="op">=</span> <span class="st">"manual"</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="float">
+<img src="figures/longitudinal_syllable_manual_heatmap.png" style="width:100.0%" alt="Manually-labelled syllables density map"><div class="figcaption">Manually-labelled syllables density map</div>
+</div>
+<p>In the manually-labelled heatmap each colour corresponds to one
 letter-coded syllable. Consistent banding across all three developmental
 stages (BL, Post, Rec) indicates stable syllable identity.</p>
-</div>
-<div class="section level3">
-<h3 id="umap-coloured-by-syllable-letter">UMAP coloured by syllable letter<a class="anchor" aria-label="anchor" href="#umap-coloured-by-syllable-letter"></a>
-</h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span></span>
-<span>    segment_type <span class="op">=</span> <span class="st">"syllables"</span>,</span>
-<span>    group.by     <span class="op">=</span> <span class="st">"syllable"</span>,</span>
-<span>    split.by     <span class="op">=</span> <span class="st">"label"</span>,</span>
-<span>    label        <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<div class="float">
-<img src="figures/longitudinal_syllable_umap_labeled.png" style="width:100.0%" alt="UMAP of syllables coloured by letter label, split by developmental stage"><div class="figcaption">UMAP of syllables coloured by letter label,
-split by developmental stage</div>
-</div>
 <hr>
 </div>
 </div>
 <div class="section level2">
+<h2 id="accessing-syllable-data-downstream">Accessing syllable data downstream<a class="anchor" aria-label="anchor" href="#accessing-syllable-data-downstream"></a>
+</h2>
+<p>All labelled syllables are stored in <code>sap$syllables</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">syllables</span><span class="op">)</span></span>
+<span><span class="co">#&gt; filename          day_post_hatch label cluster syllable UMAP1   UMAP2</span></span>
+<span><span class="co">#&gt; S237_42674.wav    190            BL    4       b        -1.23   2.45</span></span>
+<span><span class="co">#&gt; S237_42674.wav    190            BL    4       b        -1.01   2.38</span></span>
+<span><span class="co">#&gt; ...</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Count syllables per type per developmental stage</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">syllables</span><span class="op">$</span><span class="va">label</span>, <span class="va">sap</span><span class="op">$</span><span class="va">syllables</span><span class="op">$</span><span class="va">syllable</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th>Stage</th>
+<th align="right">a</th>
+<th align="right">b</th>
+<th align="right">c</th>
+<th align="right">d</th>
+<th align="right">e</th>
+<th align="right">f</th>
+<th align="right">g</th>
+<th align="right">h</th>
+<th align="right">i</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>BL</strong></td>
+<td align="right">156</td>
+<td align="right">156</td>
+<td align="right">156</td>
+<td align="right">148</td>
+<td align="right">100</td>
+<td align="right">113</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">269</td>
+</tr>
+<tr class="even">
+<td><strong>Post</strong></td>
+<td align="right">180</td>
+<td align="right">180</td>
+<td align="right">180</td>
+<td align="right">169</td>
+<td align="right">118</td>
+<td align="right">126</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">313</td>
+</tr>
+<tr class="odd">
+<td><strong>Rec</strong></td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">206</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">257</td>
+<td align="right">171</td>
+<td align="right">746</td>
+</tr>
+</tbody>
+</table>
+<p>This table summarizes the total counts of each syllable type across
+the three experimental stages. It clearly illustrates how the bird’s
+vocal repertoire shifts over time. For example, syllables
+<code>a</code>, <code>b</code>, <code>c</code>, <code>e</code>, and
+<code>f</code> are sung during the <code>BL</code> (Baseline) and
+<code>Post</code> phases, but disappear by the <code>Rec</code>
+(Recovery) stage. Conversely, new syllables <code>g</code> and
+<code>h</code> emerge exclusively during the <code>Rec</code> stage.
+Other syllables, such as <code>d</code> and <code>i</code>, persist
+consistently throughout the entire longitudinal period.</p>
+<hr>
+</div>
+<div class="section level2">
 <h2 id="complete-labelling-pipeline-copy-paste-reference">Complete labelling pipeline (copy-paste reference)<a class="anchor" aria-label="anchor" href="#complete-labelling-pipeline-copy-paste-reference"></a>
 </h2>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lxiao06.github.io/ASAP/">ASAP</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># -- Assumes segmentation pipeline has already been run --</span></span>
@@ -337,22 +431,7 @@ split by developmental stage</div>
 <span>  <span class="fu"><a href="../reference/manual_label.html">manual_label</a></span><span class="op">(</span>data_type  <span class="op">=</span> <span class="st">"syllable"</span>,</span>
 <span>               label_map  <span class="op">=</span> <span class="va">map_df</span>,</span>
 <span>               interactive <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span>                       <span class="co"># assign letter labels</span></span>
-<span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>label_type <span class="op">=</span> <span class="st">"post"</span>,    ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>      <span class="co"># final verification</span></span></code></pre></div>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="accessing-syllable-data-downstream">Accessing syllable data downstream<a class="anchor" aria-label="anchor" href="#accessing-syllable-data-downstream"></a>
-</h2>
-<p>All labelled syllables are stored in <code>sap$syllables</code>:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">syllables</span><span class="op">)</span></span>
-<span><span class="co">#&gt; filename          day_post_hatch label cluster syllable UMAP1   UMAP2</span></span>
-<span><span class="co">#&gt; S237_42674.wav    190            BL    4       b        -1.23   2.45</span></span>
-<span><span class="co">#&gt; S237_42674.wav    190            BL    4       b        -1.01   2.38</span></span>
-<span><span class="co">#&gt; ...</span></span>
-<span></span>
-<span><span class="co"># Count syllables per type per developmental stage</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">syllables</span><span class="op">$</span><span class="va">label</span>, <span class="va">sap</span><span class="op">$</span><span class="va">syllables</span><span class="op">$</span><span class="va">syllable</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/plot_clusters.html">plot_clusters</a></span><span class="op">(</span>label_type <span class="op">=</span> <span class="st">"manual"</span>,    ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>      <span class="co"># final verification</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">

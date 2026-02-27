@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This vignette shows how to assign meaningful **syllable identity
+This vignette shows how to assign user-defined **syllable identity
 labels** (e.g. `a`, `b`, `c`, …) to the clusters discovered during
 segmentation.
 
@@ -20,6 +20,31 @@ coordinates and cluster assignments.
 3.  How to refine or override automatic labels with
     [`manual_label()`](https://lxiao06.github.io/ASAP/reference/manual_label.md)
 4.  How to verify the final syllable inventory
+
+------------------------------------------------------------------------
+
+## Overview
+
+Because defining a syllable repertoire is an inherently subjective task
+relying on a researcher’s specific criteria or project context, we avoid
+assuming that automated clusters are perfectly accurate out of the box.
+Syllable labelling bridges the gap between raw, objective data
+clustering and your final, supervised categorisation.
+
+- **Automatic labelling**
+  ([`auto_label()`](https://lxiao06.github.io/ASAP/reference/auto_label.md))
+  provides a fast and objective initial pass. It uses density-based
+  clustering (DBSCAN) across both temporal position and acoustic
+  features (UMAP) to group similar segments together.
+- **Manual labelling**
+  ([`manual_label()`](https://lxiao06.github.io/ASAP/reference/manual_label.md))
+  allows you to exercise your expert judgment: reviewing the automated
+  clusters, merging them where appropriate, and assigning standard
+  alphabetic names (e.g., ‘a’, ‘b’, ‘c’) based on your own visual
+  inspection and interpretation.
+
+Combining both approaches ensures accuracy while saving time on large
+longitudinal datasets.
 
 ------------------------------------------------------------------------
 
@@ -41,7 +66,7 @@ Load the SAP object saved at the end of that tutorial:
 sap <- readRDS("longitudinal_syllable_analysis.rds")
 ```
 
-## Step 1 — Inspect raw segment clusters
+## Inspect raw segment clusters
 
 Before assigning letter labels it is useful to view how segments are
 distributed across clusters.
@@ -50,9 +75,12 @@ renders a heatmap-style raster where each row is a segment and columns
 represent time within the motif, coloured by cluster identity.
 
 ``` r
-sap <- sap |>
-  plot_clusters(data_type = "segment", ordered = TRUE)
+plot_clusters(sap, data_type = "segment", ordered = TRUE)
 ```
+
+![Segment density map](figures/longitudinal_segment_heatmap.png)
+
+Segment density map
 
 Inspect the output:
 
@@ -67,7 +95,7 @@ Inspect the output:
 
 ------------------------------------------------------------------------
 
-## Step 2 — Automatic syllable labelling
+## Automatic syllable labelling
 
 [`auto_label()`](https://lxiao06.github.io/ASAP/reference/auto_label.md)
 performs two-stage DBSCAN clustering — first in temporal space (position
@@ -106,6 +134,11 @@ sap <- sap |>
   plot_clusters(data_type = "syllable", ordered = TRUE)
 ```
 
+![Auto-labelled clusters density
+map](figures/longitudinal_syllable_heatmap.png)
+
+Auto-labelled clusters density map
+
 ### Tuning tips
 
 - **Too many clusters** → increase `eps_time` and / or `eps_umap`, or
@@ -116,7 +149,7 @@ sap <- sap |>
 
 ------------------------------------------------------------------------
 
-## Step 3 — Manual syllable labelling
+## Manual syllable labelling
 
 After
 [`auto_label()`](https://lxiao06.github.io/ASAP/reference/auto_label.md)
@@ -182,7 +215,7 @@ print(stored_map)
 
 ------------------------------------------------------------------------
 
-## Step 4 — Visualise the final syllable inventory
+## Visualise the final syllable inventory
 
 After labelling, inspect the full syllable heatmap and the UMAP coloured
 by syllable letter to verify consistency across developmental stages.
@@ -191,29 +224,51 @@ by syllable letter to verify consistency across developmental stages.
 
 ``` r
 sap <- sap |>
-  plot_clusters(label_type = "post", ordered = TRUE)
+  plot_clusters(label_type = "manual", ordered = TRUE)
 ```
 
-In the “post-label” heatmap each colour corresponds to one letter-coded
-syllable. Consistent banding across all three developmental stages (BL,
-Post, Rec) indicates stable syllable identity.
+![Manually-labelled syllables density
+map](figures/longitudinal_syllable_manual_heatmap.png)
 
-### UMAP coloured by syllable letter
+Manually-labelled syllables density map
+
+In the manually-labelled heatmap each colour corresponds to one
+letter-coded syllable. Consistent banding across all three developmental
+stages (BL, Post, Rec) indicates stable syllable identity.
+
+------------------------------------------------------------------------
+
+## Accessing syllable data downstream
+
+All labelled syllables are stored in `sap$syllables`:
 
 ``` r
-sap |>
-  plot_umap(
-    segment_type = "syllables",
-    group.by     = "syllable",
-    split.by     = "label",
-    label        = TRUE
-  )
+head(sap$syllables)
+#> filename          day_post_hatch label cluster syllable UMAP1   UMAP2
+#> S237_42674.wav    190            BL    4       b        -1.23   2.45
+#> S237_42674.wav    190            BL    4       b        -1.01   2.38
+#> ...
 ```
 
-![UMAP of syllables coloured by letter label, split by developmental
-stage](figures/longitudinal_syllable_umap_labeled.png)
+``` r
+# Count syllables per type per developmental stage
+table(sap$syllables$label, sap$syllables$syllable)
+```
 
-UMAP of syllables coloured by letter label, split by developmental stage
+| Stage    |   a |   b |   c |   d |   e |   f |   g |   h |   i |
+|----------|----:|----:|----:|----:|----:|----:|----:|----:|----:|
+| **BL**   | 156 | 156 | 156 | 148 | 100 | 113 |   0 |   0 | 269 |
+| **Post** | 180 | 180 | 180 | 169 | 118 | 126 |   0 |   0 | 313 |
+| **Rec**  |   0 |   0 |   0 | 206 |   0 |   0 | 257 | 171 | 746 |
+
+This table summarizes the total counts of each syllable type across the
+three experimental stages. It clearly illustrates how the bird’s vocal
+repertoire shifts over time. For example, syllables `a`, `b`, `c`, `e`,
+and `f` are sung during the `BL` (Baseline) and `Post` phases, but
+disappear by the `Rec` (Recovery) stage. Conversely, new syllables `g`
+and `h` emerge exclusively during the `Rec` stage. Other syllables, such
+as `d` and `i`, persist consistently throughout the entire longitudinal
+period.
 
 ------------------------------------------------------------------------
 
@@ -238,24 +293,7 @@ sap <- sap |>
   manual_label(data_type  = "syllable",
                label_map  = map_df,
                interactive = FALSE) |>                       # assign letter labels
-  plot_clusters(label_type = "post",    ordered = TRUE)      # final verification
-```
-
-------------------------------------------------------------------------
-
-## Accessing syllable data downstream
-
-All labelled syllables are stored in `sap$syllables`:
-
-``` r
-head(sap$syllables)
-#> filename          day_post_hatch label cluster syllable UMAP1   UMAP2
-#> S237_42674.wav    190            BL    4       b        -1.23   2.45
-#> S237_42674.wav    190            BL    4       b        -1.01   2.38
-#> ...
-
-# Count syllables per type per developmental stage
-table(sap$syllables$label, sap$syllables$syllable)
+  plot_clusters(label_type = "manual",    ordered = TRUE)      # final verification
 ```
 
 ------------------------------------------------------------------------
