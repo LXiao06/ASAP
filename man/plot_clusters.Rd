@@ -13,7 +13,7 @@ plot_clusters(x, ...)
 \method{plot_clusters}{Sap}(
   x,
   data_type = c("segment", "syllable"),
-  label_type = c("pre", "post"),
+  label_type = c("auto", "manual"),
   time_resolution = 1000,
   cluster_colors = NULL,
   sample_percent = NULL,
@@ -84,14 +84,14 @@ numeric cluster IDs (pre manual labeling) and alphabetic syllable labels (post m
 \details{
 The function provides two main visualization approaches:
 \enumerate{
-\item Pre-labeling visualization (label_type = "pre"):
+\item Pre-labeling visualization (label_type = "auto"):
 \itemize{
 \item Shows numerical cluster IDs from automatic clustering
 \item Uses data from x$features$segment/syllable$feat.embeds
 \item Clusters are represented by numbers (1, 2, 3, etc.)
 \item Useful for evaluating automatic clustering results
 }
-\item Post-labeling visualization (label_type = "post"):
+\item Post-labeling visualization (label_type = "manual"):
 \itemize{
 \item Shows alphabetic syllable labels from manual annotation
 \item Uses data from x$syllables (created by manual_label())
@@ -131,12 +131,12 @@ plot_clusters(mat)
 # Basic cluster visualization
 plot_clusters(sap,
             data_type = "syllable",
-            label_type = "pre")
+            label_type = "auto")
 
 # Ordered by UMAP with specific conditions
 plot_clusters(sap,
             data_type = "syllable",
-            label_type = "pre",
+            label_type = "auto",
             ordered = TRUE,
             labels = c("BL", "Post"))
 
@@ -144,12 +144,12 @@ plot_clusters(sap,
 # After running manual_label()
 plot_clusters(sap,
             data_type = "syllable",
-            label_type = "post")
+            label_type = "manual")
 
 # Balanced sampling across conditions
 plot_clusters(sap,
             data_type = "syllable",
-            label_type = "post",
+            label_type = "manual",
             balanced = TRUE,
             labels = c("BL", "Post", "Rec"))
 }

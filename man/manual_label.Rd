@@ -80,7 +80,7 @@ The label_map data frame must have:
 \section{Tips for Interactive Labeling}{
 
 \itemize{
-\item View clusters first using plot_cluster(..., label_type = "pre")
+\item View clusters first using plot_cluster(..., label_type = "auto")
 \item Consider similar acoustic features when assigning same letter
 \item Use 'q' to exit without saving if mistakes are made
 \item Review label summary after completion
@@ -143,7 +143,7 @@ sap <- auto_label(sap)
 # 2. View clusters
 plot_cluster(sap,
             data_type = "syllable",
-            label_type = "pre")
+            label_type = "auto")
 
 # 3. Manually label clusters
 sap <- manual_label(sap, data_type = "syllable")
@@ -151,7 +151,7 @@ sap <- manual_label(sap, data_type = "syllable")
 # 4. View syllable labels
 plot_cluster(sap,
             data_type = "syllable",
-            label_type = "post")
+            label_type = "manual")
 }
 
 }
