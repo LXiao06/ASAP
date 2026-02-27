@@ -41,3 +41,62 @@ articles:
       - longitudinal_bout_detection
       - longitudinal_syllable_segmentation
       - syllable_labeling
+
+reference:
+  - title: "Object Construction"
+    desc: "Functions for creating and writing the core SAP object and handling audio clips"
+    contents:
+      - create_sap_object
+      - create_audio_clip
+      - parse_filename
+      - validate_sap
+
+  - title: "Detection & Segmentation"
+    desc: "Functions for finding bouts, motives and segmenting syllables"
+    contents:
+      - find_bout
+      - find_motif
+      - segment
+      - filter_short_segments
+      - as_segment
+
+  - title: "Template Matching"
+    desc: "Functions for establishing and detecting specific acoustic templates"
+    contents:
+      - create_template
+      - detect_template
+
+  - title: "Feature Extraction & Clustering"
+    desc: "Functions to extract acoustic features (FF, goodness, etc) and cluster segments"
+    contents:
+      - extract_spec
+      - analyze_spectral
+      - calculate_freq_metrics
+      - FF
+      - goodness
+      - spectral_entropy
+      - find_clusters
+
+  - title: "Dimensionality Reduction"
+    desc: "Functions dedicated to reducing acoustic parameter dimensionality"
+    contents:
+      - run_pca
+      - run_umap
+      - create_trajectory_matrix
+
+  - title: "Plotting & Visualization"
+    desc: "Plotting functionality for exploring ASAP objects"
+    contents:
+      - plot_traces
+      - plot_clusters
+      - plot_heatmap
+      - plot_umap
+      - plot_umap2
+      - visualize_song
+      - visualize_segments
+      
+  - title: "Labeling"
+    desc: "Functions for annotating clustered syllables"
+    contents:
+      - auto_label
+      - manual_label
