@@ -6,20 +6,28 @@ This vignette shows how to assign user-defined **syllable identity
 labels** (e.g. `a`, `b`, `c`, …) to the clusters discovered during
 segmentation.
 
-**Prerequisites**: Complete [Longitudinal Syllable
-Segmentation](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.md)
-first, so that `sap$features$segment$feat.embeds` contains UMAP
-coordinates and cluster assignments.
+**Prerequisites**: Before reading this vignette, we recommend
+completing:
+
+- [Constructing a SAP
+  Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md)
+  — SAP object creation
+- [Longitudinal Bout
+  Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.md)
+  — Detecting song bouts across development
+
+``` markdown
+- [Longitudinal Syllable Segmentation](longitudinal_syllable_segmentation.html) — Segmenting song into syllables across development
+```
 
 **What you will learn**:
 
-1.  How to inspect raw segment clusters with
-    [`plot_clusters()`](https://lxiao06.github.io/ASAP/reference/plot_clusters.md)
+1.  How to inspect raw segment clusters and verify the final syllable
+    inventory in heatmaps
 2.  How to run automatic syllable labelling with
     [`auto_label()`](https://lxiao06.github.io/ASAP/reference/auto_label.md)
 3.  How to refine or override automatic labels with
     [`manual_label()`](https://lxiao06.github.io/ASAP/reference/manual_label.md)
-4.  How to verify the final syllable inventory
 
 ------------------------------------------------------------------------
 
@@ -78,9 +86,9 @@ represent time within the motif, coloured by cluster identity.
 plot_clusters(sap, data_type = "segment", ordered = TRUE)
 ```
 
-![Segment density map](figures/longitudinal_segment_heatmap.png)
+![Segment heatmap](figures/longitudinal_segment_heatmap.png)
 
-Segment density map
+Segment heatmap
 
 Inspect the output:
 
@@ -134,10 +142,10 @@ sap <- sap |>
   plot_clusters(data_type = "syllable", ordered = TRUE)
 ```
 
-![Auto-labelled clusters density
-map](figures/longitudinal_syllable_heatmap.png)
+![Auto-labelled clusters
+heatmap](figures/longitudinal_syllable_heatmap.png)
 
-Auto-labelled clusters density map
+Auto-labelled clusters heatmap
 
 ### Tuning tips
 
@@ -188,9 +196,11 @@ approach is **fully reproducible** without interactive input.
 ``` r
 # Inspect the cluster plot above, then define the mapping
 map_df <- data.frame(
-  cluster  = 1:14,
-  syllable = c("i", "i", "a", "b", "c", "c",
-               "d", "e", "f", "b", "i", "g", "g", "h")
+  cluster = 1:14,
+  syllable = c(
+    "i", "i", "a", "b", "c", "c",
+    "d", "e", "f", "b", "i", "g", "g", "h"
+  )
 )
 
 sap <- sap |>
@@ -200,9 +210,6 @@ sap <- sap |>
     interactive = FALSE
   )
 ```
-
-> **Tip**: Save `map_df` to a CSV file so you can reload it in future
-> sessions without repeating the labelling step.
 
 ### Retrieving the stored map
 
@@ -227,10 +234,10 @@ sap <- sap |>
   plot_clusters(label_type = "manual", ordered = TRUE)
 ```
 
-![Manually-labelled syllables density
-map](figures/longitudinal_syllable_manual_heatmap.png)
+![Manually-labelled syllables
+heatmap](figures/longitudinal_syllable_manual_heatmap.png)
 
-Manually-labelled syllables density map
+Manually-labelled syllables heatmap
 
 In the manually-labelled heatmap each colour corresponds to one
 letter-coded syllable. Consistent banding across all three developmental
@@ -281,19 +288,23 @@ library(ASAP)
 # -- (see Longitudinal Syllable Segmentation vignette)  --
 
 map_df <- data.frame(
-  cluster  = 1:14,
-  syllable = c("i", "i", "a", "b", "c", "c",
-               "d", "e", "f", "b", "i", "g", "g", "h")
+  cluster = 1:14,
+  syllable = c(
+    "i", "i", "a", "b", "c", "c",
+    "d", "e", "f", "b", "i", "g", "g", "h"
+  )
 )
 
 sap <- sap |>
-  plot_clusters(data_type = "segment",  ordered = TRUE) |>   # inspect raw segments
-  auto_label() |>                                            # automatic clustering
-  plot_clusters(data_type = "syllable", ordered = TRUE) |>   # inspect auto clusters
-  manual_label(data_type  = "syllable",
-               label_map  = map_df,
-               interactive = FALSE) |>                       # assign letter labels
-  plot_clusters(label_type = "manual",    ordered = TRUE)      # final verification
+  plot_clusters(data_type = "segment", ordered = TRUE) |> # inspect raw segments
+  auto_label() |> # automatic clustering
+  plot_clusters(data_type = "syllable", ordered = TRUE) |> # inspect auto clusters
+  manual_label(
+    data_type = "syllable",
+    label_map = map_df,
+    interactive = FALSE
+  ) |> # assign letter labels
+  plot_clusters(label_type = "manual", ordered = TRUE) # final verification
 ```
 
 ------------------------------------------------------------------------
