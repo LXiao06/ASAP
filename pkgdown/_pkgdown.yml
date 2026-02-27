@@ -50,12 +50,15 @@ reference:
       - create_audio_clip
       - parse_filename
       - validate_sap
+      - compute_wav_durations
+      - create_sap_metadata
 
   - title: "Detection & Segmentation"
     desc: "Functions for finding bouts, motives and segmenting syllables"
     contents:
       - find_bout
       - find_motif
+      - refine_motif_boundaries
       - segment
       - filter_short_segments
       - as_segment
@@ -75,6 +78,10 @@ reference:
       - goodness
       - spectral_entropy
       - find_clusters
+      - amp_env
+      - refine_FF
+      - refine_sh
+      - anova_analysis
 
   - title: "Dimensionality Reduction"
     desc: "Functions dedicated to reducing acoustic parameter dimensionality"
@@ -91,6 +98,7 @@ reference:
       - plot_heatmap
       - plot_umap
       - plot_umap2
+      - plot_motif_boundaries
       - visualize_song
       - visualize_segments
       
@@ -99,3 +107,9 @@ reference:
     contents:
       - auto_label
       - manual_label
+
+  - title: "Segment Methods"
+    desc: "S3 methods for dealing with segment objects"
+    contents:
+      - print.segment
+      - summary.segment
