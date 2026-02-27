@@ -71,7 +71,6 @@ reference:
     contents:
       - extract_spec
       - analyze_spectral
-      - calculate_freq_metrics
       - FF
       - goodness
       - spectral_entropy
