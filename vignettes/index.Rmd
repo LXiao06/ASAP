@@ -233,7 +233,7 @@ vignette: >
   <!-- Card 7 -->
   <a class="gs-card" href="syllable_labeling.html">
     <div class="gs-card-img-wrap" style="background:#fff;">
-      <img src="figures/longitudinal_heatmap_ordered.png"
+      <img src="figures/longitudinal_syllable_manual_heatmap.png"
            alt="Syllable cluster heatmap after labeling">
     </div>
     <div class="gs-card-body">

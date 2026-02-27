@@ -273,7 +273,7 @@ map_df <- data.frame(
 sap <- sap |>
   plot_clusters(data_type = "segment", ordered = TRUE) |> # inspect raw segments
   auto_label() |> # automatic clustering
-  plot_clusters(data_type = "syllable", ordered = TRUE) |> # inspect auto clusters
+  plot_clusters(data_type = "syllable", ordered = TRUE) |> # inspect auto clusters # nolint: line_length_linter.
   manual_label(
     data_type = "syllable",
     label_map = map_df,
