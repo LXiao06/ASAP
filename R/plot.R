@@ -376,13 +376,13 @@ plot_traces.Sap <- function(x,
 #' @details
 #' The function provides two main visualization approaches:
 #'
-#' 1. Pre-labeling visualization (label_type = "pre"):
+#' 1. Pre-labeling visualization (label_type = "auto"):
 #'    * Shows numerical cluster IDs from automatic clustering
 #'    * Uses data from x$features$segment/syllable$feat.embeds
 #'    * Clusters are represented by numbers (1, 2, 3, etc.)
 #'    * Useful for evaluating automatic clustering results
 #'
-#' 2. Post-labeling visualization (label_type = "post"):
+#' 2. Post-labeling visualization (label_type = "manual"):
 #'    * Shows alphabetic syllable labels from manual annotation
 #'    * Uses data from x$syllables (created by manual_label())
 #'    * Syllables are represented by letters (a, b, c, etc.)
@@ -415,12 +415,12 @@ plot_traces.Sap <- function(x,
 #' # Basic cluster visualization
 #' plot_clusters(sap,
 #'             data_type = "syllable",
-#'             label_type = "pre")
+#'             label_type = "auto")
 #'
 #' # Ordered by UMAP with specific conditions
 #' plot_clusters(sap,
 #'             data_type = "syllable",
-#'             label_type = "pre",
+#'             label_type = "auto",
 #'             ordered = TRUE,
 #'             labels = c("BL", "Post"))
 #'
@@ -428,12 +428,12 @@ plot_traces.Sap <- function(x,
 #' # After running manual_label()
 #' plot_clusters(sap,
 #'             data_type = "syllable",
-#'             label_type = "post")
+#'             label_type = "manual")
 #'
 #' # Balanced sampling across conditions
 #' plot_clusters(sap,
 #'             data_type = "syllable",
-#'             label_type = "post",
+#'             label_type = "manual",
 #'             balanced = TRUE,
 #'             labels = c("BL", "Post", "Rec"))
 #' }
@@ -562,7 +562,7 @@ plot_clusters.matrix <- function(x,
 #' @export
 plot_clusters.Sap <- function(x,
                              data_type = c("segment", "syllable"),
-                             label_type = c("pre", "post"),
+                             label_type = c("auto", "manual"),
                              time_resolution = 1000,  # Number of time points
                              cluster_colors = NULL, # Optional custom color palette
                              sample_percent = NULL,
@@ -585,13 +585,13 @@ plot_clusters.Sap <- function(x,
   }
 
   # Select appropriate data and plot column based on label_type
-  if(label_type == "pre") {
+  if(label_type == "auto") {
     feat_embeds <- switch(data_type,
                           "segment" = x$features$segment$feat.embeds,
                           "syllable" = x$features$syllable$feat.embeds)
     plot_col <- "cluster"
 
-  } else {  # post-labeling
+  } else {  # manual-labeling
     if(is.null(x$syllables)) {
       stop("No syllable labels found. Run manual_label() first.")
     }
@@ -714,10 +714,10 @@ plot_clusters.Sap <- function(x,
   colnames(cluster_matrix) <- sapply(motif_order,
                                      function(m) df$label[df$motif_label == m][1])
 
-  # Plot using matrix method with appropriate title
-  title <- ifelse(label_type == "pre",
-                  sprintf("%s cluster heatmap", data_type),
-                  "syllable heatmap")
+  # Plot using matrix method  # Generate descriptive title
+  title <- ifelse(label_type == "auto",
+                  paste("Auto Clusters:", tools::toTitleCase(data_type), "Heatmap"),
+                  paste("Manual Labels: Syllable Heatmap"))
 
   result <- plot_clusters.matrix(cluster_matrix,
                                 cluster_colors = cluster_colors,
