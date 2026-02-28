@@ -1,0 +1,296 @@
+# ASAP
+
+## Overview
+
+ASAP (Automated Sound Analysis Pipeline) is an R toolkit designed for
+the longitudinal analysis of birdsong development, specifically
+optimized for tracking and studying the long-term vocalization patterns
+of zebra finches.
+
+The pipeline introduces a dedicated SAP object, which streamlines the
+processing of recordings from the SAP2011 system or other sound data
+organized with similar structures. Additionally, ASAP is built with
+flexibility in mind, allowing for the integration of other objects to
+ensure compatibility with various recording platforms.
+
+### Key Features
+
+- **Bout Detection**: Automatically identifies periods of singing within
+  recordings.
+
+- **Motif Extraction**: Extracts recurring song motifs for in-depth
+  analysis.
+
+- **Syllable Segmentation**: Breaks down songs into individual syllables
+  for detailed study.
+
+- **Template Matching**: Compares and matches song patterns against
+  predefined templates.
+
+- **Feature Extraction**: Extracts detailed temporal and spectral
+  features from vocalizations.
+
+- **Standardized Analytical Workflows**: Utilizes predefined workflows
+  for consistent and efficient analysis.
+
+## Installation
+
+To install ASAP, I recommend using remotes:
+
+``` r
+require(remotes)
+remotes::install_github("LXiao06/ASAP")
+```
+
+## Tutorials
+
+Explore our comprehensive guides to get up and running with ASAP. You
+can find all documentation on the [ASAP
+website](https://lxiao06.github.io/ASAP/).
+
+### Quick Start
+
+- [Single WAV File
+  Analysis](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.html):
+  Learn ASAP’s core functions using individual audio recordings.
+- [Motif
+  Detection](https://lxiao06.github.io/ASAP/articles/motif_detection.html):
+  Introduction to automated motif extraction using template matching.
+
+### Longitudinal Analysis Pipeline
+
+Step-by-step guides for processing large longitudinal datasets spanning
+multiple developmental time points:
+
+1.  [Constructing the SAP
+    Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.html)
+2.  [Longitudinal Bout
+    Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.html)
+3.  [Longitudinal Motif
+    Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.html)
+4.  [Longitudinal Syllable
+    Segmentation](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.html)
+5.  [Syllable
+    Labeling](https://lxiao06.github.io/ASAP/articles/syllable_labeling.html)
+
+# Package index
+
+## Object Construction
+
+Functions for creating and writing the core SAP object and handling
+audio clips
+
+- [`create_sap_object()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_object.md)
+  : Create a Sound Analysis Pro (SAP) Object from Audio Recordings
+- [`create_audio_clip()`](https://lxiao06.github.io/ASAP/dev/reference/create_audio_clip.md)
+  : Create Audio Clips from Sound Files
+- [`parse_filename()`](https://lxiao06.github.io/ASAP/dev/reference/parse_filename.md)
+  : Parse filename for SAP metadata
+- [`validate_sap()`](https://lxiao06.github.io/ASAP/dev/reference/validate_sap.md)
+  : Validate a Sound Analysis Pro (SAP) Object
+- [`compute_wav_durations()`](https://lxiao06.github.io/ASAP/dev/reference/compute_wav_durations.md)
+  : Compute WAV File Durations
+- [`create_sap_metadata()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_metadata.md)
+  : Create metadata for audio files recorded by SAP2011 (Sound Analysis
+  Pro)
+
+## Detection & Segmentation
+
+Functions for finding bouts, motives and segmenting syllables
+
+- [`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
+  : Detect Song Bouts in Audio Recordings
+- [`find_motif()`](https://lxiao06.github.io/ASAP/dev/reference/find_motif.md)
+  : Find Motifs in Song Data
+- [`refine_motif_boundaries()`](https://lxiao06.github.io/ASAP/dev/reference/refine_motif_boundaries.md)
+  : Refine Motif Boundaries Using Segment Alignment
+- [`segment()`](https://lxiao06.github.io/ASAP/dev/reference/segment.md)
+  : Segment Audio into Syllables
+- [`filter_short_segments()`](https://lxiao06.github.io/ASAP/dev/reference/filter_short_segments.md)
+  : Filter Short Segments from Template
+- [`as_segment()`](https://lxiao06.github.io/ASAP/dev/reference/as_segment.md)
+  : Convert data to a segment object
+
+## Template Matching
+
+Functions for establishing and detecting specific acoustic templates
+
+- [`create_template()`](https://lxiao06.github.io/ASAP/dev/reference/create_template.md)
+  : Create Correlation Templates for Song Analysis
+- [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md)
+  : Detect Templates in Song Data
+
+## Feature Extraction & Clustering
+
+Functions to extract acoustic features (FF, goodness, etc) and cluster
+segments
+
+- [`extract_spec()`](https://lxiao06.github.io/ASAP/dev/reference/extract_spec.md)
+  : Extract and pad spectrograms from audio segments
+- [`analyze_spectral()`](https://lxiao06.github.io/ASAP/dev/reference/analyze_spectral.md)
+  : Analyze Spectral Features of Audio Segments
+- [`FF()`](https://lxiao06.github.io/ASAP/dev/reference/Fundamental_Frequency.md)
+  : Fundamental Frequency Analysis and Visualization
+- [`goodness()`](https://lxiao06.github.io/ASAP/dev/reference/goodness.md)
+  : Pitch Goodness Analysis
+- [`spectral_entropy()`](https://lxiao06.github.io/ASAP/dev/reference/spectral_entropy.md)
+  : Calculate Spectral Entropy for Audio Segments
+- [`find_clusters()`](https://lxiao06.github.io/ASAP/dev/reference/find_clusters.md)
+  : Find Clusters in Feature Data
+- [`amp_env()`](https://lxiao06.github.io/ASAP/dev/reference/amp_env.md)
+  : Calculate Amplitude Envelope for Audio Segment
+- [`refine_FF()`](https://lxiao06.github.io/ASAP/dev/reference/refine_FF.md)
+  : Refine Fundamental Frequency Detection
+- [`refine_sh()`](https://lxiao06.github.io/ASAP/dev/reference/refine_sh.md)
+  : Refine Spectral Entropy Using Temporal Template
+- [`anova_analysis()`](https://lxiao06.github.io/ASAP/dev/reference/anova_analysis.md)
+  : Perform ANOVA and Multiple Comparisons Analysis
+
+## Dimensionality Reduction
+
+Functions dedicated to reducing acoustic parameter dimensionality
+
+- [`run_pca()`](https://lxiao06.github.io/ASAP/dev/reference/run_pca.md)
+  : Run Principal Component Analysis
+- [`run_umap()`](https://lxiao06.github.io/ASAP/dev/reference/run_umap.md)
+  : Run UMAP Dimensionality Reduction
+- [`create_trajectory_matrix()`](https://lxiao06.github.io/ASAP/dev/reference/create_trajectory_matrix.md)
+  : Create Spectrogram Matrices for Song Trajectory Analysis
+
+## Plotting & Visualization
+
+Plotting functionality for exploring ASAP objects
+
+- [`plot_traces()`](https://lxiao06.github.io/ASAP/dev/reference/plot_traces.md)
+  : Plot Traces of Song Features
+- [`plot_clusters()`](https://lxiao06.github.io/ASAP/dev/reference/plot_clusters.md)
+  : Plot Clusters in Time Series Data
+- [`plot_heatmap()`](https://lxiao06.github.io/ASAP/dev/reference/plot_heatmap.md)
+  : Plot Heatmap of Amplitude Envelopes
+- [`plot_umap()`](https://lxiao06.github.io/ASAP/dev/reference/plot_umap.md)
+  : Plot UMAP Visualization
+- [`plot_umap2()`](https://lxiao06.github.io/ASAP/dev/reference/plot_umap2.md)
+  : Plot UMAP Visualization for Trajectory Analysis
+- [`plot_motif_boundaries()`](https://lxiao06.github.io/ASAP/dev/reference/plot_motif_boundaries.md)
+  : Visualize Motif Boundaries in Audio Data
+- [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md)
+  : Visualize Song Data
+- [`visualize_segments()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_segments.md)
+  : Visualize Song Segments
+
+## Labeling
+
+Functions for annotating clustered syllables
+
+- [`auto_label()`](https://lxiao06.github.io/ASAP/dev/reference/auto_label.md)
+  : Automatic Syllable Labeling in Song Motif
+- [`manual_label()`](https://lxiao06.github.io/ASAP/dev/reference/manual_label.md)
+  : Manual Syllable Labeling for Bird Song Analysis
+
+## Segment Methods
+
+S3 methods for dealing with segment objects
+
+- [`print(`*`<segment>`*`)`](https://lxiao06.github.io/ASAP/dev/reference/print.segment.md)
+  : Print method for segment objects
+- [`summary(`*`<segment>`*`)`](https://lxiao06.github.io/ASAP/dev/reference/summary.segment.md)
+  : Summary method for segment objects
+
+# Get Started
+
+ASAP (Automated Sound Analysis Pipeline) provides an integrated toolkit
+for processing, analysing, and visualising avian vocalizations — from
+single audio files to large longitudinal datasets. Choose a tutorial
+below to get started.
+
+Single WAV File Analysis
+
+Learn ASAP functions using individual audio files.
+
+[](https://lxiao06.github.io/ASAP/dev/articles/single_wav_analysis.md)
+
+![Basic audio analysis — amplitude envelope and
+spectrogram](figures/basic_audio_analysis.png)
+
+Overview & Basic Audio Analysis
+
+Load WAV files, visualise spectrograms, and explore the basic audio
+analysis tools that underpin the ASAP workflow.
+
+Beginner · ~10 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/motif_detection.md)
+
+![Motif detection spectrogram](figures/motif_detection.png)
+
+Motif Detection
+
+Build a cross-correlation template, detect motif occurrences in a single
+recording, and review the detected segments.
+
+Beginner · ~15 min
+
+Longitudinal Recording Analysis with SAP Object
+
+Batch processing of recordings across developmental time points.
+
+[](https://lxiao06.github.io/ASAP/dev/articles/construct_sap_object.md)
+
+![ASAP package logo](figures/logo.png)
+
+Constructing a SAP Object
+
+Organise multi-day recording directories into a SAP object for
+reproducible longitudinal analysis.
+
+Intermediate · ~10 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detection.md)
+
+![Longitudinal motif heatmap across
+development](figures/longitudinal_heatmap.png)
+
+Longitudinal Motif Detection
+
+Detect and align motifs across developmental time points. Visualise
+acoustic changes with amplitude heatmaps and UMAP embeddings.
+
+Intermediate · ~25 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_bout_detection.md)
+
+![Longitudinal bout amplitude
+heatmap](figures/longitudinal_bout_heatmap.png)
+
+Longitudinal Bout Detection
+
+Detect song bouts across recordings, summarise motif-bout relationships,
+and track changes in bout duration and density over development.
+
+Intermediate · ~20 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_syllable_segmentation.md)
+
+![UMAP of syllable segments coloured by
+cluster](figures/longitudinal_syllable_umap.png)
+
+Longitudinal Syllable Segmentation
+
+Segment detected bouts into individual syllables, extract spectral
+features, cluster segments, and visualise the acoustic structure with
+UMAP dimensionality reduction.
+
+Advanced · ~25 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/syllable_labeling.md)
+
+![Syllable cluster heatmap after
+labeling](figures/longitudinal_syllable_manual_heatmap.png)
+
+Syllable Labeling
+
+Assign letter identities to syllable clusters using automatic
+DBSCAN-based labeling and manual refinement. Verify the final syllable
+inventory across developmental stages.
+
+Advanced · ~20 min
