@@ -50,6 +50,7 @@ reference:
     contents:
       - create_sap_object
       - create_audio_clip
+      - create_motif_clips
       - parse_filename
       - validate_sap
       - compute_wav_durations
