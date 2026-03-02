@@ -15,10 +15,9 @@ completing:
 - [Longitudinal Bout
   Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_bout_detection.md)
   — Detecting song bouts across development
-
-``` markdown
-- [Longitudinal Syllable Segmentation](longitudinal_syllable_segmentation.html) — Segmenting song into syllables across development
-```
+- [Longitudinal Syllable
+  Segmentation](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_syllable_segmentation.md)
+  — Segmenting song into syllables across development
 
 **What you will learn**:
 
