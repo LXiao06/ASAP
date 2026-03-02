@@ -43,10 +43,17 @@ The pipeline introduces a dedicated SAP object, which streamlines the processing
 
 ## Installation
 
-To install ASAP, I recommend using remotes:
+You can install the latest stable release of ASAP from GitHub:
 
 ```{r, eval = FALSE}
-require(remotes)
+# Install the latest stable release (recommended)
+remotes::install_github("LXiao06/ASAP@*release")
+```
+
+Or install the development version with the latest features:
+
+```{r, eval = FALSE}
+# Install the development version
 remotes::install_github("LXiao06/ASAP")
 ```
 

@@ -44,26 +44,47 @@ ensure compatibility with various recording platforms.
 
 ## Installation
 
-To install ASAP, I recommend using remotes:
+You can install the latest stable release of ASAP from GitHub:
 
 ``` r
-require(remotes)
+# Install the latest stable release (recommended)
+remotes::install_github("LXiao06/ASAP@*release")
+```
+
+Or install the development version with the latest features:
+
+``` r
+# Install the development version
 remotes::install_github("LXiao06/ASAP")
 ```
 
 ## Tutorials
 
-Explore our comprehensive guides to get up and running with ASAP. You can find all documentation on the [ASAP website](https://lxiao06.github.io/ASAP/).
+Explore our comprehensive guides to get up and running with ASAP. You
+can find all documentation on the [ASAP
+website](https://lxiao06.github.io/ASAP/).
 
 ### Quick Start
-- [Single WAV File Analysis](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.html): Learn ASAP's core functions using individual audio recordings.
-- [Motif Detection](https://lxiao06.github.io/ASAP/articles/motif_detection.html): Introduction to automated motif extraction using template matching.
+
+- [Single WAV File
+  Analysis](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.html):
+  Learn ASAP’s core functions using individual audio recordings.
+- [Motif
+  Detection](https://lxiao06.github.io/ASAP/articles/motif_detection.html):
+  Introduction to automated motif extraction using template matching.
 
 ### Longitudinal Analysis Pipeline
-Step-by-step guides for processing large longitudinal datasets spanning multiple developmental time points:
 
-1. [Constructing the SAP Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.html)
-2. [Longitudinal Bout Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.html)
-3. [Longitudinal Motif Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.html)
-4. [Longitudinal Syllable Segmentation](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.html)
-5. [Syllable Labeling](https://lxiao06.github.io/ASAP/articles/syllable_labeling.html)
+Step-by-step guides for processing large longitudinal datasets spanning
+multiple developmental time points:
+
+1.  [Constructing the SAP
+    Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.html)
+2.  [Longitudinal Bout
+    Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.html)
+3.  [Longitudinal Motif
+    Detection](https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.html)
+4.  [Longitudinal Syllable
+    Segmentation](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.html)
+5.  [Syllable
+    Labeling](https://lxiao06.github.io/ASAP/articles/syllable_labeling.html)
