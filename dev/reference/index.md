@@ -9,6 +9,8 @@ audio clips
   : Create a Sound Analysis Pro (SAP) Object from Audio Recordings
 - [`create_audio_clip()`](https://lxiao06.github.io/ASAP/dev/reference/create_audio_clip.md)
   : Create Audio Clips from Sound Files
+- [`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md)
+  : Create Motif Audio Clips
 - [`parse_filename()`](https://lxiao06.github.io/ASAP/dev/reference/parse_filename.md)
   : Parse filename for SAP metadata
 - [`validate_sap()`](https://lxiao06.github.io/ASAP/dev/reference/validate_sap.md)
