@@ -35,10 +35,17 @@ ensure compatibility with various recording platforms.
 
 ## Installation
 
-To install ASAP, I recommend using remotes:
+You can install the latest stable release of ASAP from GitHub:
 
 ``` r
-require(remotes)
+# Install the latest stable release (recommended)
+remotes::install_github("LXiao06/ASAP@*release")
+```
+
+Or install the development version with the latest features:
+
+``` r
+# Install the development version
 remotes::install_github("LXiao06/ASAP")
 ```
 
