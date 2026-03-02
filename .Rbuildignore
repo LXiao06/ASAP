@@ -12,3 +12,4 @@
 ^pkgdown$
 ^tests$
 ^vignettes/
+^inst/extdata/.+/
