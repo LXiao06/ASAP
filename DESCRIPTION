@@ -46,6 +46,7 @@ Suggests:
     fftw,
     ggplot2 (>= 3.4.0),
     ggrepel,
+    hdf5r,
     irlba,
     knitr,
     parallel,
