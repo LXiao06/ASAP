@@ -28,9 +28,7 @@ This vignette shows how to assign user-defined **syllable identity labels** (e.g
 - [Constructing a SAP Object](construct_sap_object.html) — SAP object creation
 - [Longitudinal Bout Detection](longitudinal_bout_detection.html) — Detecting
   song bouts across development
-```markdown
 - [Longitudinal Syllable Segmentation](longitudinal_syllable_segmentation.html) — Segmenting song into syllables across development
-```
 
 
 **What you will learn**:
