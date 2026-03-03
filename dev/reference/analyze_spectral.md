@@ -28,10 +28,14 @@ analyze_spectral(
 analyze_spectral(
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
+  indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
   labels = NULL,
   seed = 222,
+  export_motif_spectral_csv = FALSE,
+  motif_spectral_csv_filename = "motif_spectral_features.csv",
+  time_match_digits = 3,
   cores = NULL,
   wl = 512,
   ovlp = 50,
@@ -101,6 +105,11 @@ analyze_spectral(
   For SAP objects: Type of segments ('motifs', 'syllables', 'bouts',
   'segments')
 
+- indices:
+
+  For SAP objects: Optional row indices of the selected segment_type to
+  process.
+
 - sample_percent:
 
   For SAP objects: Percentage of segments to sample
@@ -116,6 +125,21 @@ analyze_spectral(
 - seed:
 
   For SAP objects: Random seed for sampling (default: 222)
+
+- export_motif_spectral_csv:
+
+  For SAP motifs only. If TRUE and `indices` exactly match the latest
+  motif export `exported_indices`, merge stored export metadata with
+  spectral features and write merged CSV.
+
+- motif_spectral_csv_filename:
+
+  Output CSV filename when `export_motif_spectral_csv = TRUE`.
+
+- time_match_digits:
+
+  Integer digits for matching `start_time`/`end_time` when merging
+  metadata and spectral features (default: 3).
 
 - verbose:
 

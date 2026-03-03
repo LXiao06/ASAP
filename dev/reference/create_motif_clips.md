@@ -22,7 +22,7 @@ create_motif_clips(
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
-  overwrite = FALSE,
+  overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
   ...
@@ -39,7 +39,7 @@ create_motif_clips(
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
-  overwrite = FALSE,
+  overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
   ...
@@ -98,7 +98,7 @@ create_motif_clips(
 
 - overwrite:
 
-  Logical. Overwrite existing output file(s) when TRUE.
+  Logical. Overwrite existing output file(s) when TRUE. Default is TRUE.
 
 - write_metadata:
 
@@ -106,7 +106,7 @@ create_motif_clips(
 
 - verbose:
 
-  Logical. Print progress messages.
+  Logical. Print one export summary per day and overall totals.
 
 ## Value
 
