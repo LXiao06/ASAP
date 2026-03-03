@@ -22,8 +22,9 @@
 #' @param metadata_filename Name of metadata CSV written to \code{output_dir}.
 #' @param name_prefix Prefix used for generated motif clip names.
 #' @param overwrite Logical. Overwrite existing output file(s) when TRUE.
+#'   Default is TRUE.
 #' @param write_metadata Logical. Write metadata CSV when TRUE.
-#' @param verbose Logical. Print progress messages.
+#' @param verbose Logical. Print one export summary per day and overall totals.
 #' @param ... Additional arguments passed to methods.
 #'
 #' @details
@@ -75,7 +76,7 @@ create_motif_clips.default <- function(x,
                                        hdf5_filename = "motifs.h5",
                                        metadata_filename = "metadata.csv",
                                        name_prefix = "motif",
-                                       overwrite = FALSE,
+                                       overwrite = TRUE,
                                        write_metadata = TRUE,
                                        verbose = TRUE,
                                        ...) {
@@ -140,7 +141,7 @@ create_motif_clips.Sap <- function(x,
                                    hdf5_filename = "motifs.h5",
                                    metadata_filename = "metadata.csv",
                                    name_prefix = "motif",
-                                   overwrite = FALSE,
+                                   overwrite = TRUE,
                                    write_metadata = TRUE,
                                    verbose = TRUE,
                                    ...) {
@@ -182,35 +183,50 @@ create_motif_clips.Sap <- function(x,
     verbose = verbose
   )
 
-  x$misc$motif_clip_exports <- append(
-    x$misc$motif_clip_exports,
-    list(
-      list(
-        creation_date = Sys.time(),
-        output_format = match.arg(output_format),
-        output_dir = normalizePath(output_dir, mustWork = TRUE),
-        n_requested = if (!is.null(indices)) {
-          length(indices)
-        } else if (!is.null(n_motifs)) {
-          if ("day_post_hatch" %in% names(x$motifs)) {
-            day_vals <- as.character(x$motifs$day_post_hatch)
-            day_vals[is.na(day_vals) | day_vals == ""] <- "unknown_day"
-            sum(pmin(as.integer(n_motifs), as.integer(table(day_vals))))
-          } else {
-            min(as.integer(n_motifs), nrow(x$motifs))
-          }
-        } else {
-          nrow(x$motifs)
-        },
-        n_written = nrow(export_meta),
-        metadata_path = if (write_metadata) {
-          file.path(normalizePath(output_dir, mustWork = TRUE), metadata_filename)
-        } else {
-          NA_character_
-        }
-      )
-    )
+  current_export <- list(
+    creation_date = Sys.time(),
+    output_format = match.arg(output_format),
+    output_dir = normalizePath(output_dir, mustWork = TRUE),
+    n_requested = if (!is.null(indices)) {
+      length(indices)
+    } else if (!is.null(n_motifs)) {
+      if ("day_post_hatch" %in% names(x$motifs)) {
+        day_vals <- as.character(x$motifs$day_post_hatch)
+        day_vals[is.na(day_vals) | day_vals == ""] <- "unknown_day"
+        sum(pmin(as.integer(n_motifs), as.integer(table(day_vals))))
+      } else {
+        min(as.integer(n_motifs), nrow(x$motifs))
+      }
+    } else {
+      nrow(x$motifs)
+    },
+    n_written = nrow(export_meta),
+    selected_indices = as.integer(motifs$.source_index),
+    exported_indices = if (nrow(export_meta) > 0 && "source_index" %in% names(export_meta)) {
+      as.integer(export_meta$source_index)
+    } else {
+      integer(0)
+    },
+    skipped_indices = if (nrow(export_meta) > 0 && "source_index" %in% names(export_meta)) {
+      setdiff(as.integer(motifs$.source_index), as.integer(export_meta$source_index))
+    } else {
+      as.integer(motifs$.source_index)
+    },
+    metadata_path = if (write_metadata) {
+      file.path(normalizePath(output_dir, mustWork = TRUE), metadata_filename)
+    } else {
+      NA_character_
+    },
+    metadata_df = export_meta
   )
+
+  if (isTRUE(overwrite)) {
+    x$misc$motif_clip_exports <- list(current_export)
+  } else {
+    prev <- x$misc$motif_clip_exports
+    if (is.null(prev) || !is.list(prev)) prev <- list()
+    x$misc$motif_clip_exports <- c(prev, list(current_export))
+  }
   x$misc$last_modified <- Sys.time()
 
   invisible(x)
@@ -343,6 +359,7 @@ create_motif_clips.Sap <- function(x,
                                write_metadata,
                                verbose) {
   counters <- new.env(parent = emptyenv())
+  day_stats <- new.env(parent = emptyenv())
   metadata_rows <- vector("list", nrow(motifs))
 
   h5 <- NULL
@@ -368,6 +385,21 @@ create_motif_clips.Sap <- function(x,
 
   for (i in seq_len(nrow(motifs))) {
     row <- motifs[i, , drop = FALSE]
+    day_summary <- as.character(row$day_post_hatch)
+    if (is.na(day_summary) || day_summary == "") {
+      day_summary <- "unknown_day"
+    }
+    if (!exists(day_summary, envir = day_stats, inherits = FALSE)) {
+      assign(
+        day_summary,
+        c(total = 0L, written = 0L, missing = 0L, invalid = 0L, exists = 0L),
+        envir = day_stats
+      )
+    }
+    stats <- get(day_summary, envir = day_stats, inherits = FALSE)
+    stats[["total"]] <- stats[["total"]] + 1L
+    assign(day_summary, stats, envir = day_stats)
+
     has_day <- "day_post_hatch" %in% names(row) &&
       !is.na(row$day_post_hatch) &&
       row$day_post_hatch != "unknown_day"
@@ -379,6 +411,9 @@ create_motif_clips.Sap <- function(x,
 
     if (!file.exists(source_path)) {
       warning("Skipping missing source file: ", source_path)
+      stats <- get(day_summary, envir = day_stats, inherits = FALSE)
+      stats[["missing"]] <- stats[["missing"]] + 1L
+      assign(day_summary, stats, envir = day_stats)
       next
     }
     duration <- row$end_time - row$start_time
@@ -387,6 +422,9 @@ create_motif_clips.Sap <- function(x,
         "Skipping motif index %s with non-positive duration",
         row$.source_index
       ))
+      stats <- get(day_summary, envir = day_stats, inherits = FALSE)
+      stats[["invalid"]] <- stats[["invalid"]] + 1L
+      assign(day_summary, stats, envir = day_stats)
       next
     }
 
@@ -411,6 +449,9 @@ create_motif_clips.Sap <- function(x,
       out_path <- file.path(out_dir, paste0(clip_id, ".wav"))
       if (file.exists(out_path) && !overwrite) {
         warning("Skipping existing file: ", out_path)
+        stats <- get(day_summary, envir = day_stats, inherits = FALSE)
+        stats[["exists"]] <- stats[["exists"]] + 1L
+        assign(day_summary, stats, envir = day_stats)
         next
       }
 
@@ -418,7 +459,8 @@ create_motif_clips.Sap <- function(x,
         source_path,
         out_path,
         start_time = as.numeric(row$start_time),
-        total_time = as.numeric(duration)
+        total_time = as.numeric(duration),
+        verbose = FALSE
       )
 
       metadata_rows[[i]] <- data.frame(
@@ -476,6 +518,10 @@ create_motif_clips.Sap <- function(x,
         stringsAsFactors = FALSE
       )
     }
+
+    stats <- get(day_summary, envir = day_stats, inherits = FALSE)
+    stats[["written"]] <- stats[["written"]] + 1L
+    assign(day_summary, stats, envir = day_stats)
   }
 
   export_meta <- do.call(rbind, metadata_rows[!sapply(metadata_rows, is.null)])
@@ -500,6 +546,19 @@ create_motif_clips.Sap <- function(x,
   }
 
   if (verbose) {
+    day_keys <- sort(ls(envir = day_stats))
+    for (day_key in day_keys) {
+      stats <- get(day_key, envir = day_stats, inherits = FALSE)
+      message(sprintf(
+        "Day %s: %d written / %d total (skipped: %d missing, %d invalid, %d existing)",
+        day_key,
+        stats[["written"]],
+        stats[["total"]],
+        stats[["missing"]],
+        stats[["invalid"]],
+        stats[["exists"]]
+      ))
+    }
     message(sprintf("Exported %d motif clips to %s format", nrow(export_meta), output_format))
     message(sprintf("Output directory: %s", output_dir))
   }
@@ -519,4 +578,56 @@ create_motif_clips.Sap <- function(x,
     return(parent[[group_name]])
   }
   parent$create_group(group_name)
+}
+
+
+.merge_motif_metadata_with_spectral <- function(metadata_df,
+                                                spectral_df,
+                                                output_file,
+                                                time_digits = 6,
+                                                verbose = TRUE) {
+  required <- c("filename", "start_time", "end_time", "duration", "day_post_hatch", "label")
+  if (!all(required %in% names(metadata_df))) {
+    stop("metadata_df must contain: filename, start_time, end_time, duration, day_post_hatch, label")
+  }
+  if (!all(required %in% names(spectral_df))) {
+    stop("spectral_df must contain: filename, start_time, end_time, duration, day_post_hatch, label")
+  }
+
+  make_key <- function(df) {
+    filename <- as.character(df$filename)
+    start_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$start_time), time_digits))
+    end_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$end_time), time_digits))
+    dur_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$duration), time_digits))
+    day_key <- as.character(df$day_post_hatch)
+    label_key <- as.character(df$label)
+    day_key[is.na(day_key)] <- ""
+    label_key[is.na(label_key)] <- ""
+    paste(filename, start_key, end_key, dur_key, day_key, label_key, sep = "||")
+  }
+
+  metadata_df$.merge_key <- make_key(metadata_df)
+  spectral_df$.merge_key <- make_key(spectral_df)
+
+  # Keep metadata columns as canonical output columns; add only spectral-specific columns.
+  keep_spec <- setdiff(names(spectral_df), intersect(names(spectral_df), names(metadata_df)))
+  keep_spec <- union(".merge_key", keep_spec)
+  spectral_reduced <- spectral_df[, keep_spec, drop = FALSE]
+
+  merged <- merge(
+    metadata_df,
+    spectral_reduced,
+    by = ".merge_key",
+    all.x = TRUE,
+    sort = FALSE
+  )
+  merged$.merge_key <- NULL
+
+  utils::write.csv(merged, output_file, row.names = FALSE)
+
+  if (verbose) {
+    message(sprintf("Merged CSV path: %s", normalizePath(output_file, mustWork = TRUE)))
+  }
+
+  merged
 }
