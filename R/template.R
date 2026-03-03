@@ -1,4 +1,3 @@
-
 # Create Audio Clips------------------------------------------------------
 # Update date : Feb. 7, 2025
 
@@ -39,22 +38,25 @@
 #' \dontrun{
 #' # Create clip from single WAV file
 #' create_audio_clip("path/to/song.wav",
-#'                   start_time = 10,
-#'                   end_time = 20,
-#'                   clip_name = "song_clip")
+#'   start_time = 10,
+#'   end_time = 20,
+#'   clip_name = "song_clip"
+#' )
 #'
 #' # Create multiple clips from SAP object
 #' create_audio_clip(sap_object,
-#'                   indices = c(1, 2),
-#'                   start_time = c(10, 20),
-#'                   end_time = c(20, 30),
-#'                   clip_names = c("clip1", "clip2"))
+#'   indices = c(1, 2),
+#'   start_time = c(10, 20),
+#'   end_time = c(20, 30),
+#'   clip_names = c("clip1", "clip2")
+#' )
 #'
 #' # Create clip with millisecond units
 #' create_audio_clip("song.wav",
-#'                   start_time = 10000,
-#'                   end_time = 20000,
-#'                   unit = "millisecond")
+#'   start_time = 10000,
+#'   end_time = 20000,
+#'   unit = "millisecond"
+#' )
 #' }
 #'
 #' @rdname create_audio_clip
@@ -134,7 +136,7 @@ create_audio_clip.Sap <- function(x,
                                   unit = "second",
                                   verbose = TRUE,
                                   ...) {
-  if(verbose) message(sprintf("\n=== Starting Audio Clip Creation ===\n"))
+  if (verbose) message(sprintf("\n=== Starting Audio Clip Creation ===\n"))
 
   # Validate inputs
   if (!inherits(x, "Sap")) {
@@ -150,8 +152,8 @@ create_audio_clip.Sap <- function(x,
   }
 
   if (length(start_time) != length(indices) ||
-      length(end_time) != length(indices) ||
-      length(clip_names) != length(indices)) {
+    length(end_time) != length(indices) ||
+    length(clip_names) != length(indices)) {
     stop("start_time, end_time, and clip_names must match the length of indices")
   }
 
@@ -169,9 +171,11 @@ create_audio_clip.Sap <- function(x,
     index <- indices[i]
 
     # Get full path to source file
-    song_file <- file.path(x$base_path,
-                           x$metadata$day_post_hatch[index],
-                           x$metadata$filename[index])
+    song_file <- file.path(
+      x$base_path,
+      x$metadata$day_post_hatch[index],
+      x$metadata$filename[index]
+    )
 
     # Create clip using default method with templates_path override
     clip_path <- file.path(templates_path, paste0(clip_names[i], ".wav"))
@@ -180,14 +184,19 @@ create_audio_clip.Sap <- function(x,
     av::av_audio_convert(
       song_file,
       clip_path,
-      start_time = if(unit == "millisecond") start_time[i]/1000 else start_time[i],
-      total_time = if(unit == "millisecond") (end_time[i] - start_time[i])/1000
-      else end_time[i] - start_time[i]
+      start_time = if (unit == "millisecond") start_time[i] / 1000 else start_time[i],
+      total_time = if (unit == "millisecond") {
+        (end_time[i] - start_time[i]) / 1000
+      } else {
+        end_time[i] - start_time[i]
+      }
     )
 
-    cat(sprintf("Audio clip '%s' is created \nOutput path: %s\n\n",
-                clip_names[i],
-                clip_path))
+    cat(sprintf(
+      "Audio clip '%s' is created \nOutput path: %s\n\n",
+      clip_names[i],
+      clip_path
+    ))
 
     # Create new row
     new_row <- data.frame(
@@ -265,25 +274,28 @@ create_audio_clip.Sap <- function(x,
 #' \dontrun{
 #' # Create template from WAV file
 #' template <- create_template("path/to/song.wav",
-#'                            template_name = "template1",
-#'                            start_time = 1.0,
-#'                            end_time = 2.0,
-#'                            freq_min = 2,
-#'                            freq_max = 8)
+#'   template_name = "template1",
+#'   start_time = 1.0,
+#'   end_time = 2.0,
+#'   freq_min = 2,
+#'   freq_max = 8
+#' )
 #'
 #' # Create and save template
 #' template <- create_template("song.wav",
-#'                            template_name = "template2",
-#'                            start_time = 1.0,
-#'                            end_time = 2.0,
-#'                            write_template = TRUE)
+#'   template_name = "template2",
+#'   start_time = 1.0,
+#'   end_time = 2.0,
+#'   write_template = TRUE
+#' )
 #'
 #' # Create template from SAP object
 #' sap_obj <- create_template(sap_object,
-#'                           template_name = "template1",
-#'                           clip_name = "clip1",
-#'                           freq_min = 2,
-#'                           freq_max = 8)
+#'   template_name = "template1",
+#'   clip_name = "clip1",
+#'   freq_min = 2,
+#'   freq_max = 8
+#' )
 #' }
 #'
 #' @seealso \code{\link{create_audio_clip}} for creating audio clips
@@ -296,8 +308,8 @@ create_template <- function(x, ...) {
 
 #' @rdname create_template
 #' @export
-create_template.default <- function(x,              # x is wav file path
-                                    template_name,    # mandatory
+create_template.default <- function(x, # x is wav file path
+                                    template_name, # mandatory
                                     start_time = NULL,
                                     end_time = NULL,
                                     freq_min = 0,
@@ -317,7 +329,7 @@ create_template.default <- function(x,              # x is wav file path
 
   # Validate time parameters if provided
   if ((!is.null(start_time) && is.null(end_time)) ||
-      (is.null(start_time) && !is.null(end_time))) {
+    (is.null(start_time) && !is.null(end_time))) {
     stop("Both start_time and end_time must be provided together")
   }
 
@@ -329,7 +341,7 @@ create_template.default <- function(x,              # x is wav file path
 
   # Validate frequency parameters if provided
   if ((!is.null(freq_min) && is.null(freq_max)) ||
-      (is.null(freq_min) && !is.null(freq_max))) {
+    (is.null(freq_min) && !is.null(freq_max))) {
     stop("Both freq_min and freq_max must be provided together")
   }
 
@@ -347,8 +359,9 @@ create_template.default <- function(x,              # x is wav file path
   # Create template
   if (is.null(start_time) && is.null(end_time)) {
     template <- monitoR::makeCorTemplate(x,
-                                         name = template_name,
-                                         score.cutoff = threshold)
+      name = template_name,
+      score.cutoff = threshold
+    )
   } else {
     # If ANY parameters are provided, ALL must be provided
     if (any(is.null(c(start_time, end_time, freq_min, freq_max)))) {
@@ -357,10 +370,11 @@ create_template.default <- function(x,              # x is wav file path
 
     # Create template with all parameters
     template <- monitoR::makeCorTemplate(x,
-                                         t.lim = c(start_time, end_time),
-                                         frq.lim = c(freq_min, freq_max),
-                                         name = template_name,
-                                         score.cutoff = threshold)
+      t.lim = c(start_time, end_time),
+      frq.lim = c(freq_min, freq_max),
+      name = template_name,
+      score.cutoff = threshold
+    )
   }
 
   # Write template if requested
@@ -373,9 +387,9 @@ create_template.default <- function(x,              # x is wav file path
 
 #' @rdname create_template
 #' @export
-create_template.Sap <- function(x,              # x is Sap object
-                                template_name,    # mandatory
-                                clip_name,        # mandatory, to identify which clip to use
+create_template.Sap <- function(x, # x is Sap object
+                                template_name, # mandatory
+                                clip_name, # mandatory, to identify which clip to use
                                 start_time = NULL,
                                 end_time = NULL,
                                 freq_min = 0,
@@ -384,7 +398,7 @@ create_template.Sap <- function(x,              # x is Sap object
                                 write_template = FALSE,
                                 verbose = TRUE,
                                 ...) {
-  if(verbose) message(sprintf("\n=== Starting Template Creation ===\n"))
+  if (verbose) message(sprintf("\n=== Starting Template Creation ===\n"))
 
   # Validate inputs
   if (!inherits(x, "Sap")) {
@@ -527,26 +541,30 @@ create_template.Sap <- function(x,              # x is Sap object
 #' \dontrun{
 #' # Detect template in single WAV file
 #' detections <- detect_template("path/to/song.wav",
-#'                              template = template_obj,
-#'                              save_plot = TRUE)
+#'   template = template_obj,
+#'   save_plot = TRUE
+#' )
 #'
 #' # Detect template in SAP object
 #' sap_obj <- detect_template(sap_object,
-#'                           template_name = "template1",
-#'                           day = c(30, 40),
-#'                           threshold = 0.7,
-#'                           cores = 4)
+#'   template_name = "template1",
+#'   day = c(30, 40),
+#'   threshold = 0.7,
+#'   cores = 4
+#' )
 #'
 #' # Process specific indices with plots
 #' sap_obj <- detect_template(sap_object,
-#'                           template_name = "template1",
-#'                           indices = 1:10,
-#'                           save_plot = TRUE)
+#'   template_name = "template1",
+#'   indices = 1:10,
+#'   save_plot = TRUE
+#' )
 #'
 #' # Filter nearby detections within 0.5 seconds
 #' sap_obj <- detect_template(sap_object,
-#'                           template_name = "template1",
-#'                           proximity_window = 0.5)
+#'   template_name = "template1",
+#'   proximity_window = 0.5
+#' )
 #' }
 #'
 #' @seealso \code{\link{create_template}} for creating templates
@@ -559,7 +577,7 @@ detect_template <- function(x, ...) {
 
 #' @rdname detect_template
 #' @export
-detect_template.default <- function(x,  # x is wav file path
+detect_template.default <- function(x, # x is wav file path
                                     template,
                                     cor.method = "pearson",
                                     save_plot = FALSE,
@@ -578,9 +596,12 @@ detect_template.default <- function(x,  # x is wav file path
   # Suppress monitoR output
   null_con <- file(tempfile(), open = "w")
   on.exit({
-    sink(type = "output"); sink(type = "message"); close(null_con)
+    sink(type = "output")
+    sink(type = "message")
+    close(null_con)
   })
-  sink(null_con, type = "output"); sink(null_con, type = "message")
+  sink(null_con, type = "output")
+  sink(null_con, type = "message")
 
   # Perform correlation matching
   scores <- suppressWarnings(
@@ -604,7 +625,9 @@ detect_template.default <- function(x,  # x is wav file path
   detections <- monitoR::getDetections(pks, id = basename(x))
 
   # Early return if no detections
-  if (is.null(detections) || nrow(detections) == 0) return(NULL)
+  if (is.null(detections) || nrow(detections) == 0) {
+    return(NULL)
+  }
 
   # Process final output
   detections <- detections %>%
@@ -616,25 +639,28 @@ detect_template.default <- function(x,  # x is wav file path
     dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
     plot_file <- file.path(plot_dir, paste0(tools::file_path_sans_ext(basename(x)), ".png"))
 
-    tryCatch({
-      # Open device
-      png(plot_file, width = 1200, height = 800, res = 150)
-      on.exit(if (dev.cur() > 1) dev.off(), add = TRUE)
+    tryCatch(
+      {
+        # Open device
+        png(plot_file, width = 1200, height = 800, res = 150)
+        on.exit(if (dev.cur() > 1) dev.off(), add = TRUE)
 
-      # Get plot method once per function call
-      if (!exists("plot_detections")) {
-        plot_detections <- methods::getMethod("plot", "detectionList", where = asNamespace("monitoR"))
+        # Get plot method once per function call
+        if (!exists("plot_detections")) {
+          plot_detections <- methods::getMethod("plot", "detectionList", where = asNamespace("monitoR"))
+        }
+
+        # Plot
+        suppressMessages(plot_detections(pks, ask = FALSE))
+
+        # Close device
+        if (dev.cur() > 1) dev.off()
+      },
+      error = function(e) {
+        warning("Error creating plot for ", basename(x), ": ", e$message)
+        if (dev.cur() > 1) dev.off()
       }
-
-      # Plot
-      suppressMessages(plot_detections(pks, ask = FALSE))
-
-      # Close device
-      if (dev.cur() > 1) dev.off()
-    }, error = function(e) {
-      warning("Error creating plot for ", basename(x), ": ", e$message)
-      if (dev.cur() > 1) dev.off()
-    })
+    )
   }
 
 
@@ -643,7 +669,7 @@ detect_template.default <- function(x,  # x is wav file path
 
 #' @rdname detect_template
 #' @export
-detect_template.Sap <- function(x,  # x is SAP object
+detect_template.Sap <- function(x, # x is SAP object
                                 day = NULL,
                                 indices = NULL,
                                 template_name,
@@ -655,7 +681,7 @@ detect_template.Sap <- function(x,  # x is SAP object
                                 verbose = TRUE,
                                 proximity_window = NULL,
                                 ...) {
-  if(verbose) message(sprintf("\n=== Starting Template Detection ==="))
+  if (verbose) message(sprintf("\n=== Starting Template Detection ==="))
 
   # Validate inputs
   if (!inherits(x, "Sap")) {
@@ -681,8 +707,10 @@ detect_template.Sap <- function(x,  # x is SAP object
       if (length(threshold_idx) > 0) {
         x$templates$template_info$threshold[threshold_idx] <- threshold
       }
-      cat(sprintf("\nTemplate threshold updated from %.2f to %.2f\n",
-                  original_threshold, threshold))
+      cat(sprintf(
+        "\nTemplate threshold updated from %.2f to %.2f\n",
+        original_threshold, threshold
+      ))
     } else {
       cat(sprintf("\nTemplate threshold already at %.2f\n", threshold))
     }
@@ -731,8 +759,10 @@ detect_template.Sap <- function(x,  # x is SAP object
     }
 
     unique_files <- which(!duplicated(day_metadata$filename))
-    cat(sprintf("\nProcessing %d files for day %s using %d cores.\n",
-                length(unique_files), current_day, cores))
+    cat(sprintf(
+      "\nProcessing %d files for day %s using %d cores.\n",
+      length(unique_files), current_day, cores
+    ))
 
     # Determine which files to plot
     if (save_plot) {
@@ -745,40 +775,51 @@ detect_template.Sap <- function(x,  # x is SAP object
     }
 
     process_file <- function(i) {
-      tryCatch({
-        should_plot <- save_plot && (i %in% files_to_plot)
-        wavfile <- file.path(x$base_path,
-                             day_metadata$day_post_hatch[i],
-                             day_metadata$filename[i])
-        plot_dir <- if (should_plot) {
-          file.path(x$base_path, "plots", "template_matches",
-                    paste0("day_", day_metadata$day_post_hatch[i]))
-        } else NULL
-
-        result <- detect_template.default(
-          x = wavfile,
-          template = template,
-          cor.method = cor.method,
-          save_plot = should_plot,
-          plot_dir = plot_dir,
-          proximity_window = proximity_window,
-          ...
-        )
-
-        if (!is.null(result)) {
-          result <- result |>
-            dplyr::mutate(
-              day_post_hatch = day_metadata$day_post_hatch[i],
-              label = day_metadata$label[i],
-              .after = filename
+      tryCatch(
+        {
+          should_plot <- save_plot && (i %in% files_to_plot)
+          wavfile <- file.path(
+            x$base_path,
+            day_metadata$day_post_hatch[i],
+            day_metadata$filename[i]
+          )
+          plot_dir <- if (should_plot) {
+            file.path(
+              x$base_path, "plots", "template_matches",
+              paste0("day_", day_metadata$day_post_hatch[i])
             )
+          } else {
+            NULL
+          }
+
+          result <- detect_template.default(
+            x = wavfile,
+            template = template,
+            cor.method = cor.method,
+            save_plot = should_plot,
+            plot_dir = plot_dir,
+            proximity_window = proximity_window,
+            ...
+          )
+
+          if (!is.null(result)) {
+            result <- result |>
+              dplyr::mutate(
+                day_post_hatch = day_metadata$day_post_hatch[i],
+                label = day_metadata$label[i],
+                .after = filename
+              )
+          }
+          return(result)
+        },
+        error = function(e) {
+          warning(sprintf(
+            "Error processing file %s: %s",
+            day_metadata$filename[i], e$message
+          ))
+          return(NULL)
         }
-        return(result)
-      }, error = function(e) {
-        warning(sprintf("Error processing file %s: %s",
-                        day_metadata$filename[i], e$message))
-        return(NULL)
-      })
+      )
     }
 
     # Parallel processing
@@ -788,8 +829,10 @@ detect_template.Sap <- function(x,  # x is SAP object
     if (length(valid_detections) > 0) {
       day_detections <- do.call(rbind, valid_detections)
       all_results[[as.character(current_day)]] <- day_detections
-      cat(sprintf("\nProcessed files in day %s. Total detections: %d\n",
-                  current_day, nrow(day_detections)))
+      cat(sprintf(
+        "\nProcessed files in day %s. Total detections: %d\n",
+        current_day, nrow(day_detections)
+      ))
     } else {
       cat(sprintf("\nNo detections found in day %s.\n", current_day))
     }
@@ -801,8 +844,10 @@ detect_template.Sap <- function(x,  # x is SAP object
     x$templates$template_matches[[template_name]] <- final_results
     x$misc$last_modified <- Sys.time()
     message(sprintf("\nTotal detections across all days: %d", nrow(final_results)))
-    message(sprintf("Access detection results via: Sap_object$templates$template_matches[[\"%s\"]]",
-                    template_name))
+    message(sprintf(
+      "Access detection results via: Sap_object$templates$template_matches[[\"%s\"]]",
+      template_name
+    ))
   } else {
     warning(sprintf("No detections found for template '%s'", template_name))
   }
@@ -821,10 +866,26 @@ find_peaks_with_proximity <- function(score.obj, proximity_window = NULL) {
     # Skip if no detections
     if (is.null(dets) || nrow(dets) == 0) next
 
-    # Sort by time and apply proximity filtering
+    # Sort by time and apply proximity filtering using anchor-based grouping.
+    # Each group is anchored at its first detection: a new group starts only
+    # when the current peak is > proximity_window seconds from the *anchor*
+    # (first peak of the group), not just the immediately preceding peak.
+    # This prevents a long chain of closely-spaced peaks from being incorrectly
+    # collapsed into one group even when they collectively span much longer than
+    # proximity_window.
     dets <- dets[order(dets$time), ]
-    time_diff <- diff(dets$time)
-    group_ids <- cumsum(c(TRUE, time_diff > proximity_window))
+    n <- nrow(dets)
+    group_ids <- integer(n)
+    group_ids[1] <- 1L
+    anchor_time <- dets$time[1]
+    current_group <- 1L
+    for (j in seq_len(n - 1) + 1L) {
+      if (dets$time[j] - anchor_time > proximity_window) {
+        current_group <- current_group + 1L
+        anchor_time <- dets$time[j]
+      }
+      group_ids[j] <- current_group
+    }
 
     filtered_dets <- dets %>%
       dplyr::mutate(group = group_ids) %>%
@@ -837,7 +898,7 @@ find_peaks_with_proximity <- function(score.obj, proximity_window = NULL) {
     if (nrow(filtered_dets) > 0) {
       pks@detections[[tpl_name]] <- filtered_dets
     } else {
-      pks@detections[[tpl_name]] <- data.frame()  # Empty but valid
+      pks@detections[[tpl_name]] <- data.frame() # Empty but valid
     }
   }
 
