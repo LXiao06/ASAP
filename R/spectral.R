@@ -19,10 +19,18 @@
 #' @param fsmooth Frequency smoothing parameter (default: 0.1)
 #' @param fast Whether to skip peak frequency calculation (default: TRUE)
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
+#' @param indices For SAP objects: Optional row indices of the selected segment_type to process.
 #' @param sample_percent For SAP objects: Percentage of segments to sample
 #' @param balanced For SAP objects: Whether to balance groups across labels
 #' @param labels For SAP objects: Specific labels to include
 #' @param seed For SAP objects: Random seed for sampling (default: 222)
+#' @param export_motif_spectral_csv For SAP motifs only. If TRUE and \code{indices}
+#'   exactly match the latest motif export \code{exported_indices}, merge stored
+#'   export metadata with spectral features and write merged CSV.
+#' @param motif_spectral_csv_filename Output CSV filename when
+#'   \code{export_motif_spectral_csv = TRUE}.
+#' @param time_match_digits Integer digits for matching \code{start_time}/\code{end_time}
+#'   when merging metadata and spectral features (default: 3).
 #' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to specific methods
 #'
@@ -163,10 +171,14 @@ analyze_spectral.default <- function(x,
 #' @export
 analyze_spectral.Sap <- function(x,
                                  segment_type = c("motifs", "syllables", "bouts", "segments"),
+                                 indices = NULL,
                                  sample_percent = NULL,
                                  balanced = FALSE,
                                  labels = NULL,
                                  seed = 222,
+                                 export_motif_spectral_csv = FALSE,
+                                 motif_spectral_csv_filename = "motif_spectral_features.csv",
+                                 time_match_digits = 3,
                                  cores = NULL,
                                  wl = 512,
                                  ovlp = 50,
@@ -187,6 +199,21 @@ analyze_spectral.Sap <- function(x,
   if (!inherits(segments_df, "segment") || nrow(segments_df) == 0) {
     stop("No segments found in the specified segment type")
   }
+
+  # Subset specific indices if provided
+  if (!is.null(indices)) {
+    if (!is.numeric(indices) || anyNA(indices)) {
+      stop("indices must be a numeric vector without NA values")
+    }
+    if (any(indices < 1) || any(indices > nrow(segments_df))) {
+      stop(sprintf("indices must be between 1 and %d", nrow(segments_df)))
+    }
+    segments_df <- segments_df[indices, , drop = FALSE]
+  } else {
+    indices <- seq_len(nrow(segments_df))
+  }
+
+  segments_df$.source_index <- as.integer(indices)
 
   # Select and balance segments
   segments_df <- select_segments(segments_df,
@@ -212,9 +239,13 @@ analyze_spectral.Sap <- function(x,
                                      ...)
 
   # Add attributes to result
-  attr(result, "segment_indices") <- which(x[[segment_type]]$filename %in% segments_df$filename &
-                                             x[[segment_type]]$start_time %in% segments_df$start_time &
-                                             x[[segment_type]]$end_time %in% segments_df$end_time)
+  if (".source_index" %in% names(segments_df)) {
+    attr(result, "segment_indices") <- as.integer(unique(segments_df$.source_index))
+  } else {
+    attr(result, "segment_indices") <- which(x[[segment_type]]$filename %in% segments_df$filename &
+                                               x[[segment_type]]$start_time %in% segments_df$start_time &
+                                               x[[segment_type]]$end_time %in% segments_df$end_time)
+  }
   attr(result, "segment_type") <- segment_type
 
   # Update SAP object's features
@@ -223,6 +254,50 @@ analyze_spectral.Sap <- function(x,
 
   # Add message about data access
   message(sprintf("Spectral features have been stored in x$features$%s$spectral_feature", feature_type))
+
+  # Optional merge+export with latest motif export metadata
+  if (isTRUE(export_motif_spectral_csv) && segment_type == "motifs") {
+    if (verbose) {
+      message("Exporting motif spectral CSV from selected motifs...")
+    }
+    exports <- x$misc$motif_clip_exports
+    if (!is.null(exports) && length(exports) > 0) {
+      last_export <- exports[[length(exports)]]
+      exp_idx <- last_export$exported_indices
+      if (!is.null(indices) && !is.null(exp_idx) && length(exp_idx) > 0) {
+        same_idx <- setequal(as.integer(indices), as.integer(exp_idx))
+        if (same_idx) {
+          metadata_df <- last_export$metadata_df
+          if (is.null(metadata_df) || !is.data.frame(metadata_df) || nrow(metadata_df) == 0) {
+            warning("Latest motif export metadata is empty; skipping merge.")
+          } else {
+            out_dir <- last_export$output_dir %||% getwd()
+            if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+            out_csv <- file.path(out_dir, motif_spectral_csv_filename)
+
+            merged_df <- .merge_motif_metadata_with_spectral(
+              metadata_df = metadata_df,
+              spectral_df = result,
+              output_file = out_csv,
+              time_digits = time_match_digits,
+              verbose = FALSE
+            )
+            x$features$motif$merged_export_spectral <- merged_df
+            if (verbose) {
+              message(sprintf(
+                "Exported motif spectral CSV: %d/%d rows to %s",
+                nrow(merged_df),
+                nrow(metadata_df),
+                normalizePath(out_csv, mustWork = TRUE)
+              ))
+            }
+          }
+        } else {
+          warning("indices do not match latest exported_indices; skipping merge.")
+        }
+      }
+    }
+  }
 
   # Return updated SAP object invisibly
   invisible(x)
