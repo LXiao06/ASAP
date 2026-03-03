@@ -30,7 +30,7 @@
 #' @details
 #' Output layout for \code{output_format = "wav"}:
 #' \preformatted{
-#' output_dir/segmented/{bird_id}/{day_post_hatch}/{name_prefix}_001.wav
+#' output_dir/motifs/{bird_id}/{day_post_hatch}/{name_prefix}_001.wav
 #' }
 #'
 #' Output layout for \code{output_format = "hdf5"}:
@@ -376,11 +376,14 @@ create_motif_clips.Sap <- function(x,
       file.remove(h5_path)
     }
     h5 <- hdf5r::H5File$new(filename = h5_path, mode = "w")
-    on.exit({
-      if (!is.null(h5)) {
-        h5$close_all()
-      }
-    }, add = TRUE)
+    on.exit(
+      {
+        if (!is.null(h5)) {
+          h5$close_all()
+        }
+      },
+      add = TRUE
+    )
   }
 
   for (i in seq_len(nrow(motifs))) {
@@ -441,7 +444,7 @@ create_motif_clips.Sap <- function(x,
     clip_id <- sprintf("%s_%03d", name_prefix, current_n)
 
     if (output_format == "wav") {
-      out_dir <- file.path(output_dir, "segmented", bird_id, day)
+      out_dir <- file.path(output_dir, "motifs", bird_id, day)
       if (!dir.exists(out_dir)) {
         dir.create(out_dir, recursive = TRUE)
       }
