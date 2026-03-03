@@ -26,10 +26,14 @@ analyze_spectral(x, ...)
 \method{analyze_spectral}{Sap}(
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
+  indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
   labels = NULL,
   seed = 222,
+  export_motif_spectral_csv = FALSE,
+  motif_spectral_csv_filename = "motif_spectral_features.csv",
+  time_match_digits = 3,
   cores = NULL,
   wl = 512,
   ovlp = 50,
@@ -70,6 +74,8 @@ analyze_spectral(x, ...)
 
 \item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')}
 
+\item{indices}{For SAP objects: Optional row indices of the selected segment_type to process.}
+
 \item{sample_percent}{For SAP objects: Percentage of segments to sample}
 
 \item{balanced}{For SAP objects: Whether to balance groups across labels}
@@ -77,6 +83,16 @@ analyze_spectral(x, ...)
 \item{labels}{For SAP objects: Specific labels to include}
 
 \item{seed}{For SAP objects: Random seed for sampling (default: 222)}
+
+\item{export_motif_spectral_csv}{For SAP motifs only. If TRUE and \code{indices}
+exactly match the latest motif export \code{exported_indices}, merge stored
+export metadata with spectral features and write merged CSV.}
+
+\item{motif_spectral_csv_filename}{Output CSV filename when
+\code{export_motif_spectral_csv = TRUE}.}
+
+\item{time_match_digits}{Integer digits for matching \code{start_time}/\code{end_time}
+when merging metadata and spectral features (default: 3).}
 
 \item{verbose}{For SAP objects: Whether to print progress messages}
 }

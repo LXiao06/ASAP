@@ -19,7 +19,7 @@ create_motif_clips(x, ...)
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
-  overwrite = FALSE,
+  overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
   ...
@@ -35,7 +35,7 @@ create_motif_clips(x, ...)
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
-  overwrite = FALSE,
+  overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
   ...
@@ -68,11 +68,12 @@ is applied. In this repository, sampling is fixed to \code{222}.}
 
 \item{name_prefix}{Prefix used for generated motif clip names.}
 
-\item{overwrite}{Logical. Overwrite existing output file(s) when TRUE.}
+\item{overwrite}{Logical. Overwrite existing output file(s) when TRUE.
+Default is TRUE.}
 
 \item{write_metadata}{Logical. Write metadata CSV when TRUE.}
 
-\item{verbose}{Logical. Print progress messages.}
+\item{verbose}{Logical. Print one export summary per day and overall totals.}
 }
 \value{
 For SAP input: updated SAP object with export summary in
