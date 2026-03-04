@@ -1,4 +1,3 @@
-
 # Run UMAP ----------------------------------------------------------------
 # Update date : Feb. 7, 2025
 
@@ -36,26 +35,30 @@
 #' \dontrun{
 #' # Run UMAP on feature data frame
 #' coords <- run_umap(features,
-#'                    metadata_cols = c(1:5),
-#'                    n_neighbors = 15)
+#'   metadata_cols = c(1:5),
+#'   n_neighbors = 15
+#' )
 #'
 #' # Run UMAP on SAP object
 #' sap_obj <- run_umap(sap_object,
-#'                     segment_type = "motifs",
-#'                     data_type = "spectral_feature")
+#'   segment_type = "motifs",
+#'   data_type = "spectral_feature"
+#' )
 #'
 #' # UMAP with specific parameters
 #' coords <- run_umap(features,
-#'                    metadata_cols = 1:3,
-#'                    scale = TRUE,
-#'                    n_neighbors = 20,
-#'                    seed = 123)
+#'   metadata_cols = 1:3,
+#'   scale = TRUE,
+#'   n_neighbors = 20,
+#'   seed = 123
+#' )
 #'
 #' # UMAP with label filtering
 #' sap_obj <- run_umap(sap_obj,
-#'                     segment_type = "syllables",
-#'                     data_type = "spectral_feature",
-#'                     label = "a")
+#'   segment_type = "syllables",
+#'   data_type = "spectral_feature",
+#'   label = "a"
+#' )
 #' }
 #'
 #' @rdname run_umap
@@ -67,7 +70,7 @@ run_umap <- function(x, ...) {
 #' @rdname run_umap
 #' @export
 run_umap.default <- function(x,
-                             metadata_cols = NULL,  # Make it optional
+                             metadata_cols = NULL, # Make it optional
                              scale = TRUE,
                              n_neighbors = 15,
                              n_components = 2,
@@ -80,16 +83,16 @@ run_umap.default <- function(x,
   ensure_pkgs("uwot")
 
   # Validate input
-  if(!is.data.frame(x)) stop("Input data must be a data frame")
+  if (!is.data.frame(x)) stop("Input data must be a data frame")
 
   # Handle case when metadata_cols is provided
-  if(!is.null(metadata_cols)) {
-    if(any(metadata_cols < 1) || any(metadata_cols > ncol(x))) {
+  if (!is.null(metadata_cols)) {
+    if (any(metadata_cols < 1) || any(metadata_cols > ncol(x))) {
       stop("metadata_cols must be between 1 and the number of columns in the data frame")
     }
 
     # Print column information if metadata exists
-    if(verbose) {
+    if (verbose) {
       message("Metadata columns:")
       print(colnames(x)[metadata_cols])
 
@@ -98,7 +101,7 @@ run_umap.default <- function(x,
 
       message("\nFeature columns (showing first 30 of ", total_feature_cols, "):")
 
-      if(total_feature_cols > 30) {
+      if (total_feature_cols > 30) {
         print(head(feature_cols, 30))
         message("... and ", total_feature_cols - 30, " more columns not shown")
       } else {
@@ -107,17 +110,17 @@ run_umap.default <- function(x,
     }
 
     # Extract features excluding metadata columns
-    features <- x[,-metadata_cols]
+    features <- x[, -metadata_cols]
   } else {
     # If no metadata columns, use all columns as features
-    if(verbose) {
+    if (verbose) {
       message("No metadata columns specified. Using all columns as features:")
       print(colnames(x))
     }
     features <- x
   }
 
-  if(is.null(n_threads)){
+  if (is.null(n_threads)) {
     n_threads <- parallel::detectCores() - 1
   }
 
@@ -147,7 +150,7 @@ run_umap.default <- function(x,
 #' @export
 run_umap.Sap <- function(x,
                          segment_type = c("motifs", "syllables", "bouts", "segments"),
-                         data_type = c("spectral_feature", "spectrogram","traj_mat"),
+                         data_type = c("spectral_feature", "spectrogram", "traj_mat"),
                          label = NULL,
                          scale = TRUE,
                          n_neighbors = 20,
@@ -157,9 +160,13 @@ run_umap.Sap <- function(x,
                          n_threads = NULL,
                          verbose = TRUE,
                          ...) {
-  if(verbose) message(sprintf("\n=== Starting Run UMAP for %s using %s ===\n",
-                              segment_type[1],
-                              data_type[1]))
+  if (verbose) {
+    message(sprintf(
+      "\n=== Starting Run UMAP for %s using %s ===\n",
+      segment_type[1],
+      data_type[1]
+    ))
+  }
 
   # Validate input
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
@@ -172,7 +179,7 @@ run_umap.Sap <- function(x,
   feature_type <- sub("s$", "", segment_type)
 
   # Get appropriate data based on data_type
-  if(data_type %in% c("spectral_feature", "spectrogram")) {
+  if (data_type %in% c("spectral_feature", "spectrogram")) {
     feature_data <- x$features[[feature_type]][[data_type]]
     if (is.null(feature_data)) {
       stop(sprintf("%s features not found in SAP object", segment_type))
@@ -185,8 +192,10 @@ run_umap.Sap <- function(x,
       }
       available_labels <- unique(feature_data$label)
       if (!label %in% available_labels) {
-        stop(sprintf("Label '%s' not found. Available labels: %s",
-                     label, paste(available_labels, collapse = ", ")))
+        stop(sprintf(
+          "Label '%s' not found. Available labels: %s",
+          label, paste(available_labels, collapse = ", ")
+        ))
       }
       feature_data <- feature_data[feature_data$label == label, ]
     }
@@ -197,8 +206,7 @@ run_umap.Sap <- function(x,
     if ("duration" %in% names(feature_data) && length(unique(feature_data$duration)) == 1) {
       metadata_cols <- c(metadata_cols, which(names(feature_data) == "duration"))
     }
-
-  } else if(data_type == "traj_mat") {
+  } else if (data_type == "traj_mat") {
     feature_data <- x$features[[feature_type]][[data_type]]
     if (is.null(feature_data)) {
       stop(sprintf("%s trajectory matrix not found in SAP object", segment_type))
@@ -232,14 +240,14 @@ run_umap.Sap <- function(x,
   )
 
   # Handle results based on data_type
-  if(data_type %in% c("spectral_feature", "spectrogram")) {
+  if (data_type %in% c("spectral_feature", "spectrogram")) {
     # Create UMAP result with metadata
     umap_result <- data.frame(
       feature_data[, metadata_cols, drop = FALSE],
-      UMAP1 = umap_coords[,1],
-      UMAP2 = umap_coords[,2]
+      UMAP1 = umap_coords[, 1],
+      UMAP2 = umap_coords[, 2]
     )
-    
+
     # Add detection_time from original motifs if available and not already present
     if (segment_type == "motifs" && !"detection_time" %in% names(umap_result)) {
       original_motifs <- x[[segment_type]]
@@ -248,8 +256,9 @@ run_umap.Sap <- function(x,
         merge_keys <- intersect(names(umap_result), c("filename", "start_time", "end_time"))
         if (length(merge_keys) > 0) {
           detection_time_data <- original_motifs[, c(merge_keys, "detection_time"), drop = FALSE]
-          umap_result <- merge(umap_result, detection_time_data, 
-                              by = merge_keys, all.x = TRUE, sort = FALSE)
+          umap_result <- merge(umap_result, detection_time_data,
+            by = merge_keys, all.x = TRUE, sort = FALSE
+          )
         }
       }
     }
@@ -270,31 +279,30 @@ run_umap.Sap <- function(x,
 
     # Add parameters as attributes to feat.embeds
     attr(x$features[[feature_type]][["feat.embeds"]], "umap_params") <- params_list
-
   } else {
     # For trajectory matrix, add UMAP coordinates to existing traj.embeds
     traj_embeds <- x$features[[feature_type]][["traj.embeds"]]
-    traj_embeds$PC1 <-feature_data[,1]
-    traj_embeds$PC2 <- feature_data[,2]
-    traj_embeds$UMAP1 <- umap_coords[,1]
-    traj_embeds$UMAP2 <- umap_coords[,2]
+    traj_embeds$PC1 <- feature_data[, 1]
+    traj_embeds$PC2 <- feature_data[, 2]
+    traj_embeds$UMAP1 <- umap_coords[, 1]
+    traj_embeds$UMAP2 <- umap_coords[, 2]
 
     # Add parameters as attributes to traj.embeds
-    attrs <- attributes(traj_embeds)  # Preserve existing attributes
+    attrs <- attributes(traj_embeds) # Preserve existing attributes
     attrs$umap_params <- params_list
     x$features[[feature_type]][["traj.embeds"]] <- traj_embeds
     attributes(x$features[[feature_type]][["traj.embeds"]]) <- attrs
   }
 
   # Print access information
-  if(verbose) {
+  if (verbose) {
     cat("\nUMAP completed successfully!")
-    if(data_type == "spectral_feature") {
+    if (data_type == "spectral_feature") {
       cat(sprintf("\nAccess results via: sap$features$%s$feat.embeds", feature_type))
-      cat("\nAccess parameters via: attributes(sap$features$", feature_type, "$feat.embeds)$umap_params", sep="")
+      cat("\nAccess parameters via: attributes(sap$features$", feature_type, "$feat.embeds)$umap_params", sep = "")
     } else {
       cat(sprintf("\nAccess results via: sap$features$%s$traj.embeds", feature_type))
-      cat("\nAccess parameters via: attributes(sap$features$", feature_type, "$traj.embeds)$umap_params", sep="")
+      cat("\nAccess parameters via: attributes(sap$features$", feature_type, "$traj.embeds)$umap_params", sep = "")
     }
   }
 
@@ -356,26 +364,30 @@ run_umap.Sap <- function(x,
 #'
 #' # Plot with highlighting
 #' plot_umap(umap_df,
-#'           group.by = "cluster",
-#'           highlight.by = "label",
-#'           highlight.value = "a")
+#'   group.by = "cluster",
+#'   highlight.by = "label",
+#'   highlight.value = "a"
+#' )
 #'
 #' # Plot with faceting
 #' plot_umap(umap_df,
-#'           group.by = "cluster",
-#'           split.by = "day_post_hatch")
+#'   group.by = "cluster",
+#'   split.by = "day_post_hatch"
+#' )
 #'
 #' # Plot from SAP object
 #' plot_umap(sap_obj,
-#'           segment_type = "motifs",
-#'           group.by = "label")
+#'   segment_type = "motifs",
+#'   group.by = "label"
+#' )
 #'
 #' # SAP object plot with custom grouping and highlighting
 #' plot_umap(sap_obj,
-#'           segment_type = "syllables",
-#'           group.by = "label",
-#'           highlight.by = "cluster",
-#'           highlight.value = c(1, 2))
+#'   segment_type = "syllables",
+#'   group.by = "label",
+#'   highlight.by = "cluster",
+#'   highlight.value = c(1, 2)
+#' )
 #' }
 #'
 #' @rdname plot_umap
@@ -402,15 +414,15 @@ plot_umap.default <- function(x,
                               repel = FALSE,
                               highlight.by = NULL,
                               highlight.value = NULL,
-                              cols.highlight = '#DE2D26',
+                              cols.highlight = "#DE2D26",
                               sizes.highlight = 1,
                               background.value = NULL,
-                              na.value = 'grey80',
+                              na.value = "grey80",
                               ncol = NULL,
                               combine = TRUE,
                               ...) {
   # Validate input
-  if(!is.data.frame(x)) stop("Input must be a data frame")
+  if (!is.data.frame(x)) stop("Input must be a data frame")
 
   # Create a copy of the input data frame
   data <- x
@@ -425,9 +437,11 @@ plot_umap.default <- function(x,
     existing_values <- unique(data[[subset.by]])
     missing_values <- setdiff(subset.value, existing_values)
     if (length(missing_values) > 0) {
-      stop(sprintf("The following values were not found in column '%s': %s",
-                   subset.by,
-                   paste(missing_values, collapse = ", ")))
+      stop(sprintf(
+        "The following values were not found in column '%s': %s",
+        subset.by,
+        paste(missing_values, collapse = ", ")
+      ))
     }
 
     # Apply subsetting
@@ -446,9 +460,11 @@ plot_umap.default <- function(x,
     existing_values <- unique(data[[highlight.by]])
     missing_values <- setdiff(highlight.value, existing_values)
     if (length(missing_values) > 0) {
-      stop(sprintf("The following highlight values were not found in column '%s': %s",
-                   highlight.by,
-                   paste(missing_values, collapse = ", ")))
+      stop(sprintf(
+        "The following highlight values were not found in column '%s': %s",
+        highlight.by,
+        paste(missing_values, collapse = ", ")
+      ))
     }
   }
 
@@ -458,10 +474,19 @@ plot_umap.default <- function(x,
     stop("Cannot find grouping variable(s) in data")
   }
 
+  # Active grouping column (first entry drives color generation)
+  active_group <- group.by[1]
+
   # Generate colors if not provided
-  if (is.null(cols) && !is.null(group.by)) {
-    unique_levels <- unique(as.character(data[[group.by[1]]]))
-    unique_levels <- sort(as.numeric(unique_levels))
+  if (is.null(cols) && !is.null(active_group)) {
+    raw_levels <- unique(as.character(data[[active_group]]))
+    # Try numeric sort; fall back to alphabetical if non-numeric
+    num_levels <- suppressWarnings(as.numeric(raw_levels))
+    unique_levels <- if (!anyNA(num_levels)) {
+      as.character(sort(num_levels))
+    } else {
+      sort(raw_levels)
+    }
     n_colors <- length(unique_levels)
     ensure_pkgs("Polychrome")
     palette_colors <- Polychrome::createPalette(
@@ -469,21 +494,30 @@ plot_umap.default <- function(x,
       seedcolors = c("#ffffff", "#000000"),
       range = c(10, 90)
     )[-(1:2)]
-    cols <- setNames(palette_colors, as.character(unique_levels))
+    cols <- setNames(palette_colors, unique_levels)
   }
 
-  # Ensure cluster levels are sorted numerically
-  data$cluster <- factor(as.character(data$cluster), levels = as.character(sort(as.numeric(unique(as.character(data$cluster))))))
+  # Factor-order the active grouping column
+  raw_levels <- unique(as.character(data[[active_group]]))
+  num_levels <- suppressWarnings(as.numeric(raw_levels))
+  ordered_levels <- if (!anyNA(num_levels)) {
+    as.character(sort(num_levels))
+  } else {
+    sort(raw_levels)
+  }
+  data[[active_group]] <- factor(as.character(data[[active_group]]), levels = ordered_levels)
 
   # Create plots
-  plots <- lapply(group.by, function(x) {
-    if (!is.factor(data[[x]])) {
-      data[[x]] <- factor(data[[x]], levels = sort(as.numeric(unique(as.character(data[[x]])))))
-    }
+  plots <- lapply(group.by, function(grp) {
+    col_levels <- unique(as.character(data[[grp]]))
+    num_col <- suppressWarnings(as.numeric(col_levels))
+    col_ordered <- if (!anyNA(num_col)) as.character(sort(num_col)) else sort(col_levels)
+    data[[grp]] <- factor(as.character(data[[grp]]), levels = col_ordered)
 
     p <- plot_single_umap(
       data = data,
       dims = dims,
+      group.col = grp,
       cols = cols,
       pt.size = pt.size,
       stroke = stroke,
@@ -508,7 +542,8 @@ plot_umap.default <- function(x,
         data[[split.by]] <- factor(data[[split.by]])
       }
       p <- p + ggplot2::facet_wrap(as.formula(paste("~", split.by)),
-                          ncol = if (length(group.by) > 1) NULL else ncol)
+        ncol = if (length(group.by) > 1) NULL else ncol
+      )
     }
 
     return(p)
@@ -544,16 +579,20 @@ plot_umap.Sap <- function(x,
                           repel = FALSE,
                           highlight.by = NULL,
                           highlight.value = NULL,
-                          cols.highlight = '#DE2D26',
+                          cols.highlight = "#DE2D26",
                           sizes.highlight = 1,
                           background.value = NULL,
-                          na.value = 'grey80',
+                          na.value = "grey80",
                           ncol = NULL,
                           combine = TRUE,
                           verbose = TRUE,
                           ...) {
-  if(verbose) message(sprintf("\n=== Starting UMAP Plotting for %s ===\n",
-                              segment_type[1]))
+  if (verbose) {
+    message(sprintf(
+      "\n=== Starting UMAP Plotting for %s ===\n",
+      segment_type[1]
+    ))
+  }
 
   # Validate input
   if (!inherits(x, "Sap")) {
@@ -620,7 +659,8 @@ plot_umap.Sap <- function(x,
 plot_single_umap <- function(
     data,
     dims = c("X1", "X2"),
-    cols = NULL,               # Cluster colors
+    group.col = "cluster", # Active grouping column
+    cols = NULL,
     pt.size = 0.5,
     stroke = 0.5,
     alpha = 1,
@@ -630,18 +670,23 @@ plot_single_umap <- function(
     label.size = 4,
     highlight.by = NULL,
     highlight.value = NULL,
-    cols.highlight = '#DE2D26',
+    cols.highlight = "#DE2D26",
     sizes.highlight = 1,
     background.value = NULL,
-    na.value = 'grey80'
-) {
+    na.value = "grey80") {
   # Input validation
   if (!all(dims %in% colnames(data))) {
     stop("Cannot find dimensions to plot in data")
   }
+  if (!group.col %in% colnames(data)) {
+    stop(paste("Cannot find grouping column '", group.col, "' in data", sep = ""))
+  }
 
-  # Ensure 'cluster' is a factor with levels sorted numerically
-  data$cluster <- factor(as.character(data$cluster), levels = sort(as.numeric(unique(as.character(data$cluster)))))
+  # Factor-order the active grouping column
+  grp_vals <- as.character(data[[group.col]])
+  num_grp <- suppressWarnings(as.numeric(unique(grp_vals)))
+  grp_levels <- if (!anyNA(num_grp)) as.character(sort(num_grp)) else sort(unique(grp_vals))
+  data[[group.col]] <- factor(grp_vals, levels = grp_levels)
 
   # Initialize 'color_group' variable in data
   data$color_group <- NA_character_
@@ -654,27 +699,24 @@ plot_single_umap <- function(
 
     # Assign 'color_group' based on highlight and background values
     if (is.null(background.value)) {
-      # If background.value is NULL, non-highlighted points are assigned to "Other"
       data$color_group <- ifelse(
         data[[highlight.by]] %in% highlight.value,
         as.character(data[[highlight.by]]),
         "Other"
       )
     } else {
-      # Assign 'color_group' with specified background.value
       data$color_group <- ifelse(
         data[[highlight.by]] %in% highlight.value,
         as.character(data[[highlight.by]]),
         ifelse(
           data[[highlight.by]] == background.value,
-          as.character(data$cluster),
+          as.character(data[[group.col]]),
           "Other"
         )
       )
     }
 
     # Prepare color mapping
-    # Combine cluster colors and highlight colors
     if (length(cols.highlight) == 1) {
       highlight_colors <- setNames(rep(cols.highlight, length(highlight.value)), highlight.value)
     } else {
@@ -682,18 +724,14 @@ plot_single_umap <- function(
     }
 
     if (is.null(background.value)) {
-      # Only include highlight colors and "Other"
       color_mapping <- c(highlight_colors, "Other" = na.value)
     } else {
-      # Include cluster colors, highlight colors, and "Other"
       color_mapping <- c(cols, highlight_colors, "Other" = na.value)
     }
-    # Ensure no duplicated names
     color_mapping <- color_mapping[!duplicated(names(color_mapping))]
-
   } else {
-    # If no highlighting, use cluster colors
-    data$color_group <- data$cluster
+    # No highlighting — color by the active group column
+    data$color_group <- as.character(data[[group.col]])
     color_mapping <- cols
   }
 
@@ -706,8 +744,9 @@ plot_single_umap <- function(
     data$is_highlight <- data[[highlight.by]] %in% highlight.value
     # Set alpha for highlighted and non-highlighted points
     point_alpha <- ifelse(data$is_highlight,
-                          ifelse(is.null(highlight.alpha), alpha, highlight.alpha),
-                          alpha)
+      ifelse(is.null(highlight.alpha), alpha, highlight.alpha),
+      alpha
+    )
     # Set point sizes
     point_size <- ifelse(data$is_highlight, sizes.highlight * pt.size, pt.size)
   } else {
@@ -727,23 +766,19 @@ plot_single_umap <- function(
   legend_name <- if (!is.null(highlight.by)) {
     highlight.by
   } else {
-    "Cluster"
+    group.col
   }
 
   # Adjust the factor levels of 'color_group' to ensure correct legend order
   if (!is.null(highlight.by) && !is.null(highlight.value)) {
     if (is.null(background.value)) {
-      # When background.value is NULL, legend includes highlight values and "Other"
-      levels_order <- c(highlight.value, "Other")
-      data$color_group <- factor(data$color_group, levels = levels_order)
+      levels_order <- c(as.character(highlight.value), "Other")
     } else {
-      # When background.value is provided, include clusters
-      levels_order <- c(as.character(sort(as.numeric(levels(data$cluster)))), highlight.value, "Other")
-      data$color_group <- factor(data$color_group, levels = levels_order)
+      levels_order <- c(grp_levels, as.character(highlight.value), "Other")
     }
+    data$color_group <- factor(data$color_group, levels = levels_order)
   } else {
-    # No highlighting, cluster levels
-    data$color_group <- factor(data$color_group, levels = as.character(sort(as.numeric(levels(data$cluster)))))
+    data$color_group <- factor(data$color_group, levels = grp_levels)
   }
 
   # Add color scale
@@ -838,22 +873,25 @@ plot_single_umap <- function(
 #'
 #' # Overlay comparison plot
 #' plot_umap2(traj_df,
-#'            overlay_mode = TRUE,
-#'            base_label = "a",
-#'            compare_labels = c("b", "c"))
+#'   overlay_mode = TRUE,
+#'   base_label = "a",
+#'   compare_labels = c("b", "c")
+#' )
 #'
 #' # Plot motif trajectories from SAP object
 #' plot_umap2(sap_obj,
-#'            segment_type = "motifs",
-#'            data_type = "traj.embeds",
-#'            color.by = ".time")
+#'   segment_type = "motifs",
+#'   data_type = "traj.embeds",
+#'   color.by = ".time"
+#' )
 #'
 #' # Compare trajectories between labels
 #' plot_umap2(sap_obj,
-#'            segment_type = "motifs",
-#'            data_type = "traj.embeds",
-#'            overlay_mode = TRUE,
-#'            base_label = "pre")
+#'   segment_type = "motifs",
+#'   data_type = "traj.embeds",
+#'   overlay_mode = TRUE,
+#'   base_label = "pre"
+#' )
 #' }
 #'
 #' @rdname plot_umap2
@@ -880,20 +918,20 @@ plot_umap2.default <- function(x,
                                compare_color = "orangered",
                                ...) {
   # Validate input
-  if(!is.data.frame(x)) stop("Input must be a data frame")
+  if (!is.data.frame(x)) stop("Input must be a data frame")
 
-  if(overlay_mode) {
+  if (overlay_mode) {
     # Validate overlay parameters
-    if(is.null(base_label)) stop("base_label must be provided in overlay mode")
-    if(!base_label %in% x[[split.by]]) stop("base_label not found in data")
+    if (is.null(base_label)) stop("base_label must be provided in overlay mode")
+    if (!base_label %in% x[[split.by]]) stop("base_label not found in data")
 
     # If compare_labels is NULL, use all labels except base_label
-    if(is.null(compare_labels)) {
+    if (is.null(compare_labels)) {
       compare_labels <- unique(x[[split.by]])[unique(x[[split.by]]) != base_label]
     }
 
     # Auto-determine number of columns if not specified
-    if(is.null(ncol)) {
+    if (is.null(ncol)) {
       n_plots <- length(compare_labels)
       # Square root heuristic for layout
       ncol <- ceiling(sqrt(n_plots))
@@ -909,26 +947,35 @@ plot_umap2.default <- function(x,
       color_values <- c(base_color, compare_color)
       names(color_values) <- c(base_label, compare_label)
 
-      ggplot2::ggplot(filtered_data,
-                      ggplot2::aes(!!rlang::sym(dims[1]),
-                                   !!rlang::sym(dims[2]))) +
-        ggplot2::geom_point(ggplot2::aes(color = !!rlang::sym(split.by),
-                                         alpha = !!rlang::sym(color.by)),
-                            size = pt.size,
-                            stroke = 0) +
+      ggplot2::ggplot(
+        filtered_data,
+        ggplot2::aes(
+          !!rlang::sym(dims[1]),
+          !!rlang::sym(dims[2])
+        )
+      ) +
+        ggplot2::geom_point(
+          ggplot2::aes(
+            color = !!rlang::sym(split.by),
+            alpha = !!rlang::sym(color.by)
+          ),
+          size = pt.size,
+          stroke = 0
+        ) +
         ggplot2::scale_color_manual(values = color_values) +
         ggplot2::scale_alpha_continuous(range = alpha_range) +
-        ggplot2::ggtitle(paste(title %||% "UMAP Overlay of",
-                               base_label, "vs", compare_label)) +
+        ggplot2::ggtitle(paste(
+          title %||% "UMAP Overlay of",
+          base_label, "vs", compare_label
+        )) +
         ggplot2::theme_minimal()
     })
     ensure_pkgs("patchwork")
     return(patchwork::wrap_plots(all_plots, ncol = ncol))
-
   } else {
     # Original functionality for continuous color mapping
-    if(!is.null(split.by) && !is.null(order.by)) {
-      if(!all(c(split.by, order.by) %in% colnames(x))) {
+    if (!is.null(split.by) && !is.null(order.by)) {
+      if (!all(c(split.by, order.by) %in% colnames(x))) {
         stop(sprintf("Cannot find %s or %s in data", split.by, order.by))
       }
 
@@ -943,18 +990,22 @@ plot_umap2.default <- function(x,
     }
 
     # Create regular plot
-    p <- ggplot2::ggplot(x, ggplot2::aes(!!rlang::sym(dims[1]),
-                                         !!rlang::sym(dims[2]))) +
+    p <- ggplot2::ggplot(x, ggplot2::aes(
+      !!rlang::sym(dims[1]),
+      !!rlang::sym(dims[2])
+    )) +
       ggplot2::geom_point(ggplot2::aes(color = !!rlang::sym(color.by)),
-                          size = pt.size,
-                          alpha = alpha_range[2],
-                          stroke = 0) +
+        size = pt.size,
+        alpha = alpha_range[2],
+        stroke = 0
+      ) +
       ggplot2::scale_color_viridis_c(option = "inferno") +
       ggplot2::theme_minimal()
 
     if (!is.null(split.by)) {
       p <- p + ggplot2::facet_wrap(as.formula(paste("~", split.by)),
-                                   ncol = ncol)
+        ncol = ncol
+      )
     }
 
     if (!is.null(title)) {
@@ -985,10 +1036,13 @@ plot_umap2.Sap <- function(x,
                            compare_color = "orangered",
                            verbose = TRUE,
                            ...) {
-
-  if(verbose) message(sprintf("\n=== Starting UMAP Plotting for %s using %s ===\n",
-                              segment_type[1],
-                              data_type[1]))
+  if (verbose) {
+    message(sprintf(
+      "\n=== Starting UMAP Plotting for %s using %s ===\n",
+      segment_type[1],
+      data_type[1]
+    ))
+  }
 
   # Validate input
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
@@ -1002,18 +1056,20 @@ plot_umap2.Sap <- function(x,
 
   # Get appropriate data frame
   plot_data <- x$features[[feature_type]][[data_type]]
-  if(is.null(plot_data)) {
+  if (is.null(plot_data)) {
     stop(sprintf("No %s data found in %s features", data_type, feature_type))
   }
 
   # Check if UMAP coordinates exist
-  if(!all(dims %in% colnames(plot_data))) {
-    stop(sprintf("UMAP coordinates (%s) not found. Run UMAP first.",
-                 paste(dims, collapse=", ")))
+  if (!all(dims %in% colnames(plot_data))) {
+    stop(sprintf(
+      "UMAP coordinates (%s) not found. Run UMAP first.",
+      paste(dims, collapse = ", ")
+    ))
   }
 
   # Create title if not provided
-  if(is.null(title)) {
+  if (is.null(title)) {
     title <- sprintf("UMAP visualization of %s %s", segment_type, data_type)
   }
 
