@@ -51,9 +51,10 @@ You can focus on a specific time range using `start_time_in_second` and
 
 ``` r
 # Visualize a 3-second segment
-visualize_song(wav_file, 
-               start_time_in_second = 1, 
-               end_time_in_second = 4)
+visualize_song(wav_file,
+  start_time_in_second = 1,
+  end_time_in_second = 4
+)
 ```
 
 ![](single_wav_analysis_files/figure-html/visualize-segment-1.png)
@@ -69,10 +70,11 @@ square) amplitude thresholding with bandpass filtering.
 
 ``` r
 # Detect bouts in the recording
-bouts <- find_bout(wav_file, 
-                   rms_threshold = 0.1,    # Amplitude threshold (0-1)
-                   min_duration = 0.7,      # Minimum bout length in seconds
-                   plot = TRUE)             # Show detection plot
+bouts <- find_bout(wav_file,
+  rms_threshold = 0.1, # Amplitude threshold (0-1)
+  min_duration = 0.7, # Minimum bout length in seconds
+  plot = TRUE
+) # Show detection plot
 ```
 
 ![](single_wav_analysis_files/figure-html/find-bout-1.png)
@@ -104,15 +106,16 @@ using dynamic spectral thresholding.
 
 ``` r
 # Segment syllables in a time window
-syllables <- segment(wav_file, 
-                     start_time = 1,          # Start time (seconds)
-                     end_time = 5,            # End time (seconds)
-                     flim = c(1, 8),          # Frequency limits (kHz)
-                     silence_threshold = 0.01,
-                     min_syllable_ms = 20,    # Minimum syllable duration
-                     max_syllable_ms = 240,   # Maximum syllable duration
-                     min_level_db = 10,       # Starting threshold (dB)
-                     verbose = FALSE)
+syllables <- segment(wav_file,
+  start_time = 1, # Start time (seconds)
+  end_time = 5, # End time (seconds)
+  flim = c(1, 8), # Frequency limits (kHz)
+  silence_threshold = 0.01,
+  min_syllable_ms = 20, # Minimum syllable duration
+  max_syllable_ms = 240, # Maximum syllable duration
+  min_level_db = 10, # Starting threshold (dB)
+  verbose = FALSE
+)
 ```
 
 ![](single_wav_analysis_files/figure-html/segment-1.png)
@@ -170,11 +173,12 @@ noisy sounds have high entropy.
 ``` r
 # Calculate spectral entropy for a segment
 entropy_result <- spectral_entropy(wav_file,
-                                   start_time = 1.5,
-                                   end_time = 2.5,
-                                   method = "wiener",  # or "shannon"
-                                   normalize = TRUE,
-                                   plot = TRUE)
+  start_time = 1.5,
+  end_time = 2.5,
+  method = "wiener", # or "shannon"
+  normalize = TRUE,
+  plot = TRUE
+)
 ```
 
 ![](single_wav_analysis_files/figure-html/spectral-entropy-1.png)
@@ -201,12 +205,13 @@ represents the perceived pitch of the vocalization over time.
 ``` r
 # Extract fundamental frequency
 pitch_result <- FF(wav_file,
-                   start_time = 1.5,
-                   end_time = 2.5,
-                   method = "cepstrum",  # Cepstral analysis
-                   fmax = 1400,          # Maximum F0 to detect (Hz)
-                   threshold = 10,       # Confidence threshold
-                   plot = TRUE)
+  start_time = 1.5,
+  end_time = 2.5,
+  method = "cepstrum", # Cepstral analysis
+  fmax = 1400, # Maximum F0 to detect (Hz)
+  threshold = 10, # Confidence threshold
+  plot = TRUE
+)
 ```
 
 ![](single_wav_analysis_files/figure-html/fundamental-frequency-1.png)
@@ -233,11 +238,12 @@ on segmented data to extract envelope profiles.
 ``` r
 # Extract amplitude envelope for the second bout
 if (!is.null(bouts) && nrow(bouts) >= 2) {
-  env_bout <- amp_env(bouts[2, ], 
-                      wav_dir = dirname(wav_file),
-                      msmooth = c(256, 50),
-                      norm = TRUE,
-                      plot = TRUE)
+  env_bout <- amp_env(bouts[2, ],
+    wav_dir = dirname(wav_file),
+    msmooth = c(256, 50),
+    amp_normalize = "peak",
+    plot = TRUE
+  )
 }
 ```
 
@@ -248,11 +254,12 @@ We can also extract the envelope for individual syllables:
 ``` r
 # Extract amplitude envelope for the 7th syllable
 if (!is.null(syllables) && nrow(syllables) >= 7) {
-  env_syl <- amp_env(syllables[7, ], 
-                     wav_dir = dirname(wav_file),
-                     msmooth = c(256, 50),
-                     norm = TRUE,
-                     plot = TRUE)
+  env_syl <- amp_env(syllables[7, ],
+    wav_dir = dirname(wav_file),
+    msmooth = c(256, 50),
+    amp_normalize = "peak",
+    plot = TRUE
+  )
 }
 ```
 
@@ -282,26 +289,30 @@ bouts <- find_bout(wav_file, rms_threshold = 0.1, min_duration = 0.7)
 # 3. Segment syllables
 if (!is.null(bouts) && nrow(bouts) > 0) {
   syllables <- segment(wav_file,
-                       start_time = bouts$start_time[1],
-                       end_time = bouts$end_time[1],
-                       min_level_db = 10)
+    start_time = bouts$start_time[1],
+    end_time = bouts$end_time[1],
+    min_level_db = 10
+  )
 }
 
 # 4. Analyze spectral features
-entropy <- spectral_entropy(wav_file, 
-                            start_time = bouts$start_time[1],
-                            end_time = bouts$end_time[1])
+entropy <- spectral_entropy(wav_file,
+  start_time = bouts$start_time[1],
+  end_time = bouts$end_time[1]
+)
 
 pitch <- FF(wav_file,
-            start_time = bouts$start_time[1],
-            end_time = bouts$end_time[1])
+  start_time = bouts$start_time[1],
+  end_time = bouts$end_time[1]
+)
 
 # 5. Extract amplitude envelope
-env <- amp_env(bouts[1, ], 
-               wav_dir = dirname(wav_file),
-               msmooth = c(256, 50),
-               norm = TRUE,
-               plot = TRUE)
+env <- amp_env(bouts[1, ],
+  wav_dir = dirname(wav_file),
+  msmooth = c(256, 50),
+  amp_normalize = "peak",
+  plot = TRUE
+)
 ```
 
 ## Session Info

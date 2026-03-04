@@ -123,9 +123,10 @@ exploring your data.</p>
 <code>end_time_in_second</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Visualize a 3-second segment</span></span>
-<span><span class="fu"><a href="../reference/visualize_song.html">visualize_song</a></span><span class="op">(</span><span class="va">wav_file</span>, </span>
-<span>               start_time_in_second <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>               end_time_in_second <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/visualize_song.html">visualize_song</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
+<span>  start_time_in_second <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  end_time_in_second <span class="op">=</span> <span class="fl">4</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="single_wav_analysis_files/figure-html/visualize-segment-1.png" class="r-plt" alt="" width="100%"></p>
 <pre><code><span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre>
 </div>
@@ -139,10 +140,11 @@ using RMS (root mean square) amplitude thresholding with bandpass
 filtering.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Detect bouts in the recording</span></span>
-<span><span class="va">bouts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span><span class="va">wav_file</span>, </span>
-<span>                   rms_threshold <span class="op">=</span> <span class="fl">0.1</span>,    <span class="co"># Amplitude threshold (0-1)</span></span>
-<span>                   min_duration <span class="op">=</span> <span class="fl">0.7</span>,      <span class="co"># Minimum bout length in seconds</span></span>
-<span>                   plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>             <span class="co"># Show detection plot</span></span></code></pre></div>
+<span><span class="va">bouts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
+<span>  rms_threshold <span class="op">=</span> <span class="fl">0.1</span>, <span class="co"># Amplitude threshold (0-1)</span></span>
+<span>  min_duration <span class="op">=</span> <span class="fl">0.7</span>, <span class="co"># Minimum bout length in seconds</span></span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span> <span class="co"># Show detection plot</span></span></code></pre></div>
 <p><img src="single_wav_analysis_files/figure-html/find-bout-1.png" class="r-plt" alt="" width="100%"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -193,15 +195,16 @@ zebra finch)</li>
 within a specified time window using dynamic spectral thresholding.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Segment syllables in a time window</span></span>
-<span><span class="va">syllables</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span><span class="va">wav_file</span>, </span>
-<span>                     start_time <span class="op">=</span> <span class="fl">1</span>,          <span class="co"># Start time (seconds)</span></span>
-<span>                     end_time <span class="op">=</span> <span class="fl">5</span>,            <span class="co"># End time (seconds)</span></span>
-<span>                     flim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,          <span class="co"># Frequency limits (kHz)</span></span>
-<span>                     silence_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>                     min_syllable_ms <span class="op">=</span> <span class="fl">20</span>,    <span class="co"># Minimum syllable duration</span></span>
-<span>                     max_syllable_ms <span class="op">=</span> <span class="fl">240</span>,   <span class="co"># Maximum syllable duration</span></span>
-<span>                     min_level_db <span class="op">=</span> <span class="fl">10</span>,       <span class="co"># Starting threshold (dB)</span></span>
-<span>                     verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">syllables</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
+<span>  start_time <span class="op">=</span> <span class="fl">1</span>, <span class="co"># Start time (seconds)</span></span>
+<span>  end_time <span class="op">=</span> <span class="fl">5</span>, <span class="co"># End time (seconds)</span></span>
+<span>  flim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>, <span class="co"># Frequency limits (kHz)</span></span>
+<span>  silence_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  min_syllable_ms <span class="op">=</span> <span class="fl">20</span>, <span class="co"># Minimum syllable duration</span></span>
+<span>  max_syllable_ms <span class="op">=</span> <span class="fl">240</span>, <span class="co"># Maximum syllable duration</span></span>
+<span>  min_level_db <span class="op">=</span> <span class="fl">10</span>, <span class="co"># Starting threshold (dB)</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="single_wav_analysis_files/figure-html/segment-1.png" class="r-plt" alt="" width="100%"></p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -535,11 +538,12 @@ entropy, while noisy sounds have high entropy.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Calculate spectral entropy for a segment</span></span>
 <span><span class="va">entropy_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spectral_entropy.html">spectral_entropy</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
-<span>                                   start_time <span class="op">=</span> <span class="fl">1.5</span>,</span>
-<span>                                   end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
-<span>                                   method <span class="op">=</span> <span class="st">"wiener"</span>,  <span class="co"># or "shannon"</span></span>
-<span>                                   normalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                                   plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span>  start_time <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>  end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"wiener"</span>, <span class="co"># or "shannon"</span></span>
+<span>  normalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="single_wav_analysis_files/figure-html/spectral-entropy-1.png" class="r-plt" alt="" width="100%"></p>
 <div class="section level3">
 <h3 id="interpreting-entropy-values">Interpreting entropy values<a class="anchor" aria-label="anchor" href="#interpreting-entropy-values"></a>
@@ -575,12 +579,13 @@ over time.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract fundamental frequency</span></span>
 <span><span class="va">pitch_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Fundamental_Frequency.html">FF</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
-<span>                   start_time <span class="op">=</span> <span class="fl">1.5</span>,</span>
-<span>                   end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
-<span>                   method <span class="op">=</span> <span class="st">"cepstrum"</span>,  <span class="co"># Cepstral analysis</span></span>
-<span>                   fmax <span class="op">=</span> <span class="fl">1400</span>,          <span class="co"># Maximum F0 to detect (Hz)</span></span>
-<span>                   threshold <span class="op">=</span> <span class="fl">10</span>,       <span class="co"># Confidence threshold</span></span>
-<span>                   plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span>  start_time <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>  end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"cepstrum"</span>, <span class="co"># Cepstral analysis</span></span>
+<span>  fmax <span class="op">=</span> <span class="fl">1400</span>, <span class="co"># Maximum F0 to detect (Hz)</span></span>
+<span>  threshold <span class="op">=</span> <span class="fl">10</span>, <span class="co"># Confidence threshold</span></span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="single_wav_analysis_files/figure-html/fundamental-frequency-1.png" class="r-plt" alt="" width="100%"></p>
 <div class="section level3">
 <h3 id="key-parameters-1">Key parameters<a class="anchor" aria-label="anchor" href="#key-parameters-1"></a>
@@ -617,22 +622,24 @@ envelope profiles.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract amplitude envelope for the second bout</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">bouts</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">bouts</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">env_bout</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/amp_env.html">amp_env</a></span><span class="op">(</span><span class="va">bouts</span><span class="op">[</span><span class="fl">2</span>, <span class="op">]</span>, </span>
-<span>                      wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
-<span>                      msmooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">50</span><span class="op">)</span>,</span>
-<span>                      norm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                      plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  <span class="va">env_bout</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/amp_env.html">amp_env</a></span><span class="op">(</span><span class="va">bouts</span><span class="op">[</span><span class="fl">2</span>, <span class="op">]</span>,</span>
+<span>    wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
+<span>    msmooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">50</span><span class="op">)</span>,</span>
+<span>    amp_normalize <span class="op">=</span> <span class="st">"peak"</span>,</span>
+<span>    plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="single_wav_analysis_files/figure-html/amplitude-envelope-bout-1.png" class="r-plt" alt="" width="100%"></p>
 <p>We can also extract the envelope for individual syllables:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract amplitude envelope for the 7th syllable</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">syllables</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">syllables</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">7</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">env_syl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/amp_env.html">amp_env</a></span><span class="op">(</span><span class="va">syllables</span><span class="op">[</span><span class="fl">7</span>, <span class="op">]</span>, </span>
-<span>                     wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
-<span>                     msmooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">50</span><span class="op">)</span>,</span>
-<span>                     norm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                     plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  <span class="va">env_syl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/amp_env.html">amp_env</a></span><span class="op">(</span><span class="va">syllables</span><span class="op">[</span><span class="fl">7</span>, <span class="op">]</span>,</span>
+<span>    wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
+<span>    msmooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">50</span><span class="op">)</span>,</span>
+<span>    amp_normalize <span class="op">=</span> <span class="st">"peak"</span>,</span>
+<span>    plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="single_wav_analysis_files/figure-html/amplitude-envelope-syllable-1.png" class="r-plt" alt="" width="100%"></p>
 <div class="section level3">
@@ -662,26 +669,30 @@ envelope profiles.</p>
 <span><span class="co"># 3. Segment syllables</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">bouts</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">bouts</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">syllables</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/segment.html">segment</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
-<span>                       start_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">start_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>                       end_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">end_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>                       min_level_db <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span>    start_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">start_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>    end_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">end_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>    min_level_db <span class="op">=</span> <span class="fl">10</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># 4. Analyze spectral features</span></span>
-<span><span class="va">entropy</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spectral_entropy.html">spectral_entropy</a></span><span class="op">(</span><span class="va">wav_file</span>, </span>
-<span>                            start_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">start_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>                            end_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">end_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">entropy</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spectral_entropy.html">spectral_entropy</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
+<span>  start_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">start_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  end_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">end_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pitch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Fundamental_Frequency.html">FF</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
-<span>            start_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">start_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>            end_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">end_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<span>  start_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">start_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  end_time <span class="op">=</span> <span class="va">bouts</span><span class="op">$</span><span class="va">end_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 5. Extract amplitude envelope</span></span>
-<span><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/amp_env.html">amp_env</a></span><span class="op">(</span><span class="va">bouts</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span>, </span>
-<span>               wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
-<span>               msmooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">50</span><span class="op">)</span>,</span>
-<span>               norm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>               plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/amp_env.html">amp_env</a></span><span class="op">(</span><span class="va">bouts</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span>,</span>
+<span>  wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
+<span>  msmooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">50</span><span class="op">)</span>,</span>
+<span>  amp_normalize <span class="op">=</span> <span class="st">"peak"</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>

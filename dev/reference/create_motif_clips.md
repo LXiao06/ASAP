@@ -22,6 +22,7 @@ create_motif_clips(
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
+  amp_normalize = c("none", "peak", "rms"),
   overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
@@ -39,6 +40,7 @@ create_motif_clips(
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
+  amp_normalize = c("none", "peak", "rms"),
   overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
@@ -96,6 +98,11 @@ create_motif_clips(
 
   Prefix used for generated motif clip names.
 
+- amp_normalize:
+
+  Waveform amplitude normalization applied to exported clips: one of
+  "none", "peak", or "rms" (default: "none")
+
 - overwrite:
 
   Logical. Overwrite existing output file(s) when TRUE. Default is TRUE.
@@ -139,6 +146,13 @@ sap <- create_motif_clips(
   sap,
   output_format = "hdf5",
   hdf5_filename = "motifs.h5"
+)
+
+# Export RMS-normalized motif clips
+sap <- create_motif_clips(
+  sap,
+  output_format = "wav",
+  amp_normalize = "rms"
 )
 } # }
 ```

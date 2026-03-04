@@ -13,6 +13,7 @@ plot_heatmap(
   x,
   wav_dir = NULL,
   msmooth = c(256, 50),
+  amp_normalize = c("none", "peak", "rms"),
   color_palette = NULL,
   n_colors = 500,
   contrast = 3,
@@ -44,6 +45,7 @@ plot_heatmap(
   cores = NULL,
   seed = 222,
   msmooth = c(256, 50),
+  amp_normalize = c("none", "peak", "rms"),
   color_palette = NULL,
   n_colors = 500,
   contrast = 3,
@@ -76,6 +78,11 @@ plot_heatmap(
 - msmooth:
 
   Smoothing parameters c(window_length, overlap_percentage)
+
+- amp_normalize:
+
+  Waveform amplitude normalization before envelope extraction: one of
+  "none", "peak", or "rms" (default: "none")
 
 - color_palette:
 
@@ -209,6 +216,14 @@ plot_heatmap(sap_obj,
              segment_type = "motifs",
              balanced = TRUE,
              ordered = TRUE)
+
+# Compare waveform normalization strategies in heatmaps
+plot_heatmap(sap_obj,
+             segment_type = "motifs",
+             amp_normalize = "peak")
+plot_heatmap(sap_obj,
+             segment_type = "motifs",
+             amp_normalize = "rms")
 
 # Matrix with specific labels
 plot_heatmap(amp_matrix,

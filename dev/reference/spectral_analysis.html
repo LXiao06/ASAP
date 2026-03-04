@@ -56,6 +56,7 @@ These functions are modified versions of the original warbleR code.</p>
 <span>  threshold <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  fsmooth <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  fast <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  amp_normalize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"peak"</span>, <span class="st">"rms"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -98,6 +99,11 @@ These functions are modified versions of the original warbleR code.</p>
 
 <dt id="arg-fast">fast<a class="anchor" aria-label="anchor" href="#arg-fast"></a></dt>
 <dd><p>Skip peak frequency calculation</p></dd>
+
+
+<dt id="arg-amp-normalize">amp_normalize<a class="anchor" aria-label="anchor" href="#arg-amp-normalize"></a></dt>
+<dd><p>Waveform amplitude normalization before spectral extraction:
+one of "none", "peak", or "rms" (default: "none")</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
