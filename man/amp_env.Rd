@@ -8,7 +8,7 @@ amp_env(
   segment_row,
   wav_dir = NULL,
   msmooth = NULL,
-  norm = FALSE,
+  amp_normalize = c("none", "peak", "rms"),
   plot = FALSE
 )
 }
@@ -24,7 +24,8 @@ amp_env(
 }
 If NULL, no smoothing is applied}
 
-\item{norm}{Logical, Whether to normalize envelope to range between 0 and 1 (default: FALSE)}
+\item{amp_normalize}{Waveform amplitude normalization before envelope extraction:
+one of "none", "peak", or "rms" (default: "none")}
 
 \item{plot}{Logical, whether to plot the envelope (default: FALSE)}
 }
@@ -52,8 +53,19 @@ env <- amp_env(segments[1,], wav_dir = "path/to/wavs")
 # With smoothing and normalization
 env <- amp_env(segments[1,],
                wav_dir = "path/to/wavs",
+               msmooth = c(256, 50))
+
+# With waveform peak normalization
+env <- amp_env(segments[1,],
+               wav_dir = "path/to/wavs",
                msmooth = c(256, 50),
-               norm = TRUE)
+               amp_normalize = "peak")
+
+# With waveform RMS normalization
+env <- amp_env(segments[1,],
+               wav_dir = "path/to/wavs",
+               msmooth = c(256, 50),
+               amp_normalize = "rms")
 
 # With plot
 env <- amp_env(segments[1,],

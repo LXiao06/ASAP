@@ -8,6 +8,7 @@ pad_amp_env(
   segment_row,
   wav_dir = NULL,
   msmooth = NULL,
+  amp_normalize = c("none", "peak", "rms"),
   max_pre_window = NULL,
   max_post_window = NULL,
   samples_per_second = NULL,

@@ -20,6 +20,7 @@ analyze_spectral(x, ...)
   threshold = 15,
   fsmooth = 0.1,
   fast = TRUE,
+  amp_normalize = c("none", "peak", "rms"),
   ...
 )
 
@@ -43,6 +44,7 @@ analyze_spectral(x, ...)
   threshold = 15,
   fsmooth = 0.1,
   fast = TRUE,
+  amp_normalize = c("none", "peak", "rms"),
   verbose = TRUE,
   ...
 )
@@ -71,6 +73,9 @@ analyze_spectral(x, ...)
 \item{fsmooth}{Frequency smoothing parameter (default: 0.1)}
 
 \item{fast}{Whether to skip peak frequency calculation (default: TRUE)}
+
+\item{amp_normalize}{Waveform amplitude normalization before spectral extraction:
+one of "none", "peak", or "rms" (default: "none")}
 
 \item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')}
 
@@ -150,6 +155,12 @@ sap_obj <- analyze_spectral(sap_object,
   wl = 1024,
   ovlp = 75,
   freq_range = c(2, 8)
+)
+
+# With waveform RMS normalization before spectral extraction
+sap_obj <- analyze_spectral(sap_object,
+  segment_type = "motifs",
+  amp_normalize = "rms"
 )
 }
 

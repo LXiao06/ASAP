@@ -15,6 +15,7 @@ spectral_analysis(
   threshold = 15,
   fsmooth = 0.1,
   fast = TRUE,
+  amp_normalize = c("none", "peak", "rms"),
   ...
 )
 }
@@ -36,6 +37,9 @@ spectral_analysis(
 \item{fsmooth}{Smoothing parameter}
 
 \item{fast}{Skip peak frequency calculation}
+
+\item{amp_normalize}{Waveform amplitude normalization before spectral extraction:
+one of "none", "peak", or "rms" (default: "none")}
 
 \item{...}{Additional arguments}
 }
