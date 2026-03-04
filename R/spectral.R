@@ -59,30 +59,33 @@
 #' \dontrun{
 #' # Analyze segments from data frame
 #' features <- analyze_spectral(segments,
-#'                             wav_dir = "path/to/wavs",
-#'                             cores = 4,
-#'                             freq_range = c(1, 10))
+#'   wav_dir = "path/to/wavs",
+#'   cores = 4,
+#'   freq_range = c(1, 10)
+#' )
 #'
 #' # Basic analysis from SAP object
 #' sap_obj <- analyze_spectral(sap_object,
-#'                            segment_type = "motifs",
-#'                            cores = 4)
+#'   segment_type = "motifs",
+#'   cores = 4
+#' )
 #'
 #' # Balanced sampling with specific labels
 #' sap_obj <- analyze_spectral(sap_object,
-#'                            segment_type = "syllables",
-#'                            sample_percent = 80,
-#'                            balanced = TRUE,
-#'                            labels = c("a", "b"))
+#'   segment_type = "syllables",
+#'   sample_percent = 80,
+#'   balanced = TRUE,
+#'   labels = c("a", "b")
+#' )
 #'
 #' # Custom spectral parameters
 #' sap_obj <- analyze_spectral(sap_object,
-#'                            segment_type = "motifs",
-#'                            wl = 1024,
-#'                            ovlp = 75,
-#'                            freq_range = c(2, 8))
+#'   segment_type = "motifs",
+#'   wl = 1024,
+#'   ovlp = 75,
+#'   freq_range = c(2, 8)
+#' )
 #' }
-#'
 #'
 #' @rdname analyze_spectral
 #' @export
@@ -104,13 +107,14 @@ analyze_spectral.default <- function(x,
                                      fsmooth = 0.1,
                                      fast = TRUE,
                                      ...) {
-
   # Check required columns
   required_cols <- c("filename", "start_time", "end_time")
   missing_cols <- required_cols[!required_cols %in% names(x)]
   if (length(missing_cols) > 0) {
-    stop(sprintf("Missing required columns: %s",
-                 paste(missing_cols, collapse = ", ")))
+    stop(sprintf(
+      "Missing required columns: %s",
+      paste(missing_cols, collapse = ", ")
+    ))
   }
 
   # Check if data frame is empty
@@ -126,16 +130,17 @@ analyze_spectral.default <- function(x,
   # Function to process a single row
   process_row <- function(i) {
     spectral_analysis(x[i, ],
-                      wav_dir = wav_dir,
-                      wl = wl,
-                      ovlp = ovlp,
-                      wn = wn,
-                      fftw = fftw,
-                      freq_range = freq_range,
-                      threshold = threshold,
-                      fsmooth = fsmooth,
-                      fast = fast,
-                      ...)
+      wav_dir = wav_dir,
+      wl = wl,
+      ovlp = ovlp,
+      wn = wn,
+      fftw = fftw,
+      freq_range = freq_range,
+      threshold = threshold,
+      fsmooth = fsmooth,
+      fast = fast,
+      ...
+    )
   }
 
   # Set number of cores
@@ -144,8 +149,10 @@ analyze_spectral.default <- function(x,
     cores <- max(1, cores)
   }
 
-  cat(sprintf("\nProcessing %d audio segments using %d cores.\n",
-              nrow(x), cores))
+  cat(sprintf(
+    "\nProcessing %d audio segments using %d cores.\n",
+    nrow(x), cores
+  ))
 
   # Choose parallel processing method based on system and cores
   if (fftw) ensure_pkgs("fftw")
@@ -190,7 +197,7 @@ analyze_spectral.Sap <- function(x,
                                  fast = TRUE,
                                  verbose = TRUE,
                                  ...) {
-  if(verbose) message(sprintf("\n=== Starting Spectral Features Analysis ===\n"))
+  if (verbose) message(sprintf("\n=== Starting Spectral Features Analysis ===\n"))
 
   # Input validation
   segment_type <- match.arg(segment_type)
@@ -217,39 +224,41 @@ analyze_spectral.Sap <- function(x,
 
   # Select and balance segments
   segments_df <- select_segments(segments_df,
-                                 labels = labels,
-                                 balanced = balanced,
-                                 sample_percent = sample_percent,
-                                 seed = seed)
+    labels = labels,
+    balanced = balanced,
+    sample_percent = sample_percent,
+    seed = seed
+  )
 
   # Process segments using default method
   if (fftw) ensure_pkgs("fftw")
 
   result <- analyze_spectral.default(segments_df,
-                                     wav_dir = x$base_path,
-                                     cores = cores,
-                                     wl = wl,
-                                     ovlp = ovlp,
-                                     wn = wn,
-                                     fftw = fftw,
-                                     freq_range = freq_range,
-                                     threshold = threshold,
-                                     fsmooth = fsmooth,
-                                     fast = fast,
-                                     ...)
+    wav_dir = x$base_path,
+    cores = cores,
+    wl = wl,
+    ovlp = ovlp,
+    wn = wn,
+    fftw = fftw,
+    freq_range = freq_range,
+    threshold = threshold,
+    fsmooth = fsmooth,
+    fast = fast,
+    ...
+  )
 
   # Add attributes to result
   if (".source_index" %in% names(segments_df)) {
     attr(result, "segment_indices") <- as.integer(unique(segments_df$.source_index))
   } else {
     attr(result, "segment_indices") <- which(x[[segment_type]]$filename %in% segments_df$filename &
-                                               x[[segment_type]]$start_time %in% segments_df$start_time &
-                                               x[[segment_type]]$end_time %in% segments_df$end_time)
+      x[[segment_type]]$start_time %in% segments_df$start_time &
+      x[[segment_type]]$end_time %in% segments_df$end_time)
   }
   attr(result, "segment_type") <- segment_type
 
   # Update SAP object's features
-  feature_type <- sub("s$", "", segment_type)  # Remove 's' from end
+  feature_type <- sub("s$", "", segment_type) # Remove 's' from end
   x$features[[feature_type]][["spectral_feature"]] <- result
 
   # Add message about data access
@@ -343,8 +352,10 @@ spectral_analysis <- function(x,
   required_cols <- c("filename", "start_time", "end_time")
   missing_cols <- required_cols[!required_cols %in% names(x)]
   if (length(missing_cols) > 0) {
-    stop(sprintf("Missing required columns: %s",
-                 paste(missing_cols, collapse = ", ")))
+    stop(sprintf(
+      "Missing required columns: %s",
+      paste(missing_cols, collapse = ", ")
+    ))
   }
 
   # # If wav_dir provided, add as attribute
@@ -357,9 +368,10 @@ spectral_analysis <- function(x,
 
   # Read wave file
   wave <- tuneR::readWave(sound_path,
-                          from = x$start_time,
-                          to = x$end_time,
-                          units = "seconds")
+    from = x$start_time,
+    to = x$end_time,
+    units = "seconds"
+  )
 
   # Validate audio data
   if (length(wave@left) < 7) {
@@ -369,7 +381,7 @@ spectral_analysis <- function(x,
 
   # Set frequency bounds
   if (is.null(freq_range)) {
-    freq_range <- c(0, floor(wave@samp.rate/2000))
+    freq_range <- c(0, floor(wave@samp.rate / 2000))
   } else {
     if (length(freq_range) != 2 || !is.numeric(freq_range)) {
       stop("freq_range must be NULL or numeric vector of length 2")
@@ -378,8 +390,8 @@ spectral_analysis <- function(x,
       stop("Invalid freq_range values")
     }
     # Adjust if frequency is too high for sampling rate
-    if (freq_range[2] > floor(wave@samp.rate/2000)) {
-      freq_range[2] <- floor(wave@samp.rate/2000)
+    if (freq_range[2] > floor(wave@samp.rate / 2000)) {
+      freq_range[2] <- floor(wave@samp.rate / 2000)
     }
   }
 
@@ -390,30 +402,43 @@ spectral_analysis <- function(x,
   # Calculate spectrogram
   songspec <- suppressWarnings(
     seewave::spec(wave,
-                  f = wave@samp.rate,
-                  plot = FALSE,
-                  wl = wl_adjusted,
-                  wn = wn,
-                  flim = freq_range)
+      f = wave@samp.rate,
+      plot = FALSE,
+      wl = wl_adjusted,
+      wn = wn,
+      flim = freq_range
+    )
   )
 
-  if (is.null(songspec)) return(NULL)
+  if (is.null(songspec)) {
+    return(NULL)
+  }
 
   # Calculate basic spectral properties
-  analysis <- specprop_wrblr_int(spec = songspec,
-                                  f = wave@samp.rate,
-                                  flim = freq_range,
-                                  plot = FALSE)
+  analysis <- specprop_wrblr_int(
+    spec = songspec,
+    f = wave@samp.rate,
+    flim = freq_range,
+    plot = FALSE
+  )
 
   # Calculate time-based features
-  m <- sspectro(wave, f = wave@samp.rate, wl = wl_adjusted,
-                          ovlp = ovlp, wn = wn)
+  m <- sspectro(wave,
+    f = wave@samp.rate, wl = wl_adjusted,
+    ovlp = ovlp, wn = wn
+  )
   if (!is.matrix(m)) m <- as.matrix(m)
 
-  # Calculate frequency limits in matrix indices
-  fl <- freq_range * nrow(m) * 2000/wave@samp.rate
+  # Calculate frequency limits in matrix indices.
+  # fl values are real-valued; floor them to integers and clamp to [0, nrow(m)-1]
+  # so that (fl[1]:fl[2]) + 1 stays within [1, nrow(m)].
+  # Without clamping, freq_range[2] == Nyquist gives fl[2] == nrow(m), which
+  # makes the +1 index one row past the end of the matrix.
+  fl <- floor(freq_range * nrow(m) * 2000 / wave@samp.rate)
+  fl[1] <- max(0L, fl[1])
+  fl[2] <- min(nrow(m) - 1L, fl[2])
   # Extract relevant frequency range
-  m <- m[(fl[1]:fl[2]) + 1, ]
+  m <- m[(fl[1]:fl[2]) + 1L, , drop = FALSE]
   # Ensure matrix format if reduced to vector
   if (is.vector(m)) {
     if (length(m) == 0) {
@@ -424,16 +449,18 @@ spectral_analysis <- function(x,
   }
 
   # Calculate temporal features
-  time <- seq(0, length(wave)/wave@samp.rate, length.out = ncol(m))
+  time <- seq(0, length(wave) / wave@samp.rate, length.out = ncol(m))
   t.cont <- apply(m, MARGIN = 2, FUN = sum)
-  t.cont <- t.cont/sum(t.cont)
+  t.cont <- t.cont / sum(t.cont)
   t.cont.cum <- cumsum(t.cont)
-  t.quartiles <- sapply(c(0.25, 0.5, 0.75),
-                        function(x) time[length(t.cont.cum[t.cont.cum <= x]) + 1])
+  t.quartiles <- sapply(
+    c(0.25, 0.5, 0.75),
+    function(x) time[length(t.cont.cum[t.cont.cum <= x]) + 1]
+  )
 
   # Calculate peak time with checks
   peakt <- if (all(t.cont == 0)) {
-    NA  # If all values are zero
+    NA # If all values are zero
   } else {
     max_indices <- which(t.cont == max(t.cont))
     if (length(max_indices) > 1) {
@@ -445,17 +472,19 @@ spectral_analysis <- function(x,
   }
 
   # Calculate frequency tracking with smoothing
-  freq_track <- track_harmonic(wave = wave,
-                                f = wave@samp.rate,
-                                wl = wl_track,
-                                ovlp = ovlp,
-                                threshold = threshold,
-                                bandpass = freq_range * 1000,
-                                fsmooth = fsmooth,
-                                plot = FALSE,
-                                fftw = fftw,
-                                dfrq = TRUE,
-                                adjust.wl = TRUE)[, 2]
+  freq_track <- track_harmonic(
+    wave = wave,
+    f = wave@samp.rate,
+    wl = wl_track,
+    ovlp = ovlp,
+    threshold = threshold,
+    bandpass = freq_range * 1000,
+    fsmooth = fsmooth,
+    plot = FALSE,
+    fftw = fftw,
+    dfrq = TRUE,
+    adjust.wl = TRUE
+  )[, 2]
 
   # Calculate frequency metrics
   freq_metrics <- calculate_freq_metrics(
@@ -480,10 +509,10 @@ spectral_analysis <- function(x,
 
   # Add day_post_hatch and label columns if they exist in x
   if ("day_post_hatch" %in% names(x)) {
-    results$day_post_hatch = x$day_post_hatch
+    results$day_post_hatch <- x$day_post_hatch
   }
   if ("label" %in% names(x)) {
-    results$label = x$label
+    results$label <- x$label
   }
 
   # Add remaining columns
@@ -491,12 +520,12 @@ spectral_analysis <- function(x,
     start_time = x$start_time,
     end_time = x$end_time,
     duration = round(x$end_time - x$start_time, digits = 1),
-    meanfreq = analysis$mean/1000,
-    sd = analysis$sd/1000,
-    freq.median = analysis$median/1000,
-    freq.Q25 = analysis$Q25/1000,
-    freq.Q75 = analysis$Q75/1000,
-    freq.IQR = analysis$IQR/1000,
+    meanfreq = analysis$mean / 1000,
+    sd = analysis$sd / 1000,
+    freq.median = analysis$median / 1000,
+    freq.Q25 = analysis$Q25 / 1000,
+    freq.Q75 = analysis$Q75 / 1000,
+    freq.IQR = analysis$IQR / 1000,
     time.median = t.quartiles[2],
     time.Q25 = t.quartiles[1],
     time.Q75 = t.quartiles[3],
@@ -537,18 +566,17 @@ NULL
 #' @noRd
 #' @keywords internal
 calculate_freq_metrics <- function(freq_track,
-                                    freq_range,
-                                    start_time,
-                                    end_time,
-                                    wave,
-                                    songspec,
-                                    wl,
-                                    wn,
-                                    fsmooth,
-                                    threshold,
-                                    ovlp,
-                                    fast = TRUE) {
-
+                                   freq_range,
+                                   start_time,
+                                   end_time,
+                                   wave,
+                                   songspec,
+                                   wl,
+                                   wn,
+                                   fsmooth,
+                                   threshold,
+                                   ovlp,
+                                   fast = TRUE) {
   # Clean frequency track data
   y <- freq_track[!is.na(freq_track)]
   y <- y[y >= freq_range[1] & y <= freq_range[2] & y != 0]
@@ -564,26 +592,27 @@ calculate_freq_metrics <- function(freq_track,
 
     # Calculate modulation index
     modindx <- if (length(y) > 1 & dfrange != 0) {
-      sum(abs(diff(y)))/dfrange
+      sum(abs(diff(y))) / dfrange
     } else {
       1
     }
 
     # Calculate frequency slope
-    dfslope <- (enddom - startdom)/(end_time - start_time)
-
+    dfslope <- (enddom - startdom) / (end_time - start_time)
   } else {
     meandom <- mindom <- maxdom <- dfrange <- startdom <- enddom <- modindx <- dfslope <- NA
   }
 
   # Calculate mean peak frequency
-  frng <- frd_wrblr_int(wave = wave,
-                         wl = wl,
-                         fsmooth = fsmooth,
-                         threshold = threshold,
-                         wn = wn,
-                         bp = freq_range,
-                         ovlp = ovlp)
+  frng <- frd_wrblr_int(
+    wave = wave,
+    wl = wl,
+    fsmooth = fsmooth,
+    threshold = threshold,
+    wn = wn,
+    bp = freq_range,
+    ovlp = ovlp
+  )
   meanpeakf <- if (length(frng$meanpeakf) > 0) frng$meanpeakf else NA
 
   # Create base results data frame
@@ -602,12 +631,15 @@ calculate_freq_metrics <- function(freq_track,
 
   # Calculate peak frequency if fast is FALSE
   if (!fast) {
-    peakf <- try(seewave::fpeaks(songspec,
-                                 f = wave@samp.rate,
-                                 wl = wl,
-                                 nmax = 3,
-                                 plot = FALSE)[1, 1],
-                 silent = TRUE)
+    peakf <- try(
+      seewave::fpeaks(songspec,
+        f = wave@samp.rate,
+        wl = wl,
+        nmax = 3,
+        plot = FALSE
+      )[1, 1],
+      silent = TRUE
+    )
 
     # Add peakf only if calculation was successful
     if (!inherits(peakf, "try-error") && length(peakf) > 0) {
@@ -700,248 +732,247 @@ specprop_wrblr_int <- function(spec, f = NULL, flim = NULL, ...) {
 #' Calculate Frequency Range Detection (from warbleR)
 #' @noRd
 #' @keywords internal
-frd_wrblr_int <-function(wave,
-           wl = 512,
-           fsmooth = 0.1,
-           threshold = 10,
-           wn = "hanning",
-           bp = NULL,
-           ovlp = 50,
-           dB.threshold = NULL) {
-    # get sampling rate
-    f <- wave@samp.rate
+frd_wrblr_int <- function(wave,
+                          wl = 512,
+                          fsmooth = 0.1,
+                          threshold = 10,
+                          wn = "hanning",
+                          bp = NULL,
+                          ovlp = 50,
+                          dB.threshold = NULL) {
+  # get sampling rate
+  f <- wave@samp.rate
 
-    if (wl >= length(wave@left)) {
-      wl <- length(wave@left) - 1
-    }
-    if (wl %% 2 != 0) {
-      wl <- wl - 1
-    }
+  if (wl >= length(wave@left)) {
+    wl <- length(wave@left) - 1
+  }
+  if (wl %% 2 != 0) {
+    wl <- wl - 1
+  }
 
-    # mean spectrum
-    if (is.null(dB.threshold)) {
-      spc <-
-        seewave::meanspec(
-          wave,
-          plot = FALSE,
-          wl = wl,
-          f = f,
-          wn = wn,
-          ovlp = ovlp
-        )
-
-      # get frequency windows length for smoothing
-      step <- wave@samp.rate / wl / 1000
-
-      # number of samples
-      n <- nrow(spc)
-
-      # smoothing parameter
-      if (!is.null(fsmooth)) {
-        fsmooth <- fsmooth / step
-
-        FWL <- fsmooth - 1
-
-        # smooth
-        z <-
-          apply(as.matrix(1:(n - FWL)), 1, function(y) {
-            sum(spc[y:(y + FWL), 2])
-          })
-        zf <-
-          seq(min(spc[, 1]), max(spc[, 1]), length.out = length(z))
-      } else {
-        z <- spc[, 2]
-        zf <- spc[, 1]
-      }
-
-      # remove range outside bp
-      if (!is.null(bp)) {
-        # if there are complete freq bins within freq range
-        if (any(zf > bp[1] & zf < bp[2])) {
-          fbins <- which(zf > bp[1] & zf < bp[2])
-        } else {
-          # select the one that contains the freq range
-          fbins <-
-            which.max(ifelse(zf - bp[1] > 0, NA, zf - bp[1])):which.max(ifelse(zf - bp[2] > 0, NA, zf - bp[1]))
-        }
-
-        z <- z[fbins]
-        zf <- zf[fbins]
-      }
-
-      # make minimum amplitude 0
-      z <- z - min(z)
-      z[z < 0] <- 0
-
-      # normalize amplitude from 0 to 1
-      if (length(z) > 1) {
-        z <- z / max(z)
-      }
-
-      # get freqs crossing threshold
-      z1 <- rep(0, length(z))
-      z1[z > threshold / 100] <- 1
-      z2 <- z1[2:length(z1)] - z1[1:(length(z1) - 1)]
-
-      # add 0 to get same length than z
-      z2 <- c(0, z2)
-
-      # determine start and end of amplitude hills
-      strt <- zf[z2 == 1]
-      nd <- zf[z2 == -1]
-
-      # add NAs when some ends or starts where not found
-      if (length(strt) != length(nd)) {
-        if (z1[1] == 0) {
-          nd <- c(nd, NA)
-        } else {
-          strt <- c(NA, strt)
-        }
-      }
-
-      if (length(strt) == 1) {
-        if (z1[1] == 1 & z1[length(z1)] == 1 & strt > nd) {
-          strt <- c(NA, strt)
-          nd <- c(nd, NA)
-        }
-      }
-      # substract half a step to calculate mid point between the 2 freq windows in which the threshold has passed
-      nd <- nd - (step / 2)
-      strt <- strt - (step / 2)
-
-      meanpeakf <- zf[which.max(z)] + (step / 2)
-    } else {
-      spc <-
-        meanspec(
-          wave,
-          plot = FALSE,
-          wl = wl,
-          f = f,
-          wn = wn,
-          ovlp = ovlp,
-          dB = "max0",
-          dBref = 2 * 10e-5
-        )
-
-      # get frequency windows length for smoothing
-      step <- wave@samp.rate / wl / 1000
-
-      # number of samples
-      n <- nrow(spc)
-
-      # smoothing parameter
-      if (!is.null(fsmooth)) {
-        fsmooth <- fsmooth / step
-
-        FWL <- fsmooth - 1
-
-        # smooth
-        z <-
-          apply(as.matrix(1:(n - FWL)), 1, function(y) {
-            sum(spc[y:(y + FWL), 2])
-          })
-        zf <-
-          seq(min(spc[, 1]), max(spc[, 1]), length.out = length(z))
-
-        z <-
-          (max(spc[, 2]) - min(spc[, 2])) / (max(z) - min(z)) * (z - max(z)) + max(spc[, 2])
-      } else {
-        z <- spc[, 2]
-        zf <- spc[, 1]
-      }
-
-      if (!is.null(bp)) {
-        # remove range outsde bp
-        z <- z[zf > bp[1] & zf < bp[2]]
-        zf <- zf[zf > bp[1] & zf < bp[2]]
-      }
-
-      z1 <- rep(0, length(z))
-      z1[z > max(z) - dB.threshold] <- 1
-      z2 <- z1[2:length(z1)] - z1[1:(length(z1) - 1)]
-
-      # add 0 to get same length than z
-      z2 <- c(0, z2)
-
-      # determine start and end of amplitude hills
-      strt <- zf[z2 == 1]
-      nd <- zf[z2 == -1]
-
-      # add NAs when some ends or starts where not found
-      if (length(strt) != length(nd)) {
-        if (z1[1] == 0) {
-          nd <- c(nd, NA)
-        } else {
-          strt <- c(NA, strt)
-        }
-      }
-
-      if (length(strt) == 1) {
-        if (z1[1] == 1 & z1[length(z1)] == 1 & strt > nd) {
-          strt <- c(NA, strt)
-          nd <- c(nd, NA)
-        }
-      }
-
-      # step <- mean(zf[-1] - zf[1:(length(zf) - 1)])
-
-      # substract half a step to calculate mid point between the 2 freq windows in which the threshold has passed
-      nd <- nd - (step / 2)
-      strt <- strt - (step / 2)
-      meanpeakf <- zf[which.max(z)] + (step / 2)
-    }
-
-    # fix range
-    # only start lower than peakf
-    strt <- strt[strt <= meanpeakf]
-
-    # only ends higher than peakf
-    nd <- nd[nd >= meanpeakf]
-
-    # get freq range
-    min.strt <-
-      ifelse(length(strt) == 1, strt, strt[which.min(meanpeakf - strt)])
-    max.nd <-
-      ifelse(length(nd) == 1, nd, nd[which.min(nd - meanpeakf)])
-
-    if (!any(is.na(c(min.strt, max.nd)))) {
-      if (min.strt > max.nd) {
-        min.strt <- NA
-        max.nd <- NA
-      }
-    }
-
-    # force nd and strt the same length adding NAs
-    if (length(nd) > length(strt)) {
-      strt <- c(strt, rep(NA, length(nd) - length(strt)))
-    }
-    if (length(strt) > length(nd)) {
-      nd <- c(nd, rep(NA, length(strt) - length(nd)))
-    }
-
-    # save everything in a list
-    rl <-
-      list(
-        frange = data.frame(bottom.freq = min.strt, top.freq = max.nd),
-        af.mat = cbind(z, zf),
-        meanpeakf = meanpeakf,
-        detections = cbind(start.freq = strt, end.freq = nd),
-        threshold = ifelse(is.null(dB.threshold), threshold, max(z) - dB.threshold),
-        type = ifelse(is.null(dB.threshold), "percentage", "dB")
+  # mean spectrum
+  if (is.null(dB.threshold)) {
+    spc <-
+      seewave::meanspec(
+        wave,
+        plot = FALSE,
+        wl = wl,
+        f = f,
+        wn = wn,
+        ovlp = ovlp
       )
 
-    # return rl list
-    return(rl)
+    # get frequency windows length for smoothing
+    step <- wave@samp.rate / wl / 1000
+
+    # number of samples
+    n <- nrow(spc)
+
+    # smoothing parameter
+    if (!is.null(fsmooth)) {
+      fsmooth <- fsmooth / step
+
+      FWL <- fsmooth - 1
+
+      # smooth
+      z <-
+        apply(as.matrix(1:(n - FWL)), 1, function(y) {
+          sum(spc[y:(y + FWL), 2])
+        })
+      zf <-
+        seq(min(spc[, 1]), max(spc[, 1]), length.out = length(z))
+    } else {
+      z <- spc[, 2]
+      zf <- spc[, 1]
+    }
+
+    # remove range outside bp
+    if (!is.null(bp)) {
+      # if there are complete freq bins within freq range
+      if (any(zf > bp[1] & zf < bp[2])) {
+        fbins <- which(zf > bp[1] & zf < bp[2])
+      } else {
+        # select the one that contains the freq range
+        fbins <-
+          which.max(ifelse(zf - bp[1] > 0, NA, zf - bp[1])):which.max(ifelse(zf - bp[2] > 0, NA, zf - bp[1]))
+      }
+
+      z <- z[fbins]
+      zf <- zf[fbins]
+    }
+
+    # make minimum amplitude 0
+    z <- z - min(z)
+    z[z < 0] <- 0
+
+    # normalize amplitude from 0 to 1
+    if (length(z) > 1) {
+      z <- z / max(z)
+    }
+
+    # get freqs crossing threshold
+    z1 <- rep(0, length(z))
+    z1[z > threshold / 100] <- 1
+    z2 <- z1[2:length(z1)] - z1[1:(length(z1) - 1)]
+
+    # add 0 to get same length than z
+    z2 <- c(0, z2)
+
+    # determine start and end of amplitude hills
+    strt <- zf[z2 == 1]
+    nd <- zf[z2 == -1]
+
+    # add NAs when some ends or starts where not found
+    if (length(strt) != length(nd)) {
+      if (z1[1] == 0) {
+        nd <- c(nd, NA)
+      } else {
+        strt <- c(NA, strt)
+      }
+    }
+
+    if (length(strt) == 1) {
+      if (z1[1] == 1 & z1[length(z1)] == 1 & strt > nd) {
+        strt <- c(NA, strt)
+        nd <- c(nd, NA)
+      }
+    }
+    # substract half a step to calculate mid point between the 2 freq windows in which the threshold has passed
+    nd <- nd - (step / 2)
+    strt <- strt - (step / 2)
+
+    meanpeakf <- zf[which.max(z)] + (step / 2)
+  } else {
+    spc <-
+      meanspec(
+        wave,
+        plot = FALSE,
+        wl = wl,
+        f = f,
+        wn = wn,
+        ovlp = ovlp,
+        dB = "max0",
+        dBref = 2 * 10e-5
+      )
+
+    # get frequency windows length for smoothing
+    step <- wave@samp.rate / wl / 1000
+
+    # number of samples
+    n <- nrow(spc)
+
+    # smoothing parameter
+    if (!is.null(fsmooth)) {
+      fsmooth <- fsmooth / step
+
+      FWL <- fsmooth - 1
+
+      # smooth
+      z <-
+        apply(as.matrix(1:(n - FWL)), 1, function(y) {
+          sum(spc[y:(y + FWL), 2])
+        })
+      zf <-
+        seq(min(spc[, 1]), max(spc[, 1]), length.out = length(z))
+
+      z <-
+        (max(spc[, 2]) - min(spc[, 2])) / (max(z) - min(z)) * (z - max(z)) + max(spc[, 2])
+    } else {
+      z <- spc[, 2]
+      zf <- spc[, 1]
+    }
+
+    if (!is.null(bp)) {
+      # remove range outsde bp
+      z <- z[zf > bp[1] & zf < bp[2]]
+      zf <- zf[zf > bp[1] & zf < bp[2]]
+    }
+
+    z1 <- rep(0, length(z))
+    z1[z > max(z) - dB.threshold] <- 1
+    z2 <- z1[2:length(z1)] - z1[1:(length(z1) - 1)]
+
+    # add 0 to get same length than z
+    z2 <- c(0, z2)
+
+    # determine start and end of amplitude hills
+    strt <- zf[z2 == 1]
+    nd <- zf[z2 == -1]
+
+    # add NAs when some ends or starts where not found
+    if (length(strt) != length(nd)) {
+      if (z1[1] == 0) {
+        nd <- c(nd, NA)
+      } else {
+        strt <- c(NA, strt)
+      }
+    }
+
+    if (length(strt) == 1) {
+      if (z1[1] == 1 & z1[length(z1)] == 1 & strt > nd) {
+        strt <- c(NA, strt)
+        nd <- c(nd, NA)
+      }
+    }
+
+    # step <- mean(zf[-1] - zf[1:(length(zf) - 1)])
+
+    # substract half a step to calculate mid point between the 2 freq windows in which the threshold has passed
+    nd <- nd - (step / 2)
+    strt <- strt - (step / 2)
+    meanpeakf <- zf[which.max(z)] + (step / 2)
+  }
+
+  # fix range
+  # only start lower than peakf
+  strt <- strt[strt <= meanpeakf]
+
+  # only ends higher than peakf
+  nd <- nd[nd >= meanpeakf]
+
+  # get freq range
+  min.strt <-
+    ifelse(length(strt) == 1, strt, strt[which.min(meanpeakf - strt)])
+  max.nd <-
+    ifelse(length(nd) == 1, nd, nd[which.min(nd - meanpeakf)])
+
+  if (!any(is.na(c(min.strt, max.nd)))) {
+    if (min.strt > max.nd) {
+      min.strt <- NA
+      max.nd <- NA
+    }
+  }
+
+  # force nd and strt the same length adding NAs
+  if (length(nd) > length(strt)) {
+    strt <- c(strt, rep(NA, length(nd) - length(strt)))
+  }
+  if (length(strt) > length(nd)) {
+    nd <- c(nd, rep(NA, length(strt) - length(nd)))
+  }
+
+  # save everything in a list
+  rl <-
+    list(
+      frange = data.frame(bottom.freq = min.strt, top.freq = max.nd),
+      af.mat = cbind(z, zf),
+      meanpeakf = meanpeakf,
+      detections = cbind(start.freq = strt, end.freq = nd),
+      threshold = ifelse(is.null(dB.threshold), threshold, max(z) - dB.threshold),
+      type = ifelse(is.null(dB.threshold), "percentage", "dB")
+    )
+
+  # return rl list
+  return(rl)
 }
 
 #' Track Harmonics in Audio (from warbleR)
 #' @noRd
 #' @keywords internal
 track_harmonic <- function(wave, f, wl = 512, wn = "hanning", ovlp = 0, fftw = FALSE,
-                            at = NULL, tlim = NULL, threshold = 10, bandpass = NULL,
-                            clip = NULL, plot = TRUE, xlab = "Times (s)", ylab = "Frequency (kHz)",
-                            ylim = c(0, f / 2000), adjust.wl = FALSE, dfrq = FALSE, ...) {
-
+                           at = NULL, tlim = NULL, threshold = 10, bandpass = NULL,
+                           clip = NULL, plot = TRUE, xlab = "Times (s)", ylab = "Frequency (kHz)",
+                           ylim = c(0, f / 2000), adjust.wl = FALSE, dfrq = FALSE, ...) {
   if (length(inputw(wave = wave, f = f)$w) < wl) {
     if (adjust.wl) {
       wl <- length(wave)
@@ -1085,13 +1116,15 @@ sspectro <- function(wave, f, wl = 512, ovlp = 0, wn = "hanning",
   f <- input$f
   rm(input)
   n <- nrow(wave)
-  step <- seq(1, n + 1 - wl, wl - (ovlp * wl/100))
+  step <- seq(1, n + 1 - wl, wl - (ovlp * wl / 100))
   W <- ftwindow(wl = wl, wn = wn, correction = correction)
-  z <- apply(as.matrix(step), 1, function(x) Mod(stats::fft(wave[x:(wl +
-                                                               x - 1), ] * W)))
-  z <- z[2:(1 + wl/2), ]
+  z <- apply(as.matrix(step), 1, function(x) {
+    Mod(stats::fft(wave[x:(wl +
+      x - 1), ] * W))
+  })
+  z <- z[2:(1 + wl / 2), ]
   if (norm) {
-    z <- z/max(z)
+    z <- z / max(z)
   }
   return(z)
 }
