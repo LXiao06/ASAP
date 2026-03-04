@@ -169,26 +169,30 @@ only the one with the highest score is kept. This is useful for removing false p
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Detect template in single WAV file</span></span></span>
 <span class="r-in"><span><span class="va">detections</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="st">"path/to/song.wav"</span>,</span></span>
-<span class="r-in"><span>                             template <span class="op">=</span> <span class="va">template_obj</span>,</span></span>
-<span class="r-in"><span>                             save_plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  template <span class="op">=</span> <span class="va">template_obj</span>,</span></span>
+<span class="r-in"><span>  save_plot <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Detect template in SAP object</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                          template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
-<span class="r-in"><span>                          day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                          threshold <span class="op">=</span> <span class="fl">0.7</span>,</span></span>
-<span class="r-in"><span>                          cores <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
+<span class="r-in"><span>  day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  threshold <span class="op">=</span> <span class="fl">0.7</span>,</span></span>
+<span class="r-in"><span>  cores <span class="op">=</span> <span class="fl">4</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Process specific indices with plots</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                          template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
-<span class="r-in"><span>                          indices <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,</span></span>
-<span class="r-in"><span>                          save_plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
+<span class="r-in"><span>  indices <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  save_plot <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Filter nearby detections within 0.5 seconds</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                          template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
-<span class="r-in"><span>                          proximity_window <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
+<span class="r-in"><span>  proximity_window <span class="op">=</span> <span class="fl">0.5</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

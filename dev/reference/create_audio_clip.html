@@ -121,22 +121,25 @@ For SAP objects: Updated SAP object with new template information</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Create clip from single WAV file</span></span></span>
 <span class="r-in"><span><span class="fu">create_audio_clip</span><span class="op">(</span><span class="st">"path/to/song.wav"</span>,</span></span>
-<span class="r-in"><span>                  start_time <span class="op">=</span> <span class="fl">10</span>,</span></span>
-<span class="r-in"><span>                  end_time <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>                  clip_name <span class="op">=</span> <span class="st">"song_clip"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  start_time <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  end_time <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  clip_name <span class="op">=</span> <span class="st">"song_clip"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create multiple clips from SAP object</span></span></span>
 <span class="r-in"><span><span class="fu">create_audio_clip</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                  indices <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                  start_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                  end_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                  clip_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clip1"</span>, <span class="st">"clip2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  indices <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  start_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  end_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  clip_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clip1"</span>, <span class="st">"clip2"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create clip with millisecond units</span></span></span>
 <span class="r-in"><span><span class="fu">create_audio_clip</span><span class="op">(</span><span class="st">"song.wav"</span>,</span></span>
-<span class="r-in"><span>                  start_time <span class="op">=</span> <span class="fl">10000</span>,</span></span>
-<span class="r-in"><span>                  end_time <span class="op">=</span> <span class="fl">20000</span>,</span></span>
-<span class="r-in"><span>                  unit <span class="op">=</span> <span class="st">"millisecond"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  start_time <span class="op">=</span> <span class="fl">10000</span>,</span></span>
+<span class="r-in"><span>  end_time <span class="op">=</span> <span class="fl">20000</span>,</span></span>
+<span class="r-in"><span>  unit <span class="op">=</span> <span class="st">"millisecond"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

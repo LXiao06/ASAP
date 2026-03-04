@@ -157,25 +157,29 @@ for creating templates
 if (FALSE) { # \dontrun{
 # Detect template in single WAV file
 detections <- detect_template("path/to/song.wav",
-                             template = template_obj,
-                             save_plot = TRUE)
+  template = template_obj,
+  save_plot = TRUE
+)
 
 # Detect template in SAP object
 sap_obj <- detect_template(sap_object,
-                          template_name = "template1",
-                          day = c(30, 40),
-                          threshold = 0.7,
-                          cores = 4)
+  template_name = "template1",
+  day = c(30, 40),
+  threshold = 0.7,
+  cores = 4
+)
 
 # Process specific indices with plots
 sap_obj <- detect_template(sap_object,
-                          template_name = "template1",
-                          indices = 1:10,
-                          save_plot = TRUE)
+  template_name = "template1",
+  indices = 1:10,
+  save_plot = TRUE
+)
 
 # Filter nearby detections within 0.5 seconds
 sap_obj <- detect_template(sap_object,
-                          template_name = "template1",
-                          proximity_window = 0.5)
+  template_name = "template1",
+  proximity_window = 0.5
+)
 } # }
 ```

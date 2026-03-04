@@ -179,28 +179,31 @@ For SAP objects:
 if (FALSE) { # \dontrun{
 # Analyze segments from data frame
 features <- analyze_spectral(segments,
-                            wav_dir = "path/to/wavs",
-                            cores = 4,
-                            freq_range = c(1, 10))
+  wav_dir = "path/to/wavs",
+  cores = 4,
+  freq_range = c(1, 10)
+)
 
 # Basic analysis from SAP object
 sap_obj <- analyze_spectral(sap_object,
-                           segment_type = "motifs",
-                           cores = 4)
+  segment_type = "motifs",
+  cores = 4
+)
 
 # Balanced sampling with specific labels
 sap_obj <- analyze_spectral(sap_object,
-                           segment_type = "syllables",
-                           sample_percent = 80,
-                           balanced = TRUE,
-                           labels = c("a", "b"))
+  segment_type = "syllables",
+  sample_percent = 80,
+  balanced = TRUE,
+  labels = c("a", "b")
+)
 
 # Custom spectral parameters
 sap_obj <- analyze_spectral(sap_object,
-                           segment_type = "motifs",
-                           wl = 1024,
-                           ovlp = 75,
-                           freq_range = c(2, 8))
+  segment_type = "motifs",
+  wl = 1024,
+  ovlp = 75,
+  freq_range = c(2, 8)
+)
 } # }
-
 ```

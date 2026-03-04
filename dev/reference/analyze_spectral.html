@@ -204,30 +204,33 @@ For SAP objects: Updated SAP object with spectral features stored in features sl
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Analyze segments from data frame</span></span></span>
 <span class="r-in"><span><span class="va">features</span> <span class="op">&lt;-</span> <span class="fu">analyze_spectral</span><span class="op">(</span><span class="va">segments</span>,</span></span>
-<span class="r-in"><span>                            wav_dir <span class="op">=</span> <span class="st">"path/to/wavs"</span>,</span></span>
-<span class="r-in"><span>                            cores <span class="op">=</span> <span class="fl">4</span>,</span></span>
-<span class="r-in"><span>                            freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  wav_dir <span class="op">=</span> <span class="st">"path/to/wavs"</span>,</span></span>
+<span class="r-in"><span>  cores <span class="op">=</span> <span class="fl">4</span>,</span></span>
+<span class="r-in"><span>  freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Basic analysis from SAP object</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">analyze_spectral</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                           segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
-<span class="r-in"><span>                           cores <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
+<span class="r-in"><span>  cores <span class="op">=</span> <span class="fl">4</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Balanced sampling with specific labels</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">analyze_spectral</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                           segment_type <span class="op">=</span> <span class="st">"syllables"</span>,</span></span>
-<span class="r-in"><span>                           sample_percent <span class="op">=</span> <span class="fl">80</span>,</span></span>
-<span class="r-in"><span>                           balanced <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>                           labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  segment_type <span class="op">=</span> <span class="st">"syllables"</span>,</span></span>
+<span class="r-in"><span>  sample_percent <span class="op">=</span> <span class="fl">80</span>,</span></span>
+<span class="r-in"><span>  balanced <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Custom spectral parameters</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">analyze_spectral</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                           segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
-<span class="r-in"><span>                           wl <span class="op">=</span> <span class="fl">1024</span>,</span></span>
-<span class="r-in"><span>                           ovlp <span class="op">=</span> <span class="fl">75</span>,</span></span>
-<span class="r-in"><span>                           freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
+<span class="r-in"><span>  wl <span class="op">=</span> <span class="fl">1024</span>,</span></span>
+<span class="r-in"><span>  ovlp <span class="op">=</span> <span class="fl">75</span>,</span></span>
+<span class="r-in"><span>  freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">8</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
