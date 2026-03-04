@@ -23,6 +23,7 @@ create_motif_clips(
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
   amp_normalize = c("none", "peak", "rms"),
+  cores = NULL,
   overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
@@ -41,6 +42,7 @@ create_motif_clips(
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
   amp_normalize = c("none", "peak", "rms"),
+  cores = NULL,
   overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
@@ -102,6 +104,10 @@ create_motif_clips(
 
   Waveform amplitude normalization applied to exported clips: one of
   "none", "peak", or "rms" (default: "none")
+
+- cores:
+
+  Number of CPU cores used for clip processing.
 
 - overwrite:
 
