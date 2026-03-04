@@ -81,26 +81,30 @@ This generic function supports UMAP analysis through two methods:
 \dontrun{
 # Run UMAP on feature data frame
 coords <- run_umap(features,
-                   metadata_cols = c(1:5),
-                   n_neighbors = 15)
+  metadata_cols = c(1:5),
+  n_neighbors = 15
+)
 
 # Run UMAP on SAP object
 sap_obj <- run_umap(sap_object,
-                    segment_type = "motifs",
-                    data_type = "spectral_feature")
+  segment_type = "motifs",
+  data_type = "spectral_feature"
+)
 
 # UMAP with specific parameters
 coords <- run_umap(features,
-                   metadata_cols = 1:3,
-                   scale = TRUE,
-                   n_neighbors = 20,
-                   seed = 123)
+  metadata_cols = 1:3,
+  scale = TRUE,
+  n_neighbors = 20,
+  seed = 123
+)
 
 # UMAP with label filtering
 sap_obj <- run_umap(sap_obj,
-                    segment_type = "syllables",
-                    data_type = "spectral_feature",
-                    label = "a")
+  segment_type = "syllables",
+  data_type = "spectral_feature",
+  label = "a"
+)
 }
 
 }

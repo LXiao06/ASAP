@@ -86,7 +86,7 @@ in a directory tree or as datasets in a single HDF5 file.
 \details{
 Output layout for \code{output_format = "wav"}:
 \preformatted{
-output_dir/segmented/{bird_id}/{day_post_hatch}/{name_prefix}_001.wav
+output_dir/motifs/{bird_id}/{day_post_hatch}/{name_prefix}_001.wav
 }
 
 Output layout for \code{output_format = "hdf5"}:

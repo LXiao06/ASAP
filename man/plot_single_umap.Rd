@@ -7,6 +7,7 @@
 plot_single_umap(
   data,
   dims = c("X1", "X2"),
+  group.col = "cluster",
   cols = NULL,
   pt.size = 0.5,
   stroke = 0.5,
