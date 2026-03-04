@@ -295,6 +295,14 @@ analyze_spectral.Sap <- function(x,
           if (is.null(metadata_df) || !is.data.frame(metadata_df) || nrow(metadata_df) == 0) {
             warning("Latest motif export metadata is empty; skipping merge.")
           } else {
+            # Keep clip-export normalization for provenance, but make
+            # amp_normalize reflect spectral extraction settings.
+            if ("amp_normalize" %in% names(metadata_df) &&
+                !"clip_amp_normalize" %in% names(metadata_df)) {
+              metadata_df$clip_amp_normalize <- metadata_df$amp_normalize
+            }
+            metadata_df$amp_normalize <- amp_normalize
+
             out_dir <- last_export$output_dir %||% getwd()
             if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
             out_csv <- file.path(out_dir, motif_spectral_csv_filename)
