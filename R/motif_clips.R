@@ -589,24 +589,34 @@ create_motif_clips.Sap <- function(x,
                                                 output_file,
                                                 time_digits = 6,
                                                 verbose = TRUE) {
-  required <- c("filename", "start_time", "end_time", "duration", "day_post_hatch", "label")
-  if (!all(required %in% names(metadata_df))) {
+  # metadata_df must have all canonical columns (it is the left / authoritative side).
+  required_meta <- c("filename", "start_time", "end_time", "duration", "day_post_hatch", "label")
+  if (!all(required_meta %in% names(metadata_df))) {
     stop("metadata_df must contain: filename, start_time, end_time, duration, day_post_hatch, label")
   }
-  if (!all(required %in% names(spectral_df))) {
-    stop("spectral_df must contain: filename, start_time, end_time, duration, day_post_hatch, label")
+
+  # Coerce spectral_df to a plain data.frame to guard against tibble / matrix
+  # edge cases where names() might behave unexpectedly after parallel rbind.
+  spectral_df <- as.data.frame(spectral_df)
+
+  # spectral_df needs only filename + time columns for key-building.
+  # duration is intentionally excluded: spectral_analysis() rounds it to
+  # 1 decimal while metadata_df stores it at full precision, causing key
+  # mismatches. filename + start_time + end_time alone uniquely identify a row.
+  required_spec <- c("filename", "start_time", "end_time")
+  missing_spec <- setdiff(required_spec, names(spectral_df))
+  if (length(missing_spec) > 0) {
+    stop("spectral_df must contain: ", paste(missing_spec, collapse = ", "))
   }
 
+  # Build the merge key using only filename, start_time, end_time.
+  # day_post_hatch / label are omitted (they come from metadata_df's left-join)
+  # and duration is omitted (precision mismatch between the two data frames).
   make_key <- function(df) {
     filename <- as.character(df$filename)
     start_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$start_time), time_digits))
     end_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$end_time), time_digits))
-    dur_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$duration), time_digits))
-    day_key <- as.character(df$day_post_hatch)
-    label_key <- as.character(df$label)
-    day_key[is.na(day_key)] <- ""
-    label_key[is.na(label_key)] <- ""
-    paste(filename, start_key, end_key, dur_key, day_key, label_key, sep = "||")
+    paste(filename, start_key, end_key, sep = "||")
   }
 
   metadata_df$.merge_key <- make_key(metadata_df)
