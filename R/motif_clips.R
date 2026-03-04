@@ -23,6 +23,7 @@
 #' @param name_prefix Prefix used for generated motif clip names.
 #' @param amp_normalize Waveform amplitude normalization applied to exported clips:
 #'   one of "none", "peak", or "rms" (default: "none")
+#' @param cores Number of CPU cores used for clip processing.
 #' @param overwrite Logical. Overwrite existing output file(s) when TRUE.
 #'   Default is TRUE.
 #' @param write_metadata Logical. Write metadata CSV when TRUE.
@@ -86,6 +87,7 @@ create_motif_clips.default <- function(x,
                                        metadata_filename = "metadata.csv",
                                        name_prefix = "motif",
                                        amp_normalize = c("none", "peak", "rms"),
+                                       cores = NULL,
                                        overwrite = TRUE,
                                        write_metadata = TRUE,
                                        verbose = TRUE,
@@ -134,6 +136,7 @@ create_motif_clips.default <- function(x,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
     amp_normalize = amp_normalize,
+    cores = cores,
     overwrite = overwrite,
     write_metadata = write_metadata,
     verbose = verbose
@@ -154,6 +157,7 @@ create_motif_clips.Sap <- function(x,
                                    metadata_filename = "metadata.csv",
                                    name_prefix = "motif",
                                    amp_normalize = c("none", "peak", "rms"),
+                                   cores = NULL,
                                    overwrite = TRUE,
                                    write_metadata = TRUE,
                                    verbose = TRUE,
@@ -194,6 +198,7 @@ create_motif_clips.Sap <- function(x,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
     amp_normalize = amp_normalize,
+    cores = cores,
     overwrite = overwrite,
     write_metadata = write_metadata,
     verbose = verbose
@@ -373,107 +378,48 @@ create_motif_clips.Sap <- function(x,
                                metadata_filename,
                                name_prefix,
                                amp_normalize,
+                               cores,
                                overwrite,
                                write_metadata,
                                verbose) {
-  counters <- new.env(parent = emptyenv())
-  day_stats <- new.env(parent = emptyenv())
-  metadata_rows <- vector("list", nrow(motifs))
+  jobs <- motifs
+  jobs$day_summary <- as.character(jobs$day_post_hatch)
+  jobs$day_summary[is.na(jobs$day_summary) | jobs$day_summary == ""] <- "unknown_day"
+  jobs$bird_id_clean <- vapply(as.character(jobs$bird_id), .sanitize_group_name, FUN.VALUE = character(1))
+  jobs$day_clean <- vapply(as.character(jobs$day_post_hatch), .sanitize_group_name, FUN.VALUE = character(1))
+  group_key <- paste(jobs$bird_id_clean, jobs$day_clean, sep = "::")
+  jobs$clip_seq <- ave(seq_len(nrow(jobs)), group_key, FUN = seq_along)
+  jobs$clip_id <- sprintf("%s_%03d", name_prefix, jobs$clip_seq)
 
-  h5 <- NULL
-  h5_path <- NULL
-  sample_rates <- numeric(0)
+  has_day <- !is.na(jobs$day_post_hatch) & jobs$day_post_hatch != "unknown_day"
+  jobs$source_path <- ifelse(
+    has_day,
+    file.path(wav_dir, as.character(jobs$day_post_hatch), as.character(jobs$filename)),
+    file.path(wav_dir, as.character(jobs$filename))
+  )
 
-  if (output_format == "hdf5") {
-    ensure_pkgs("hdf5r")
-    h5_path <- file.path(output_dir, hdf5_filename)
-    if (file.exists(h5_path)) {
-      if (!overwrite) {
-        stop("HDF5 file already exists: ", h5_path, ". Set overwrite = TRUE to replace.")
-      }
-      file.remove(h5_path)
-    }
-    h5 <- hdf5r::H5File$new(filename = h5_path, mode = "w")
-    on.exit(
-      {
-        if (!is.null(h5)) {
-          h5$close_all()
-        }
-      },
-      add = TRUE
-    )
-  }
-
-  for (i in seq_len(nrow(motifs))) {
-    row <- motifs[i, , drop = FALSE]
-    day_summary <- as.character(row$day_post_hatch)
-    if (is.na(day_summary) || day_summary == "") {
-      day_summary <- "unknown_day"
-    }
-    if (!exists(day_summary, envir = day_stats, inherits = FALSE)) {
-      assign(
-        day_summary,
-        c(total = 0L, written = 0L, missing = 0L, invalid = 0L, exists = 0L),
-        envir = day_stats
-      )
-    }
-    stats <- get(day_summary, envir = day_stats, inherits = FALSE)
-    stats[["total"]] <- stats[["total"]] + 1L
-    assign(day_summary, stats, envir = day_stats)
-
-    has_day <- "day_post_hatch" %in% names(row) &&
-      !is.na(row$day_post_hatch) &&
-      row$day_post_hatch != "unknown_day"
-    source_path <- if (has_day) {
-      file.path(wav_dir, as.character(row$day_post_hatch), as.character(row$filename))
-    } else {
-      file.path(wav_dir, as.character(row$filename))
-    }
+  process_one <- function(i) {
+    row <- jobs[i, , drop = FALSE]
+    source_path <- as.character(row$source_path)
+    duration <- as.numeric(row$end_time) - as.numeric(row$start_time)
 
     if (!file.exists(source_path)) {
       warning("Skipping missing source file: ", source_path)
-      stats <- get(day_summary, envir = day_stats, inherits = FALSE)
-      stats[["missing"]] <- stats[["missing"]] + 1L
-      assign(day_summary, stats, envir = day_stats)
-      next
+      return(list(status = "missing", day_summary = as.character(row$day_summary), metadata = NULL))
     }
-    duration <- row$end_time - row$start_time
-    if (duration <= 0) {
-      warning(sprintf(
-        "Skipping motif index %s with non-positive duration",
-        row$.source_index
-      ))
-      stats <- get(day_summary, envir = day_stats, inherits = FALSE)
-      stats[["invalid"]] <- stats[["invalid"]] + 1L
-      assign(day_summary, stats, envir = day_stats)
-      next
+    if (!is.finite(duration) || duration <= 0) {
+      warning(sprintf("Skipping motif index %s with non-positive duration", row$.source_index))
+      return(list(status = "invalid", day_summary = as.character(row$day_summary), metadata = NULL))
     }
-
-    bird_id <- .sanitize_group_name(as.character(row$bird_id))
-    day <- .sanitize_group_name(as.character(row$day_post_hatch))
-
-    counter_key <- paste(bird_id, day, sep = "::")
-    if (!exists(counter_key, envir = counters, inherits = FALSE)) {
-      assign(counter_key, 0L, envir = counters)
-    }
-    current_n <- get(counter_key, envir = counters, inherits = FALSE) + 1L
-    assign(counter_key, current_n, envir = counters)
-
-    clip_id <- sprintf("%s_%03d", name_prefix, current_n)
 
     if (output_format == "wav") {
-      out_dir <- file.path(output_dir, "motifs", bird_id, day)
-      if (!dir.exists(out_dir)) {
-        dir.create(out_dir, recursive = TRUE)
-      }
+      out_dir <- file.path(output_dir, "motifs", as.character(row$bird_id_clean), as.character(row$day_clean))
+      if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+      out_path <- file.path(out_dir, paste0(as.character(row$clip_id), ".wav"))
 
-      out_path <- file.path(out_dir, paste0(clip_id, ".wav"))
       if (file.exists(out_path) && !overwrite) {
         warning("Skipping existing file: ", out_path)
-        stats <- get(day_summary, envir = day_stats, inherits = FALSE)
-        stats[["exists"]] <- stats[["exists"]] + 1L
-        assign(day_summary, stats, envir = day_stats)
-        next
+        return(list(status = "exists", day_summary = as.character(row$day_summary), metadata = NULL))
       }
 
       if (amp_normalize == "none") {
@@ -500,9 +446,9 @@ create_motif_clips.Sap <- function(x,
         tuneR::writeWave(wave, filename = out_path)
       }
 
-      metadata_rows[[i]] <- data.frame(
+      metadata <- data.frame(
         source_index = as.integer(row$.source_index),
-        bird_id = bird_id,
+        bird_id = as.character(row$bird_id_clean),
         day_post_hatch = as.character(row$day_post_hatch),
         label = as.character(row$label),
         filename = as.character(row$filename),
@@ -510,77 +456,99 @@ create_motif_clips.Sap <- function(x,
         end_time = as.numeric(row$end_time),
         duration = as.numeric(duration),
         amp_normalize = amp_normalize,
-        clip_id = clip_id,
+        clip_id = as.character(row$clip_id),
         output_path = normalizePath(out_path, mustWork = TRUE),
         stringsAsFactors = FALSE
       )
-    } else {
-      wave <- tuneR::readWave(
-        filename = source_path,
-        from = as.numeric(row$start_time),
-        to = as.numeric(row$end_time),
-        units = "seconds"
-      )
-      if (amp_normalize != "none") {
-        wave <- .normalize_wave_amplitude(
-          wv = wave,
-          method = amp_normalize,
-          target_rms = 0.1,
-          eps = 1e-8
-        )
-      }
-      sample_rates <- c(sample_rates, wave@samp.rate)
+      return(list(status = "written", day_summary = as.character(row$day_summary), metadata = metadata))
+    }
 
-      sample_vec <- if (isTRUE(wave@stereo)) {
-        (as.numeric(wave@left) + as.numeric(wave@right)) / 2
-      } else {
-        as.numeric(wave@left)
-      }
-
-      norm_factor <- max(1, 2^(as.numeric(wave@bit) - 1))
-      sample_vec <- as.single(sample_vec / norm_factor)
-
-      bird_group <- .h5_get_or_create_group(h5, bird_id)
-      day_group <- .h5_get_or_create_group(bird_group, day)
-      ds <- day_group$create_dataset(name = clip_id, robj = sample_vec)
-      hdf5r::h5attr(ds, "sample_rate") <- as.integer(wave@samp.rate)
-      hdf5r::h5attr(ds, "source_file") <- as.character(row$filename)
-      hdf5r::h5attr(ds, "start_time") <- as.numeric(row$start_time)
-      hdf5r::h5attr(ds, "end_time") <- as.numeric(row$end_time)
-      hdf5r::h5attr(ds, "label") <- as.character(row$label)
-      hdf5r::h5attr(ds, "amp_normalize") <- as.character(amp_normalize)
-      ds$close()
-
-      metadata_rows[[i]] <- data.frame(
-        source_index = as.integer(row$.source_index),
-        bird_id = bird_id,
-        day_post_hatch = as.character(row$day_post_hatch),
-        label = as.character(row$label),
-        filename = as.character(row$filename),
-        start_time = as.numeric(row$start_time),
-        end_time = as.numeric(row$end_time),
-        duration = as.numeric(duration),
-        amp_normalize = amp_normalize,
-        clip_id = clip_id,
-        output_path = paste0("/", bird_id, "/", day, "/", clip_id),
-        stringsAsFactors = FALSE
+    wave <- tuneR::readWave(
+      filename = source_path,
+      from = as.numeric(row$start_time),
+      to = as.numeric(row$end_time),
+      units = "seconds"
+    )
+    if (amp_normalize != "none") {
+      wave <- .normalize_wave_amplitude(
+        wv = wave,
+        method = amp_normalize,
+        target_rms = 0.1,
+        eps = 1e-8
       )
     }
 
-    stats <- get(day_summary, envir = day_stats, inherits = FALSE)
-    stats[["written"]] <- stats[["written"]] + 1L
-    assign(day_summary, stats, envir = day_stats)
+    sample_vec <- if (isTRUE(wave@stereo)) {
+      (as.numeric(wave@left) + as.numeric(wave@right)) / 2
+    } else {
+      as.numeric(wave@left)
+    }
+    norm_factor <- max(1, 2^(as.numeric(wave@bit) - 1))
+    sample_vec <- as.single(sample_vec / norm_factor)
+
+    metadata <- data.frame(
+      source_index = as.integer(row$.source_index),
+      bird_id = as.character(row$bird_id_clean),
+      day_post_hatch = as.character(row$day_post_hatch),
+      label = as.character(row$label),
+      filename = as.character(row$filename),
+      start_time = as.numeric(row$start_time),
+      end_time = as.numeric(row$end_time),
+      duration = as.numeric(duration),
+      amp_normalize = amp_normalize,
+      clip_id = as.character(row$clip_id),
+      output_path = paste0("/", as.character(row$bird_id_clean), "/", as.character(row$day_clean), "/", as.character(row$clip_id)),
+      stringsAsFactors = FALSE
+    )
+
+    list(
+      status = "written",
+      day_summary = as.character(row$day_summary),
+      metadata = metadata,
+      sample_vec = sample_vec,
+      sample_rate = as.integer(wave@samp.rate),
+      bird_id = as.character(row$bird_id_clean),
+      day = as.character(row$day_clean),
+      clip_id = as.character(row$clip_id)
+    )
   }
 
-  export_meta <- do.call(rbind, metadata_rows[!sapply(metadata_rows, is.null)])
-  if (is.null(export_meta)) {
-    warning("No motif clips were exported")
-    export_meta <- data.frame()
-  }
+  results <- parallel_apply(seq_len(nrow(jobs)), process_one, cores = cores)
 
-  if (output_format == "hdf5" && !is.null(h5)) {
+  sample_rates <- integer(0)
+  if (output_format == "hdf5") {
+    if (verbose) {
+      message("Parallel clip processing completed. Starting serialized HDF5 writing (this may take a while for large exports)...")
+    }
+
+    ensure_pkgs("hdf5r")
+    h5_path <- file.path(output_dir, hdf5_filename)
+    if (file.exists(h5_path)) {
+      if (!overwrite) {
+        stop("HDF5 file already exists: ", h5_path, ". Set overwrite = TRUE to replace.")
+      }
+      file.remove(h5_path)
+    }
+    h5 <- hdf5r::H5File$new(filename = h5_path, mode = "w")
+    on.exit(h5$close_all(), add = TRUE)
+
+    for (res in results) {
+      if (!identical(res$status, "written")) next
+      bird_group <- .h5_get_or_create_group(h5, res$bird_id)
+      day_group <- .h5_get_or_create_group(bird_group, res$day)
+      ds <- day_group$create_dataset(name = res$clip_id, robj = res$sample_vec)
+      hdf5r::h5attr(ds, "sample_rate") <- as.integer(res$sample_rate)
+      hdf5r::h5attr(ds, "source_file") <- as.character(res$metadata$filename[[1]])
+      hdf5r::h5attr(ds, "start_time") <- as.numeric(res$metadata$start_time[[1]])
+      hdf5r::h5attr(ds, "end_time") <- as.numeric(res$metadata$end_time[[1]])
+      hdf5r::h5attr(ds, "label") <- as.character(res$metadata$label[[1]])
+      hdf5r::h5attr(ds, "amp_normalize") <- as.character(amp_normalize)
+      ds$close()
+      sample_rates <- c(sample_rates, as.integer(res$sample_rate))
+    }
+
     hdf5r::h5attr(h5, "creation_date") <- as.character(Sys.time())
-    hdf5r::h5attr(h5, "n_clips") <- as.integer(nrow(export_meta))
+    hdf5r::h5attr(h5, "n_clips") <- as.integer(sum(vapply(results, function(x) identical(x$status, "written"), logical(1))))
     hdf5r::h5attr(h5, "amp_normalize") <- as.character(amp_normalize)
     if (length(sample_rates) > 0 && length(unique(sample_rates)) == 1) {
       hdf5r::h5attr(h5, "sample_rate") <- as.integer(sample_rates[[1]])
@@ -589,23 +557,35 @@ create_motif_clips.Sap <- function(x,
     }
   }
 
+  metadata_rows <- lapply(results, function(x) x$metadata)
+  export_meta <- do.call(rbind, metadata_rows[!vapply(metadata_rows, is.null, logical(1))])
+  if (is.null(export_meta)) {
+    warning("No motif clips were exported")
+    export_meta <- data.frame()
+  }
+
   if (write_metadata && nrow(export_meta) > 0) {
     metadata_path <- file.path(output_dir, metadata_filename)
     utils::write.csv(export_meta, metadata_path, row.names = FALSE)
   }
 
   if (verbose) {
-    day_keys <- sort(ls(envir = day_stats))
+    day_stats <- data.frame(
+      day = jobs$day_summary,
+      status = vapply(results, function(x) x$status, character(1)),
+      stringsAsFactors = FALSE
+    )
+    day_keys <- sort(unique(day_stats$day))
     for (day_key in day_keys) {
-      stats <- get(day_key, envir = day_stats, inherits = FALSE)
+      d <- day_stats[day_stats$day == day_key, , drop = FALSE]
       message(sprintf(
         "Day %s: %d written / %d total (skipped: %d missing, %d invalid, %d existing)",
         day_key,
-        stats[["written"]],
-        stats[["total"]],
-        stats[["missing"]],
-        stats[["invalid"]],
-        stats[["exists"]]
+        sum(d$status == "written"),
+        nrow(d),
+        sum(d$status == "missing"),
+        sum(d$status == "invalid"),
+        sum(d$status == "exists")
       ))
     }
     message(sprintf("Exported %d motif clips to %s format (%s normalization)", nrow(export_meta), output_format, amp_normalize))

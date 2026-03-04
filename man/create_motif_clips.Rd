@@ -20,6 +20,7 @@ create_motif_clips(x, ...)
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
   amp_normalize = c("none", "peak", "rms"),
+  cores = NULL,
   overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
@@ -37,6 +38,7 @@ create_motif_clips(x, ...)
   metadata_filename = "metadata.csv",
   name_prefix = "motif",
   amp_normalize = c("none", "peak", "rms"),
+  cores = NULL,
   overwrite = TRUE,
   write_metadata = TRUE,
   verbose = TRUE,
@@ -72,6 +74,8 @@ is applied. In this repository, sampling is fixed to \code{222}.}
 
 \item{amp_normalize}{Waveform amplitude normalization applied to exported clips:
 one of "none", "peak", or "rms" (default: "none")}
+
+\item{cores}{Number of CPU cores used for clip processing.}
 
 \item{overwrite}{Logical. Overwrite existing output file(s) when TRUE.
 Default is TRUE.}
