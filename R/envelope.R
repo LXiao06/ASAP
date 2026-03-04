@@ -2,7 +2,7 @@
 
 
 # Extract Amplitude Envelope ----------------------------------------------
-# Update date : Feb. 7, 2025
+# Update date : Mar. 4, 2026
 
 #' Calculate Amplitude Envelope for Audio Segment
 #'
@@ -17,7 +17,8 @@
 #'          \item Second value: Overlap between windows (percentage)
 #'        }
 #'        If NULL, no smoothing is applied
-#' @param norm Logical, Whether to normalize envelope to range between 0 and 1 (default: FALSE)
+#' @param amp_normalize Waveform amplitude normalization before envelope extraction:
+#'   one of "none", "peak", or "rms" (default: "none")
 #' @param plot Logical, whether to plot the envelope (default: FALSE)
 #'
 #' @details
@@ -41,8 +42,19 @@
 #' # With smoothing and normalization
 #' env <- amp_env(segments[1,],
 #'                wav_dir = "path/to/wavs",
+#'                msmooth = c(256, 50))
+#'
+#' # With waveform peak normalization
+#' env <- amp_env(segments[1,],
+#'                wav_dir = "path/to/wavs",
 #'                msmooth = c(256, 50),
-#'                norm = TRUE)
+#'                amp_normalize = "peak")
+#'
+#' # With waveform RMS normalization
+#' env <- amp_env(segments[1,],
+#'                wav_dir = "path/to/wavs",
+#'                msmooth = c(256, 50),
+#'                amp_normalize = "rms")
 #'
 #' # With plot
 #' env <- amp_env(segments[1,],
@@ -57,7 +69,7 @@
 amp_env <- function(segment_row,
                     wav_dir = NULL,
                     msmooth = NULL,
-                    norm = FALSE,
+                    amp_normalize = c("none", "peak", "rms"),
                     plot = FALSE) {
 
   # Check if input is valid
@@ -91,15 +103,91 @@ amp_env <- function(segment_row,
                         to = segment_row$end_time,
                         units = "seconds")
 
+  # Optional waveform amplitude normalization before envelope extraction
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
+  if (amp_normalize != "none") {
+    wv <- .normalize_wave_amplitude(
+      wv = wv,
+      method = amp_normalize,
+      target_rms = 0.1,
+      eps = 1e-8
+    )
+  }
+
+  # For a simpler API:
+  # - peak normalization also normalizes envelope output
+  # - none/rms keep raw envelope scale
+  env_norm <- identical(amp_normalize, "peak")
+
   # Calculate envelope
-  env <- seewave::env(wv, msmooth = msmooth, norm = norm, plot = plot)
+  env <- seewave::env(wv, msmooth = msmooth, norm = env_norm, plot = plot)
 
   return(env)
 }
 
+#' @keywords internal
+.parse_amp_normalize <- function(amp_normalize) {
+  valid <- c("none", "peak", "rms")
+  if (!is.character(amp_normalize) || length(amp_normalize) < 1 || is.na(amp_normalize[1])) {
+    stop(sprintf("amp_normalize must be one of: %s", paste(valid, collapse = ", ")))
+  }
+  method <- tolower(trimws(amp_normalize[1]))
+  if (!method %in% valid) {
+    stop(sprintf("amp_normalize must be one of: %s", paste(valid, collapse = ", ")))
+  }
+  method
+}
+
+#' @keywords internal
+.normalize_wave_amplitude <- function(wv,
+                                      method = c("none", "peak", "rms"),
+                                      target_rms = 0.1,
+                                      eps = 1e-8) {
+  method <- .parse_amp_normalize(method)
+  if (method == "none") return(wv)
+
+  if (!is.numeric(target_rms) || length(target_rms) != 1 || target_rms <= 0) {
+    stop("target_rms must be a single positive numeric value")
+  }
+  if (!is.numeric(eps) || length(eps) != 1 || eps <= 0) {
+    stop("eps must be a single positive numeric value")
+  }
+
+  max_amp <- 2^(wv@bit - 1) - 1
+
+  normalize_channel <- function(ch) {
+    ch <- as.numeric(ch)
+    if (length(ch) == 0) return(ch)
+
+    scale <- 1
+    if (method == "peak") {
+      peak <- max(abs(ch), na.rm = TRUE)
+      if (is.finite(peak) && peak > eps) {
+        scale <- max_amp / peak
+      }
+    } else if (method == "rms") {
+      rms <- sqrt(mean(ch^2, na.rm = TRUE))
+      if (is.finite(rms) && rms > eps) {
+        scale <- (target_rms * max_amp) / rms
+      }
+    }
+
+    ch <- ch * scale
+    ch <- pmax(pmin(ch, max_amp), -max_amp)
+    as.integer(round(ch))
+  }
+
+  wv@left <- normalize_channel(wv@left)
+  if (wv@stereo) {
+    wv@right <- normalize_channel(wv@right)
+  }
+
+  wv
+}
+
 
 # Plot Heatmap ----------------------------------------------
-# Update date : Feb. 7, 2025
+# Update date : Mar. 4, 2026
 
 #' Plot Heatmap of Amplitude Envelopes
 #'
@@ -110,6 +198,8 @@ amp_env <- function(segment_row,
 #' @param x An object to visualize (data frame, SAP object, or matrix)
 #' @param wav_dir For default method: Path to WAV files directory
 #' @param msmooth Smoothing parameters c(window_length, overlap_percentage)
+#' @param amp_normalize Waveform amplitude normalization before envelope extraction:
+#'   one of "none", "peak", or "rms" (default: "none")
 #' @param color_palette Function generating color palette
 #' @param n_colors Number of colors in heatmap (default: 500)
 #' @param contrast Contrast factor for visualization (default: 3)
@@ -177,6 +267,14 @@ amp_env <- function(segment_row,
 #'              balanced = TRUE,
 #'              ordered = TRUE)
 #'
+#' # Compare waveform normalization strategies in heatmaps
+#' plot_heatmap(sap_obj,
+#'              segment_type = "motifs",
+#'              amp_normalize = "peak")
+#' plot_heatmap(sap_obj,
+#'              segment_type = "motifs",
+#'              amp_normalize = "rms")
+#'
 #' # Matrix with specific labels
 #' plot_heatmap(amp_matrix,
 #'              labels = c("a", "b"),
@@ -202,6 +300,7 @@ plot_heatmap <- function(x, ...) {
 plot_heatmap.default <- function(x,
                                  wav_dir = NULL,
                                  msmooth = c(256,50),
+                                 amp_normalize = c("none", "peak", "rms"),
                                  color_palette = NULL,
                                  n_colors = 500,
                                  contrast = 3,
@@ -231,17 +330,20 @@ plot_heatmap.default <- function(x,
   # }
 
   # Generate amplitude envelope matrix using appropriate progress bar function
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
   if (Sys.info()["sysname"] == "Darwin") {
     amp_list <- pbmcapply::pbmclapply(1:nrow(x),
                                       function(i) amp_env(x[i,],
                                                           wav_dir = wav_dir,
-                                                          msmooth = msmooth))
+                                                          msmooth = msmooth,
+                                                          amp_normalize = amp_normalize))
     amp_matrix <- do.call(cbind, amp_list)
   } else {
     amp_matrix <- pbapply::pbsapply(1:nrow(x),
                                     function(i) amp_env(x[i,],
                                                         wav_dir = wav_dir,
-                                                        msmooth = msmooth),
+                                                        msmooth = msmooth,
+                                                        amp_normalize = amp_normalize),
                                     simplify = TRUE)
   }
 
@@ -445,6 +547,7 @@ plot_heatmap.Sap <- function(x,
                              cores = NULL,
                              seed = 222,
                              msmooth = c(256,50),
+                             amp_normalize = c("none", "peak", "rms"),
                              color_palette = NULL,
                              n_colors = 500,
                              contrast = 3,
@@ -461,6 +564,7 @@ plot_heatmap.Sap <- function(x,
 
   # Input validation
   segment_type <- match.arg(segment_type)
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
 
   # Validate window argument
   if (!is.null(window)) {
@@ -556,13 +660,17 @@ plot_heatmap.Sap <- function(x,
     process_row <- function(i) {
       amp_env(segments_df[i,],
               wav_dir = x$base_path,
-              msmooth = msmooth)
+              msmooth = msmooth,
+              amp_normalize = amp_normalize)
     }
     time_window <- segments_df$duration[1]
     alignment_point <- segments_df$detection_time[1] - segments_df$start_time[1]
 
     # Get sampling rate for motifs
-    test_env <- amp_env(segments_df[1,], wav_dir = x$base_path, msmooth = msmooth)
+    test_env <- amp_env(segments_df[1,],
+                        wav_dir = x$base_path,
+                        msmooth = msmooth,
+                        amp_normalize = amp_normalize)
     samples_per_second <- length(test_env) / segments_df$duration[1]
 
   } else if (segment_type == "bouts") {
@@ -602,7 +710,10 @@ plot_heatmap.Sap <- function(x,
 
     # Get sampling rate
     test_row <- segments_df[1, ]
-    test_env <- amp_env(test_row, wav_dir = x$base_path, msmooth = msmooth)
+    test_env <- amp_env(test_row,
+                        wav_dir = x$base_path,
+                        msmooth = msmooth,
+                        amp_normalize = amp_normalize)
     samples_per_second <- length(test_env) / test_row$duration
 
     # Create processing function
@@ -611,6 +722,7 @@ plot_heatmap.Sap <- function(x,
         segment_row = segments_df[i, ],
         wav_dir = x$base_path,
         msmooth = msmooth,
+        amp_normalize = amp_normalize,
         max_pre_window = max_pre_window,
         max_post_window = max_post_window,
         samples_per_second = samples_per_second
@@ -738,6 +850,7 @@ plot_heatmap.Sap <- function(x,
 pad_amp_env <- function(segment_row,
                         wav_dir = NULL,
                         msmooth = NULL,
+                        amp_normalize = c("none", "peak", "rms"),
                         max_pre_window = NULL,
                         max_post_window = NULL,
                         samples_per_second = NULL,
@@ -748,6 +861,7 @@ pad_amp_env <- function(segment_row,
   orig_env <- amp_env(segment_row = segment_row,
                       wav_dir = wav_dir,
                       msmooth = msmooth,
+                      amp_normalize = amp_normalize
   )
 
   # Calculate pre and post windows in samples
@@ -786,6 +900,3 @@ pad_amp_env <- function(segment_row,
 
   return(padded_env)
 }
-
-
-

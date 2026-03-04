@@ -1,5 +1,5 @@
 # Analyze Spectral Features -------------------------------------------------------
-# Update date : Feb. 7, 2025
+# Update date : Mar. 4, 2026
 
 #' Analyze Spectral Features of Audio Segments
 #'
@@ -18,6 +18,8 @@
 #' @param threshold Threshold for frequency tracking (default: 15)
 #' @param fsmooth Frequency smoothing parameter (default: 0.1)
 #' @param fast Whether to skip peak frequency calculation (default: TRUE)
+#' @param amp_normalize Waveform amplitude normalization before spectral extraction:
+#'   one of "none", "peak", or "rms" (default: "none")
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
 #' @param indices For SAP objects: Optional row indices of the selected segment_type to process.
 #' @param sample_percent For SAP objects: Percentage of segments to sample
@@ -85,6 +87,12 @@
 #'   ovlp = 75,
 #'   freq_range = c(2, 8)
 #' )
+#'
+#' # With waveform RMS normalization before spectral extraction
+#' sap_obj <- analyze_spectral(sap_object,
+#'   segment_type = "motifs",
+#'   amp_normalize = "rms"
+#' )
 #' }
 #'
 #' @rdname analyze_spectral
@@ -106,6 +114,7 @@ analyze_spectral.default <- function(x,
                                      threshold = 15,
                                      fsmooth = 0.1,
                                      fast = TRUE,
+                                     amp_normalize = c("none", "peak", "rms"),
                                      ...) {
   # Check required columns
   required_cols <- c("filename", "start_time", "end_time")
@@ -127,6 +136,8 @@ analyze_spectral.default <- function(x,
     stop("wav_dir must be provided either as argument or attribute")
   }
 
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
+
   # Function to process a single row
   process_row <- function(i) {
     spectral_analysis(x[i, ],
@@ -139,6 +150,7 @@ analyze_spectral.default <- function(x,
       threshold = threshold,
       fsmooth = fsmooth,
       fast = fast,
+      amp_normalize = amp_normalize,
       ...
     )
   }
@@ -195,11 +207,13 @@ analyze_spectral.Sap <- function(x,
                                  threshold = 15,
                                  fsmooth = 0.1,
                                  fast = TRUE,
+                                 amp_normalize = c("none", "peak", "rms"),
                                  verbose = TRUE,
                                  ...) {
   if (verbose) message(sprintf("\n=== Starting Spectral Features Analysis ===\n"))
 
   # Input validation
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
   segment_type <- match.arg(segment_type)
   segments_df <- x[[segment_type]]
 
@@ -244,6 +258,7 @@ analyze_spectral.Sap <- function(x,
     threshold = threshold,
     fsmooth = fsmooth,
     fast = fast,
+    amp_normalize = amp_normalize,
     ...
   )
 
@@ -326,6 +341,8 @@ analyze_spectral.Sap <- function(x,
 #' @param threshold Detection threshold
 #' @param fsmooth Smoothing parameter
 #' @param fast Skip peak frequency calculation
+#' @param amp_normalize Waveform amplitude normalization before spectral extraction:
+#'   one of "none", "peak", or "rms" (default: "none")
 #' @param ... Additional arguments
 #'
 #' @return
@@ -342,6 +359,7 @@ spectral_analysis <- function(x,
                               threshold = 15,
                               fsmooth = 0.1,
                               fast = TRUE,
+                              amp_normalize = c("none", "peak", "rms"),
                               ...) {
   # Check if input is a single row data frame
   if (!is.data.frame(x) || nrow(x) != 1) {
@@ -372,6 +390,16 @@ spectral_analysis <- function(x,
     to = x$end_time,
     units = "seconds"
   )
+
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
+  if (amp_normalize != "none") {
+    wave <- .normalize_wave_amplitude(
+      wv = wave,
+      method = amp_normalize,
+      target_rms = 0.1,
+      eps = 1e-8
+    )
+  }
 
   # Validate audio data
   if (length(wave@left) < 7) {

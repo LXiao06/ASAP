@@ -1,5 +1,5 @@
 # Create motif clips --------------------------------------------------------
-# Update date : Mar. 2, 2026
+# Update date : Mar. 4, 2026
 
 #' Create Motif Audio Clips
 #'
@@ -21,6 +21,8 @@
 #' @param hdf5_filename File name used when \code{output_format = "hdf5"}.
 #' @param metadata_filename Name of metadata CSV written to \code{output_dir}.
 #' @param name_prefix Prefix used for generated motif clip names.
+#' @param amp_normalize Waveform amplitude normalization applied to exported clips:
+#'   one of "none", "peak", or "rms" (default: "none")
 #' @param overwrite Logical. Overwrite existing output file(s) when TRUE.
 #'   Default is TRUE.
 #' @param write_metadata Logical. Write metadata CSV when TRUE.
@@ -57,6 +59,13 @@
 #'   output_format = "hdf5",
 #'   hdf5_filename = "motifs.h5"
 #' )
+#'
+#' # Export RMS-normalized motif clips
+#' sap <- create_motif_clips(
+#'   sap,
+#'   output_format = "wav",
+#'   amp_normalize = "rms"
+#' )
 #' }
 #'
 #' @export
@@ -76,6 +85,7 @@ create_motif_clips.default <- function(x,
                                        hdf5_filename = "motifs.h5",
                                        metadata_filename = "metadata.csv",
                                        name_prefix = "motif",
+                                       amp_normalize = c("none", "peak", "rms"),
                                        overwrite = TRUE,
                                        write_metadata = TRUE,
                                        verbose = TRUE,
@@ -96,6 +106,7 @@ create_motif_clips.default <- function(x,
 
   wav_dir <- normalizePath(wav_dir, mustWork = TRUE)
   output_format <- match.arg(output_format)
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
 
   if (is.null(output_dir) || !is.character(output_dir) || length(output_dir) != 1) {
     stop("output_dir must be provided as a single directory path")
@@ -122,6 +133,7 @@ create_motif_clips.default <- function(x,
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
+    amp_normalize = amp_normalize,
     overwrite = overwrite,
     write_metadata = write_metadata,
     verbose = verbose
@@ -141,6 +153,7 @@ create_motif_clips.Sap <- function(x,
                                    hdf5_filename = "motifs.h5",
                                    metadata_filename = "metadata.csv",
                                    name_prefix = "motif",
+                                   amp_normalize = c("none", "peak", "rms"),
                                    overwrite = TRUE,
                                    write_metadata = TRUE,
                                    verbose = TRUE,
@@ -152,6 +165,8 @@ create_motif_clips.Sap <- function(x,
   if (!inherits(x$motifs, "segment") || nrow(x$motifs) == 0) {
     stop("No motifs found in SAP object. Run find_motif() first.")
   }
+
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
 
   if (is.null(output_dir) || !is.character(output_dir) || length(output_dir) != 1) {
     stop("output_dir must be provided as a single directory path")
@@ -178,6 +193,7 @@ create_motif_clips.Sap <- function(x,
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
+    amp_normalize = amp_normalize,
     overwrite = overwrite,
     write_metadata = write_metadata,
     verbose = verbose
@@ -186,6 +202,7 @@ create_motif_clips.Sap <- function(x,
   current_export <- list(
     creation_date = Sys.time(),
     output_format = match.arg(output_format),
+    amp_normalize = amp_normalize,
     output_dir = normalizePath(output_dir, mustWork = TRUE),
     n_requested = if (!is.null(indices)) {
       length(indices)
@@ -355,6 +372,7 @@ create_motif_clips.Sap <- function(x,
                                hdf5_filename,
                                metadata_filename,
                                name_prefix,
+                               amp_normalize,
                                overwrite,
                                write_metadata,
                                verbose) {
@@ -458,13 +476,29 @@ create_motif_clips.Sap <- function(x,
         next
       }
 
-      av::av_audio_convert(
-        source_path,
-        out_path,
-        start_time = as.numeric(row$start_time),
-        total_time = as.numeric(duration),
-        verbose = FALSE
-      )
+      if (amp_normalize == "none") {
+        av::av_audio_convert(
+          source_path,
+          out_path,
+          start_time = as.numeric(row$start_time),
+          total_time = as.numeric(duration),
+          verbose = FALSE
+        )
+      } else {
+        wave <- tuneR::readWave(
+          filename = source_path,
+          from = as.numeric(row$start_time),
+          to = as.numeric(row$end_time),
+          units = "seconds"
+        )
+        wave <- .normalize_wave_amplitude(
+          wv = wave,
+          method = amp_normalize,
+          target_rms = 0.1,
+          eps = 1e-8
+        )
+        tuneR::writeWave(wave, filename = out_path)
+      }
 
       metadata_rows[[i]] <- data.frame(
         source_index = as.integer(row$.source_index),
@@ -475,6 +509,7 @@ create_motif_clips.Sap <- function(x,
         start_time = as.numeric(row$start_time),
         end_time = as.numeric(row$end_time),
         duration = as.numeric(duration),
+        amp_normalize = amp_normalize,
         clip_id = clip_id,
         output_path = normalizePath(out_path, mustWork = TRUE),
         stringsAsFactors = FALSE
@@ -486,6 +521,14 @@ create_motif_clips.Sap <- function(x,
         to = as.numeric(row$end_time),
         units = "seconds"
       )
+      if (amp_normalize != "none") {
+        wave <- .normalize_wave_amplitude(
+          wv = wave,
+          method = amp_normalize,
+          target_rms = 0.1,
+          eps = 1e-8
+        )
+      }
       sample_rates <- c(sample_rates, wave@samp.rate)
 
       sample_vec <- if (isTRUE(wave@stereo)) {
@@ -505,6 +548,7 @@ create_motif_clips.Sap <- function(x,
       hdf5r::h5attr(ds, "start_time") <- as.numeric(row$start_time)
       hdf5r::h5attr(ds, "end_time") <- as.numeric(row$end_time)
       hdf5r::h5attr(ds, "label") <- as.character(row$label)
+      hdf5r::h5attr(ds, "amp_normalize") <- as.character(amp_normalize)
       ds$close()
 
       metadata_rows[[i]] <- data.frame(
@@ -516,6 +560,7 @@ create_motif_clips.Sap <- function(x,
         start_time = as.numeric(row$start_time),
         end_time = as.numeric(row$end_time),
         duration = as.numeric(duration),
+        amp_normalize = amp_normalize,
         clip_id = clip_id,
         output_path = paste0("/", bird_id, "/", day, "/", clip_id),
         stringsAsFactors = FALSE
@@ -536,6 +581,7 @@ create_motif_clips.Sap <- function(x,
   if (output_format == "hdf5" && !is.null(h5)) {
     hdf5r::h5attr(h5, "creation_date") <- as.character(Sys.time())
     hdf5r::h5attr(h5, "n_clips") <- as.integer(nrow(export_meta))
+    hdf5r::h5attr(h5, "amp_normalize") <- as.character(amp_normalize)
     if (length(sample_rates) > 0 && length(unique(sample_rates)) == 1) {
       hdf5r::h5attr(h5, "sample_rate") <- as.integer(sample_rates[[1]])
     } else if (length(sample_rates) > 0) {
@@ -562,7 +608,7 @@ create_motif_clips.Sap <- function(x,
         stats[["exists"]]
       ))
     }
-    message(sprintf("Exported %d motif clips to %s format", nrow(export_meta), output_format))
+    message(sprintf("Exported %d motif clips to %s format (%s normalization)", nrow(export_meta), output_format, amp_normalize))
     message(sprintf("Output directory: %s", output_dir))
   }
 
