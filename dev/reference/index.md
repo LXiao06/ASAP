@@ -2,15 +2,10 @@
 
 ## Object Construction
 
-Functions for creating and writing the core SAP object and handling
-audio clips
+Functions for creating and writing the core SAP object
 
 - [`create_sap_object()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_object.md)
   : Create a Sound Analysis Pro (SAP) Object from Audio Recordings
-- [`create_audio_clip()`](https://lxiao06.github.io/ASAP/dev/reference/create_audio_clip.md)
-  : Create Audio Clips from Sound Files
-- [`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md)
-  : Create Motif Audio Clips
 - [`parse_filename()`](https://lxiao06.github.io/ASAP/dev/reference/parse_filename.md)
   : Parse filename for SAP metadata
 - [`validate_sap()`](https://lxiao06.github.io/ASAP/dev/reference/validate_sap.md)
@@ -20,6 +15,17 @@ audio clips
 - [`create_sap_metadata()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_metadata.md)
   : Create metadata for audio files recorded by SAP2011 (Sound Analysis
   Pro)
+
+## Curated Song Export
+
+Functions for exporting audio clips of detected bouts and motifs.
+
+- [`create_audio_clip()`](https://lxiao06.github.io/ASAP/dev/reference/create_audio_clip.md)
+  : Create Audio Clips from Sound Files
+- [`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md)
+  : Create Motif Audio Clips
+- [`create_bout_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_bout_clips.md)
+  : Create Bout Audio Clips
 
 ## Detection & Segmentation
 
