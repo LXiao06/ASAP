@@ -213,18 +213,36 @@ if (file.exists("figures/longitudinal_heatmap.png")) {
 Once motifs are detected, you may want to export them as individual audio files for external analysis, sharing, or manual review. The `create_motif_clips()` function makes this easy by extracting the audio segments for your detected motifs and saving them in an organized directory structure.
 
 ```{r export-motifs, eval = FALSE}
-# Export the first 50 motifs as individual WAV files
+# Export up to 200 motifs per day as individual WAV files
 sap <- create_motif_clips(
   sap,
   output_format = "wav",
   output_dir = "exported_motifs",
-  indices = 1:50, # Export specific motifs, or omit to export all
+  n_motifs = 200, # randomly sample up to 200 motifs per day
   amp_normalize = "peak", # Normalize amplitude to prevent clipping
   verbose = TRUE
 )
 ```
 
 By default, this will organize the exported `.wav` files into a clean folder hierarchy (`exported_motifs/motifs/{bird_id}/{day_post_hatch}/motif_xxx.wav`) and automatically generate a companion `metadata.csv` containing the timing and source information for each audio clip.
+
+### Exporting as HDF5
+
+For large-scale datasets or machine learning workflows, you can export all clips into a single HDF5 file instead of individual WAV files. This keeps everything self-contained and is faster to load in Python or R:
+
+```{r export-hdf5, eval = FALSE}
+sap <- create_motif_clips(
+  sap,
+  output_format = "hdf5",
+  output_dir    = "exported_motifs",
+  n_motifs      = 200,
+  hdf5_filename = "motifs.h5"
+)
+```
+
+```markdown
+For a full walkthrough of exporting options across different scenarios, see the [Exporting Curated Song Clips](exporting_song_clips.html) vignette.
+```
 
 ## Feature Extraction and Analysis
 
