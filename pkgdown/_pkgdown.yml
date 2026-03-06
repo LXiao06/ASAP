@@ -46,15 +46,20 @@ articles:
 
 reference:
   - title: "Object Construction"
-    desc: "Functions for creating and writing the core SAP object and handling audio clips"
+    desc: "Functions for creating and writing the core SAP object"
     contents:
       - create_sap_object
-      - create_audio_clip
-      - create_motif_clips
       - parse_filename
       - validate_sap
       - compute_wav_durations
       - create_sap_metadata
+
+  - title: "Curated Song Export"
+    desc: "Functions for exporting audio clips of detected bouts and motifs."
+    contents:
+      - create_audio_clip
+      - create_motif_clips
+      - create_bout_clips
 
   - title: "Detection & Segmentation"
     desc: "Functions for finding bouts, motives and segmenting syllables"
