@@ -1,5 +1,5 @@
-# Create motif clips --------------------------------------------------------
-# Update date : Mar. 4, 2026
+# Create motif/bout clips --------------------------------------------------------
+# Update date : Mar. 6, 2026
 
 #' Create Motif Audio Clips
 #'
@@ -119,19 +119,20 @@ create_motif_clips.default <- function(x,
   }
   output_dir <- normalizePath(output_dir, mustWork = TRUE)
 
-  motifs <- .subset_motif_rows(
+  motifs <- .subset_clip_rows(
     x,
     indices = indices,
-    n_motifs = n_motifs,
+    n_clips = n_motifs,
     seed = seed
   )
-  motifs <- .prepare_motif_export_rows(motifs)
+  motifs <- .prepare_clip_export_rows(motifs)
 
-  export_meta <- .export_motif_rows(
+  export_meta <- .export_clip_rows(
     motifs = motifs,
     wav_dir = wav_dir,
     output_format = output_format,
     output_dir = output_dir,
+    output_subdir = "motifs",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -180,20 +181,21 @@ create_motif_clips.Sap <- function(x,
     dir.create(output_dir, recursive = TRUE)
   }
 
-  motifs <- .subset_motif_rows(
+  motifs <- .subset_clip_rows(
     x$motifs,
     indices = indices,
-    n_motifs = n_motifs,
+    n_clips = n_motifs,
     seed = seed
   )
   motifs <- .add_bird_id_from_metadata(motifs = motifs, metadata = x$metadata)
-  motifs <- .prepare_motif_export_rows(motifs)
+  motifs <- .prepare_clip_export_rows(motifs)
 
-  export_meta <- .export_motif_rows(
+  export_meta <- .export_clip_rows(
     motifs = motifs,
     wav_dir = x$base_path,
     output_format = match.arg(output_format),
     output_dir = output_dir,
+    output_subdir = "motifs",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -254,16 +256,271 @@ create_motif_clips.Sap <- function(x,
   invisible(x)
 }
 
-.subset_motif_rows <- function(motifs, indices = NULL, n_motifs = NULL, seed = 222) {
+# Create bout clips -----------------------------------------------------------
+
+#' Create Bout Audio Clips
+#'
+#' @description
+#' Exports bout-level clips detected by \code{find_bout()} either as WAV files
+#' in a directory tree or as datasets in a single HDF5 file. Bouts typically
+#' span multiple motifs and are longer than individual motif clips.
+#'
+#' @param x A SAP object or a bouts data frame.
+#' @param indices Optional numeric vector of bout row indices to export.
+#'   If NULL, all bouts are exported.
+#' @param n_bouts Optional integer. Number of bouts to randomly sample when
+#'   \code{indices} is NULL. Sampling is applied per day/subdirectory
+#'   (\code{day_post_hatch}) when available. If NULL, all bouts are processed.
+#' @param seed Integer random seed used when \code{n_bouts} sampling is applied.
+#'   Default is \code{222}.
+#' @param output_format Output type: \code{"wav"} or \code{"hdf5"}.
+#' @param output_dir Directory where output files are written.
+#' @param wav_dir For data-frame method: base directory containing source WAV files.
+#' @param hdf5_filename File name used when \code{output_format = "hdf5"}.
+#' @param metadata_filename Name of metadata CSV written to \code{output_dir}.
+#' @param name_prefix Prefix used for generated bout clip names.
+#' @param amp_normalize Waveform amplitude normalization applied to exported clips:
+#'   one of "none", "peak", or "rms" (default: "none").
+#' @param cores Number of CPU cores used for clip processing.
+#' @param overwrite Logical. Overwrite existing output file(s) when TRUE.
+#'   Default is TRUE.
+#' @param write_metadata Logical. Write metadata CSV when TRUE.
+#' @param verbose Logical. Print one export summary per day and overall totals.
+#' @param ... Additional arguments passed to methods.
+#'
+#' @details
+#' Output layout for \code{output_format = "wav"}:
+#' \preformatted{
+#' output_dir/bouts/{bird_id}/{day_post_hatch}/{name_prefix}_001.wav
+#' }
+#'
+#' Output layout for \code{output_format = "hdf5"}:
+#' \preformatted{
+#' output_dir/{hdf5_filename}
+#'   /{bird_id}/{day_post_hatch}/{name_prefix}_001
+#' }
+#'
+#' If \code{bird_id} is not available in bout rows, the function attempts to
+#' infer it from metadata. Missing values are stored as \code{"unknown_bird"}.
+#'
+#' @return
+#' For SAP input: updated SAP object with export summary in
+#' \code{x$misc$bout_clip_exports}. For data-frame input: metadata data frame.
+#'
+#' @examples
+#' \dontrun{
+#' # Export up to 50 bouts per day as WAV files
+#' sap <- sap |>
+#'   find_bout(min_duration = 0.4, summary = TRUE) |>
+#'   create_bout_clips(
+#'     n_bouts = 50,
+#'     output_format = "wav",
+#'     output_dir = "exported_bouts"
+#'   )
+#'
+#' # Export all bouts to a single HDF5 file
+#' sap <- create_bout_clips(
+#'   sap,
+#'   output_format = "hdf5",
+#'   output_dir    = "exported_bouts",
+#'   hdf5_filename = "bouts.h5"
+#' )
+#' }
+#'
+#' @export
+create_bout_clips <- function(x, ...) {
+  UseMethod("create_bout_clips")
+}
+
+#' @rdname create_bout_clips
+#' @export
+create_bout_clips.default <- function(x,
+                                      wav_dir,
+                                      indices = NULL,
+                                      n_bouts = NULL,
+                                      seed = 222,
+                                      output_format = c("wav", "hdf5"),
+                                      output_dir = NULL,
+                                      hdf5_filename = "bouts.h5",
+                                      metadata_filename = "metadata.csv",
+                                      name_prefix = "bout",
+                                      amp_normalize = c("none", "peak", "rms"),
+                                      cores = NULL,
+                                      overwrite = TRUE,
+                                      write_metadata = TRUE,
+                                      verbose = TRUE,
+                                      ...) {
+  if (!is.data.frame(x)) {
+    stop("Input must be a data frame for default method")
+  }
+
+  required_cols <- c("filename", "start_time", "end_time")
+  missing_cols <- setdiff(required_cols, names(x))
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
+  }
+
+  if (nrow(x) == 0) {
+    stop("Input data frame is empty")
+  }
+
+  wav_dir <- normalizePath(wav_dir, mustWork = TRUE)
+  output_format <- match.arg(output_format)
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
+
+  if (is.null(output_dir) || !is.character(output_dir) || length(output_dir) != 1) {
+    stop("output_dir must be provided as a single directory path")
+  }
+
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  output_dir <- normalizePath(output_dir, mustWork = TRUE)
+
+  bouts <- .subset_clip_rows(x, indices = indices, n_clips = n_bouts, seed = seed)
+  bouts <- .prepare_clip_export_rows(bouts)
+
+  export_meta <- .export_clip_rows(
+    motifs = bouts,
+    wav_dir = wav_dir,
+    output_format = output_format,
+    output_dir = output_dir,
+    output_subdir = "bouts",
+    hdf5_filename = hdf5_filename,
+    metadata_filename = metadata_filename,
+    name_prefix = name_prefix,
+    amp_normalize = amp_normalize,
+    cores = cores,
+    overwrite = overwrite,
+    write_metadata = write_metadata,
+    verbose = verbose
+  )
+
+  return(export_meta)
+}
+
+#' @rdname create_bout_clips
+#' @export
+create_bout_clips.Sap <- function(x,
+                                  indices = NULL,
+                                  n_bouts = NULL,
+                                  seed = 222,
+                                  output_format = c("wav", "hdf5"),
+                                  output_dir = NULL,
+                                  hdf5_filename = "bouts.h5",
+                                  metadata_filename = "metadata.csv",
+                                  name_prefix = "bout",
+                                  amp_normalize = c("none", "peak", "rms"),
+                                  cores = NULL,
+                                  overwrite = TRUE,
+                                  write_metadata = TRUE,
+                                  verbose = TRUE,
+                                  ...) {
+  if (!inherits(x, "Sap")) {
+    stop("Input must be a SAP object")
+  }
+
+  if (is.null(x$bouts) || nrow(x$bouts) == 0) {
+    stop("No bouts found in SAP object. Run find_bout() first.")
+  }
+
+  amp_normalize <- .parse_amp_normalize(amp_normalize)
+
+  if (is.null(output_dir) || !is.character(output_dir) || length(output_dir) != 1) {
+    stop("output_dir must be provided as a single directory path")
+  }
+
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+
+  bouts <- .subset_clip_rows(
+    x$bouts,
+    indices = indices,
+    n_clips = n_bouts,
+    seed = seed
+  )
+  bouts <- .add_bird_id_from_metadata(motifs = bouts, metadata = x$metadata)
+  bouts <- .prepare_clip_export_rows(bouts)
+
+  export_meta <- .export_clip_rows(
+    motifs = bouts,
+    wav_dir = x$base_path,
+    output_format = match.arg(output_format),
+    output_dir = output_dir,
+    output_subdir = "bouts",
+    hdf5_filename = hdf5_filename,
+    metadata_filename = metadata_filename,
+    name_prefix = name_prefix,
+    amp_normalize = amp_normalize,
+    cores = cores,
+    overwrite = overwrite,
+    write_metadata = write_metadata,
+    verbose = verbose
+  )
+
+  current_export <- list(
+    creation_date = Sys.time(),
+    output_format = match.arg(output_format),
+    amp_normalize = amp_normalize,
+    output_dir = normalizePath(output_dir, mustWork = TRUE),
+    n_requested = if (!is.null(indices)) {
+      length(indices)
+    } else if (!is.null(n_bouts)) {
+      if ("day_post_hatch" %in% names(x$bouts)) {
+        day_vals <- as.character(x$bouts$day_post_hatch)
+        day_vals[is.na(day_vals) | day_vals == ""] <- "unknown_day"
+        sum(pmin(as.integer(n_bouts), as.integer(table(day_vals))))
+      } else {
+        min(as.integer(n_bouts), nrow(x$bouts))
+      }
+    } else {
+      nrow(x$bouts)
+    },
+    n_written = nrow(export_meta),
+    selected_indices = as.integer(bouts$.source_index),
+    exported_indices = if (nrow(export_meta) > 0 && "source_index" %in% names(export_meta)) {
+      as.integer(export_meta$source_index)
+    } else {
+      integer(0)
+    },
+    skipped_indices = if (nrow(export_meta) > 0 && "source_index" %in% names(export_meta)) {
+      setdiff(as.integer(bouts$.source_index), as.integer(export_meta$source_index))
+    } else {
+      as.integer(bouts$.source_index)
+    },
+    metadata_path = if (write_metadata) {
+      file.path(normalizePath(output_dir, mustWork = TRUE), metadata_filename)
+    } else {
+      NA_character_
+    },
+    metadata_df = export_meta
+  )
+
+  if (isTRUE(overwrite)) {
+    x$misc$bout_clip_exports <- list(current_export)
+  } else {
+    prev <- x$misc$bout_clip_exports
+    if (is.null(prev) || !is.list(prev)) prev <- list()
+    x$misc$bout_clip_exports <- c(prev, list(current_export))
+  }
+  x$misc$last_modified <- Sys.time()
+
+  invisible(x)
+}
+
+# Internal helpers ------------------------------------------------------------
+
+.subset_clip_rows <- function(rows, indices = NULL, n_clips = NULL, seed = 222) {
   if (is.null(indices)) {
-    if (!is.null(n_motifs)) {
-      if (!is.numeric(n_motifs) || length(n_motifs) != 1 || is.na(n_motifs)) {
-        stop("n_motifs must be a single numeric value")
+    if (!is.null(n_clips)) {
+      if (!is.numeric(n_clips) || length(n_clips) != 1 || is.na(n_clips)) {
+        stop("n_clips must be a single numeric value")
       }
 
-      n_motifs <- as.integer(n_motifs)
-      if (n_motifs < 1) {
-        stop("n_motifs must be >= 1")
+      n_clips <- as.integer(n_clips)
+      if (n_clips < 1) {
+        stop("n_clips must be >= 1")
       }
 
       if (!is.numeric(seed) || length(seed) != 1 || is.na(seed)) {
@@ -274,50 +531,50 @@ create_motif_clips.Sap <- function(x,
       }
       set.seed(222L)
 
-      if (n_motifs >= nrow(motifs)) {
+      if (n_clips >= nrow(rows)) {
         warning(sprintf(
-          "n_motifs (%d) >= available motifs (%d); using all motifs",
-          n_motifs,
-          nrow(motifs)
+          "n_clips (%d) >= available rows (%d); using all rows",
+          n_clips,
+          nrow(rows)
         ))
-        motifs$.source_index <- seq_len(nrow(motifs))
-        return(motifs)
+        rows$.source_index <- seq_len(nrow(rows))
+        return(rows)
       }
 
-      if ("day_post_hatch" %in% names(motifs)) {
-        day_vals <- as.character(motifs$day_post_hatch)
+      if ("day_post_hatch" %in% names(rows)) {
+        day_vals <- as.character(rows$day_post_hatch)
         day_vals[is.na(day_vals) | day_vals == ""] <- "unknown_day"
 
-        idx_by_day <- split(seq_len(nrow(motifs)), day_vals)
+        idx_by_day <- split(seq_len(nrow(rows)), day_vals)
         sampled_idx <- unlist(lapply(idx_by_day, function(idx) {
-          sample(idx, size = min(n_motifs, length(idx)), replace = FALSE)
+          sample(idx, size = min(n_clips, length(idx)), replace = FALSE)
         }), use.names = FALSE)
       } else {
-        sampled_idx <- sample(seq_len(nrow(motifs)), size = n_motifs, replace = FALSE)
+        sampled_idx <- sample(seq_len(nrow(rows)), size = n_clips, replace = FALSE)
       }
 
-      result <- motifs[sampled_idx, , drop = FALSE]
+      result <- rows[sampled_idx, , drop = FALSE]
       result$.source_index <- sampled_idx
       return(result)
     }
 
-    motifs$.source_index <- seq_len(nrow(motifs))
-    return(motifs)
+    rows$.source_index <- seq_len(nrow(rows))
+    return(rows)
   }
 
   if (!is.numeric(indices) || anyNA(indices)) {
     stop("indices must be a numeric vector without NA values")
   }
 
-  if (any(indices < 1) || any(indices > nrow(motifs))) {
-    stop(sprintf("indices must be between 1 and %d", nrow(motifs)))
+  if (any(indices < 1) || any(indices > nrow(rows))) {
+    stop(sprintf("indices must be between 1 and %d", nrow(rows)))
   }
 
   if (length(unique(indices)) != length(indices)) {
     warning("Duplicate indices detected; duplicates will be exported multiple times")
   }
 
-  result <- motifs[indices, , drop = FALSE]
+  result <- rows[indices, , drop = FALSE]
   result$.source_index <- indices
   return(result)
 }
@@ -352,7 +609,7 @@ create_motif_clips.Sap <- function(x,
   merged
 }
 
-.prepare_motif_export_rows <- function(motifs) {
+.prepare_clip_export_rows <- function(motifs) {
   if (!"day_post_hatch" %in% names(motifs)) {
     motifs$day_post_hatch <- "unknown_day"
   }
@@ -370,18 +627,19 @@ create_motif_clips.Sap <- function(x,
   motifs
 }
 
-.export_motif_rows <- function(motifs,
-                               wav_dir,
-                               output_format,
-                               output_dir,
-                               hdf5_filename,
-                               metadata_filename,
-                               name_prefix,
-                               amp_normalize,
-                               cores,
-                               overwrite,
-                               write_metadata,
-                               verbose) {
+.export_clip_rows <- function(motifs,
+                              wav_dir,
+                              output_format,
+                              output_dir,
+                              output_subdir,
+                              hdf5_filename,
+                              metadata_filename,
+                              name_prefix,
+                              amp_normalize,
+                              cores,
+                              overwrite,
+                              write_metadata,
+                              verbose) {
   jobs <- motifs
   jobs$day_summary <- as.character(jobs$day_post_hatch)
   jobs$day_summary[is.na(jobs$day_summary) | jobs$day_summary == ""] <- "unknown_day"
@@ -408,12 +666,12 @@ create_motif_clips.Sap <- function(x,
       return(list(status = "missing", day_summary = as.character(row$day_summary), metadata = NULL))
     }
     if (!is.finite(duration) || duration <= 0) {
-      warning(sprintf("Skipping motif index %s with non-positive duration", row$.source_index))
+      warning(sprintf("Skipping clip index %s with non-positive duration", row$.source_index))
       return(list(status = "invalid", day_summary = as.character(row$day_summary), metadata = NULL))
     }
 
     if (output_format == "wav") {
-      out_dir <- file.path(output_dir, "motifs", as.character(row$bird_id_clean), as.character(row$day_clean))
+      out_dir <- file.path(output_dir, output_subdir, as.character(row$bird_id_clean), as.character(row$day_clean))
       if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
       out_path <- file.path(out_dir, paste0(as.character(row$clip_id), ".wav"))
 
@@ -560,7 +818,7 @@ create_motif_clips.Sap <- function(x,
   metadata_rows <- lapply(results, function(x) x$metadata)
   export_meta <- do.call(rbind, metadata_rows[!vapply(metadata_rows, is.null, logical(1))])
   if (is.null(export_meta)) {
-    warning("No motif clips were exported")
+    warning("No clips were exported")
     export_meta <- data.frame()
   }
 
@@ -588,7 +846,7 @@ create_motif_clips.Sap <- function(x,
         sum(d$status == "exists")
       ))
     }
-    message(sprintf("Exported %d motif clips to %s format (%s normalization)", nrow(export_meta), output_format, amp_normalize))
+    message(sprintf("Exported %d clips to %s format (%s normalization)", nrow(export_meta), output_format, amp_normalize))
     message(sprintf("Output directory: %s", output_dir))
   }
 
