@@ -64,7 +64,7 @@ sap <- sap |>
     min_duration = 0.4,
     gap_duration = 0.3,
     freq_range = c(3, 5),
-    summary = TRUE  # Include motif-bout relationships
+    summary = TRUE # Include motif-bout relationships
   )
 
 # Visualize results
@@ -269,6 +269,34 @@ show skewed distributions and non-constant variance across development:
 and contain fewer motifs from BL to Post to Rec. - The timing between
 bouts remains unchanged across stages.
 
+## Exporting Bout Clips
+
+After detecting bouts, you can export them as individual audio files for
+external analysis, manual review, or machine learning workflows using
+[`create_bout_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_bout_clips.md).
+
+``` r
+# Export up to 50 bouts per day as WAV files
+sap <- create_bout_clips(
+  sap,
+  output_format = "wav",
+  output_dir    = "exported_bouts",
+  n_bouts       = 50, # randomly sample up to 50 bouts per day
+  amp_normalize = "peak", # normalize amplitude to prevent clipping
+  verbose       = TRUE
+)
+```
+
+The exported clips are organized into a tidy directory tree
+(`exported_bouts/bouts/{bird_id}/{day_post_hatch}/bout_xxx.wav`) and a
+companion `metadata.csv` is written automatically with source timing and
+per-clip information.
+
+For a full walkthrough of export arguments and additional scenarios, see
+the [Exporting Curated Song
+Clips](https://lxiao06.github.io/ASAP/dev/articles/exporting_song_clips.md)
+vignette.
+
 ## Key Parameters for Bout Detection
 
 Understanding and optimizing these parameters is crucial for accurate
@@ -309,7 +337,7 @@ sap <- sap |>
   find_bout(
     min_duration = 0.4,
     save_plot = TRUE,
-    plot_percent = 20  # Review 20% of files
+    plot_percent = 20 # Review 20% of files
   )
 
 # Check plots in: base_path/plots/bout_detection/

@@ -131,7 +131,7 @@ Detection</a>), you can load that SAP object and add bout detection:</p>
 <span>    min_duration <span class="op">=</span> <span class="fl">0.4</span>,</span>
 <span>    gap_duration <span class="op">=</span> <span class="fl">0.3</span>,</span>
 <span>    freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span>    summary <span class="op">=</span> <span class="cn">TRUE</span>  <span class="co"># Include motif-bout relationships</span></span>
+<span>    summary <span class="op">=</span> <span class="cn">TRUE</span> <span class="co"># Include motif-bout relationships</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Visualize results</span></span>
@@ -390,6 +390,30 @@ The timing between bouts remains unchanged across stages.</p>
 </div>
 </div>
 <div class="section level2">
+<h2 id="exporting-bout-clips">Exporting Bout Clips<a class="anchor" aria-label="anchor" href="#exporting-bout-clips"></a>
+</h2>
+<p>After detecting bouts, you can export them as individual audio files
+for external analysis, manual review, or machine learning workflows
+using <code><a href="../reference/create_bout_clips.html">create_bout_clips()</a></code>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Export up to 50 bouts per day as WAV files</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_bout_clips.html">create_bout_clips</a></span><span class="op">(</span></span>
+<span>  <span class="va">sap</span>,</span>
+<span>  output_format <span class="op">=</span> <span class="st">"wav"</span>,</span>
+<span>  output_dir    <span class="op">=</span> <span class="st">"exported_bouts"</span>,</span>
+<span>  n_bouts       <span class="op">=</span> <span class="fl">50</span>, <span class="co"># randomly sample up to 50 bouts per day</span></span>
+<span>  amp_normalize <span class="op">=</span> <span class="st">"peak"</span>, <span class="co"># normalize amplitude to prevent clipping</span></span>
+<span>  verbose       <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The exported clips are organized into a tidy directory tree
+(<code>exported_bouts/bouts/{bird_id}/{day_post_hatch}/bout_xxx.wav</code>)
+and a companion <code>metadata.csv</code> is written automatically with
+source timing and per-clip information.</p>
+<p>For a full walkthrough of export arguments and additional scenarios,
+see the <a href="exporting_song_clips.html">Exporting Curated Song
+Clips</a> vignette.</p>
+</div>
+<div class="section level2">
 <h2 id="key-parameters-for-bout-detection">Key Parameters for Bout Detection<a class="anchor" aria-label="anchor" href="#key-parameters-for-bout-detection"></a>
 </h2>
 <p>Understanding and optimizing these parameters is crucial for accurate
@@ -488,7 +512,7 @@ base_path/plots/bout_detection/</td>
 </h3>
 <p>Test parameters on representative files from each time point before
 processing the entire dataset:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Test on a single file</span></span>
 <span><span class="va">test_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">base_path</span>, <span class="st">"190"</span>, <span class="va">sap</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">filename</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -507,13 +531,13 @@ processing the entire dataset:</p>
 </h3>
 <p>Always visualize sample detections to verify bout boundaries are
 accurate:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Save plots for manual review</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span></span>
 <span>    min_duration <span class="op">=</span> <span class="fl">0.4</span>,</span>
 <span>    save_plot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    plot_percent <span class="op">=</span> <span class="fl">20</span>  <span class="co"># Review 20% of files</span></span>
+<span>    plot_percent <span class="op">=</span> <span class="fl">20</span> <span class="co"># Review 20% of files</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Check plots in: base_path/plots/bout_detection/</span></span></code></pre></div>
@@ -523,7 +547,7 @@ accurate:</p>
 </h3>
 <p>Enable <code>summary = TRUE</code> when you have motif data to
 understand bout-motif relationships:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Requires existing motif detection</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, pre_time <span class="op">=</span> <span class="fl">0.7</span>, lag_time <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -539,7 +563,7 @@ understand bout-motif relationships:</p>
 </h3>
 <p>Use <code>balanced = TRUE</code> when creating visualizations or
 statistics for cross-timepoint comparisons:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Balanced heatmap for fair comparison</span></span>
 <span><span class="va">sap</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"bouts"</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
@@ -574,7 +598,7 @@ statistics for cross-timepoint comparisons:</p>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
