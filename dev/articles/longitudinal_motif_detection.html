@@ -258,12 +258,12 @@ audio files for external analysis, sharing, or manual review. The
 the audio segments for your detected motifs and saving them in an
 organized directory structure.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Export the first 50 motifs as individual WAV files</span></span>
+<code class="sourceCode R"><span><span class="co"># Export up to 200 motifs per day as individual WAV files</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
 <span>  <span class="va">sap</span>,</span>
 <span>  output_format <span class="op">=</span> <span class="st">"wav"</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="st">"exported_motifs"</span>,</span>
-<span>  indices <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">50</span>, <span class="co"># Export specific motifs, or omit to export all</span></span>
+<span>  n_motifs <span class="op">=</span> <span class="fl">200</span>, <span class="co"># randomly sample up to 200 motifs per day</span></span>
 <span>  amp_normalize <span class="op">=</span> <span class="st">"peak"</span>, <span class="co"># Normalize amplitude to prevent clipping</span></span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -272,6 +272,23 @@ into a clean folder hierarchy
 (<code>exported_motifs/motifs/{bird_id}/{day_post_hatch}/motif_xxx.wav</code>)
 and automatically generate a companion <code>metadata.csv</code>
 containing the timing and source information for each audio clip.</p>
+<div class="section level3">
+<h3 id="exporting-as-hdf5">Exporting as HDF5<a class="anchor" aria-label="anchor" href="#exporting-as-hdf5"></a>
+</h3>
+<p>For large-scale datasets or machine learning workflows, you can
+export all clips into a single HDF5 file instead of individual WAV
+files. This keeps everything self-contained and is faster to load in
+Python or R:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
+<span>  <span class="va">sap</span>,</span>
+<span>  output_format <span class="op">=</span> <span class="st">"hdf5"</span>,</span>
+<span>  output_dir    <span class="op">=</span> <span class="st">"exported_motifs"</span>,</span>
+<span>  n_motifs      <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  hdf5_filename <span class="op">=</span> <span class="st">"motifs.h5"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>For a full walkthrough of exporting options across different scenarios, see the <span class="co">[</span><span class="ot">Exporting Curated Song Clips</span><span class="co">](exporting_song_clips.html)</span> vignette.</span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="feature-extraction-and-analysis">Feature Extraction and Analysis<a class="anchor" aria-label="anchor" href="#feature-extraction-and-analysis"></a>
@@ -289,7 +306,7 @@ structure</li>
 <li>
 <strong>Reducing noise</strong> in downstream visualizations</li>
 </ul>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract spectral features (frequency, entropy, duration, etc.)</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -329,7 +346,7 @@ cluster membership and latent feature structure rather than
 chronological order. Typically, ordering motifs by acoustic similarity
 creates a <strong>cleaner, more organized heatmap</strong> that
 addresses the visual noise from duration variability.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create heatmap ordered by cluster membership</span></span>
 <span><span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span><span class="va">sap</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Why this helps:</strong></p>
@@ -407,7 +424,7 @@ representation.</p></li>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
@@ -433,7 +450,7 @@ representation.</p></li>
 <span><span class="co">#&gt;  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    </span></span>
 <span><span class="co">#&gt;  [5] xfun_0.56         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  </span></span>
 <span><span class="co">#&gt;  [9] rmarkdown_2.30    lifecycle_1.0.5   cli_3.6.5         sass_0.4.10      </span></span>
-<span><span class="co">#&gt; [13] pkgdown_2.2.0     textshaping_1.0.4 jquerylib_0.1.4   systemfonts_1.3.1</span></span>
+<span><span class="co">#&gt; [13] pkgdown_2.2.0     textshaping_1.0.4 jquerylib_0.1.4   systemfonts_1.3.2</span></span>
 <span><span class="co">#&gt; [17] compiler_4.5.2    tools_4.5.2       ragg_1.5.0        evaluate_1.0.5   </span></span>
 <span><span class="co">#&gt; [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.1.7      </span></span>
 <span><span class="co">#&gt; [25] fs_1.6.6</span></span></code></pre></div>

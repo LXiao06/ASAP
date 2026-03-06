@@ -199,12 +199,12 @@ function makes this easy by extracting the audio segments for your
 detected motifs and saving them in an organized directory structure.
 
 ``` r
-# Export the first 50 motifs as individual WAV files
+# Export up to 200 motifs per day as individual WAV files
 sap <- create_motif_clips(
   sap,
   output_format = "wav",
   output_dir = "exported_motifs",
-  indices = 1:50, # Export specific motifs, or omit to export all
+  n_motifs = 200, # randomly sample up to 200 motifs per day
   amp_normalize = "peak", # Normalize amplitude to prevent clipping
   verbose = TRUE
 )
@@ -215,6 +215,26 @@ folder hierarchy
 (`exported_motifs/motifs/{bird_id}/{day_post_hatch}/motif_xxx.wav`) and
 automatically generate a companion `metadata.csv` containing the timing
 and source information for each audio clip.
+
+### Exporting as HDF5
+
+For large-scale datasets or machine learning workflows, you can export
+all clips into a single HDF5 file instead of individual WAV files. This
+keeps everything self-contained and is faster to load in Python or R:
+
+``` r
+sap <- create_motif_clips(
+  sap,
+  output_format = "hdf5",
+  output_dir    = "exported_motifs",
+  n_motifs      = 200,
+  hdf5_filename = "motifs.h5"
+)
+```
+
+``` markdown
+For a full walkthrough of exporting options across different scenarios, see the [Exporting Curated Song Clips](exporting_song_clips.html) vignette.
+```
 
 ## Feature Extraction and Analysis
 
@@ -338,7 +358,7 @@ sessionInfo()
 #>  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    
 #>  [5] xfun_0.56         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
 #>  [9] rmarkdown_2.30    lifecycle_1.0.5   cli_3.6.5         sass_0.4.10      
-#> [13] pkgdown_2.2.0     textshaping_1.0.4 jquerylib_0.1.4   systemfonts_1.3.1
+#> [13] pkgdown_2.2.0     textshaping_1.0.4 jquerylib_0.1.4   systemfonts_1.3.2
 #> [17] compiler_4.5.2    tools_4.5.2       ragg_1.5.0        evaluate_1.0.5   
 #> [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.1.7      
 #> [25] fs_1.6.6
