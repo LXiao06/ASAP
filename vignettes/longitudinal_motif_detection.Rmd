@@ -52,24 +52,32 @@ sap <- create_sap_object(
 
 # Run the complete motif detection pipeline
 sap <- sap |>
-  create_audio_clip(indices = 1, 
-                    start_time = 1, 
-                    end_time = 2.5, 
-                    clip_names = "motif_ref") |>
-  create_template(template_name = "syllable_d", 
-                  clip_name = "motif_ref",
-                  start_time = 0.72, 
-                  end_time = 0.84,
-                  freq_min = 1, 
-                  freq_max = 10, 
-                  threshold = 0.5, 
-                  write_template = TRUE) |>
-  detect_template(template_name = "syllable_d",
-                  threshold = 0.5,
-                  proximity_window = 1) |>
-  find_motif(template_name = "syllable_d", 
-             pre_time = 0.7, 
-             lag_time = 0.5)
+  create_audio_clip(
+    indices = 1,
+    start_time = 1,
+    end_time = 2.5,
+    clip_names = "motif_ref"
+  ) |>
+  create_template(
+    template_name = "syllable_d",
+    clip_name = "motif_ref",
+    start_time = 0.72,
+    end_time = 0.84,
+    freq_min = 1,
+    freq_max = 10,
+    threshold = 0.5,
+    write_template = TRUE
+  ) |>
+  detect_template(
+    template_name = "syllable_d",
+    threshold = 0.5,
+    proximity_window = 1
+  ) |>
+  find_motif(
+    template_name = "syllable_d",
+    pre_time = 0.7,
+    lag_time = 0.5
+  )
 ```
 
 ### Understanding SAP Object Behavior
@@ -156,9 +164,10 @@ sap <- readRDS("longitudinal_motif_analysis.rds")
 
 ```{r visualize, eval = FALSE}
 # Visualize sample motifs from each time point
-visualize_segments(sap, 
-                   segment_type = "motifs", 
-                   n_samples = 3)
+visualize_segments(sap,
+  segment_type = "motifs",
+  n_samples = 3
+)
 ```
 
 ```{r visualize-segments-output, echo = FALSE, eval = TRUE, out.width = "100%", fig.cap = "Sample motif spectrograms across developmental time points."}
@@ -199,6 +208,24 @@ if (file.exists("figures/longitudinal_heatmap.png")) {
 }
 ```
 
+## Exporting Motif Clips
+
+Once motifs are detected, you may want to export them as individual audio files for external analysis, sharing, or manual review. The `create_motif_clips()` function makes this easy by extracting the audio segments for your detected motifs and saving them in an organized directory structure.
+
+```{r export-motifs, eval = FALSE}
+# Export the first 50 motifs as individual WAV files
+sap <- create_motif_clips(
+  sap,
+  output_format = "wav",
+  output_dir = "exported_motifs",
+  indices = 1:50, # Export specific motifs, or omit to export all
+  amp_normalize = "peak", # Normalize amplitude to prevent clipping
+  verbose = TRUE
+)
+```
+
+By default, this will organize the exported `.wav` files into a clean folder hierarchy (`exported_motifs/motifs/{bird_id}/{day_post_hatch}/motif_xxx.wav`) and automatically generate a companion `metadata.csv` containing the timing and source information for each audio clip.
+
 ## Feature Extraction and Analysis
 
 Extracting spectral features allows you to quantify motif acoustic properties 
@@ -212,8 +239,8 @@ and identify clusters of similar motifs. This is particularly useful for:
 # Extract spectral features (frequency, entropy, duration, etc.)
 sap <- sap |>
   analyze_spectral(balanced = TRUE) |>
-  find_clusters() |>              # Group acoustically similar motifs
-  run_umap()                       # Dimensionality reduction for visualization
+  find_clusters() |> # Group acoustically similar motifs
+  run_umap() # Dimensionality reduction for visualization
 
 # Visualize UMAP by time point
 plot_umap(sap, split.by = "label")
