@@ -111,24 +111,32 @@ in a SAP object.</p>
 <span></span>
 <span><span class="co"># Run the complete motif detection pipeline</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                    start_time <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                    end_time <span class="op">=</span> <span class="fl">2.5</span>, </span>
-<span>                    clip_names <span class="op">=</span> <span class="st">"motif_ref"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>, </span>
-<span>                  clip_name <span class="op">=</span> <span class="st">"motif_ref"</span>,</span>
-<span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>, </span>
-<span>                  end_time <span class="op">=</span> <span class="fl">0.84</span>,</span>
-<span>                  freq_min <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                  freq_max <span class="op">=</span> <span class="fl">10</span>, </span>
-<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>, </span>
-<span>                  write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>,</span>
-<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>                  proximity_window <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span>, </span>
-<span>             pre_time <span class="op">=</span> <span class="fl">0.7</span>, </span>
-<span>             lag_time <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span></span>
+<span>    indices <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    start_time <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>    clip_names <span class="op">=</span> <span class="st">"motif_ref"</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span></span>
+<span>    template_name <span class="op">=</span> <span class="st">"syllable_d"</span>,</span>
+<span>    clip_name <span class="op">=</span> <span class="st">"motif_ref"</span>,</span>
+<span>    start_time <span class="op">=</span> <span class="fl">0.72</span>,</span>
+<span>    end_time <span class="op">=</span> <span class="fl">0.84</span>,</span>
+<span>    freq_min <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    freq_max <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>    write_template <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span></span>
+<span>    template_name <span class="op">=</span> <span class="st">"syllable_d"</span>,</span>
+<span>    threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>    proximity_window <span class="op">=</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span></span>
+<span>    template_name <span class="op">=</span> <span class="st">"syllable_d"</span>,</span>
+<span>    pre_time <span class="op">=</span> <span class="fl">0.7</span>,</span>
+<span>    lag_time <span class="op">=</span> <span class="fl">0.5</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="understanding-sap-object-behavior">Understanding SAP Object Behavior<a class="anchor" aria-label="anchor" href="#understanding-sap-object-behavior"></a>
 </h3>
@@ -205,9 +213,10 @@ WAV files at their original paths to run additional analyses - The saved
 </h2>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Visualize sample motifs from each time point</span></span>
-<span><span class="fu"><a href="../reference/visualize_segments.html">visualize_segments</a></span><span class="op">(</span><span class="va">sap</span>, </span>
-<span>                   segment_type <span class="op">=</span> <span class="st">"motifs"</span>, </span>
-<span>                   n_samples <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/visualize_segments.html">visualize_segments</a></span><span class="op">(</span><span class="va">sap</span>,</span>
+<span>  segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span>
+<span>  n_samples <span class="op">=</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="figures/longitudinal_segments.png" class="r-plt" alt="Sample motif spectrograms across developmental time points." width="100%"><p class="caption">
 Sample motif spectrograms across developmental time points.
@@ -241,6 +250,30 @@ points.
 </div>
 </div>
 <div class="section level2">
+<h2 id="exporting-motif-clips">Exporting Motif Clips<a class="anchor" aria-label="anchor" href="#exporting-motif-clips"></a>
+</h2>
+<p>Once motifs are detected, you may want to export them as individual
+audio files for external analysis, sharing, or manual review. The
+<code><a href="../reference/create_motif_clips.html">create_motif_clips()</a></code> function makes this easy by extracting
+the audio segments for your detected motifs and saving them in an
+organized directory structure.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Export the first 50 motifs as individual WAV files</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
+<span>  <span class="va">sap</span>,</span>
+<span>  output_format <span class="op">=</span> <span class="st">"wav"</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="st">"exported_motifs"</span>,</span>
+<span>  indices <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">50</span>, <span class="co"># Export specific motifs, or omit to export all</span></span>
+<span>  amp_normalize <span class="op">=</span> <span class="st">"peak"</span>, <span class="co"># Normalize amplitude to prevent clipping</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>By default, this will organize the exported <code>.wav</code> files
+into a clean folder hierarchy
+(<code>exported_motifs/motifs/{bird_id}/{day_post_hatch}/motif_xxx.wav</code>)
+and automatically generate a companion <code>metadata.csv</code>
+containing the timing and source information for each audio clip.</p>
+</div>
+<div class="section level2">
 <h2 id="feature-extraction-and-analysis">Feature Extraction and Analysis<a class="anchor" aria-label="anchor" href="#feature-extraction-and-analysis"></a>
 </h2>
 <p>Extracting spectral features allows you to quantify motif acoustic
@@ -256,12 +289,12 @@ structure</li>
 <li>
 <strong>Reducing noise</strong> in downstream visualizations</li>
 </ul>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract spectral features (frequency, entropy, duration, etc.)</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span>              <span class="co"># Group acoustically similar motifs</span></span>
-<span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span><span class="op">)</span>                       <span class="co"># Dimensionality reduction for visualization</span></span>
+<span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="co"># Group acoustically similar motifs</span></span>
+<span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Dimensionality reduction for visualization</span></span>
 <span></span>
 <span><span class="co"># Visualize UMAP by time point</span></span>
 <span><span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span><span class="va">sap</span>, split.by <span class="op">=</span> <span class="st">"label"</span><span class="op">)</span></span></code></pre></div>
@@ -296,7 +329,7 @@ cluster membership and latent feature structure rather than
 chronological order. Typically, ordering motifs by acoustic similarity
 creates a <strong>cleaner, more organized heatmap</strong> that
 addresses the visual noise from duration variability.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create heatmap ordered by cluster membership</span></span>
 <span><span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span><span class="va">sap</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Why this helps:</strong></p>
@@ -374,7 +407,7 @@ representation.</p></li>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
