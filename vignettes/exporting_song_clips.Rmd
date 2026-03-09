@@ -26,27 +26,10 @@ Depending on your downstream analysis, you may want to export long bouts that co
 
 Here are the three primary export scenarios supported by ASAP:
 
-```mermaid
-graph TD
-    Raw[Raw Continuous Recordings] --> A 
-    Raw --> B
-    Raw --> C
-
-    subgraph "Scenario A: General Compression"
-    A[find_bout] --> A_Exp[create_bout_clips]
-    A_Exp -.-> A_Res[Output: All vocalizations + noise<br/>Great for storage compression]
-    end
-
-    subgraph "Scenario B: Filtered Bouts"
-    B[find_motif] --> B2[find_bout]
-    B2 --> B_Exp[create_bout_clips]
-    B_Exp -.-> B_Res[Output: Clean bouts containing motifs<br/>Excludes innate calls & noise]
-    end
-
-    subgraph "Scenario C: Strict Motifs"
-    C[find_motif] --> C_Exp[create_motif_clips]
-    C_Exp -.-> C_Res[Output: Tightly cropped motifs<br/>Great for acoustic feature analysis]
-    end
+```{r export-scenarios-diagram, echo = FALSE, eval = TRUE, out.width = "70%", fig.align = "center", fig.cap = "ASAP song clip export scenarios overview."}
+if (file.exists("figures/export_scenarios.png")) {
+    knitr::include_graphics("figures/export_scenarios.png")
+}
 ```
 
 ### Scenario A: General Compression 
