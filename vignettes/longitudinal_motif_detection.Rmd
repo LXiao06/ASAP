@@ -240,9 +240,8 @@ sap <- create_motif_clips(
 )
 ```
 
-```markdown
 For a full walkthrough of exporting options across different scenarios, see the [Exporting Curated Song Clips](exporting_song_clips.html) vignette.
-```
+
 
 ## Feature Extraction and Analysis
 
