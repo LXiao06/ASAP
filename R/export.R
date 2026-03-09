@@ -646,7 +646,7 @@ create_bout_clips.Sap <- function(x,
   jobs$bird_id_clean <- vapply(as.character(jobs$bird_id), .sanitize_group_name, FUN.VALUE = character(1))
   jobs$day_clean <- vapply(as.character(jobs$day_post_hatch), .sanitize_group_name, FUN.VALUE = character(1))
   group_key <- paste(jobs$bird_id_clean, jobs$day_clean, sep = "::")
-  jobs$clip_seq <- ave(seq_len(nrow(jobs)), group_key, FUN = seq_along)
+  jobs$clip_seq <- stats::ave(seq_len(nrow(jobs)), group_key, FUN = seq_along)
   jobs$clip_id <- sprintf("%s_%03d", name_prefix, jobs$clip_seq)
 
   has_day <- !is.na(jobs$day_post_hatch) & jobs$day_post_hatch != "unknown_day"
