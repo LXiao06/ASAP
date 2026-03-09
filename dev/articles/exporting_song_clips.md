@@ -23,23 +23,10 @@ contain learned song, or tightly cropped individual motifs.
 
 Here are the three primary export scenarios supported by ASAP:
 
-graph TD Raw\[Raw Continuous Recordings\] –\> A Raw –\> B Raw –\> C
+![ASAP song clip export scenarios
+overview.](figures/export_scenarios.png)
 
-    subgraph "Scenario A: General Compression"
-    A[find_bout] --> A_Exp[create_bout_clips]
-    A_Exp -.-> A_Res[Output: All vocalizations + noise<br/>Great for storage compression]
-    end
-
-    subgraph "Scenario B: Filtered Bouts"
-    B[find_motif] --> B2[find_bout]
-    B2 --> B_Exp[create_bout_clips]
-    B_Exp -.-> B_Res[Output: Clean bouts containing motifs<br/>Excludes innate calls & noise]
-    end
-
-    subgraph "Scenario C: Strict Motifs"
-    C[find_motif] --> C_Exp[create_motif_clips]
-    C_Exp -.-> C_Res[Output: Tightly cropped motifs<br/>Great for acoustic feature analysis]
-    end
+ASAP song clip export scenarios overview.
 
 ### Scenario A: General Compression
 

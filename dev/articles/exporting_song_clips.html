@@ -86,24 +86,10 @@ key export arguments like amplitude normalization.</p>
 bouts that contain a mixture of vocalizations, filtered bouts that only
 contain learned song, or tightly cropped individual motifs.</p>
 <p>Here are the three primary export scenarios supported by ASAP:</p>
-<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>mermaid.initialize({startOnLoad:true});</script><div class="mermaid">
-<p>graph TD Raw[Raw Continuous Recordings] –&gt; A Raw –&gt; B Raw –&gt;
-C</p>
-<pre><code>subgraph "Scenario A: General Compression"
-A[find_bout] --&gt; A_Exp[create_bout_clips]
-A_Exp -.-&gt; A_Res[Output: All vocalizations + noise&lt;br/&gt;Great for storage compression]
-end
-
-subgraph "Scenario B: Filtered Bouts"
-B[find_motif] --&gt; B2[find_bout]
-B2 --&gt; B_Exp[create_bout_clips]
-B_Exp -.-&gt; B_Res[Output: Clean bouts containing motifs&lt;br/&gt;Excludes innate calls &amp; noise]
-end
-
-subgraph "Scenario C: Strict Motifs"
-C[find_motif] --&gt; C_Exp[create_motif_clips]
-C_Exp -.-&gt; C_Res[Output: Tightly cropped motifs&lt;br/&gt;Great for acoustic feature analysis]
-end</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figures/export_scenarios.png" class="r-plt" alt="ASAP song clip export scenarios overview." width="70%"><p class="caption">
+ASAP song clip export scenarios overview.
+</p>
 </div>
 <div class="section level3">
 <h3 id="scenario-a-general-compression">Scenario A: General Compression<a class="anchor" aria-label="anchor" href="#scenario-a-general-compression"></a>
@@ -122,7 +108,7 @@ size.</li>
 <strong>Cons:</strong> The exported clips will still contain
 background cage noise and non-song vocalizations.</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span>min_duration <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/create_bout_clips.html">create_bout_clips</a></span><span class="op">(</span></span>
@@ -149,7 +135,7 @@ vocalizations. Leaves you with clean, multi-motif song bouts.</li>
 <strong>Cons:</strong> May miss very poor early-stage practice song
 if your motif template is too strict.</li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -175,7 +161,7 @@ extraction, spectrogram clustering, and UMAPs.</li>
 <strong>Cons:</strong> Loses syntactic sequence context (rhythm and
 pacing between motifs).</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
@@ -214,7 +200,7 @@ faster than opening thousands of tiny <code>.wav</code> files. *
 <strong>Large-scale Datasets:</strong> Prevents file system exhaustion
 (inodes) when exporting tens of thousands of motifs on compute
 clusters.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
 <span>    <span class="va">sap</span>,</span>
 <span>    output_format <span class="op">=</span> <span class="st">"hdf5"</span>,</span>
@@ -251,7 +237,7 @@ recommended for machine learning models</strong>, as it guarantees a
 consistent baseline volume across all developmental stages regardless of
 microphone placement.</li>
 </ul>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
 <span>    <span class="va">sap</span>,</span>
 <span>    output_format <span class="op">=</span> <span class="st">"wav"</span>,</span>
@@ -270,7 +256,7 @@ vocal days.</p>
 <p>Using <code>n_motifs = N</code> or <code>n_bouts = N</code> instructs
 ASAP to randomly sample up to <em>N</em> clips <strong>per day</strong>
 (the <code>day_post_hatch</code> variable).</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get exactly 50 target motif clips per day to ensure balanced longitudinal models</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
 <span>    <span class="va">sap</span>,</span>
