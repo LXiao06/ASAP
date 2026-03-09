@@ -32,25 +32,30 @@ ASAP song clip export scenarios overview.
 
 **Workflow:**
 [`create_sap_object()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_object.md)
--\>
-[`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
--\>
+-\> `find_bout(segment_type = "raw")` -\>
 [`create_bout_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_bout_clips.md)
 
 If you simply want to remove hours of silence from your recordings and
 don’t care about isolating learned song yet, you can detect bouts purely
-based on amplitude right after creating your SAP object.
+based on amplitude right after creating your SAP object — no motif
+detection required. Pass `segment_type = "raw"` to tell
+[`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
+to scan all audio files from the SAP metadata directly, without any
+motif validation step.
 
 - **Pros:** Preserves all potentially useful recordings (innate calls,
-  unstereotyped practice). Drastically reduces storage size.
+  unstereotyped vocal elements). Drastically reduces storage size.
 - **Cons:** The exported clips will still contain background cage noise
   and non-song vocalizations.
 
 ``` r
 sap <- sap |>
-    find_bout(min_duration = 0.5) |>
+    find_bout(
+        segment_type = "raw", # scan all files; no motifs needed
+        min_duration = 0.5
+    ) |>
     create_bout_clips(
-        output_dir = "compressed_bouts",
+        output_dir    = "compressed_bouts",
         output_format = "wav"
     )
 ```
@@ -83,9 +88,11 @@ recognized motif.
 ``` r
 sap <- sap |>
     find_motif(template_name = "syllable_d") |>
-    find_bout() |>
+    find_bout(
+        segment_type = "motifs" # only keep bouts that contain a motif
+    ) |>
     create_bout_clips(
-        output_dir = "filtered_bouts",
+        output_dir    = "filtered_bouts",
         output_format = "wav"
     )
 ```

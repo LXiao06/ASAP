@@ -95,24 +95,31 @@ ASAP song clip export scenarios overview.
 <h3 id="scenario-a-general-compression">Scenario A: General Compression<a class="anchor" aria-label="anchor" href="#scenario-a-general-compression"></a>
 </h3>
 <p><strong>Workflow:</strong> <code><a href="../reference/create_sap_object.html">create_sap_object()</a></code> -&gt;
-<code><a href="../reference/find_bout.html">find_bout()</a></code> -&gt; <code><a href="../reference/create_bout_clips.html">create_bout_clips()</a></code></p>
+<code>find_bout(segment_type = "raw")</code> -&gt;
+<code><a href="../reference/create_bout_clips.html">create_bout_clips()</a></code></p>
 <p>If you simply want to remove hours of silence from your recordings
 and don’t care about isolating learned song yet, you can detect bouts
-purely based on amplitude right after creating your SAP object.</p>
+purely based on amplitude right after creating your SAP object — no
+motif detection required. Pass <code>segment_type = "raw"</code> to tell
+<code><a href="../reference/find_bout.html">find_bout()</a></code> to scan all audio files from the SAP metadata
+directly, without any motif validation step.</p>
 <ul>
 <li>
 <strong>Pros:</strong> Preserves all potentially useful recordings
-(innate calls, unstereotyped practice). Drastically reduces storage
-size.</li>
+(innate calls, unstereotyped vocal elements). Drastically reduces
+storage size.</li>
 <li>
 <strong>Cons:</strong> The exported clips will still contain
 background cage noise and non-song vocalizations.</li>
 </ul>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span>min_duration <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span></span>
+<span>        segment_type <span class="op">=</span> <span class="st">"raw"</span>, <span class="co"># scan all files; no motifs needed</span></span>
+<span>        min_duration <span class="op">=</span> <span class="fl">0.5</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/create_bout_clips.html">create_bout_clips</a></span><span class="op">(</span></span>
-<span>        output_dir <span class="op">=</span> <span class="st">"compressed_bouts"</span>,</span>
+<span>        output_dir    <span class="op">=</span> <span class="st">"compressed_bouts"</span>,</span>
 <span>        output_format <span class="op">=</span> <span class="st">"wav"</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
 </div>
@@ -138,9 +145,11 @@ if your motif template is too strict.</li>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"syllable_d"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span></span>
+<span>        segment_type <span class="op">=</span> <span class="st">"motifs"</span> <span class="co"># only keep bouts that contain a motif</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/create_bout_clips.html">create_bout_clips</a></span><span class="op">(</span></span>
-<span>        output_dir <span class="op">=</span> <span class="st">"filtered_bouts"</span>,</span>
+<span>        output_dir    <span class="op">=</span> <span class="st">"filtered_bouts"</span>,</span>
 <span>        output_format <span class="op">=</span> <span class="st">"wav"</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
 </div>
