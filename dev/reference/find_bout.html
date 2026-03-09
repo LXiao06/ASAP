@@ -63,7 +63,7 @@
 <span>  <span class="va">x</span>,</span>
 <span>  day <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  indices <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span>
+<span>  segment_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"motifs"</span>, <span class="st">"raw"</span><span class="op">)</span>,</span>
 <span>  cores <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  save_plot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot_percent <span class="op">=</span> <span class="fl">10</span>,</span>
@@ -146,7 +146,14 @@
 
 
 <dt id="arg-segment-type">segment_type<a class="anchor" aria-label="anchor" href="#arg-segment-type"></a></dt>
-<dd><p>For SAP objects: Type of segments (default: "motifs")</p></dd>
+<dd><p>For SAP objects: Source of data to drive bout detection.
+<code>"motifs"</code> (default) uses pre-detected motif data — only files
+containing at least one motif are processed, and detected bouts are
+validated to contain at least one motif. <code>"raw"</code> uses the
+SAP metadata directly, so every audio file in the object is scanned for
+bouts based on amplitude alone, with no motif requirement. Use
+<code>"raw"</code> for Scenario A (general compression) before motif
+detection has been run.</p></dd>
 
 
 <dt id="arg-cores">cores<a class="anchor" aria-label="anchor" href="#arg-cores"></a></dt>
@@ -200,26 +207,30 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Basic bout detection from file</span></span></span>
 <span class="r-in"><span><span class="va">bouts</span> <span class="op">&lt;-</span> <span class="fu">find_bout</span><span class="op">(</span><span class="st">"song.wav"</span>,</span></span>
-<span class="r-in"><span>                   rms_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
-<span class="r-in"><span>                   min_duration <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  rms_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>  min_duration <span class="op">=</span> <span class="fl">0.7</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Custom parameters with visualization</span></span></span>
 <span class="r-in"><span><span class="va">bouts</span> <span class="op">&lt;-</span> <span class="fu">find_bout</span><span class="op">(</span><span class="st">"song.wav"</span>,</span></span>
-<span class="r-in"><span>                   freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">8</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                   plot <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>                   save_plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">8</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  plot <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  save_plot <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Process SAP object with summary</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">find_bout</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                     segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
-<span class="r-in"><span>                     day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                     summary <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
+<span class="r-in"><span>  day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  summary <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Process specific files with plots</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">find_bout</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
-<span class="r-in"><span>                     indices <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,</span></span>
-<span class="r-in"><span>                     save_plot <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>                     cores <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  indices <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,</span></span>
+<span class="r-in"><span>  save_plot <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  cores <span class="op">=</span> <span class="fl">4</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
