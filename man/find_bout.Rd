@@ -28,7 +28,7 @@ find_bout(x, ...)
   x,
   day = NULL,
   indices = NULL,
-  segment_type = "motifs",
+  segment_type = c("motifs", "raw"),
   cores = NULL,
   save_plot = FALSE,
   plot_percent = 10,
@@ -76,7 +76,14 @@ find_bout(x, ...)
 
 \item{indices}{For SAP objects: Specific indices to process}
 
-\item{segment_type}{For SAP objects: Type of segments (default: "motifs")}
+\item{segment_type}{For SAP objects: Source of data to drive bout detection.
+\code{"motifs"} (default) uses pre-detected motif data — only files
+containing at least one motif are processed, and detected bouts are
+validated to contain at least one motif. \code{"raw"} uses the
+SAP metadata directly, so every audio file in the object is scanned for
+bouts based on amplitude alone, with no motif requirement. Use
+\code{"raw"} for Scenario A (general compression) before motif
+detection has been run.}
 
 \item{cores}{For SAP objects: Number of processing cores}
 
@@ -131,26 +138,30 @@ When summary = TRUE for SAP objects with motifs:
 \dontrun{
 # Basic bout detection from file
 bouts <- find_bout("song.wav",
-                   rms_threshold = 0.1,
-                   min_duration = 0.7)
+  rms_threshold = 0.1,
+  min_duration = 0.7
+)
 
 # Custom parameters with visualization
 bouts <- find_bout("song.wav",
-                   freq_range = c(2, 8),
-                   plot = TRUE,
-                   save_plot = TRUE)
+  freq_range = c(2, 8),
+  plot = TRUE,
+  save_plot = TRUE
+)
 
 # Process SAP object with summary
 sap_obj <- find_bout(sap_object,
-                     segment_type = "motifs",
-                     day = c(30, 40),
-                     summary = TRUE)
+  segment_type = "motifs",
+  day = c(30, 40),
+  summary = TRUE
+)
 
 # Process specific files with plots
 sap_obj <- find_bout(sap_object,
-                     indices = 1:5,
-                     save_plot = TRUE,
-                     cores = 4)
+  indices = 1:5,
+  save_plot = TRUE,
+  cores = 4
+)
 }
 
 }
