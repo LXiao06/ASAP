@@ -1,5 +1,5 @@
 # Find Bout
-# Update date : Feb. 7, 2025
+# Update date : Mar. 9, 2026
 
 #' Detect Song Bouts in Audio Recordings
 #'
@@ -20,7 +20,14 @@
 #' @param plot_dir Directory for saving plots
 #' @param day For SAP objects: Days to process
 #' @param indices For SAP objects: Specific indices to process
-#' @param segment_type For SAP objects: Type of segments (default: "motifs")
+#' @param segment_type For SAP objects: Source of data to drive bout detection.
+#'   \code{"motifs"} (default) uses pre-detected motif data — only files
+#'   containing at least one motif are processed, and detected bouts are
+#'   validated to contain at least one motif. \code{"raw"} uses the
+#'   SAP metadata directly, so every audio file in the object is scanned for
+#'   bouts based on amplitude alone, with no motif requirement. Use
+#'   \code{"raw"} for Scenario A (general compression) before motif
+#'   detection has been run.
 #' @param cores For SAP objects: Number of processing cores
 #' @param plot_percent For SAP objects: Percentage of files to plot (default: 10)
 #' @param summary For SAP objects: Include additional statistics (default: FALSE)
@@ -69,26 +76,30 @@
 #' \dontrun{
 #' # Basic bout detection from file
 #' bouts <- find_bout("song.wav",
-#'                    rms_threshold = 0.1,
-#'                    min_duration = 0.7)
+#'   rms_threshold = 0.1,
+#'   min_duration = 0.7
+#' )
 #'
 #' # Custom parameters with visualization
 #' bouts <- find_bout("song.wav",
-#'                    freq_range = c(2, 8),
-#'                    plot = TRUE,
-#'                    save_plot = TRUE)
+#'   freq_range = c(2, 8),
+#'   plot = TRUE,
+#'   save_plot = TRUE
+#' )
 #'
 #' # Process SAP object with summary
 #' sap_obj <- find_bout(sap_object,
-#'                      segment_type = "motifs",
-#'                      day = c(30, 40),
-#'                      summary = TRUE)
+#'   segment_type = "motifs",
+#'   day = c(30, 40),
+#'   summary = TRUE
+#' )
 #'
 #' # Process specific files with plots
 #' sap_obj <- find_bout(sap_object,
-#'                      indices = 1:5,
-#'                      save_plot = TRUE,
-#'                      cores = 4)
+#'   indices = 1:5,
+#'   save_plot = TRUE,
+#'   cores = 4
+#' )
 #' }
 #'
 #' @seealso \code{\link{segment}} for syllable-level segmentation
@@ -101,7 +112,7 @@ find_bout <- function(x, ...) {
 
 #' @rdname find_bout
 #' @export
-find_bout.default <- function(x,  # x is wav file path
+find_bout.default <- function(x, # x is wav file path
                               wl = 1024,
                               ovlp = 50,
                               norm_method = c("quantile", "max"),
@@ -114,7 +125,6 @@ find_bout.default <- function(x,  # x is wav file path
                               save_plot = FALSE,
                               plot_dir = NULL,
                               ...) {
-
   # Validate file path
   if (!file.exists(x)) {
     stop("File does not exist: ", x)
@@ -129,12 +139,14 @@ find_bout.default <- function(x,  # x is wav file path
   wv <- readWave(x)
 
   # Apply bandpass filter using seewave
-  filtered_wave <- seewave::bwfilter(wave = wv,
-                                     f = wv@samp.rate,
-                                     n = 2,  # Filter order
-                                     from = freq_range[1] * 1000,  # Convert kHz to Hz
-                                     to = freq_range[2] * 1000,
-                                     bandpass = TRUE)
+  filtered_wave <- seewave::bwfilter(
+    wave = wv,
+    f = wv@samp.rate,
+    n = 2, # Filter order
+    from = freq_range[1] * 1000, # Convert kHz to Hz
+    to = freq_range[2] * 1000,
+    bandpass = TRUE
+  )
 
   # Compute RMS envelope using filtered data
   rms_env <- compute_rms(filtered_wave, wl = wl, ovlp = ovlp)
@@ -143,20 +155,22 @@ find_bout.default <- function(x,  # x is wav file path
   norm_method <- match.arg(norm_method)
 
   if (norm_method == "quantile") {
-    rms_env <-rms_env / quantile(rms_env, 0.95, na.rm = TRUE)
+    rms_env <- rms_env / quantile(rms_env, 0.95, na.rm = TRUE)
   } else { # "max"
-    rms_env <-rms_env / max(rms_env, na.rm = TRUE)
+    rms_env <- rms_env / max(rms_env, na.rm = TRUE)
   }
 
   # Calculate stride (hop size) in samples and time
   stride <- round(wl * (1 - ovlp / 100))
-  stride_time <- stride / wv@samp.rate  # Convert stride to time
+  stride_time <- stride / wv@samp.rate # Convert stride to time
 
   # Calculate time points for RMS values
   num_windows <- length(rms_env)
-  time_points <- seq(from = (wl / 2) / wv@samp.rate,
-                     by = stride_time,
-                     length.out = num_windows)
+  time_points <- seq(
+    from = (wl / 2) / wv@samp.rate,
+    by = stride_time,
+    length.out = num_windows
+  )
 
   # Threshold the RMS envelope
   above_thresh <- rms_env > rms_threshold
@@ -230,7 +244,7 @@ find_bout.default <- function(x,  # x is wav file path
           if (!is.na(next_offset_idx)) {
             current_offset <- all_offsets[next_offset_idx]
           } else {
-            current_offset <- length(rms_env)  # Handle case with no subsequent offsets
+            current_offset <- length(rms_env) # Handle case with no subsequent offsets
           }
         }
       }
@@ -259,15 +273,15 @@ find_bout.default <- function(x,  # x is wav file path
 
   # Plotting section
   plot_fn <- plot_bout_detection(
-    wav_file=x,
-    time_points=time_points,
-    rms_env=rms_env,
-    rms_threshold=rms_threshold,
-    bout_df=bout_df,
-    bout_onsets=bout_onsets,
-    bout_offsets=bout_offsets,
-    wl=wl,
-    ovlp=ovlp
+    wav_file = x,
+    time_points = time_points,
+    rms_env = rms_env,
+    rms_threshold = rms_threshold,
+    bout_df = bout_df,
+    bout_onsets = bout_onsets,
+    bout_offsets = bout_offsets,
+    wl = wl,
+    ovlp = ovlp
   )
 
   if (plot) {
@@ -275,12 +289,16 @@ find_bout.default <- function(x,  # x is wav file path
   }
 
 
-  if(save_plot) {
+  if (save_plot) {
     dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
 
-    plot_filename <- file.path(plot_dir,
-                               paste0(tools::file_path_sans_ext(basename(x)),
-                                      ".png"))
+    plot_filename <- file.path(
+      plot_dir,
+      paste0(
+        tools::file_path_sans_ext(basename(x)),
+        ".png"
+      )
+    )
 
     png(filename = plot_filename, width = 1600, height = 1200, res = 300)
     plot_fn()
@@ -292,10 +310,10 @@ find_bout.default <- function(x,  # x is wav file path
 
 #' @rdname find_bout
 #' @export
-find_bout.Sap <- function(x,  # x is SAP object
+find_bout.Sap <- function(x, # x is SAP object
                           day = NULL,
                           indices = NULL,
-                          segment_type = "motifs",
+                          segment_type = c("motifs", "raw"),
                           cores = NULL,
                           save_plot = FALSE,
                           plot_percent = 10,
@@ -310,21 +328,23 @@ find_bout.Sap <- function(x,  # x is SAP object
                           summary = FALSE,
                           verbose = TRUE,
                           ...) {
-
-  if(verbose) message(sprintf("\n=== Starting Bout Detection ==="))
+  if (verbose) message(sprintf("\n=== Starting Bout Detection ==="))
 
   # Validate inputs
   if (!inherits(x, "Sap")) {
     stop("Input must be a SAP object")
   }
 
+  segment_type <- match.arg(segment_type)
+
   # Determine which data to process
-  if (!is.null(segment_type) && segment_type == "motifs") {
+  if (segment_type == "motifs") {
     if (is.null(x$motifs) || nrow(x$motifs) == 0) {
-      stop("No motif data available in SAP object")
+      stop("No motif data available in SAP object. Run find_motif() first, or use segment_type = \"recordings\" to detect bouts directly from audio files.")
     }
     process_data <- x$motifs
   } else {
+    # segment_type == "raw": drive from metadata, no motif check
     process_data <- x$metadata
   }
 
@@ -372,8 +392,10 @@ find_bout.Sap <- function(x,  # x is SAP object
     # Get unique files for the day
     unique_files <- which(!duplicated(day_data$filename))
 
-    cat(sprintf("\nProcessing %d files for day %s using %d cores.\n",
-                length(unique_files), current_day, cores))
+    cat(sprintf(
+      "\nProcessing %d files for day %s using %d cores.\n",
+      length(unique_files), current_day, cores
+    ))
 
     # Determine which files to plot
     files_to_plot <- numeric(0)
@@ -397,12 +419,14 @@ find_bout.Sap <- function(x,  # x is SAP object
       # Set plot directory if needed
       plot_dir <- NULL
       if (should_plot_file && save_plot) {
-        plot_dir <- file.path(x$base_path, "plots", "bout_detection",
-                              paste0("day_",current_day))
+        plot_dir <- file.path(
+          x$base_path, "plots", "bout_detection",
+          paste0("day_", current_day)
+        )
       }
 
       # Construct file path
-      wavfile <- construct_wav_path(day_data[i,], wav_dir = x$base_path)
+      wavfile <- construct_wav_path(day_data[i, ], wav_dir = x$base_path)
       current_filename <- basename(wavfile)
 
       # Use find_bout.default
@@ -424,8 +448,8 @@ find_bout.Sap <- function(x,  # x is SAP object
 
       # Process bout_df if it exists
       if (!is.null(bout_df) && nrow(bout_df) > 0) {
-        # Validate against motifs ONLY if segment_type is "motifs"
-        if (!is.null(segment_type) && segment_type == "motifs") {
+        # Validate against motifs ONLY when segment_type is "motifs"
+        if (segment_type == "motifs") {
           # Get corresponding motifs
           file_motifs <- x$motifs[x$motifs$filename == current_filename, ]
 
@@ -433,7 +457,7 @@ find_bout.Sap <- function(x,  # x is SAP object
             # Vectorized validation check
             valid_bouts <- sapply(1:nrow(bout_df), function(j) {
               any(file_motifs$detection_time >= bout_df$start_time[j] &
-                    file_motifs$detection_time <= bout_df$end_time[j])
+                file_motifs$detection_time <= bout_df$end_time[j])
             })
 
             # Remove bouts without matching motifs
@@ -452,7 +476,6 @@ find_bout.Sap <- function(x,  # x is SAP object
         }
       }
       return(NULL)
-
     }
 
     # Use parallel_apply function for parallel processing
@@ -460,7 +483,7 @@ find_bout.Sap <- function(x,  # x is SAP object
       indices = unique_files,
       FUN = process_file,
       cores = cores,
-      use_preschedule = if(is.null(list(...)$use_preschedule)) FALSE else list(...)$use_preschedule
+      use_preschedule = if (is.null(list(...)$use_preschedule)) FALSE else list(...)$use_preschedule
     )
 
     # Combine results for this day
@@ -469,8 +492,10 @@ find_bout.Sap <- function(x,  # x is SAP object
       day_detections <- do.call(rbind, valid_detections)
       all_results[[as.character(current_day)]] <- day_detections
 
-      cat(sprintf("\nProcessed files in day %s. Total bouts: %d\n",
-                  current_day, nrow(day_detections)))
+      cat(sprintf(
+        "\nProcessed files in day %s. Total bouts: %d\n",
+        current_day, nrow(day_detections)
+      ))
     } else {
       cat(sprintf("\nNo bouts found in day %s.\n", current_day))
     }
@@ -494,15 +519,15 @@ find_bout.Sap <- function(x,  # x is SAP object
           # Count motifs within bout
           n_motifs = {
             bout_motifs <- dt[dt >= start_time &
-                                dt <= end_time &
-                                fn == filename]
+              dt <= end_time &
+              fn == filename]
             length(bout_motifs)
           },
           # Get first motif time for alignment
           align_time = {
             bout_motifs <- dt[dt >= start_time &
-                                dt <= end_time &
-                                fn == filename]
+              dt <= end_time &
+              fn == filename]
             dplyr::first(bout_motifs)
           }
         ) |>
@@ -514,9 +539,9 @@ find_bout.Sap <- function(x,  # x is SAP object
         dplyr::group_by(filename) |>
         dplyr::mutate(
           bout_gap = dplyr::case_when(
-            dplyr::n() == 1 ~ NA_real_,  # Single bout in file
-            dplyr::row_number() == 1 ~ NA_real_,  # First bout in file
-            TRUE ~ start_time - dplyr::lag(end_time)  # Gap from previous bout
+            dplyr::n() == 1 ~ NA_real_, # Single bout in file
+            dplyr::row_number() == 1 ~ NA_real_, # First bout in file
+            TRUE ~ start_time - dplyr::lag(end_time) # Gap from previous bout
           )
         ) |>
         dplyr::ungroup()
@@ -550,7 +575,6 @@ find_bout.Sap <- function(x,  # x is SAP object
 #' @keywords internal
 plot_bout_detection <- function(wav_file, time_points, rms_env, rms_threshold,
                                 bout_df, bout_onsets, bout_offsets, wl, ovlp) {
-
   create_plot <- function() {
     # # Reset the graphics device first
     # graphics.off()
@@ -558,75 +582,79 @@ plot_bout_detection <- function(wav_file, time_points, rms_env, rms_threshold,
     # if (!dev.cur()) dev.new()
 
     # Set up the plotting layout with 2 panels
-    old_par <- par(no.readonly = TRUE)  # Save old parameters
-    on.exit(par(old_par))  # Restore parameters when function exits
+    old_par <- par(no.readonly = TRUE) # Save old parameters
+    on.exit(par(old_par)) # Restore parameters when function exits
 
     # Set up the plotting layout with 2 panels
-    layout(matrix(c(1,2), nrow=2, ncol=1), heights=c(1.5,2))
+    layout(matrix(c(1, 2), nrow = 2, ncol = 1), heights = c(1.5, 2))
 
     # Set consistent margins for both panels
-    top_mar <- c(0,4,2,2)
-    bottom_mar <- c(4,4,0,2)
+    top_mar <- c(0, 4, 2, 2)
+    bottom_mar <- c(4, 4, 0, 2)
 
     # Calculate x-axis limits
     xlim <- range(time_points)
     ylim_rms <- c(0, max(rms_env) * 1.1)
 
     # Plot RMS envelope
-    par(mar=top_mar, bg='black')
+    par(mar = top_mar, bg = "black")
     # Set plot region to match data coordinates exactly
     plot.new()
-    plot.window(xlim=xlim, ylim=ylim_rms)
+    plot.window(xlim = xlim, ylim = ylim_rms)
 
     # Add RMS envelope line
-    lines(time_points, rms_env, col="red")
+    lines(time_points, rms_env, col = "red")
 
     # Add threshold line
-    abline(h=rms_threshold, col="green", lty=2)
+    abline(h = rms_threshold, col = "green", lty = 2)
 
     # Add bout markers
-    if(nrow(bout_df) > 0) {
-      for(b in 1:nrow(bout_df)) {
+    if (nrow(bout_df) > 0) {
+      for (b in 1:nrow(bout_df)) {
         onset_idx <- bout_onsets[b]
         offset_idx <- bout_offsets[b]
 
         points(bout_df$start_time[b], rms_env[onset_idx],
-               col="purple", pch=19, cex=1)
+          col = "purple", pch = 19, cex = 1
+        )
         points(bout_df$end_time[b], rms_env[offset_idx],
-               col="orange", pch=19, cex=1)
+          col = "orange", pch = 19, cex = 1
+        )
       }
     }
 
     # Add axes and labels
-    axis(2, col="white", col.axis="white")  # y-axis only for top panel
-    title(ylab="RMS", col.lab="white")
-    box(col="white")
+    axis(2, col = "white", col.axis = "white") # y-axis only for top panel
+    title(ylab = "RMS", col.lab = "white")
+    box(col = "white")
 
     # Add legend with white text
     legend("topright",
-           legend=c("RMS", "Threshold", "Onset", "Offset"),
-           col=c("red", "green", "purple", "orange"),
-           lty=c(1, 2, NA, NA),
-           pch=c(NA, NA, 19, 19),
-           bty="n",
-           text.col="white")
+      legend = c("RMS", "Threshold", "Onset", "Offset"),
+      col = c("red", "green", "purple", "orange"),
+      lty = c(1, 2, NA, NA),
+      pch = c(NA, NA, 19, 19),
+      bty = "n",
+      text.col = "white"
+    )
 
 
     # Plot spectrogram
-    par(mar=bottom_mar)
+    par(mar = bottom_mar)
     visualize_song.default(wav_file,
-                           fft_window_size=wl,
-                           overlap=ovlp/100,
-                           dark_mode=TRUE,
-                           legend=FALSE,
-                           keep.par=TRUE,
-                           verbose = FALSE)
+      fft_window_size = wl,
+      overlap = ovlp / 100,
+      dark_mode = TRUE,
+      legend = FALSE,
+      keep.par = TRUE,
+      verbose = FALSE
+    )
 
     # Add bout boundary lines to spectrogram
-    if(nrow(bout_df) > 0) {
-      for(b in 1:nrow(bout_df)) {
-        abline(v=bout_df$start_time[b], col="white", lty=2, lwd=1.5)
-        abline(v=bout_df$end_time[b], col="white", lty=2, lwd=1.5)
+    if (nrow(bout_df) > 0) {
+      for (b in 1:nrow(bout_df)) {
+        abline(v = bout_df$start_time[b], col = "white", lty = 2, lwd = 1.5)
+        abline(v = bout_df$end_time[b], col = "white", lty = 2, lwd = 1.5)
       }
     }
 
