@@ -86,26 +86,25 @@ key export arguments like amplitude normalization.</p>
 bouts that contain a mixture of vocalizations, filtered bouts that only
 contain learned song, or tightly cropped individual motifs.</p>
 <p>Here are the three primary export scenarios supported by ASAP:</p>
-<pre class="mermaid"><code>graph TD
-    Raw[Raw Continuous Recordings] --&gt; A 
-    Raw --&gt; B
-    Raw --&gt; C
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>mermaid.initialize({startOnLoad:true});</script><div class="mermaid">
+<p>graph TD Raw[Raw Continuous Recordings] –&gt; A Raw –&gt; B Raw –&gt;
+C</p>
+<pre><code>subgraph "Scenario A: General Compression"
+A[find_bout] --&gt; A_Exp[create_bout_clips]
+A_Exp -.-&gt; A_Res[Output: All vocalizations + noise&lt;br/&gt;Great for storage compression]
+end
 
-    subgraph "Scenario A: General Compression"
-    A[find_bout] --&gt; A_Exp[create_bout_clips]
-    A_Exp -.-&gt; A_Res[Output: All vocalizations + noise&lt;br/&gt;Great for storage compression]
-    end
+subgraph "Scenario B: Filtered Bouts"
+B[find_motif] --&gt; B2[find_bout]
+B2 --&gt; B_Exp[create_bout_clips]
+B_Exp -.-&gt; B_Res[Output: Clean bouts containing motifs&lt;br/&gt;Excludes innate calls &amp; noise]
+end
 
-    subgraph "Scenario B: Filtered Bouts"
-    B[find_motif] --&gt; B2[find_bout]
-    B2 --&gt; B_Exp[create_bout_clips]
-    B_Exp -.-&gt; B_Res[Output: Clean bouts containing motifs&lt;br/&gt;Excludes innate calls &amp; noise]
-    end
-
-    subgraph "Scenario C: Strict Motifs"
-    C[find_motif] --&gt; C_Exp[create_motif_clips]
-    C_Exp -.-&gt; C_Res[Output: Tightly cropped motifs&lt;br/&gt;Great for acoustic feature analysis]
-    end</code></pre>
+subgraph "Scenario C: Strict Motifs"
+C[find_motif] --&gt; C_Exp[create_motif_clips]
+C_Exp -.-&gt; C_Res[Output: Tightly cropped motifs&lt;br/&gt;Great for acoustic feature analysis]
+end</code></pre>
+</div>
 <div class="section level3">
 <h3 id="scenario-a-general-compression">Scenario A: General Compression<a class="anchor" aria-label="anchor" href="#scenario-a-general-compression"></a>
 </h3>

@@ -23,11 +23,7 @@ contain learned song, or tightly cropped individual motifs.
 
 Here are the three primary export scenarios supported by ASAP:
 
-``` mermaid
-graph TD
-    Raw[Raw Continuous Recordings] --> A 
-    Raw --> B
-    Raw --> C
+graph TD Raw\[Raw Continuous Recordings\] –\> A Raw –\> B Raw –\> C
 
     subgraph "Scenario A: General Compression"
     A[find_bout] --> A_Exp[create_bout_clips]
@@ -44,7 +40,6 @@ graph TD
     C[find_motif] --> C_Exp[create_motif_clips]
     C_Exp -.-> C_Res[Output: Tightly cropped motifs<br/>Great for acoustic feature analysis]
     end
-```
 
 ### Scenario A: General Compression
 
