@@ -232,9 +232,10 @@ sap <- create_motif_clips(
 )
 ```
 
-``` markdown
-For a full walkthrough of exporting options across different scenarios, see the [Exporting Curated Song Clips](exporting_song_clips.html) vignette.
-```
+For a full walkthrough of exporting options across different scenarios,
+see the [Exporting Curated Song
+Clips](https://lxiao06.github.io/ASAP/dev/articles/exporting_song_clips.md)
+vignette.
 
 ## Feature Extraction and Analysis
 
@@ -358,8 +359,8 @@ sessionInfo()
 #>  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    
 #>  [5] xfun_0.56         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
 #>  [9] rmarkdown_2.30    lifecycle_1.0.5   cli_3.6.5         sass_0.4.10      
-#> [13] pkgdown_2.2.0     textshaping_1.0.4 jquerylib_0.1.4   systemfonts_1.3.2
-#> [17] compiler_4.5.2    tools_4.5.2       ragg_1.5.0        evaluate_1.0.5   
+#> [13] pkgdown_2.2.0     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.2
+#> [17] compiler_4.5.2    tools_4.5.2       ragg_1.5.1        evaluate_1.0.5   
 #> [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.1.7      
-#> [25] fs_1.6.6
+#> [25] fs_1.6.7
 ```
