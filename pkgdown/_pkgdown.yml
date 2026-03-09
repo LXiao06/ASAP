@@ -41,6 +41,7 @@ articles:
       - construct_sap_object
       - longitudinal_motif_detection
       - longitudinal_bout_detection
+      - exporting_song_clips
       - longitudinal_syllable_segmentation
       - syllable_labeling
 
