@@ -1,5 +1,5 @@
 # Create motif/bout clips --------------------------------------------------------
-# Update date : Mar. 6, 2026
+# Update date : Mar. 9, 2026
 
 #' Create Motif Audio Clips
 #'
@@ -20,7 +20,14 @@
 #' @param wav_dir For data-frame method: base directory containing source WAV files.
 #' @param hdf5_filename File name used when \code{output_format = "hdf5"}.
 #' @param metadata_filename Name of metadata CSV written to \code{output_dir}.
-#' @param name_prefix Prefix used for generated motif clip names.
+#' @param name_prefix Prefix used for generated clip file names. Can be any
+#'   string (e.g. \code{"motif"} or \code{"bout"}). If \code{NULL}, defaults to
+#'   \code{"motif"}.
+#' @param keep_source_file_name Logical. If \code{TRUE}, uses the stem of the
+#'   originating WAV file combined with the \code{selec} column (or sequential
+#'   index) as the clip identifier (e.g. \code{S237_42685_001.wav}). This option
+#'   is especially useful for Scenario A exports where tracing a clip back to its
+#'   original recording is important. Overrides \code{name_prefix}.
 #' @param amp_normalize Waveform amplitude normalization applied to exported clips:
 #'   one of "none", "peak", or "rms" (default: "none")
 #' @param cores Number of CPU cores used for clip processing.
@@ -85,7 +92,8 @@ create_motif_clips.default <- function(x,
                                        output_dir = NULL,
                                        hdf5_filename = "motifs.h5",
                                        metadata_filename = "metadata.csv",
-                                       name_prefix = "motif",
+                                       name_prefix = NULL,
+                                       keep_source_file_name = FALSE,
                                        amp_normalize = c("none", "peak", "rms"),
                                        cores = NULL,
                                        overwrite = TRUE,
@@ -94,6 +102,9 @@ create_motif_clips.default <- function(x,
                                        ...) {
   if (!is.data.frame(x)) {
     stop("Input must be a data frame for default method")
+  }
+  if (is.null(name_prefix)) {
+    name_prefix <- "motif"
   }
 
   required_cols <- c("filename", "start_time", "end_time")
@@ -136,6 +147,7 @@ create_motif_clips.default <- function(x,
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
+    keep_source_file_name = keep_source_file_name,
     amp_normalize = amp_normalize,
     cores = cores,
     overwrite = overwrite,
@@ -156,7 +168,8 @@ create_motif_clips.Sap <- function(x,
                                    output_dir = NULL,
                                    hdf5_filename = "motifs.h5",
                                    metadata_filename = "metadata.csv",
-                                   name_prefix = "motif",
+                                   name_prefix = NULL,
+                                   keep_source_file_name = FALSE,
                                    amp_normalize = c("none", "peak", "rms"),
                                    cores = NULL,
                                    overwrite = TRUE,
@@ -172,6 +185,9 @@ create_motif_clips.Sap <- function(x,
   }
 
   amp_normalize <- .parse_amp_normalize(amp_normalize)
+  if (is.null(name_prefix)) {
+    name_prefix <- "motif"
+  }
 
   if (is.null(output_dir) || !is.character(output_dir) || length(output_dir) != 1) {
     stop("output_dir must be provided as a single directory path")
@@ -199,6 +215,7 @@ create_motif_clips.Sap <- function(x,
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
+    keep_source_file_name = keep_source_file_name,
     amp_normalize = amp_normalize,
     cores = cores,
     overwrite = overwrite,
@@ -278,7 +295,14 @@ create_motif_clips.Sap <- function(x,
 #' @param wav_dir For data-frame method: base directory containing source WAV files.
 #' @param hdf5_filename File name used when \code{output_format = "hdf5"}.
 #' @param metadata_filename Name of metadata CSV written to \code{output_dir}.
-#' @param name_prefix Prefix used for generated bout clip names.
+#' @param name_prefix Prefix used for generated clip file names. Can be any
+#'   string (e.g. \code{"bout"}). If \code{NULL}, defaults to \code{"bout"}. If
+#'   \code{keep_source_file_name} is \code{TRUE}, this parameter is ignored.
+#' @param keep_source_file_name Logical. If \code{TRUE}, uses the stem of the
+#'   originating WAV file combined with the \code{selec} column (or sequential
+#'   index) as the clip identifier (e.g. \code{S237_42685_001.wav}). This option
+#'   is especially useful for Scenario A exports where tracing a clip back to its
+#'   original recording is important. Overrides \code{name_prefix}.
 #' @param amp_normalize Waveform amplitude normalization applied to exported clips:
 #'   one of "none", "peak", or "rms" (default: "none").
 #' @param cores Number of CPU cores used for clip processing.
@@ -343,7 +367,8 @@ create_bout_clips.default <- function(x,
                                       output_dir = NULL,
                                       hdf5_filename = "bouts.h5",
                                       metadata_filename = "metadata.csv",
-                                      name_prefix = "bout",
+                                      name_prefix = NULL,
+                                      keep_source_file_name = FALSE,
                                       amp_normalize = c("none", "peak", "rms"),
                                       cores = NULL,
                                       overwrite = TRUE,
@@ -352,6 +377,9 @@ create_bout_clips.default <- function(x,
                                       ...) {
   if (!is.data.frame(x)) {
     stop("Input must be a data frame for default method")
+  }
+  if (is.null(name_prefix)) {
+    name_prefix <- "bout"
   }
 
   required_cols <- c("filename", "start_time", "end_time")
@@ -389,6 +417,7 @@ create_bout_clips.default <- function(x,
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
+    keep_source_file_name = keep_source_file_name,
     amp_normalize = amp_normalize,
     cores = cores,
     overwrite = overwrite,
@@ -409,7 +438,8 @@ create_bout_clips.Sap <- function(x,
                                   output_dir = NULL,
                                   hdf5_filename = "bouts.h5",
                                   metadata_filename = "metadata.csv",
-                                  name_prefix = "bout",
+                                  name_prefix = NULL,
+                                  keep_source_file_name = FALSE,
                                   amp_normalize = c("none", "peak", "rms"),
                                   cores = NULL,
                                   overwrite = TRUE,
@@ -425,6 +455,9 @@ create_bout_clips.Sap <- function(x,
   }
 
   amp_normalize <- .parse_amp_normalize(amp_normalize)
+  if (is.null(name_prefix)) {
+    name_prefix <- "bout"
+  }
 
   if (is.null(output_dir) || !is.character(output_dir) || length(output_dir) != 1) {
     stop("output_dir must be provided as a single directory path")
@@ -452,6 +485,7 @@ create_bout_clips.Sap <- function(x,
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
+    keep_source_file_name = keep_source_file_name,
     amp_normalize = amp_normalize,
     cores = cores,
     overwrite = overwrite,
@@ -635,6 +669,7 @@ create_bout_clips.Sap <- function(x,
                               hdf5_filename,
                               metadata_filename,
                               name_prefix,
+                              keep_source_file_name,
                               amp_normalize,
                               cores,
                               overwrite,
@@ -647,7 +682,23 @@ create_bout_clips.Sap <- function(x,
   jobs$day_clean <- vapply(as.character(jobs$day_post_hatch), .sanitize_group_name, FUN.VALUE = character(1))
   group_key <- paste(jobs$bird_id_clean, jobs$day_clean, sep = "::")
   jobs$clip_seq <- stats::ave(seq_len(nrow(jobs)), group_key, FUN = seq_along)
-  jobs$clip_id <- sprintf("%s_%03d", name_prefix, jobs$clip_seq)
+  if (keep_source_file_name) {
+    # Use WAV stem + a per-file sequential index as the clip identifier.
+    # Bouts already carry a 'selec' column (their index within the source file).
+    # Motifs do not have 'selec', so we compute an equivalent: a sequential
+    # counter that restarts from 1 for every unique source WAV filename.
+    wav_stems <- tools::file_path_sans_ext(as.character(jobs$filename))
+    if ("selec" %in% names(jobs)) {
+      file_idx <- as.integer(jobs$selec)
+    } else {
+      file_idx <- as.integer(
+        stats::ave(seq_len(nrow(jobs)), jobs$filename, FUN = seq_along)
+      )
+    }
+    jobs$clip_id <- sprintf("%s_%03d", wav_stems, file_idx)
+  } else {
+    jobs$clip_id <- sprintf("%s_%03d", name_prefix, jobs$clip_seq)
+  }
 
   has_day <- !is.na(jobs$day_post_hatch) & jobs$day_post_hatch != "unknown_day"
   jobs$source_path <- ifelse(
