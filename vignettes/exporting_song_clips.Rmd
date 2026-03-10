@@ -51,7 +51,7 @@ if (file.exists("figures/export_scenarios.png")) {
 
 ## Setup
 
-```{r setup}
+```{r setup, eval = FALSE}
 library(ASAP)
 sap <- readRDS("longitudinal_motif_analysis.rds")
 ```
