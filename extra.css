@@ -247,8 +247,3 @@ aside nav a.active,
     color: #1e88e5;
     opacity: 0.75;
 }
-
-/* Size override for navbar logo */
-.navbar-brand img {
-    height: 40px !important;
-}

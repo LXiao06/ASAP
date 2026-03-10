@@ -6,11 +6,6 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Automated Sound Analysis Pipeline for Avian Vocalization Research • ASAP</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
-<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" sizes="any" href="favicon.ico">
-<link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -19,7 +14,6 @@
 <meta property="og:title" content="Automated Sound Analysis Pipeline for Avian Vocalization Research">
 <meta name="description" content="A comprehensive toolkit for longitudinal analysis of birdsong development. ASAP provides an integrated suite of tools for processing, analyzing, and visualizing avian vocalizations, with particular emphasis on zebra finch song recordings from SAP2011. The package implements automated workflows for bout detection, motif extraction, syllable segmentation, template matching, temporal and spectral feature extraction, enabling researchers to track subtle changes in vocal patterns across developmental time points. Through efficient parallel processing and standardized analytical approaches, ASAP facilitates large-scale longitudinal studies of song learning and development, offering researchers powerful tools for quantifying vocal plasticity and investigating the mechanisms of vocal learning in songbirds.">
 <meta property="og:description" content="A comprehensive toolkit for longitudinal analysis of birdsong development. ASAP provides an integrated suite of tools for processing, analyzing, and visualizing avian vocalizations, with particular emphasis on zebra finch song recordings from SAP2011. The package implements automated workflows for bout detection, motif extraction, syllable segmentation, template matching, temporal and spectral feature extraction, enabling researchers to track subtle changes in vocal patterns across developmental time points. Through efficient parallel processing and standardized analytical approaches, ASAP facilitates large-scale longitudinal studies of song learning and development, offering researchers powerful tools for quantifying vocal plasticity and investigating the mechanisms of vocal learning in songbirds.">
-<meta property="og:image" content="https://lxiao06.github.io/ASAP/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -55,11 +49,9 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="asap-">ASAP 
+<div class="page-header"><h1 id="asap-">ASAP <a href="https://lxiao06.github.io/ASAP/"><img src="reference/figures/logo.png" align="right" height="139" alt="ASAP website"></a>
 <a class="anchor" aria-label="anchor" href="#asap-"></a>
-</h1>
-</div>
+</h1></div>
 <!-- badges: start -->
 
 <!-- badges: end -->
@@ -90,30 +82,65 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"LXiao06/ASAP"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="tutorials">Tutorials<a class="anchor" aria-label="anchor" href="#tutorials"></a>
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>Explore our comprehensive guides to get up and running with ASAP. You can find all documentation on the <a href="https://lxiao06.github.io/ASAP/">ASAP website</a>.</p>
 <div class="section level3">
-<h3 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+<h3 id="detecting-bout-boundaries-and-syllable-segmentation">Detecting Bout Boundaries and Syllable Segmentation<a class="anchor" aria-label="anchor" href="#detecting-bout-boundaries-and-syllable-segmentation"></a>
 </h3>
-<ul>
-<li>
-<a href="https://lxiao06.github.io/ASAP/articles/single_wav_analysis.html">Single WAV File Analysis</a>: Learn ASAP’s core functions using individual audio recordings.</li>
-<li>
-<a href="https://lxiao06.github.io/ASAP/articles/motif_detection.html">Motif Detection</a>: Introduction to automated motif extraction using template matching.</li>
-</ul>
+<p>This example demonstrates how to use functions to detect <strong>bout boundaries</strong> and perform <strong>syllable segmentation</strong> on a single WAV file of a zebra finch recording.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lxiao06.github.io/ASAP/">ASAP</a></span><span class="op">)</span></span>
+<span><span class="co"># Get path to example WAV file</span></span>
+<span><span class="va">wav_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"zf_example.wav"</span>, package <span class="op">=</span> <span class="st">"ASAP"</span><span class="op">)</span></span>
+<span>  </span>
+<span><span class="co"># Find bout</span></span>
+<span><span class="va">bouts</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/find_bout.html">find_bout</a></span><span class="op">(</span><span class="va">wav_file</span>, rms_threshold<span class="op">=</span> <span class="fl">0.1</span>, min_duration <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-example-code1-1.png" width="80%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Segmentation </span></span>
+<span><span class="va">syllables</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/segment.html">segment</a></span><span class="op">(</span><span class="va">wav_file</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">5</span>, flim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>                     silence_threshold <span class="op">=</span> <span class="fl">0.01</span>, min_syllable_ms <span class="op">=</span> <span class="fl">20</span>, </span>
+<span>                     max_syllable_ms <span class="op">=</span> <span class="fl">240</span>, min_level_db <span class="op">=</span> <span class="fl">10</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-example-code1-2.png" width="80%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
-<h3 id="longitudinal-analysis-pipeline">Longitudinal Analysis Pipeline<a class="anchor" aria-label="anchor" href="#longitudinal-analysis-pipeline"></a>
+<h3 id="standardized-song-analysis-pipeline-for-motif-analysis">Standardized Song Analysis Pipeline for Motif Analysis<a class="anchor" aria-label="anchor" href="#standardized-song-analysis-pipeline-for-motif-analysis"></a>
 </h3>
-<p>Step-by-step guides for processing large longitudinal datasets spanning multiple developmental time points:</p>
-<ol style="list-style-type: decimal">
-<li><a href="https://lxiao06.github.io/ASAP/articles/construct_sap_object.html">Constructing the SAP Object</a></li>
-<li><a href="https://lxiao06.github.io/ASAP/articles/longitudinal_bout_detection.html">Longitudinal Bout Detection</a></li>
-<li><a href="https://lxiao06.github.io/ASAP/articles/longitudinal_motif_detection.html">Longitudinal Motif Detection</a></li>
-<li><a href="https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.html">Longitudinal Syllable Segmentation</a></li>
-<li><a href="https://lxiao06.github.io/ASAP/articles/syllable_labeling.html">Syllable Labeling</a></li>
-</ol>
+<p>This example demonstrates a <strong>song analysis pipeline</strong> initiated by creating a SAP object, which tracks and visualizes motif changes over time using heatmaps and latent space projections.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create sap object </span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_sap_object.html">create_sap_object</a></span><span class="op">(</span></span>
+<span>  base_path <span class="op">=</span> <span class="st">"/path/to/your/wav/file/directory"</span>,</span>
+<span>  subfolders_to_include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"190"</span>, <span class="st">"201"</span>, <span class="st">"203"</span><span class="op">)</span>,</span>
+<span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span>, <span class="st">"Rec"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># A standardized pipeline for motif analysis</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>                    clip_names <span class="op">=</span> <span class="st">"m1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, clip_name <span class="op">=</span> <span class="st">"m1"</span>,</span>
+<span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>,   end_time <span class="op">=</span>  <span class="fl">0.84</span>,</span>
+<span>                  freq_min <span class="op">=</span> <span class="fl">1</span>,  freq_max <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>, write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, pre_time <span class="op">=</span> <span class="fl">0.7</span>, lag_time <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/find_clusters.html">find_clusters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/run_umap.html">run_umap</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/create_trajectory_matrix.html">create_trajectory_matrix</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"feat.embeds"</span>, clusters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/run_pca.html">run_pca</a></span><span class="op">(</span><span class="op">)</span>  <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/run_umap.html">run_umap</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"traj_mat"</span>, min_dist <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Visualization</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/plot_umap.html">plot_umap</a></span><span class="op">(</span>split.by <span class="op">=</span> <span class="st">"label"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/plot_umap2.html">plot_umap2</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"traj.embeds"</span>, overlay_mode <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>             base_label <span class="op">=</span> <span class="st">"BL"</span>, compare_labels <span class="op">=</span><span class="st">"Rec"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/sap_analysis.png" width="100%"></p>
 </div>
 </div>
 </div>

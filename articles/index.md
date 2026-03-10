@@ -87,7 +87,7 @@ Advanced · ~25 min
 [](https://lxiao06.github.io/ASAP/articles/syllable_labeling.md)
 
 ![Syllable cluster heatmap after
-labeling](figures/longitudinal_syllable_manual_heatmap.png)
+labeling](figures/longitudinal_heatmap_ordered.png)
 
 Syllable Labeling
 

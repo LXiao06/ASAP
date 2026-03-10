@@ -119,8 +119,8 @@ segment(
   min_syllable_ms   = 20,
   max_syllable_ms   = 240,
   min_level_db      = 10,
-  search_direction  = "up", # start from min_level_db suits variable recordings
-  save_plot         = FALSE # plot appears in IDE
+  search_direction  = "up",   # start from min_level_db suits variable recordings
+  save_plot         = FALSE   # plot appears in IDE
 )
 ```
 
@@ -137,19 +137,16 @@ Then try the **22nd motif**.
 example_motif <- sap$motifs[22, ]
 
 segment(
-  file.path(
-    sap$base_path, example_motif$day_post_hatch,
-    example_motif$filename
-  ),
-  start_time = example_motif$start_time,
-  end_time = example_motif$end_time,
-  flim = c(1, 8),
+  file.path(sap$base_path, example_motif$day_post_hatch, example_motif$filename),
+  start_time        = example_motif$start_time,
+  end_time          = example_motif$end_time,
+  flim              = c(1, 8),
   silence_threshold = 0.02,
-  min_syllable_ms = 20,
-  max_syllable_ms = 240,
-  min_level_db = 10,
-  search_direction = "up",
-  save_plot = FALSE
+  min_syllable_ms   = 20,
+  max_syllable_ms   = 240,
+  min_level_db      = 10,
+  search_direction  = "up",
+  save_plot         = FALSE
 )
 ```
 
@@ -186,8 +183,8 @@ from the baseline day only:
 segment(
   sap,
   segment_type      = "bouts",
-  day               = 190, # restrict to BL (day_post_hatch = 190)
-  indices           = 1:5, # then pick rows 1–5 within that day
+  day               = 190,    # restrict to BL (day_post_hatch = 190)
+  indices           = 1:5,    # then pick rows 1–5 within that day
   flim              = c(1, 8),
   silence_threshold = 0.02,
   min_syllable_ms   = 20,
@@ -196,7 +193,7 @@ segment(
   db_delta          = 10,
   search_direction  = "up",
   save_plot         = TRUE,
-  plot_percent      = 100 # save all plots in this spot-check
+  plot_percent      = 100     # save all plots in this spot-check
 )
 ```
 
@@ -219,16 +216,16 @@ sanity check without the overhead of writing thousands of PNGs.
 ``` r
 sap <- sap |>
   segment(
-    segment_type      = "bouts", # segment within each detected bout
-    flim              = c(1, 8), # 1–8 kHz (zebra finch song range)
-    silence_threshold = 0.02, # tuned from interactive preview above
+    segment_type      = "bouts",   # segment within each detected bout
+    flim              = c(1, 8),   # 1–8 kHz (zebra finch song range)
+    silence_threshold = 0.02,      # tuned from interactive preview above
     min_syllable_ms   = 20,
     max_syllable_ms   = 240,
     min_level_db      = 10,
     db_delta          = 10,
     search_direction  = "up",
     save_plot         = TRUE,
-    plot_percent      = 10 # save 10% of plots to avoid slowing batch processing
+    plot_percent      = 10         # save 10% of plots to avoid slowing batch processing
   )
 ```
 
@@ -259,7 +256,7 @@ the individual syllables we just detected.
 ``` r
 sap <- sap |>
   analyze_spectral(
-    segment_type = "segments"
+    segment_type    = "segments"
   ) |>
   find_clusters(
     segment_type = "segments"
@@ -286,7 +283,7 @@ tutorial. The embeddings are required by
 saveRDS(sap, "longitudinal_syllable_analysis.rds")
 
 # Reload later with:
-sap <- readRDS("longitudinal_syllable_analysis.rds")
+# sap <- readRDS("longitudinal_syllable_analysis.rds")
 ```
 
 **What gets saved:** - All metadata, motif, and bout data from earlier
@@ -309,10 +306,10 @@ and faceted to reveal developmental differences.
 
 ``` r
 plot_umap(sap,
-  segment_type = "segments",
-  split.by     = "label", # one panel per developmental stage
-  label        = TRUE # show cluster numbers on the plot
-)
+    segment_type = "segments",
+    split.by     = "label",   # one panel per developmental stage
+    label        = TRUE       # show cluster numbers on the plot
+  )
 ```
 
 ![UMAP of syllable segments coloured by cluster, split by developmental
@@ -354,28 +351,23 @@ sap <- create_sap_object(
 
 # -- Motif & Bout detection --
 sap <- sap |>
-  create_audio_clip(
-    indices = 1, start_time = 1, end_time = 2.5,
-    clip_names = "motif_ref"
-  ) |>
-  create_template(
-    template_name = "syllable_d", clip_name = "motif_ref",
-    start_time = 0.72, end_time = 0.84,
-    freq_min = 1, freq_max = 10,
-    threshold = 0.5, write_template = TRUE
-  ) |>
+  create_audio_clip(indices = 1, start_time = 1, end_time = 2.5,
+                    clip_names = "motif_ref") |>
+  create_template(template_name = "syllable_d", clip_name = "motif_ref",
+                  start_time = 0.72, end_time = 0.84,
+                  freq_min = 1, freq_max = 10,
+                  threshold = 0.5, write_template = TRUE) |>
   detect_template(template_name = "syllable_d") |>
   find_motif(template_name = "syllable_d", pre_time = 0.7, lag_time = 0.5) |>
   find_bout(min_duration = 0.4, summary = TRUE) |>
+
   # -- Segmentation pipeline --
-  segment(
-    segment_type = "bouts", flim = c(1, 8),
-    silence_threshold = 0.02,
-    min_syllable_ms = 20, max_syllable_ms = 240,
-    min_level_db = 10, db_delta = 10,
-    search_direction = "up",
-    save_plot = TRUE, plot_percent = 10
-  ) |>
+  segment(segment_type = "bouts", flim = c(1, 8),
+          silence_threshold = 0.02,
+          min_syllable_ms = 20, max_syllable_ms = 240,
+          min_level_db = 10, db_delta = 10,
+          search_direction = "up",
+          save_plot = TRUE, plot_percent = 10) |>
   analyze_spectral(segment_type = "segments") |>
   find_clusters(segment_type = "segments") |>
   run_umap(segment_type = "segments", min_dist = 0.3) |>
@@ -422,8 +414,8 @@ sessionInfo()
 #>  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    
 #>  [5] xfun_0.56         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
 #>  [9] rmarkdown_2.30    lifecycle_1.0.5   cli_3.6.5         sass_0.4.10      
-#> [13] pkgdown_2.2.0     textshaping_1.0.4 jquerylib_0.1.4   systemfonts_1.3.1
-#> [17] compiler_4.5.2    tools_4.5.2       ragg_1.5.0        evaluate_1.0.5   
+#> [13] pkgdown_2.2.0     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.2
+#> [17] compiler_4.5.2    tools_4.5.2       ragg_1.5.1        evaluate_1.0.5   
 #> [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.1.7      
-#> [25] fs_1.6.6
+#> [25] fs_1.6.7
 ```
