@@ -21,7 +21,8 @@ create_motif_clips(
   output_dir = NULL,
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
-  name_prefix = "motif",
+  name_prefix = NULL,
+  keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
   cores = NULL,
   overwrite = TRUE,
@@ -40,7 +41,8 @@ create_motif_clips(
   output_dir = NULL,
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
-  name_prefix = "motif",
+  name_prefix = NULL,
+  keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
   cores = NULL,
   overwrite = TRUE,
@@ -98,7 +100,16 @@ create_motif_clips(
 
 - name_prefix:
 
-  Prefix used for generated motif clip names.
+  Prefix used for generated clip file names. Can be any string (e.g.
+  `"motif"` or `"bout"`). If `NULL`, defaults to `"motif"`.
+
+- keep_source_file_name:
+
+  Logical. If `TRUE`, uses the stem of the originating WAV file combined
+  with the `selec` column (or sequential index) as the clip identifier
+  (e.g. `S237_42685_001.wav`). This option is especially useful for
+  Scenario A exports where tracing a clip back to its original recording
+  is important. Overrides `name_prefix`.
 
 - amp_normalize:
 

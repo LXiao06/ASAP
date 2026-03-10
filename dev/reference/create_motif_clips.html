@@ -55,7 +55,8 @@ in a directory tree or as datasets in a single HDF5 file.</p>
 <span>  output_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hdf5_filename <span class="op">=</span> <span class="st">"motifs.h5"</span>,</span>
 <span>  metadata_filename <span class="op">=</span> <span class="st">"metadata.csv"</span>,</span>
-<span>  name_prefix <span class="op">=</span> <span class="st">"motif"</span>,</span>
+<span>  name_prefix <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  keep_source_file_name <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  amp_normalize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"peak"</span>, <span class="st">"rms"</span><span class="op">)</span>,</span>
 <span>  cores <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  overwrite <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -74,7 +75,8 @@ in a directory tree or as datasets in a single HDF5 file.</p>
 <span>  output_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hdf5_filename <span class="op">=</span> <span class="st">"motifs.h5"</span>,</span>
 <span>  metadata_filename <span class="op">=</span> <span class="st">"metadata.csv"</span>,</span>
-<span>  name_prefix <span class="op">=</span> <span class="st">"motif"</span>,</span>
+<span>  name_prefix <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  keep_source_file_name <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  amp_normalize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"peak"</span>, <span class="st">"rms"</span><span class="op">)</span>,</span>
 <span>  cores <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  overwrite <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -133,7 +135,17 @@ is applied. In this repository, sampling is fixed to <code>222</code>.</p></dd>
 
 
 <dt id="arg-name-prefix">name_prefix<a class="anchor" aria-label="anchor" href="#arg-name-prefix"></a></dt>
-<dd><p>Prefix used for generated motif clip names.</p></dd>
+<dd><p>Prefix used for generated clip file names. Can be any
+string (e.g. <code>"motif"</code> or <code>"bout"</code>). If <code>NULL</code>, defaults to
+<code>"motif"</code>.</p></dd>
+
+
+<dt id="arg-keep-source-file-name">keep_source_file_name<a class="anchor" aria-label="anchor" href="#arg-keep-source-file-name"></a></dt>
+<dd><p>Logical. If <code>TRUE</code>, uses the stem of the
+originating WAV file combined with the <code>selec</code> column (or sequential
+index) as the clip identifier (e.g. <code>S237_42685_001.wav</code>). This option
+is especially useful for Scenario A exports where tracing a clip back to its
+original recording is important. Overrides <code>name_prefix</code>.</p></dd>
 
 
 <dt id="arg-amp-normalize">amp_normalize<a class="anchor" aria-label="anchor" href="#arg-amp-normalize"></a></dt>

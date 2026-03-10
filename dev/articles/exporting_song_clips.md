@@ -2,18 +2,81 @@
 
 ## Introduction
 
-In longitudinal birdsong studies or large-scale bioacoustic projects,
-raw audio recordings can be massive and mostly consist of silence or
-irrelevant background noise. The ASAP package provides powerful
-tools—[`create_bout_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_bout_clips.md)
+Song recordings from a single zebra finch can easily span several months
+and accumulate hundreds of gigabytes of audio. The vast majority of that
+data is silence, cage noise, or irrelevant vocalizations. ASAP provides
+two complementary export functions —
+[`create_bout_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_bout_clips.md)
 and
-[`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md)—to
-export curated, highly specific audio clips from your recordings based
-on your detection results.
+[`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md)
+— that read your detection results and write only the audio segments you
+actually need.
 
-This vignette covers how to choose the right export strategy for your
-research needs, the differences between output formats, and how to tune
-key export arguments like amplitude normalization.
+This vignette walks through:
+
+1.  **Which export scenario to use** — bout compression, filtered bouts,
+    or tight motif clips
+2.  **Which output format to choose** — WAV or HDF5, and why
+3.  **How to tune key arguments** — amplitude normalization, balanced
+    sampling, and clip naming
+
+**Prerequisites**: Before reading this vignette, we recommend
+completing:
+
+- [Longitudinal Motif
+  Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detection.md)
+- [Longitudinal Bout
+  Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_bout_detection.md)
+
+------------------------------------------------------------------------
+
+## Overview: How the Export Step Fits in the Pipeline
+
+The export functions sit at the **end** of the ASAP longitudinal
+pipeline. The diagram below shows where each export function connects to
+the upstream detection steps.
+
+Starting from a SAP object (Step 1), you can branch off in three
+directions depending on how much pre-processing you want to do before
+exporting:
+
+- **Scenario A** — branch immediately after Step 1: run
+  [`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
+  with `segment_type = "raw"` and export bouts. No motif detection
+  needed. This is the fastest path for bulk storage compression.
+- **Scenario B** — run the full motif detection pipeline (Steps 2–5),
+  then
+  [`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
+  with `segment_type = "motifs"`. This filters out any bouts that don’t
+  contain a detected motif, leaving only clean song bouts.
+- **Scenario C** — run the full motif detection pipeline (Steps 2–5),
+  then export motifs directly. This produces the tightest possible clips
+  and is ideal for acoustic feature analysis.
+
+![ASAP song clip export scenarios. Scenario A branches early (after SAP
+object creation) for rapid compression. Scenarios B and C require full
+motif detection before exporting bouts or motifs,
+respectively.](figures/export_scenarios.png)
+
+ASAP song clip export scenarios. Scenario A branches early (after SAP
+object creation) for rapid compression. Scenarios B and C require full
+motif detection before exporting bouts or motifs, respectively.
+
+------------------------------------------------------------------------
+
+## Setup
+
+``` r
+library(ASAP)
+sap <- readRDS("longitudinal_motif_analysis.rds")
+```
+
+This `sap` object was created in the [Longitudinal Motif
+Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detection.md)
+vignette and already includes the five detection steps shown in the
+flowchart.
+
+------------------------------------------------------------------------
 
 ## Processing Scenarios
 
@@ -22,11 +85,6 @@ that contain a mixture of vocalizations, filtered bouts that only
 contain learned song, or tightly cropped individual motifs.
 
 Here are the three primary export scenarios supported by ASAP:
-
-![ASAP song clip export scenarios
-overview.](figures/export_scenarios.png)
-
-ASAP song clip export scenarios overview.
 
 ### Scenario A: General Compression
 
@@ -55,8 +113,9 @@ sap <- sap |>
         min_duration = 0.5
     ) |>
     create_bout_clips(
-        output_dir    = "compressed_bouts",
-        output_format = "wav"
+        output_dir            = "compressed_bouts",
+        output_format         = "wav",
+        keep_source_file_name = TRUE
     )
 ```
 
@@ -79,6 +138,9 @@ When motif data is present,
 [`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
 will automatically filter out any amplitude bouts that do not contain a
 recognized motif.
+
+For full pipeline context, see [Longitudinal Bout
+Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_bout_detection.md).
 
 - **Pros:** Excludes background noise and innate vocalizations. Leaves
   you with clean, multi-motif song bouts.
@@ -109,6 +171,9 @@ If you are only interested in analyzing the core learned vocalization
 introductory notes, and calls entirely, you should export motifs
 directly.
 
+For full pipeline context, see [Longitudinal Motif
+Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detection.md).
+
 - **Pros:** Perfect for tight acoustic feature extraction, spectrogram
   clustering, and UMAPs.
 - **Cons:** Loses syntactic sequence context (rhythm and pacing between
@@ -122,6 +187,8 @@ sap <- sap |>
         output_format = "wav"
     )
 ```
+
+------------------------------------------------------------------------
 
 ## Output Formats: WAV vs. HDF5
 
@@ -161,6 +228,8 @@ sap <- create_motif_clips(
 )
 ```
 
+------------------------------------------------------------------------
+
 ## Key Arguments
 
 Both
@@ -169,6 +238,16 @@ and
 [`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md)
 share a rich set of arguments to give you precise control over exactly
 what gets exported.
+
+| Argument                | Purpose                           | Notes                                              |
+|-------------------------|-----------------------------------|----------------------------------------------------|
+| `output_format`         | Choose `"wav"` or `"hdf5"` output | WAV for manual inspection; HDF5 for large-scale ML |
+| `output_dir`            | Root export directory             | Required for both formats                          |
+| `amp_normalize`         | Normalize exported audio          | `"none"`, `"peak"`, or `"rms"`                     |
+| `n_bouts` / `n_motifs`  | Balanced sampling per day         | Sample up to N clips per `day_post_hatch`          |
+| `seed`                  | Reproducible sampling             | Use `222` for deterministic results                |
+| `hdf5_filename`         | HDF5 file name                    | Only used when `output_format = "hdf5"`            |
+| `keep_source_file_name` | Keep original file stems          | Useful for traceability in WAV export              |
 
 ### Amplitude Normalization (`amp_normalize`)
 
@@ -206,12 +285,60 @@ Using `n_motifs = N` or `n_bouts = N` instructs ASAP to randomly sample
 up to *N* clips **per day** (the `day_post_hatch` variable).
 
 ``` r
-# Get exactly 50 target motif clips per day to ensure balanced longitudinal models
+# Get exactly 50 motif clips per day for balanced longitudinal models
 sap <- create_motif_clips(
     sap,
     output_format = "wav",
-    output_dir = "balanced_dataset",
-    n_motifs = 50,
-    seed = 222 # Sets random seed for reproducible sampling
+    output_dir    = "balanced_dataset",
+    n_motifs      = 50,
+    seed          = 222 # Sets random seed for reproducible sampling
 )
 ```
+
+### Clip Naming (`name_prefix` and `keep_source_file_name`)
+
+By default, exported clips are named with a sequential index that
+restarts for each bird/day combination:
+
+    # Default naming: {prefix}_{index}.wav
+    bout_001.wav, bout_002.wav, ...   # create_bout_clips default
+    motif_001.wav, motif_002.wav, ... # create_motif_clips default
+
+You can customize the prefix with `name_prefix`:
+
+``` r
+# Custom prefix
+create_bout_clips(sap, name_prefix = "trial2", output_dir = "out", output_format = "wav")
+# → trial2_001.wav, trial2_002.wav, ...
+```
+
+If you need to **trace each clip back to its exact source recording** —
+which is especially important in Scenario A where you have no motifs to
+anchor provenance — set `keep_source_file_name = TRUE`. This replaces
+the sequential counter with the source WAV filename stem combined with
+the `selec` index (for bouts) or a per-file sequential index (for
+motifs):
+
+``` r
+# Scenario A: keep the origin WAV name in every exported clip filename
+sap <- sap |>
+    find_bout(segment_type = "raw", min_duration = 0.5) |>
+    create_bout_clips(
+        output_dir            = "compressed_bouts",
+        output_format         = "wav",
+        keep_source_file_name = TRUE
+    )
+# → S237_42685.4209366_11_11_1_10_9_001.wav
+# → S237_42685.7215374_11_11_2_00_15_001.wav
+# → ...  (each clip name encodes its source recording)
+```
+
+> **Note:** `keep_source_file_name = TRUE` overrides `name_prefix`. If
+> both are set, `keep_source_file_name` takes precedence and
+> `name_prefix` is ignored.
+
+| Scenario       | `name_prefix`                    | `keep_source_file_name` | Resulting filename      |
+|----------------|----------------------------------|-------------------------|-------------------------|
+| Default        | `NULL` (→ `"bout"` or `"motif"`) | `FALSE`                 | `bout_001.wav`          |
+| Custom prefix  | `"treatment_A"`                  | `FALSE`                 | `treatment_A_001.wav`   |
+| Source tracing | any or `NULL`                    | `TRUE`                  | `S237_42685.42_001.wav` |

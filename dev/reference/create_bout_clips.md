@@ -22,7 +22,8 @@ create_bout_clips(
   output_dir = NULL,
   hdf5_filename = "bouts.h5",
   metadata_filename = "metadata.csv",
-  name_prefix = "bout",
+  name_prefix = NULL,
+  keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
   cores = NULL,
   overwrite = TRUE,
@@ -41,7 +42,8 @@ create_bout_clips(
   output_dir = NULL,
   hdf5_filename = "bouts.h5",
   metadata_filename = "metadata.csv",
-  name_prefix = "bout",
+  name_prefix = NULL,
+  keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
   cores = NULL,
   overwrite = TRUE,
@@ -99,7 +101,17 @@ create_bout_clips(
 
 - name_prefix:
 
-  Prefix used for generated bout clip names.
+  Prefix used for generated clip file names. Can be any string (e.g.
+  `"bout"`). If `NULL`, defaults to `"bout"`. If `keep_source_file_name`
+  is `TRUE`, this parameter is ignored.
+
+- keep_source_file_name:
+
+  Logical. If `TRUE`, uses the stem of the originating WAV file combined
+  with the `selec` column (or sequential index) as the clip identifier
+  (e.g. `S237_42685_001.wav`). This option is especially useful for
+  Scenario A exports where tracing a clip back to its original recording
+  is important. Overrides `name_prefix`.
 
 - amp_normalize:
 
