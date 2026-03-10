@@ -8,6 +8,7 @@
 .Ruserdata
 inst/*/
 inst/extdata/*/
+skills/
 dev/
 docs
 tests/

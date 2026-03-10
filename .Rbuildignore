@@ -13,3 +13,4 @@
 ^tests$
 ^vignettes/
 ^inst/extdata/.+/
+^skills$
