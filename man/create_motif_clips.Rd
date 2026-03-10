@@ -18,7 +18,8 @@ create_motif_clips(x, ...)
   output_dir = NULL,
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
-  name_prefix = "motif",
+  name_prefix = NULL,
+  keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
   cores = NULL,
   overwrite = TRUE,
@@ -36,7 +37,8 @@ create_motif_clips(x, ...)
   output_dir = NULL,
   hdf5_filename = "motifs.h5",
   metadata_filename = "metadata.csv",
-  name_prefix = "motif",
+  name_prefix = NULL,
+  keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
   cores = NULL,
   overwrite = TRUE,
@@ -70,7 +72,15 @@ is applied. In this repository, sampling is fixed to \code{222}.}
 
 \item{metadata_filename}{Name of metadata CSV written to \code{output_dir}.}
 
-\item{name_prefix}{Prefix used for generated motif clip names.}
+\item{name_prefix}{Prefix used for generated clip file names. Can be any
+string (e.g. \code{"motif"} or \code{"bout"}). If \code{NULL}, defaults to
+\code{"motif"}.}
+
+\item{keep_source_file_name}{Logical. If \code{TRUE}, uses the stem of the
+originating WAV file combined with the \code{selec} column (or sequential
+index) as the clip identifier (e.g. \code{S237_42685_001.wav}). This option
+is especially useful for Scenario A exports where tracing a clip back to its
+original recording is important. Overrides \code{name_prefix}.}
 
 \item{amp_normalize}{Waveform amplitude normalization applied to exported clips:
 one of "none", "peak", or "rms" (default: "none")}
