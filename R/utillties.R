@@ -185,8 +185,12 @@ parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE) {
   # Set number of cores
   if (is.null(cores)) {
     ensure_pkgs("parallel")
-    cores <- parallel::detectCores() - 1
-    cores <- max(1, cores)
+    detected <- suppressWarnings(as.integer(parallel::detectCores()))
+    if (is.na(detected) || detected < 1) {
+      cores <- 1L
+    } else {
+      cores <- max(1L, detected - 1L)
+    }
   }
 
   # Determine which package is needed based on OS
