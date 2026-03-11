@@ -198,7 +198,7 @@ dataset to show what the full pipeline looks like in practice.
 ### Dataset
 
 The **sil469** dataset is a longitudinal recording collection from a
-single adult male zebra finch, available through the Duke University
+single juvenile male zebra finch, available through the Duke University
 Research Data Repository:
 
 > sil469_raw_wav.zip (~10 GB) — 33,159 raw `.wav` files across 26 daily
