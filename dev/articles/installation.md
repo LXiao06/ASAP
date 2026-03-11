@@ -2,25 +2,19 @@
 
 ## Step 1 — Install R
 
-ASAP requires **R version 4.2 or higher**.
+ASAP requires **[R](https://cran.r-project.org) version 4.2 or higher**.
 
 Download and install R for your operating system from the official CRAN
-mirror:
-
-👉 <https://cran.r-project.org>
+mirror.
 
 ------------------------------------------------------------------------
 
 ## Step 2 — Install RStudio (Recommended IDE)
 
-While ASAP can be used from any R environment, we recommend **RStudio**
-as your integrated development environment (IDE). It provides a
-comfortable interface for running scripts, inspecting data, and viewing
-plots.
-
-Download RStudio Desktop (free) from:
-
-👉 <https://posit.co/download/rstudio-desktop>
+While ASAP can be used from any R environment, we recommend
+**[RStudio](https://posit.co/download/rstudio-desktop)** as your
+integrated development environment (IDE). It provides a comfortable
+interface for running scripts, inspecting data, and viewing plots.
 
 ------------------------------------------------------------------------
 
@@ -41,7 +35,7 @@ install.packages("remotes")
 
 ### Recommended: Latest Release
 
-We recommend installing the latest **stable release** of ASAP for
+I recommend installing the latest **stable release** of ASAP for
 everyday use. Releases are tagged and tested, so this is the safest
 option.
 
