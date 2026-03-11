@@ -140,7 +140,7 @@ This section demonstrates Scenario B on a publicly available zebra finch dataset
 
 ### Dataset
 
-The **sil469** dataset is a longitudinal recording collection from a single adult male zebra finch, available through the Duke University Research Data Repository:
+The **sil469** dataset is a longitudinal recording collection from a single juvenile male zebra finch, available through the Duke University Research Data Repository:
 
 > sil469_raw_wav.zip (~10 GB) — 33,159 raw `.wav` files across 26 daily subfolders (72–97 dph), ~14 GB unzipped.
 > DOI: [10.7924/r4j38x43h](https://doi.org/10.7924/r4j38x43h)
