@@ -266,137 +266,173 @@ across 26 daily subfolders (72–97 dph), ~14 GB unzipped. DOI: <a href="https:/
 </h3>
 <p>After downloading and unzipping the dataset, the Scenario B pipeline
 runs as follows:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">library</span>(ASAP)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>data_dir <span class="ot">&lt;-</span> <span class="st">"/path/to/sil469_raw_wav"</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>all_days <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="dv">72</span><span class="sc">:</span><span class="dv">97</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co"># Step 1 – Build SAP object from all 26 daily subfolders</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>sap <span class="ot">&lt;-</span> <span class="fu">create_sap_object</span>(</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>    <span class="at">base_path             =</span> data_dir,</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>    <span class="at">subfolders_to_include =</span> all_days,</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>    <span class="at">labels                =</span> all_days</span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>)</span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co"># Steps 2–5 – Build template, detect motifs, and find bouts</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>sap <span class="ot">&lt;-</span> sap <span class="sc">|&gt;</span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>    <span class="fu">create_audio_clip</span>(</span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>        <span class="at">indices    =</span> <span class="fu">c</span>(<span class="dv">20365</span>, <span class="dv">33119</span>),</span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>        <span class="at">start_time =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">2.5</span>),</span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>        <span class="at">end_time   =</span> <span class="fu">c</span>(<span class="fl">3.7</span>, <span class="fl">4.2</span>),</span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>        <span class="at">clip_names =</span> <span class="fu">c</span>(<span class="st">"m_85"</span>, <span class="st">"m_97"</span>)</span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>    <span class="fu">create_template</span>(</span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>        <span class="at">template_name  =</span> <span class="st">"b"</span>,</span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>        <span class="at">clip_name      =</span> <span class="st">"m_85"</span>,</span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>        <span class="at">start_time     =</span> <span class="fl">1.32</span>,</span>
-<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a>        <span class="at">end_time       =</span> <span class="fl">1.45</span>,</span>
-<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a>        <span class="at">freq_min       =</span> <span class="dv">1</span>,</span>
-<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a>        <span class="at">freq_max       =</span> <span class="dv">8</span>,</span>
-<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a>        <span class="at">threshold      =</span> <span class="fl">0.5</span>,</span>
-<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a>        <span class="at">write_template =</span> <span class="cn">TRUE</span></span>
-<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a>    <span class="fu">detect_template</span>(</span>
-<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a>        <span class="at">template_name    =</span> <span class="st">"b"</span>,</span>
-<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a>        <span class="at">proximity_window =</span> <span class="fl">0.4</span>,</span>
-<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a>        <span class="at">threshold        =</span> <span class="fl">0.5</span></span>
-<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a>    <span class="fu">find_motif</span>(</span>
-<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a>        <span class="at">template_name =</span> <span class="st">"b"</span>,</span>
-<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a>        <span class="at">pre_time      =</span> <span class="fl">0.2</span>,</span>
-<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a>        <span class="at">lag_time      =</span> <span class="fl">0.3</span></span>
-<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a><span class="co"># Step 6-7 – Find and export clips of bouts that contain at least one motif</span></span>
-<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a>    <span class="fu">find_bout</span>(</span>
-<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a>        <span class="at">min_duration =</span> <span class="fl">0.4</span>,</span>
-<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a>        <span class="at">summary      =</span> <span class="cn">TRUE</span></span>
-<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a>    <span class="fu">create_bout_clips</span>(</span>
-<span id="cb5-47"><a href="#cb5-47" tabindex="-1"></a>        <span class="at">output_format         =</span> <span class="st">"wav"</span>,</span>
-<span id="cb5-48"><a href="#cb5-48" tabindex="-1"></a>        <span class="at">output_dir            =</span> data_dir,</span>
-<span id="cb5-49"><a href="#cb5-49" tabindex="-1"></a>        <span class="at">keep_source_file_name =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb5-50"><a href="#cb5-50" tabindex="-1"></a>        <span class="at">metadata_filename     =</span> <span class="st">"sil469_metadata_bouts.csv"</span></span>
-<span id="cb5-51"><a href="#cb5-51" tabindex="-1"></a>    )</span>
-<span id="cb5-52"><a href="#cb5-52" tabindex="-1"></a></span>
-<span id="cb5-53"><a href="#cb5-53" tabindex="-1"></a></span>
-<span id="cb5-54"><a href="#cb5-54" tabindex="-1"></a><span class="do">### Console Output</span></span>
-<span id="cb5-55"><a href="#cb5-55" tabindex="-1"></a></span>
-<span id="cb5-56"><a href="#cb5-56" tabindex="-1"></a>When <span class="st">`</span><span class="at">create_bout_clips()</span><span class="st">`</span> completes, it prints a per<span class="sc">-</span>day export summary<span class="sc">:</span></span></code></pre></div>
-<p>Day 72: 402 written / 402 total (skipped: 0 missing, 0 invalid, 0
-existing) Day 73: 1241 written / 1241 total (skipped: 0 missing, 0
-invalid, 0 existing) Day 74: 1115 written / 1115 total (skipped: 0
-missing, 0 invalid, 0 existing) Day 75: 1110 written / 1110 total
-(skipped: 0 missing, 0 invalid, 0 existing) Day 76: 1229 written / 1229
-total (skipped: 0 missing, 0 invalid, 0 existing) Day 77: 1316 written /
-1316 total (skipped: 0 missing, 0 invalid, 0 existing) Day 78: 1329
-written / 1329 total (skipped: 0 missing, 0 invalid, 0 existing) Day 79:
-839 written / 839 total (skipped: 0 missing, 0 invalid, 0 existing) Day
-80: 895 written / 895 total (skipped: 0 missing, 0 invalid, 0 existing)
-Day 81: 1013 written / 1013 total (skipped: 0 missing, 0 invalid, 0
-existing) Day 82: 899 written / 899 total (skipped: 0 missing, 0
-invalid, 0 existing) Day 83: 787 written / 787 total (skipped: 0
-missing, 0 invalid, 0 existing) Day 84: 945 written / 945 total
-(skipped: 0 missing, 0 invalid, 0 existing) Day 85: 865 written / 865
-total (skipped: 0 missing, 0 invalid, 0 existing) Day 86: 840 written /
-840 total (skipped: 0 missing, 0 invalid, 0 existing) Day 87: 506
-written / 506 total (skipped: 0 missing, 0 invalid, 0 existing) Day 88:
-784 written / 784 total (skipped: 0 missing, 0 invalid, 0 existing) Day
-89: 795 written / 795 total (skipped: 0 missing, 0 invalid, 0 existing)
-Day 90: 1051 written / 1051 total (skipped: 0 missing, 0 invalid, 0
-existing) Day 91: 933 written / 933 total (skipped: 0 missing, 0
-invalid, 0 existing) Day 92: 80 written / 80 total (skipped: 0 missing,
-0 invalid, 0 existing) Day 93: 1053 written / 1053 total (skipped: 0
-missing, 0 invalid, 0 existing) Day 94: 662 written / 662 total
-(skipped: 0 missing, 0 invalid, 0 existing) Day 95: 920 written / 920
-total (skipped: 0 missing, 0 invalid, 0 existing) Day 96: 1027 written /
-1027 total (skipped: 0 missing, 0 invalid, 0 existing) Day 97: 191
-written / 191 total (skipped: 0 missing, 0 invalid, 0 existing)</p>
-<p>Exported 22,827 clips to wav format (no normalization)</p>
-<pre><code>
-### Result
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lxiao06.github.io/ASAP/">ASAP</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">data_dir</span> <span class="op">&lt;-</span> <span class="st">"/path/to/sil469_raw_wav"</span></span>
+<span><span class="va">all_days</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fl">72</span><span class="op">:</span><span class="fl">97</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Step 1 – Build SAP object from all 26 daily subfolders</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_sap_object.html">create_sap_object</a></span><span class="op">(</span></span>
+<span>    base_path             <span class="op">=</span> <span class="va">data_dir</span>,</span>
+<span>    subfolders_to_include <span class="op">=</span> <span class="va">all_days</span>,</span>
+<span>    labels                <span class="op">=</span> <span class="va">all_days</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Steps 2–5 – Build template, detect motifs, and find bouts</span></span>
+<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span></span>
+<span>        indices    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20365</span>, <span class="fl">33119</span><span class="op">)</span>,</span>
+<span>        start_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2.5</span><span class="op">)</span>,</span>
+<span>        end_time   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3.7</span>, <span class="fl">4.2</span><span class="op">)</span>,</span>
+<span>        clip_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"m_85"</span>, <span class="st">"m_97"</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span></span>
+<span>        template_name  <span class="op">=</span> <span class="st">"b"</span>,</span>
+<span>        clip_name      <span class="op">=</span> <span class="st">"m_85"</span>,</span>
+<span>        start_time     <span class="op">=</span> <span class="fl">1.32</span>,</span>
+<span>        end_time       <span class="op">=</span> <span class="fl">1.45</span>,</span>
+<span>        freq_min       <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>        freq_max       <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>        threshold      <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>        write_template <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span></span>
+<span>        template_name    <span class="op">=</span> <span class="st">"b"</span>,</span>
+<span>        proximity_window <span class="op">=</span> <span class="fl">0.4</span>,</span>
+<span>        threshold        <span class="op">=</span> <span class="fl">0.5</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span></span>
+<span>        template_name <span class="op">=</span> <span class="st">"b"</span>,</span>
+<span>        pre_time      <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>        lag_time      <span class="op">=</span> <span class="fl">0.3</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="co"># Step 6-7 – Find and export clips of bouts that contain at least one motif</span></span>
+<span>    <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span></span>
+<span>        min_duration <span class="op">=</span> <span class="fl">0.4</span>,</span>
+<span>        summary      <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/create_bout_clips.html">create_bout_clips</a></span><span class="op">(</span></span>
+<span>        output_format         <span class="op">=</span> <span class="st">"wav"</span>,</span>
+<span>        output_dir            <span class="op">=</span> <span class="va">data_dir</span>,</span>
+<span>        keep_source_file_name <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        metadata_filename     <span class="op">=</span> <span class="st">"sil469_metadata_bouts.csv"</span></span>
+<span>    <span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="console-output">Console Output<a class="anchor" aria-label="anchor" href="#console-output"></a>
+</h3>
+<p>When <code><a href="../reference/create_bout_clips.html">create_bout_clips()</a></code> completes, it prints a per-day
+export summary:</p>
+<pre><code>Day 72: 402 written / 402 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 73: 1241 written / 1241 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 74: 1115 written / 1115 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 75: 1110 written / 1110 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 76: 1229 written / 1229 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 77: 1316 written / 1316 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 78: 1329 written / 1329 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 79: 839 written / 839 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 80: 895 written / 895 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 81: 1013 written / 1013 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 82: 899 written / 899 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 83: 787 written / 787 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 84: 945 written / 945 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 85: 865 written / 865 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 86: 840 written / 840 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 87: 506 written / 506 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 88: 784 written / 784 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 89: 795 written / 795 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 90: 1051 written / 1051 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 91: 933 written / 933 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 92: 80 written / 80 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 93: 1053 written / 1053 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 94: 662 written / 662 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 95: 920 written / 920 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 96: 1027 written / 1027 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 97: 191 written / 191 total (skipped: 0 missing, 0 invalid, 0 existing)
 
-| Metric | Value |
-|---|---|
-| **Raw audio files** | 33,159 `.wav` files |
-| **Raw storage** | ~14 GB |
-| **Exported bout clips** | 22,827 clips |
-| **Curated storage** | ~3 GB |
-| **Storage reduction** | ~80% |
-| **Pipeline runtime** | ~2 min/day on a standard laptop |
-
-The full pipeline — from raw SAP recordings to curated, motif-validated bout clips — runs in approximately **2 minutes per day** on a standard laptop, reducing storage by **~80%** while retaining only biologically relevant vocalizations.
-
----
-
-
-## Output Formats: WAV vs. HDF5
-
-You can export clips in two formats using the `output_format` argument: `"wav"` or `"hdf5"`.
-
-### 1. WAV Output (`output_format = "wav"`)
-Creates a standard directory tree: `output_dir/{type}/{bird_id}/{day_post_hatch}/{prefix}_xxx.wav`.
-
-**When to use WAV:**
-* You want to manually listen to the files or inspect them in Praat/Audacity.
-* You are sharing the data with collaborators who rely on standard audio software.
-
-A companion `metadata.csv` is automatically generated in the out folder to map each file to its exact source and original timestamp.
-
-### 2. HDF5 Output (`output_format = "hdf5"`)
-Compiles all audio data directly into a single, hierarchical matrix file (`.h5`).
-
-**When to use HDF5:**
-* **Machine Learning:** Perfect for training PyTorch/TensorFlow models. Data loaders can stream directly from a single chunked binary file much faster than opening thousands of tiny `.wav` files.
-* **Large-scale Datasets:** Prevents file system exhaustion (inodes) when exporting tens of thousands of motifs on compute clusters.
-
-
-``` r
-sap &lt;- create_motif_clips(
-    sap,
-    output_format = "hdf5",
-    output_dir    = "ml_dataset",
-    hdf5_filename = "training_motifs.h5"
-)</code></pre>
+Exported 22,827 clips to wav format (no normalization)</code></pre>
+</div>
+<div class="section level3">
+<h3 id="result">Result<a class="anchor" aria-label="anchor" href="#result"></a>
+</h3>
+<table class="table">
+<thead><tr class="header">
+<th>Metric</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Raw audio files</strong></td>
+<td>33,159 <code>.wav</code> files</td>
+</tr>
+<tr class="even">
+<td><strong>Raw storage</strong></td>
+<td>~14 GB</td>
+</tr>
+<tr class="odd">
+<td><strong>Exported bout clips</strong></td>
+<td>22,827 clips</td>
+</tr>
+<tr class="even">
+<td><strong>Curated storage</strong></td>
+<td>~3 GB</td>
+</tr>
+<tr class="odd">
+<td><strong>Storage reduction</strong></td>
+<td>~80%</td>
+</tr>
+<tr class="even">
+<td><strong>Pipeline runtime</strong></td>
+<td>~2 min/day on a standard laptop</td>
+</tr>
+</tbody>
+</table>
+<p>The full pipeline — from raw SAP recordings to curated,
+motif-validated bout clips — runs in approximately <strong>2 minutes per
+day</strong> on a standard laptop, reducing storage by
+<strong>~80%</strong> while retaining only biologically relevant
+vocalizations.</p>
+<hr>
+</div>
+</div>
+<div class="section level2">
+<h2 id="output-formats-wav-vs--hdf5">Output Formats: WAV vs. HDF5<a class="anchor" aria-label="anchor" href="#output-formats-wav-vs--hdf5"></a>
+</h2>
+<p>You can export clips in two formats using the
+<code>output_format</code> argument: <code>"wav"</code> or
+<code>"hdf5"</code>.</p>
+<div class="section level3">
+<h3 id="wav-output-output_format-wav">1. WAV Output (<code>output_format = "wav"</code>)<a class="anchor" aria-label="anchor" href="#wav-output-output_format-wav"></a>
+</h3>
+<p>Creates a standard directory tree:
+<code>output_dir/{type}/{bird_id}/{day_post_hatch}/{prefix}_xxx.wav</code>.</p>
+<p><strong>When to use WAV:</strong> * You want to manually listen to
+the files or inspect them in Praat/Audacity. * You are sharing the data
+with collaborators who rely on standard audio software.</p>
+<p>A companion <code>metadata.csv</code> is automatically generated in
+the out folder to map each file to its exact source and original
+timestamp.</p>
+</div>
+<div class="section level3">
+<h3 id="hdf5-output-output_format-hdf5">2. HDF5 Output (<code>output_format = "hdf5"</code>)<a class="anchor" aria-label="anchor" href="#hdf5-output-output_format-hdf5"></a>
+</h3>
+<p>Compiles all audio data directly into a single, hierarchical matrix
+file (<code>.h5</code>).</p>
+<p><strong>When to use HDF5:</strong> * <strong>Machine
+Learning:</strong> Perfect for training PyTorch/TensorFlow models. Data
+loaders can stream directly from a single chunked binary file much
+faster than opening thousands of tiny <code>.wav</code> files. *
+<strong>Large-scale Datasets:</strong> Prevents file system exhaustion
+(inodes) when exporting tens of thousands of motifs on compute
+clusters.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
+<span>    <span class="va">sap</span>,</span>
+<span>    output_format <span class="op">=</span> <span class="st">"hdf5"</span>,</span>
+<span>    output_dir    <span class="op">=</span> <span class="st">"ml_dataset"</span>,</span>
+<span>    hdf5_filename <span class="op">=</span> <span class="st">"training_motifs.h5"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>
@@ -483,7 +519,7 @@ recommended for machine learning models</strong>, as it guarantees a
 consistent baseline volume across all developmental stages regardless of
 microphone placement.</li>
 </ul>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
 <span>    <span class="va">sap</span>,</span>
 <span>    output_format <span class="op">=</span> <span class="st">"wav"</span>,</span>
@@ -502,7 +538,7 @@ vocal days.</p>
 <p>Using <code>n_motifs = N</code> or <code>n_bouts = N</code> instructs
 ASAP to randomly sample up to <em>N</em> clips <strong>per day</strong>
 (the <code>day_post_hatch</code> variable).</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get exactly 50 motif clips per day for balanced longitudinal models</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
 <span>    <span class="va">sap</span>,</span>
@@ -522,7 +558,7 @@ restarts for each bird/day combination:</p>
 bout_001.wav, bout_002.wav, ...   # create_bout_clips default
 motif_001.wav, motif_002.wav, ... # create_motif_clips default</code></pre>
 <p>You can customize the prefix with <code>name_prefix</code>:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Custom prefix</span></span>
 <span><span class="fu"><a href="../reference/create_bout_clips.html">create_bout_clips</a></span><span class="op">(</span><span class="va">sap</span>, name_prefix <span class="op">=</span> <span class="st">"trial2"</span>, output_dir <span class="op">=</span> <span class="st">"out"</span>, output_format <span class="op">=</span> <span class="st">"wav"</span><span class="op">)</span></span>
 <span><span class="co"># → trial2_001.wav, trial2_002.wav, ...</span></span></code></pre></div>
@@ -533,7 +569,7 @@ you have no motifs to anchor provenance — set
 counter with the source WAV filename stem combined with the
 <code>selec</code> index (for bouts) or a per-file sequential index (for
 motifs):</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Scenario A: keep the origin WAV name in every exported clip filename</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/find_bout.html">find_bout</a></span><span class="op">(</span>segment_type <span class="op">=</span> <span class="st">"raw"</span>, min_duration <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
