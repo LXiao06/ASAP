@@ -56,7 +56,7 @@ library(ASAP)
 sap <- readRDS("longitudinal_motif_analysis.rds")
 ```
 
-This `sap` object was created in the [Longitudinal Motif Detection](longitudinal_motif_detection.html) vignette and already includes the five detection steps shown in the flowchart.
+This `sap` object was created in the [Longitudinal Motif Detection](longitudinal_motif_detection.html) vignette and already includes the five steps shown in the above overview flowchart.
 
 ---
 
@@ -95,8 +95,6 @@ sap <- sap |>
 
 If you want to study the broader syntactic structure of song (e.g., how motifs are grouped together) but want to exclude general cage noise and innate calls, you should run `find_motif()` *before* `find_bout()`. When motif data is present, `find_bout()` will automatically filter out any amplitude bouts that do not contain a recognized motif.
 
-For full pipeline context, see [Longitudinal Bout Detection](longitudinal_bout_detection.html).
-
 * **Pros:** Excludes background noise and innate vocalizations. Leaves you with clean, multi-motif song bouts.
 * **Cons:** May miss very poor early-stage practice song if your motif template is too strict.
 
@@ -112,13 +110,13 @@ sap <- sap |>
     )
 ```
 
+For full pipeline context, see [Longitudinal Bout Detection](longitudinal_bout_detection.html).
+
 ### Scenario C: Strict Motifs
 
 **Workflow:** `find_motif()` -> `create_motif_clips()`
 
 If you are only interested in analyzing the core learned vocalization (the individual motif) and want to strip away inter-motif gaps, introductory notes, and calls entirely, you should export motifs directly.
-
-For full pipeline context, see [Longitudinal Motif Detection](longitudinal_motif_detection.html).
 
 * **Pros:** Perfect for tight acoustic feature extraction, spectrogram clustering, and UMAPs.
 * **Cons:** Loses syntactic sequence context (rhythm and pacing between motifs).
@@ -132,6 +130,8 @@ sap <- sap |>
     )
 ```
 
+For full pipeline context, see [Longitudinal Motif Detection](longitudinal_motif_detection.html).
+
 ---
 
 ## Real-World Example: Scenario B
@@ -142,7 +142,7 @@ This section demonstrates Scenario B on a publicly available zebra finch dataset
 
 The **sil469** dataset is a longitudinal recording collection from a single adult male zebra finch, available through the Duke University Research Data Repository:
 
-> sil469_raw_wav — 33,159 raw `.wav` files across 26 daily subfolders (72–97 dph), ~14 GB total.
+> sil469_raw_wav.zip (~10 GB) — 33,159 raw `.wav` files across 26 daily subfolders (72–97 dph), ~14 GB unzipped.
 > DOI: [10.7924/r4j38x43h](https://doi.org/10.7924/r4j38x43h)
 
 ### Full Pipeline
@@ -190,6 +190,7 @@ sap <- sap |>
         pre_time      = 0.2,
         lag_time      = 0.3
     ) |>
+# Step 6-7 – Find and export clips of bouts that contain at least one motif
     find_bout(
         min_duration = 0.4,
         summary      = TRUE
@@ -198,9 +199,9 @@ sap <- sap |>
         output_format         = "wav",
         output_dir            = data_dir,
         keep_source_file_name = TRUE,
-        metadata_filename     = "metadata_all_bouts.csv"
+        metadata_filename     = "sil469_metadata_bouts.csv"
     )
-```
+
 
 ### Console Output
 
