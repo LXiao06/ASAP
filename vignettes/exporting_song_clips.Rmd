@@ -190,7 +190,7 @@ sap <- sap |>
         pre_time      = 0.2,
         lag_time      = 0.3
     ) |>
-# Step 6-7 – Find and export clips of bouts that contain at least one motif
+    # Step 6-7 – Find and export clips of bouts that contain at least one motif
     find_bout(
         min_duration = 0.4,
         summary      = TRUE
@@ -201,7 +201,7 @@ sap <- sap |>
         keep_source_file_name = TRUE,
         metadata_filename     = "sil469_metadata_bouts.csv"
     )
-
+```
 
 ### Console Output
 
