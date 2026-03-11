@@ -17,9 +17,12 @@ repo:
 
 navbar:
   structure:
-    left:  [intro, get_started, reference, news]
+    left:  [intro, installation, get_started, reference, news]
     right: [search, github]
   components:
+    installation:
+      text: "Installation"
+      href: articles/installation.html
     get_started:
       text: "Get Started"
       href: articles/index.html
@@ -28,6 +31,11 @@ articles:
   - title: ~
     contents:
       - index
+
+  - title: "Installation Guide"
+    desc: "How to install R, RStudio, and ASAP"
+    contents:
+      - installation
 
   - title: "Single WAV File Analysis"
     desc: "Learn ASAP functions using individual audio files"
