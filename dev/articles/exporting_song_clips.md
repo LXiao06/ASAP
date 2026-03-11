@@ -73,7 +73,7 @@ sap <- readRDS("longitudinal_motif_analysis.rds")
 
 This `sap` object was created in the [Longitudinal Motif
 Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detection.md)
-vignette and already includes the five detection steps shown in the
+vignette and already includes the five steps shown in the above overview
 flowchart.
 
 ------------------------------------------------------------------------
@@ -139,9 +139,6 @@ When motif data is present,
 will automatically filter out any amplitude bouts that do not contain a
 recognized motif.
 
-For full pipeline context, see [Longitudinal Bout
-Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_bout_detection.md).
-
 - **Pros:** Excludes background noise and innate vocalizations. Leaves
   you with clean, multi-motif song bouts.
 - **Cons:** May miss very poor early-stage practice song if your motif
@@ -159,6 +156,9 @@ sap <- sap |>
     )
 ```
 
+For full pipeline context, see [Longitudinal Bout
+Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_bout_detection.md).
+
 ### Scenario C: Strict Motifs
 
 **Workflow:**
@@ -170,9 +170,6 @@ If you are only interested in analyzing the core learned vocalization
 (the individual motif) and want to strip away inter-motif gaps,
 introductory notes, and calls entirely, you should export motifs
 directly.
-
-For full pipeline context, see [Longitudinal Motif
-Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detection.md).
 
 - **Pros:** Perfect for tight acoustic feature extraction, spectrogram
   clustering, and UMAPs.
@@ -188,6 +185,9 @@ sap <- sap |>
     )
 ```
 
+For full pipeline context, see [Longitudinal Motif
+Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detection.md).
+
 ------------------------------------------------------------------------
 
 ## Real-World Example: Scenario B
@@ -201,8 +201,8 @@ The **sil469** dataset is a longitudinal recording collection from a
 single adult male zebra finch, available through the Duke University
 Research Data Repository:
 
-> sil469_raw_wav — 33,159 raw `.wav` files across 26 daily subfolders
-> (72–97 dph), ~14 GB total. DOI:
+> sil469_raw_wav.zip (~10 GB) — 33,159 raw `.wav` files across 26 daily
+> subfolders (72–97 dph), ~14 GB unzipped. DOI:
 > [10.7924/r4j38x43h](https://doi.org/10.7924/r4j38x43h)
 
 ### Full Pipeline
@@ -251,6 +251,7 @@ sap <- sap |>
         pre_time      = 0.2,
         lag_time      = 0.3
     ) |>
+# Step 6-7 – Find and export clips of bouts that contain at least one motif
     find_bout(
         min_duration = 0.4,
         summary      = TRUE
@@ -259,100 +260,91 @@ sap <- sap |>
         output_format         = "wav",
         output_dir            = data_dir,
         keep_source_file_name = TRUE,
-        metadata_filename     = "metadata_all_bouts.csv"
+        metadata_filename     = "sil469_metadata_bouts.csv"
     )
-```
+
 
 ### Console Output
 
-When
-[`create_bout_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_bout_clips.md)
-completes, it prints a per-day export summary:
-
-    Day 72: 402 written / 402 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 73: 1241 written / 1241 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 74: 1115 written / 1115 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 75: 1110 written / 1110 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 76: 1229 written / 1229 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 77: 1316 written / 1316 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 78: 1329 written / 1329 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 79: 839 written / 839 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 80: 895 written / 895 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 81: 1013 written / 1013 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 82: 899 written / 899 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 83: 787 written / 787 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 84: 945 written / 945 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 85: 865 written / 865 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 86: 840 written / 840 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 87: 506 written / 506 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 88: 784 written / 784 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 89: 795 written / 795 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 90: 1051 written / 1051 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 91: 933 written / 933 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 92: 80 written / 80 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 93: 1053 written / 1053 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 94: 662 written / 662 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 95: 920 written / 920 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 96: 1027 written / 1027 total (skipped: 0 missing, 0 invalid, 0 existing)
-    Day 97: 191 written / 191 total (skipped: 0 missing, 0 invalid, 0 existing)
-
-    Exported 22,827 clips to wav format (no normalization)
-
-### Result
-
-| Metric                  | Value                           |
-|-------------------------|---------------------------------|
-| **Raw audio files**     | 33,159 `.wav` files             |
-| **Raw storage**         | ~14 GB                          |
-| **Exported bout clips** | 22,827 clips                    |
-| **Curated storage**     | ~3 GB                           |
-| **Storage reduction**   | ~80%                            |
-| **Pipeline runtime**    | ~2 min/day on a standard laptop |
-
-The full pipeline — from raw SAP recordings to curated, motif-validated
-bout clips — runs in approximately **2 minutes per day** on a standard
-laptop, reducing storage by **~80%** while retaining only biologically
-relevant vocalizations.
-
-------------------------------------------------------------------------
-
-## Output Formats: WAV vs. HDF5
-
-You can export clips in two formats using the `output_format` argument:
-`"wav"` or `"hdf5"`.
-
-### 1. WAV Output (`output_format = "wav"`)
-
-Creates a standard directory tree:
-`output_dir/{type}/{bird_id}/{day_post_hatch}/{prefix}_xxx.wav`.
-
-**When to use WAV:** \* You want to manually listen to the files or
-inspect them in Praat/Audacity. \* You are sharing the data with
-collaborators who rely on standard audio software.
-
-A companion `metadata.csv` is automatically generated in the out folder
-to map each file to its exact source and original timestamp.
-
-### 2. HDF5 Output (`output_format = "hdf5"`)
-
-Compiles all audio data directly into a single, hierarchical matrix file
-(`.h5`).
-
-**When to use HDF5:** \* **Machine Learning:** Perfect for training
-PyTorch/TensorFlow models. Data loaders can stream directly from a
-single chunked binary file much faster than opening thousands of tiny
-`.wav` files. \* **Large-scale Datasets:** Prevents file system
-exhaustion (inodes) when exporting tens of thousands of motifs on
-compute clusters.
-
-``` r
-sap <- create_motif_clips(
-    sap,
-    output_format = "hdf5",
-    output_dir    = "ml_dataset",
-    hdf5_filename = "training_motifs.h5"
-)
+When `create_bout_clips()` completes, it prints a per-day export summary:
 ```
+
+Day 72: 402 written / 402 total (skipped: 0 missing, 0 invalid, 0
+existing) Day 73: 1241 written / 1241 total (skipped: 0 missing, 0
+invalid, 0 existing) Day 74: 1115 written / 1115 total (skipped: 0
+missing, 0 invalid, 0 existing) Day 75: 1110 written / 1110 total
+(skipped: 0 missing, 0 invalid, 0 existing) Day 76: 1229 written / 1229
+total (skipped: 0 missing, 0 invalid, 0 existing) Day 77: 1316 written /
+1316 total (skipped: 0 missing, 0 invalid, 0 existing) Day 78: 1329
+written / 1329 total (skipped: 0 missing, 0 invalid, 0 existing) Day 79:
+839 written / 839 total (skipped: 0 missing, 0 invalid, 0 existing) Day
+80: 895 written / 895 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 81: 1013 written / 1013 total (skipped: 0 missing, 0 invalid, 0
+existing) Day 82: 899 written / 899 total (skipped: 0 missing, 0
+invalid, 0 existing) Day 83: 787 written / 787 total (skipped: 0
+missing, 0 invalid, 0 existing) Day 84: 945 written / 945 total
+(skipped: 0 missing, 0 invalid, 0 existing) Day 85: 865 written / 865
+total (skipped: 0 missing, 0 invalid, 0 existing) Day 86: 840 written /
+840 total (skipped: 0 missing, 0 invalid, 0 existing) Day 87: 506
+written / 506 total (skipped: 0 missing, 0 invalid, 0 existing) Day 88:
+784 written / 784 total (skipped: 0 missing, 0 invalid, 0 existing) Day
+89: 795 written / 795 total (skipped: 0 missing, 0 invalid, 0 existing)
+Day 90: 1051 written / 1051 total (skipped: 0 missing, 0 invalid, 0
+existing) Day 91: 933 written / 933 total (skipped: 0 missing, 0
+invalid, 0 existing) Day 92: 80 written / 80 total (skipped: 0 missing,
+0 invalid, 0 existing) Day 93: 1053 written / 1053 total (skipped: 0
+missing, 0 invalid, 0 existing) Day 94: 662 written / 662 total
+(skipped: 0 missing, 0 invalid, 0 existing) Day 95: 920 written / 920
+total (skipped: 0 missing, 0 invalid, 0 existing) Day 96: 1027 written /
+1027 total (skipped: 0 missing, 0 invalid, 0 existing) Day 97: 191
+written / 191 total (skipped: 0 missing, 0 invalid, 0 existing)
+
+Exported 22,827 clips to wav format (no normalization)
+
+    ### Result
+
+    | Metric | Value |
+    |---|---|
+    | **Raw audio files** | 33,159 `.wav` files |
+    | **Raw storage** | ~14 GB |
+    | **Exported bout clips** | 22,827 clips |
+    | **Curated storage** | ~3 GB |
+    | **Storage reduction** | ~80% |
+    | **Pipeline runtime** | ~2 min/day on a standard laptop |
+
+    The full pipeline — from raw SAP recordings to curated, motif-validated bout clips — runs in approximately **2 minutes per day** on a standard laptop, reducing storage by **~80%** while retaining only biologically relevant vocalizations.
+
+    ---
+
+
+    ## Output Formats: WAV vs. HDF5
+
+    You can export clips in two formats using the `output_format` argument: `"wav"` or `"hdf5"`.
+
+    ### 1. WAV Output (`output_format = "wav"`)
+    Creates a standard directory tree: `output_dir/{type}/{bird_id}/{day_post_hatch}/{prefix}_xxx.wav`.
+
+    **When to use WAV:**
+    * You want to manually listen to the files or inspect them in Praat/Audacity.
+    * You are sharing the data with collaborators who rely on standard audio software.
+
+    A companion `metadata.csv` is automatically generated in the out folder to map each file to its exact source and original timestamp.
+
+    ### 2. HDF5 Output (`output_format = "hdf5"`)
+    Compiles all audio data directly into a single, hierarchical matrix file (`.h5`).
+
+    **When to use HDF5:**
+    * **Machine Learning:** Perfect for training PyTorch/TensorFlow models. Data loaders can stream directly from a single chunked binary file much faster than opening thousands of tiny `.wav` files.
+    * **Large-scale Datasets:** Prevents file system exhaustion (inodes) when exporting tens of thousands of motifs on compute clusters.
+
+
+    ``` r
+    sap <- create_motif_clips(
+        sap,
+        output_format = "hdf5",
+        output_dir    = "ml_dataset",
+        hdf5_filename = "training_motifs.h5"
+    )
 
 ------------------------------------------------------------------------
 
