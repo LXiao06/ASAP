@@ -433,6 +433,35 @@ clusters.</p>
 <span>    output_dir    <span class="op">=</span> <span class="st">"ml_dataset"</span>,</span>
 <span>    hdf5_filename <span class="op">=</span> <span class="st">"training_motifs.h5"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="building-a-multi-bird-master-database">Building a Multi-Bird Master Database<a class="anchor" aria-label="anchor" href="#building-a-multi-bird-master-database"></a>
+</h3>
+<p>Creating an HDF5 export directly from ASAP is convenient when working
+with a single bird. However, if you are building a large Master Database
+spanning multiple animals, I recommend a <strong>WAV-first</strong>
+strategy:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Export as WAV:</strong> Use
+<code>output_format = "wav"</code> to save all clips and a consolidated
+<code>metadata.csv</code> for each bird.</li>
+<li>
+<strong>Combine in Python:</strong> Use Python (<code>h5py</code>
+and <code>pandas</code>) to assemble the WAV files into your final HDF5
+database.</li>
+</ol>
+<p>Why? * <strong>Speed</strong>: R writes thousands of individual WAV
+files significantly faster than it handles serialized, chunked HDF5
+attributes. * <strong>Traceability and Safety</strong>: WAV files sit
+natively on your hard drive, allowing you to inspect, listen, or delete
+bad clips visually before finalizing the machine learning dataset. If an
+export crashes midway, your WAV files are perfectly safe, whereas an
+incomplete HDF5 file becomes corrupted.</p>
+<p>Because machine learning models are typically trained in PyTorch or
+TensorFlow, you can easily load the raw WAVs directly via
+<code>torchaudio</code>, or use a quick Python script to compile the
+finalized clips into a master HDF5 file right before training.</p>
 <hr>
 </div>
 </div>
