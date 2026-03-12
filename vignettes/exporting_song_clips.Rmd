@@ -283,6 +283,19 @@ sap <- create_motif_clips(
 )
 ```
 
+### Building a Multi-Bird Master Database
+
+Creating an HDF5 export directly from ASAP is convenient when working with a single bird. However, if you are building a large Master Database spanning multiple animals, I recommend a **WAV-first** strategy:
+
+1. **Export as WAV:** Use `output_format = "wav"` to save all clips and a consolidated `metadata.csv` for each bird.
+2. **Combine in Python:** Use Python (`h5py` and `pandas`) to assemble the WAV files into your final HDF5 database.
+
+Why? 
+* **Speed**: R writes thousands of individual WAV files significantly faster than it handles serialized, chunked HDF5 attributes. 
+* **Traceability and Safety**: WAV files sit natively on your hard drive, allowing you to inspect, listen, or delete bad clips visually before finalizing the machine learning dataset. If an export crashes midway, your WAV files are perfectly safe, whereas an incomplete HDF5 file becomes corrupted.
+
+Because machine learning models are typically trained in PyTorch or TensorFlow, you can easily load the raw WAVs directly via `torchaudio`, or use a quick Python script to compile the finalized clips into a master HDF5 file right before training.
+
 ---
 
 ## Key Arguments
