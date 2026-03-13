@@ -110,13 +110,19 @@ table p {
     margin-bottom: 0.5rem;
 }
 
+/* pkgdown inserts empty dl blocks; hide their border so we only get one line */
+.template-reference-index dl:empty,
+.ref-index dl:empty {
+    border-top: 0;
+}
+
 /* Each term (function name) */
 .template-reference-index dt,
 .ref-index dt {
     grid-column: 1;
     padding: 0.45rem 0.6rem 0.45rem 0;
     border-bottom: 1px solid #f0f0f0;
-    font-size: 0.92rem;
+    font-size: 1rem;
     font-weight: 500;
     word-break: break-word;
 }
@@ -139,7 +145,7 @@ table p {
     padding: 0.45rem 0 0.45rem 0;
     border-bottom: 1px solid #f0f0f0;
     margin: 0;
-    font-size: 0.92rem;
+    font-size: 1rem;
     color: #444;
     line-height: 1.5;
 }
@@ -148,7 +154,7 @@ table p {
 .template-reference-index dd p,
 .ref-index dd p {
     margin: 0;
-    font-size: 0.92rem;
+    font-size: 1rem;
 }
 
 /* Blue headings */
