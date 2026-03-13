@@ -253,9 +253,10 @@ Intermediate · ~20 min
 
 [](https://lxiao06.github.io/ASAP/dev/articles/exporting_song_clips.md)
 
-![ASAP package logo for data export](figures/logo.png)
+![Conceptual illustration of audio motif and bout
+extraction](figures/exporting_clips_card.png)
 
-Exporting Curated Song Clips
+Song Motif/Bout Exportation
 
 Export raw recordings into tightly cropped motif or bout-level audio
 files in WAV or HDF5 format for external pipelines.
