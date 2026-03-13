@@ -92,6 +92,58 @@ table p {
     font-size: 24px;
 }
 
+/* ============================================================
+   Reference index – two-column table layout
+   (function name | short description side by side)
+   ============================================================ */
+
+/* Turn the definition list into a grid table */
+.ref-index dl {
+    display: grid;
+    grid-template-columns: minmax(200px, 28%) 1fr;
+    column-gap: 1.5rem;
+    row-gap: 0;
+    align-items: baseline;
+    border-top: 1px solid #e8e8e8;
+    margin-bottom: 0.5rem;
+}
+
+/* Each term (function name) */
+.ref-index dt {
+    grid-column: 1;
+    padding: 0.45rem 0.6rem 0.45rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.92rem;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.ref-index dt a {
+    color: #1e88e5;
+    text-decoration: none;
+}
+
+.ref-index dt a:hover {
+    text-decoration: underline;
+}
+
+/* Each description */
+.ref-index dd {
+    grid-column: 2;
+    padding: 0.45rem 0 0.45rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    margin: 0;
+    font-size: 0.92rem;
+    color: #444;
+    line-height: 1.5;
+}
+
+/* Reduce paragraph margins inside descriptions */
+.ref-index dd p {
+    margin: 0;
+    font-size: 0.92rem;
+}
+
 /* Blue headings */
 h1,
 h2 {
