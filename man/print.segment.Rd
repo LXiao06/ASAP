@@ -14,3 +14,4 @@
 \description{
 Print method for segment objects
 }
+\keyword{internal}

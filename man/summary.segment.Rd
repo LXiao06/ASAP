@@ -14,3 +14,4 @@
 \description{
 Summary method for segment objects
 }
+\keyword{internal}

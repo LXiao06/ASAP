@@ -869,6 +869,7 @@ as_segment <- function(x) {
 #' @param x A segment object
 #' @param ... Additional arguments passed to print
 #'
+#' @keywords internal
 #' @exportS3Method print segment
 print.segment <- function(x, ...) {
   cat("Segment object with", nrow(x), "rows\n")
@@ -886,6 +887,7 @@ print.segment <- function(x, ...) {
 #' @param object A segment object
 #' @param ... Additional arguments passed to summary
 #'
+#' @keywords internal
 #' @exportS3Method summary segment
 summary.segment <- function(object, ...) {
   cat("Segment Summary:\n")

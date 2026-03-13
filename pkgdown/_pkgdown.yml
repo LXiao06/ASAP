@@ -122,8 +122,3 @@ reference:
       - auto_label
       - manual_label
 
-  - title: "Segment Methods"
-    desc: "S3 methods for dealing with segment objects"
-    contents:
-      - print.segment
-      - summary.segment
