@@ -88,6 +88,7 @@ table p {
     font-size: 85%;
 }
 
+.template-reference-index h2,
 .ref-index h2 {
     font-size: 24px;
 }
@@ -98,6 +99,7 @@ table p {
    ============================================================ */
 
 /* Turn the definition list into a grid table */
+.template-reference-index dl,
 .ref-index dl {
     display: grid;
     grid-template-columns: minmax(200px, 28%) 1fr;
@@ -109,6 +111,7 @@ table p {
 }
 
 /* Each term (function name) */
+.template-reference-index dt,
 .ref-index dt {
     grid-column: 1;
     padding: 0.45rem 0.6rem 0.45rem 0;
@@ -118,16 +121,19 @@ table p {
     word-break: break-word;
 }
 
+.template-reference-index dt a,
 .ref-index dt a {
     color: #1e88e5;
     text-decoration: none;
 }
 
+.template-reference-index dt a:hover,
 .ref-index dt a:hover {
     text-decoration: underline;
 }
 
 /* Each description */
+.template-reference-index dd,
 .ref-index dd {
     grid-column: 2;
     padding: 0.45rem 0 0.45rem 0;
@@ -139,6 +145,7 @@ table p {
 }
 
 /* Reduce paragraph margins inside descriptions */
+.template-reference-index dd p,
 .ref-index dd p {
     margin: 0;
     font-size: 0.92rem;
