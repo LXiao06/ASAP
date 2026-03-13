@@ -804,7 +804,7 @@ validate_segment <- function(x) {
   return(TRUE)
 }
 
-# User-facing helper - handles all data cleaning and organization
+# Internal helper - handles all data cleaning and organization
 
 #' Convert data to a segment object
 #'
@@ -812,20 +812,7 @@ validate_segment <- function(x) {
 #'
 #' @return A validated segment object
 #'
-#' @examples
-#' \dontrun{
-#' df <- data.frame(
-#'   filename = "song.wav",
-#'   day_post_hatch = 1,
-#'   label = "a",
-#'   start_time = 0,
-#'   end_time = 1,
-#'   duration = 1
-#' )
-#' segment <- as_segment(df)
-#' }
-#'
-#' @export
+#' @keywords internal
 as_segment <- function(x) {
   # If already a segment, check if needs processing
   if (inherits(x, "segment")) {
