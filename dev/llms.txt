@@ -55,10 +55,6 @@ Functions for creating and writing the core SAP object
 
 - [`create_sap_object()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_object.md)
   : Create a Sound Analysis Pro (SAP) Object from Audio Recordings
-- [`parse_filename()`](https://lxiao06.github.io/ASAP/dev/reference/parse_filename.md)
-  : Parse filename for SAP metadata
-- [`validate_sap()`](https://lxiao06.github.io/ASAP/dev/reference/validate_sap.md)
-  : Validate a Sound Analysis Pro (SAP) Object
 - [`compute_wav_durations()`](https://lxiao06.github.io/ASAP/dev/reference/compute_wav_durations.md)
   : Compute WAV File Durations
 - [`create_sap_metadata()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_metadata.md)
@@ -88,8 +84,6 @@ Functions for finding bouts, motives and segmenting syllables
   : Refine Motif Boundaries Using Segment Alignment
 - [`segment()`](https://lxiao06.github.io/ASAP/dev/reference/segment.md)
   : Segment Audio into Syllables
-- [`filter_short_segments()`](https://lxiao06.github.io/ASAP/dev/reference/filter_short_segments.md)
-  : Filter Short Segments from Template
 - [`as_segment()`](https://lxiao06.github.io/ASAP/dev/reference/as_segment.md)
   : Convert data to a segment object
 
