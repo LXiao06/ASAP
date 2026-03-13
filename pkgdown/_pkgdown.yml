@@ -62,20 +62,19 @@ reference:
       - create_sap_metadata
 
   - title: "Curated Song Export"
-    desc: "Functions for exporting audio clips of detected bouts and motifs."
+    desc: "Functions for exporting user-choice audio clips, bouts, and motifs."
     contents:
       - create_audio_clip
       - create_motif_clips
       - create_bout_clips
 
   - title: "Detection & Segmentation"
-    desc: "Functions for finding bouts, motives and segmenting syllables"
+    desc: "Functions for finding bouts, motifs and segmenting syllables"
     contents:
       - find_bout
       - find_motif
       - refine_motif_boundaries
       - segment
-      - as_segment
 
   - title: "Template Matching"
     desc: "Functions for establishing and detecting specific acoustic templates"
