@@ -76,10 +76,10 @@ Intermediate · ~20 min
 ![Conceptual illustration of audio motif and bout
 extraction](figures/exporting_clips_card.png)
 
-Song Motif/Bout Exportation
+Exporting Curated Song Clips
 
-Export raw recordings into tightly cropped motif or bout-level audio
-files in WAV or HDF5 format for external pipelines.
+Generate precisely cropped motif or bout-level audio files (WAV or HDF5)
+from raw recordings for use in external processing pipelines.
 
 Intermediate · ~10 min
 
