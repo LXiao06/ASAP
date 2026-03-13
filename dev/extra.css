@@ -102,7 +102,7 @@ table p {
 .template-reference-index dl,
 .ref-index dl {
     display: grid;
-    grid-template-columns: minmax(200px, 28%) 1fr;
+    grid-template-columns: minmax(280px, 38%) 1fr;
     column-gap: 1.5rem;
     row-gap: 0;
     align-items: baseline;
@@ -122,7 +122,7 @@ table p {
     grid-column: 1;
     padding: 0.45rem 0.6rem 0.45rem 0;
     border-bottom: 1px solid #f0f0f0;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 500;
     word-break: break-word;
 }
@@ -145,7 +145,7 @@ table p {
     padding: 0.45rem 0 0.45rem 0;
     border-bottom: 1px solid #f0f0f0;
     margin: 0;
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: #444;
     line-height: 1.5;
 }
@@ -154,7 +154,7 @@ table p {
 .template-reference-index dd p,
 .ref-index dd p {
     margin: 0;
-    font-size: 1rem;
+    font-size: 1.05rem;
 }
 
 /* Blue headings */
