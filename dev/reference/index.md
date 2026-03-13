@@ -113,12 +113,3 @@ Functions for annotating clustered syllables
   : Automatic Syllable Labeling in Song Motif
 - [`manual_label()`](https://lxiao06.github.io/ASAP/dev/reference/manual_label.md)
   : Manual Syllable Labeling for Bird Song Analysis
-
-## Segment Methods
-
-S3 methods for dealing with segment objects
-
-- [`print(`*`<segment>`*`)`](https://lxiao06.github.io/ASAP/dev/reference/print.segment.md)
-  : Print method for segment objects
-- [`summary(`*`<segment>`*`)`](https://lxiao06.github.io/ASAP/dev/reference/summary.segment.md)
-  : Summary method for segment objects
