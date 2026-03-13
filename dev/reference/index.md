@@ -14,7 +14,7 @@ Functions for creating and writing the core SAP object
 
 ## Curated Song Export
 
-Functions for exporting audio clips of detected bouts and motifs.
+Functions for exporting user-choice audio clips, bouts, and motifs.
 
 - [`create_audio_clip()`](https://lxiao06.github.io/ASAP/dev/reference/create_audio_clip.md)
   : Create Audio Clips from Sound Files
@@ -25,7 +25,7 @@ Functions for exporting audio clips of detected bouts and motifs.
 
 ## Detection & Segmentation
 
-Functions for finding bouts, motives and segmenting syllables
+Functions for finding bouts, motifs and segmenting syllables
 
 - [`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
   : Detect Song Bouts in Audio Recordings
@@ -35,8 +35,6 @@ Functions for finding bouts, motives and segmenting syllables
   : Refine Motif Boundaries Using Segment Alignment
 - [`segment()`](https://lxiao06.github.io/ASAP/dev/reference/segment.md)
   : Segment Audio into Syllables
-- [`as_segment()`](https://lxiao06.github.io/ASAP/dev/reference/as_segment.md)
-  : Convert data to a segment object
 
 ## Template Matching
 

@@ -17,19 +17,3 @@ as_segment(x)
 ## Value
 
 A validated segment object
-
-## Examples
-
-``` r
-if (FALSE) { # \dontrun{
-df <- data.frame(
-  filename = "song.wav",
-  day_post_hatch = 1,
-  label = "a",
-  start_time = 0,
-  end_time = 1,
-  duration = 1
-)
-segment <- as_segment(df)
-} # }
-```
