@@ -145,4 +145,4 @@ sap_obj <- find_clusters(sap_object,
 \seealso{
 \code{\link{run_umap}} for visualization of clusters
 }
-\keyword{internal}
+

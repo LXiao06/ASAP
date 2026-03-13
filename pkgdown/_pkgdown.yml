@@ -58,8 +58,6 @@ reference:
     desc: "Functions for creating and writing the core SAP object"
     contents:
       - create_sap_object
-      - parse_filename
-      - validate_sap
       - compute_wav_durations
       - create_sap_metadata
 
@@ -77,7 +75,6 @@ reference:
       - find_motif
       - refine_motif_boundaries
       - segment
-      - filter_short_segments
       - as_segment
 
   - title: "Template Matching"

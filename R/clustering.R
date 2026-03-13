@@ -278,9 +278,8 @@ find_clusters.Sap <- function(x,
   invisible(x)
 }
 
-#' Internal Functions from Seurat Package
+#' Seurat-Adapted Internal Helpers for find_clusters
 #'
-#' @name find_clusters
 #' @description
 #' Internal functions adapted from the Seurat package for neighbor finding
 #' and cluster analysis. These functions are modified versions of the
@@ -311,6 +310,7 @@ find_clusters.Sap <- function(x,
 #' }
 #'
 #' @keywords internal
+#' @name find_clusters_seurat_internals
 NULL
 
 
