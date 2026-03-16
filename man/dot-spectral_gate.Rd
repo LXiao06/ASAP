@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{mag}{Numeric matrix (freq x time) — magnitude spectrogram.}
+\item{mag}{Numeric matrix (freq x time) - magnitude spectrogram.}
 
 \item{noise_quantile}{Quantile for noise-floor estimation.}
 

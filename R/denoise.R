@@ -144,10 +144,10 @@
 #' @examples
 #' \dontrun{
 #' # --- Single WAV file -------------------------------------------------------
-#' # Spectral median (default — fast, reliable)
+#' # Spectral median (default - fast, reliable)
 #' clean_path <- denoise("path/to/recording.wav")
 #'
-#' # Spectral gate — cleaner background with auto noise_quantile = 0.25
+#' # Spectral gate - cleaner background with auto noise_quantile = 0.25
 #' clean_path <- denoise("path/to/recording.wav",
 #'   method = "spectral_gate"
 #' )
@@ -160,7 +160,7 @@
 #'   gate_smoothing = 5L # extra smoothing
 #' )
 #'
-#' # Spectral median — auto noise_quantile = 0.5
+#' # Spectral median - auto noise_quantile = 0.5
 #' clean_path <- denoise("path/to/recording.wav",
 #'   method = "spectral_median",
 #'   gain   = 1.3
@@ -405,7 +405,7 @@ denoise.Sap <- function(x,
     day_out_dir <- file.path(output_dir, current_day)
     dir.create(day_out_dir, recursive = TRUE, showWarnings = FALSE)
 
-    # Per-file worker for this day — returns "success" / "skipped" / "failed"
+    # Per-file worker for this day - returns "success" / "skipped" / "failed"
     process_file <- function(i) {
       wav_in <- file.path(
         x$base_path,
@@ -469,7 +469,7 @@ denoise.Sap <- function(x,
   # ---- Overall summary -----------------------------------------------------
   if (verbose) {
     message(sprintf(
-      "\nDenoising complete — %d denoised, %d skipped, %d failed across all days.",
+      "\nDenoising complete - %d denoised, %d skipped, %d failed across all days.",
       total_success, total_skip, total_fail
     ))
     message(sprintf("Output directory: %s", normalizePath(output_dir)))
@@ -581,7 +581,7 @@ denoise.Sap <- function(x,
   } else {
     title(
       main = sprintf(
-        "Denoised Spectrogram (%s) [%.2f–%.2fs]",
+        "Denoised Spectrogram (%s) [%.2f-%.2fs]",
         method, time_offset, time_offset + max(stft_result$time)
       ),
       col.main = "white"
@@ -667,7 +667,7 @@ denoise.Sap <- function(x,
 #' The floor \eqn{g_{\min}} (\code{floor}) prevents complete silencing and
 #' is the key parameter for preserving tonal continuity of bird song.
 #'
-#' @param mag      Numeric matrix (freq x time) — magnitude spectrogram.
+#' @param mag      Numeric matrix (freq x time) - magnitude spectrogram.
 #' @param noise_quantile Quantile for noise-floor estimation.
 #' @param threshold Number of \eqn{\sigma} above noise floor where gate reaches
 #'   50% transmission (default: 1.5).
@@ -713,7 +713,7 @@ denoise.Sap <- function(x,
   z <- sweep(z, 1L, steepness, FUN = "/")
   gate <- 1 / (1 + exp(-z))
 
-  # Apply floor — no bin is ever fully silenced
+  # Apply floor - no bin is ever fully silenced
   gate <- pmax(gate, floor)
 
   # --- Step 4: Optional frequency-axis smoothing of the gate mask -----------
