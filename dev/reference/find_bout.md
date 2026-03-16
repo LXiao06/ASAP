@@ -43,6 +43,8 @@ find_bout(
   edge_window = 0.05,
   freq_range = c(3, 5),
   summary = FALSE,
+  dry_run = FALSE,
+  overwrite_metadata = FALSE,
   verbose = TRUE,
   ...
 )
@@ -131,6 +133,19 @@ find_bout(
 - summary:
 
   For SAP objects: Include additional statistics (default: FALSE)
+
+- dry_run:
+
+  For SAP objects with `segment_type = "raw"`: when `TRUE`, do not write
+  `x$bouts`. Instead, report how many WAV files contain bouts. If
+  `overwrite_metadata = TRUE`, remove files with no detected bouts from
+  `x$metadata`.
+
+- overwrite_metadata:
+
+  For SAP objects: when `TRUE` and `dry_run = TRUE` with
+  `segment_type = "raw"`, remove WAV files with no detected bouts from
+  `x$metadata` so they are skipped in downstream processing.
 
 - verbose:
 

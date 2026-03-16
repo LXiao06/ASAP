@@ -23,7 +23,7 @@ parameter for preserving tonal continuity of bird song.
 
 - mag:
 
-  Numeric matrix (freq x time) — magnitude spectrogram.
+  Numeric matrix (freq x time) - magnitude spectrogram.
 
 - noise_quantile:
 

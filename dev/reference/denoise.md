@@ -266,10 +266,10 @@ for template matching after denoising.
 ``` r
 if (FALSE) { # \dontrun{
 # --- Single WAV file -------------------------------------------------------
-# Spectral median (default — fast, reliable)
+# Spectral median (default - fast, reliable)
 clean_path <- denoise("path/to/recording.wav")
 
-# Spectral gate — cleaner background with auto noise_quantile = 0.25
+# Spectral gate - cleaner background with auto noise_quantile = 0.25
 clean_path <- denoise("path/to/recording.wav",
   method = "spectral_gate"
 )
@@ -282,7 +282,7 @@ clean_path <- denoise("path/to/recording.wav",
   gate_smoothing = 5L # extra smoothing
 )
 
-# Spectral median — auto noise_quantile = 0.5
+# Spectral median - auto noise_quantile = 0.5
 clean_path <- denoise("path/to/recording.wav",
   method = "spectral_median",
   gain   = 1.3

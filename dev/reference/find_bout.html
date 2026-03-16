@@ -77,6 +77,8 @@
 <span>  edge_window <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  freq_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span>,</span>
 <span>  summary <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  dry_run <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  overwrite_metadata <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -167,6 +169,20 @@ detection has been run.</p></dd>
 
 <dt id="arg-summary">summary<a class="anchor" aria-label="anchor" href="#arg-summary"></a></dt>
 <dd><p>For SAP objects: Include additional statistics (default: FALSE)</p></dd>
+
+
+<dt id="arg-dry-run">dry_run<a class="anchor" aria-label="anchor" href="#arg-dry-run"></a></dt>
+<dd><p>For SAP objects with <code>segment_type = "raw"</code>: when
+<code>TRUE</code>, do not write <code>x$bouts</code>. Instead, report how many WAV
+files contain bouts. If <code>overwrite_metadata = TRUE</code>, remove files
+with no detected bouts from <code>x$metadata</code>.</p></dd>
+
+
+<dt id="arg-overwrite-metadata">overwrite_metadata<a class="anchor" aria-label="anchor" href="#arg-overwrite-metadata"></a></dt>
+<dd><p>For SAP objects: when <code>TRUE</code> and
+<code>dry_run = TRUE</code> with <code>segment_type = "raw"</code>, remove WAV files
+with no detected bouts from <code>x$metadata</code> so they are skipped in
+downstream processing.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
