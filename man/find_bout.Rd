@@ -41,6 +41,8 @@ find_bout(x, ...)
   edge_window = 0.05,
   freq_range = c(3, 5),
   summary = FALSE,
+  dry_run = FALSE,
+  overwrite_metadata = FALSE,
   verbose = TRUE,
   ...
 )
@@ -90,6 +92,16 @@ detection has been run.}
 \item{plot_percent}{For SAP objects: Percentage of files to plot (default: 10)}
 
 \item{summary}{For SAP objects: Include additional statistics (default: FALSE)}
+
+\item{dry_run}{For SAP objects with \code{segment_type = "raw"}: when
+\code{TRUE}, do not write \code{x$bouts}. Instead, report how many WAV
+files contain bouts. If \code{overwrite_metadata = TRUE}, remove files
+with no detected bouts from \code{x$metadata}.}
+
+\item{overwrite_metadata}{For SAP objects: when \code{TRUE} and
+\code{dry_run = TRUE} with \code{segment_type = "raw"}, remove WAV files
+with no detected bouts from \code{x$metadata} so they are skipped in
+downstream processing.}
 
 \item{verbose}{For SAP objects: Print progress messages (default: TRUE)}
 }

@@ -31,6 +31,14 @@
 #' @param cores For SAP objects: Number of processing cores
 #' @param plot_percent For SAP objects: Percentage of files to plot (default: 10)
 #' @param summary For SAP objects: Include additional statistics (default: FALSE)
+#' @param dry_run For SAP objects with \code{segment_type = "raw"}: when
+#'   \code{TRUE}, do not write \code{x$bouts}. Instead, report how many WAV
+#'   files contain bouts. If \code{overwrite_metadata = TRUE}, remove files
+#'   with no detected bouts from \code{x$metadata}.
+#' @param overwrite_metadata For SAP objects: when \code{TRUE} and
+#'   \code{dry_run = TRUE} with \code{segment_type = "raw"}, remove WAV files
+#'   with no detected bouts from \code{x$metadata} so they are skipped in
+#'   downstream processing.
 #' @param verbose For SAP objects: Print progress messages (default: TRUE)
 #' @param ... Additional arguments passed to specific methods
 #'
@@ -158,6 +166,11 @@ find_bout.default <- function(x, # x is wav file path
     rms_env <- rms_env / quantile(rms_env, 0.95, na.rm = TRUE)
   } else { # "max"
     rms_env <- rms_env / max(rms_env, na.rm = TRUE)
+  }
+
+  # Early exit if normalization yields non-finite or zero envelope
+  if (!all(is.finite(rms_env)) || max(rms_env, na.rm = TRUE) <= 0) {
+    return(NULL)
   }
 
   # Calculate stride (hop size) in samples and time
@@ -326,6 +339,8 @@ find_bout.Sap <- function(x, # x is SAP object
                           edge_window = 0.05,
                           freq_range = c(3, 5),
                           summary = FALSE,
+                          dry_run = FALSE,
+                          overwrite_metadata = FALSE,
                           verbose = TRUE,
                           ...) {
   if (verbose) message(sprintf("\n=== Starting Bout Detection ==="))
@@ -336,6 +351,15 @@ find_bout.Sap <- function(x, # x is SAP object
   }
 
   segment_type <- match.arg(segment_type)
+
+  if (dry_run && segment_type != "raw") {
+    warning("dry_run only applies when segment_type = \"raw\"; proceeding with normal behavior.")
+    dry_run <- FALSE
+  }
+  if (overwrite_metadata && !dry_run) {
+    warning("overwrite_metadata only applies when dry_run = TRUE and segment_type = \"raw\"; ignoring.")
+    overwrite_metadata <- FALSE
+  }
 
   # Determine which data to process
   if (segment_type == "motifs") {
@@ -370,6 +394,11 @@ find_bout.Sap <- function(x, # x is SAP object
     plots_dir <- file.path(x$base_path, "plots", "bout_detection")
     dir.create(plots_dir, recursive = TRUE, showWarnings = FALSE)
   }
+
+  # Track file-level results for dry_run reporting
+  total_files <- 0L
+  total_with_bouts <- 0L
+  total_without_bouts <- 0L
 
   # Process each day
   all_results <- list()
@@ -486,6 +515,22 @@ find_bout.Sap <- function(x, # x is SAP object
       use_preschedule = if (is.null(list(...)$use_preschedule)) FALSE else list(...)$use_preschedule
     )
 
+    # Track which files had bouts (day_results aligned with unique_files)
+    has_bouts <- !sapply(day_results, is.null)
+    total_files <- total_files + length(unique_files)
+    total_with_bouts <- total_with_bouts + sum(has_bouts, na.rm = TRUE)
+    total_without_bouts <- total_without_bouts + sum(!has_bouts, na.rm = TRUE)
+
+    if (dry_run && overwrite_metadata) {
+      empty_files <- day_data$filename[unique_files[!has_bouts]]
+      if (length(empty_files) > 0) {
+        x$metadata <- x$metadata[!(
+          x$metadata$day_post_hatch == current_day &
+            x$metadata$filename %in% empty_files
+        ), ]
+      }
+    }
+
     # Combine results for this day
     valid_detections <- day_results[!sapply(day_results, is.null)]
     if (length(valid_detections) > 0) {
@@ -501,65 +546,79 @@ find_bout.Sap <- function(x, # x is SAP object
     }
   }
 
-  # Combine all results and store in SAP object
-  if (length(all_results) > 0) {
-    final_results <- do.call(rbind, all_results)
-    row.names(final_results) <- NULL
-
-    # Add summary information if requested
-    if (summary && segment_type == "motifs") {
-      # Get motif data once
-      dt <- x$motifs$detection_time
-      fn <- x$motifs$filename
-
-      final_results <- final_results |>
-        # Calculate motif information for each bout
-        dplyr::group_by(filename, day_post_hatch, .data$selec) |>
-        dplyr::mutate(
-          # Count motifs within bout
-          n_motifs = {
-            bout_motifs <- dt[dt >= start_time &
-              dt <= end_time &
-              fn == filename]
-            length(bout_motifs)
-          },
-          # Get first motif time for alignment
-          align_time = {
-            bout_motifs <- dt[dt >= start_time &
-              dt <= end_time &
-              fn == filename]
-            dplyr::first(bout_motifs)
-          }
-        ) |>
-        # Add bout numbers by day
-        dplyr::arrange(day_post_hatch, filename) |>
-        dplyr::group_by(day_post_hatch) |>
-        dplyr::mutate(bout_number_day = dplyr::row_number()) |>
-        # Add bout gaps by file
-        dplyr::group_by(filename) |>
-        dplyr::mutate(
-          bout_gap = dplyr::case_when(
-            dplyr::n() == 1 ~ NA_real_, # Single bout in file
-            dplyr::row_number() == 1 ~ NA_real_, # First bout in file
-            TRUE ~ start_time - dplyr::lag(end_time) # Gap from previous bout
-          )
-        ) |>
-        dplyr::ungroup()
-    }
-
-    # Store results in bouts
-    x$bouts <- as_segment(final_results)
-
-    # Update last modified time
-    x$misc$last_modified <- Sys.time()
-
-    message(sprintf("\nTotal bouts detected across all days: %d", nrow(final_results)))
-    message("Access results via: sap$bouts")
-    if (save_plot && !is.null(plots_dir)) {
-      message("Review plots via: ", plots_dir)
+  if (dry_run) {
+    message(sprintf(
+      "\nDry run (segment_type = \"raw\"): %d/%d files contain bouts.",
+      total_with_bouts, total_files
+    ))
+    if (overwrite_metadata) {
+      message(sprintf(
+        "Removed %d files with no bouts from metadata.",
+        total_without_bouts
+      ))
+      x$misc$last_modified <- Sys.time()
     }
   } else {
-    warning("No bouts detected")
+    # Combine all results and store in SAP object
+    if (length(all_results) > 0) {
+      final_results <- do.call(rbind, all_results)
+      row.names(final_results) <- NULL
+
+      # Add summary information if requested
+      if (summary && segment_type == "motifs") {
+        # Get motif data once
+        dt <- x$motifs$detection_time
+        fn <- x$motifs$filename
+
+        final_results <- final_results |>
+          # Calculate motif information for each bout
+          dplyr::group_by(filename, day_post_hatch, .data$selec) |>
+          dplyr::mutate(
+            # Count motifs within bout
+            n_motifs = {
+              bout_motifs <- dt[dt >= start_time &
+                dt <= end_time &
+                fn == filename]
+              length(bout_motifs)
+            },
+            # Get first motif time for alignment
+            align_time = {
+              bout_motifs <- dt[dt >= start_time &
+                dt <= end_time &
+                fn == filename]
+              dplyr::first(bout_motifs)
+            }
+          ) |>
+          # Add bout numbers by day
+          dplyr::arrange(day_post_hatch, filename) |>
+          dplyr::group_by(day_post_hatch) |>
+          dplyr::mutate(bout_number_day = dplyr::row_number()) |>
+          # Add bout gaps by file
+          dplyr::group_by(filename) |>
+          dplyr::mutate(
+            bout_gap = dplyr::case_when(
+              dplyr::n() == 1 ~ NA_real_, # Single bout in file
+              dplyr::row_number() == 1 ~ NA_real_, # First bout in file
+              TRUE ~ start_time - dplyr::lag(end_time) # Gap from previous bout
+            )
+          ) |>
+          dplyr::ungroup()
+      }
+
+      # Store results in bouts
+      x$bouts <- as_segment(final_results)
+
+      # Update last modified time
+      x$misc$last_modified <- Sys.time()
+
+      message(sprintf("\nTotal bouts detected across all days: %d", nrow(final_results)))
+      message("Access results via: sap$bouts")
+      if (save_plot && !is.null(plots_dir)) {
+        message("Review plots via: ", plots_dir)
+      }
+    } else {
+      warning("No bouts detected")
+    }
   }
 
   # Return the modified SAP object invisibly
