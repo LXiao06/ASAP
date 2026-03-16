@@ -58,7 +58,6 @@ reference:
     desc: "Functions for creating and writing the core SAP object"
     contents:
       - create_sap_object
-      - compute_wav_durations
       - create_sap_metadata
 
   - title: "Curated Song Export"
@@ -121,3 +120,8 @@ reference:
       - auto_label
       - manual_label
 
+  - title: "Utilities"
+    desc: "Various utility functions for preprocessing or formatting."
+    contents:
+      - compute_wav_durations
+      - denoise
