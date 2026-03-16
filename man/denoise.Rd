@@ -99,7 +99,7 @@ estimate.  Auto-default: \code{0.5} (median).
 frame energy, lowest first) selected as \emph{quiet/noise-only}
 frames.  The noise floor and spread are computed exclusively from
 those frames, so song syllables never contaminate the noise profile.
-Auto-default: \code{0.25} (lowest-energy 25\\% of frames).
+Auto-default: \code{0.25} (lowest-energy 25\% of frames).
 }
 Lower values are more conservative; higher values capture more of the
 noise distribution.}
@@ -110,7 +110,7 @@ removal at the risk of artefacts.}
 
 \item{gate_threshold}{Numeric \eqn{\ge 0}, for \strong{spectral_gate}:
 number of noise-spread standard deviations above the noise floor at which
-the sigmoid gate reaches 50 \\% transmission (default: 1.5).
+the sigmoid gate reaches 50\% transmission (default: 1.5).
 Lower = less aggressive (more signal preserved);
 higher = more aggressive (more noise removed).}
 

@@ -18,7 +18,7 @@
 \item{noise_quantile}{Quantile for noise-floor estimation.}
 
 \item{threshold}{Number of \eqn{\sigma} above noise floor where gate reaches
-50 \\% transmission (default: 1.5).}
+50\% transmission (default: 1.5).}
 
 \item{smoothing}{Half-width (bins) of frequency-axis box-car mask smoother;
 0 = disabled (default: 3).}

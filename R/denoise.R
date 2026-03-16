@@ -59,7 +59,7 @@
 #'       frame energy, lowest first) selected as \emph{quiet/noise-only}
 #'       frames.  The noise floor and spread are computed exclusively from
 #'       those frames, so song syllables never contaminate the noise profile.
-#'       Auto-default: \code{0.25} (lowest-energy 25\% of frames).
+#'       Auto-default: \code{0.25} (lowest-energy 25% of frames).
 #'   }
 #'   Lower values are more conservative; higher values capture more of the
 #'   noise distribution.
@@ -70,7 +70,7 @@
 #'
 #' @param gate_threshold Numeric \eqn{\ge 0}, for \strong{spectral_gate}:
 #'   number of noise-spread standard deviations above the noise floor at which
-#'   the sigmoid gate reaches 50 \% transmission (default: 1.5).
+#'   the sigmoid gate reaches 50% transmission (default: 1.5).
 #'   Lower = less aggressive (more signal preserved);
 #'   higher = more aggressive (more noise removed).
 #' @param gate_smoothing Integer, for \strong{spectral_gate}: half-width (in
@@ -670,7 +670,7 @@ denoise.Sap <- function(x,
 #' @param mag      Numeric matrix (freq x time) — magnitude spectrogram.
 #' @param noise_quantile Quantile for noise-floor estimation.
 #' @param threshold Number of \eqn{\sigma} above noise floor where gate reaches
-#'   50 \% transmission (default: 1.5).
+#'   50% transmission (default: 1.5).
 #' @param smoothing Half-width (bins) of frequency-axis box-car mask smoother;
 #'   0 = disabled (default: 3).
 #' @param floor     Minimum gate value in [0, 1).
