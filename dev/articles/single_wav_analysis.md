@@ -351,7 +351,7 @@ sessionInfo()
 #> [21] pbmcapply_1.5.1    fftw_1.0-9         seewave_2.2.4      cachem_1.1.0      
 #> [25] yaml_2.3.12        av_0.9.6           tools_4.5.3        parallel_4.5.3    
 #> [29] dplyr_1.2.0        ggplot2_4.0.2      reticulate_1.45.0  vctrs_0.7.1       
-#> [33] R6_2.6.1           png_0.1-8          lifecycle_1.0.5    fs_1.6.7          
+#> [33] R6_2.6.1           png_0.1-9          lifecycle_1.0.5    fs_1.6.7          
 #> [37] MASS_7.3-65        ragg_1.5.1         pkgconfig_2.0.3    desc_1.4.3        
 #> [41] pkgdown_2.2.0      pillar_1.11.1      bslib_0.10.0       gtable_0.3.6      
 #> [45] glue_1.8.0         Rcpp_1.1.1         systemfonts_1.3.2  xfun_0.56         

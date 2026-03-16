@@ -35,7 +35,11 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/create_sliding_window.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/create_template.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/create_trajectory_matrix.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/denoise.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/detect_template.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-forward_stft.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-inverse_stft.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-spectral_gate.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/ensure_pkgs.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_single_spec.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_spec.html</loc></url>

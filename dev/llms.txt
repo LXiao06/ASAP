@@ -55,8 +55,6 @@ Functions for creating and writing the core SAP object
 
 - [`create_sap_object()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_object.md)
   : Create a Sound Analysis Pro (SAP) Object from Audio Recordings
-- [`compute_wav_durations()`](https://lxiao06.github.io/ASAP/dev/reference/compute_wav_durations.md)
-  : Compute WAV File Durations
 - [`create_sap_metadata()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_metadata.md)
   : Create metadata for audio files recorded by SAP2011 (Sound Analysis
   Pro)
@@ -160,6 +158,15 @@ Functions for annotating clustered syllables
   : Automatic Syllable Labeling in Song Motif
 - [`manual_label()`](https://lxiao06.github.io/ASAP/dev/reference/manual_label.md)
   : Manual Syllable Labeling for Bird Song Analysis
+
+## Utilities
+
+Various utility functions for preprocessing or formatting.
+
+- [`compute_wav_durations()`](https://lxiao06.github.io/ASAP/dev/reference/compute_wav_durations.md)
+  : Compute WAV File Durations
+- [`denoise()`](https://lxiao06.github.io/ASAP/dev/reference/denoise.md)
+  : Denoise Audio Files
 
 # Get Started
 

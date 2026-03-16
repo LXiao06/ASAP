@@ -1,24 +1,23 @@
-# Installation Guide
+# Set up environment
 
-## Step 1 — Install R
+## Step 1 — Set up environment
+
+### Install R
 
 ASAP requires **[R](https://cran.r-project.org) version 4.2 or higher**.
-
 Download and install R for your operating system from the official CRAN
 mirror.
 
-------------------------------------------------------------------------
+### Install RStudio (Recommended IDE)
 
-## Step 2 — Install RStudio (Recommended IDE)
-
-While ASAP can be used from any R environment, we recommend
+While ASAP can be used from any R environment, I recommend
 **[RStudio](https://posit.co/download/rstudio-desktop)** as your
 integrated development environment (IDE). It provides a comfortable
 interface for running scripts, inspecting data, and viewing plots.
 
 ------------------------------------------------------------------------
 
-## Step 3 — Install the `remotes` Package
+## Step 2 — Install the `remotes` Package
 
 ASAP is distributed through GitHub for now. The easiest way to install
 GitHub-hosted R packages is via the `remotes` package.
@@ -31,7 +30,7 @@ install.packages("remotes")
 
 ------------------------------------------------------------------------
 
-## Step 4 — Install ASAP
+## Step 3 — Install ASAP
 
 ### Recommended: Latest Release
 
@@ -69,7 +68,7 @@ page](https://github.com/LXiao06/ASAP/releases).
 
 ------------------------------------------------------------------------
 
-## Step 5 — Load ASAP
+## Step 4 — Load ASAP
 
 Once installed, load the package in your R session:
 
