@@ -173,6 +173,9 @@ template_matches <- detect_template(x = wav_file,
                                     template = template,
                                     proximity_window = 1,  # Filter detections within 1s
                                     save_plot = FALSE)
+#> 
+#> Done with  d
+#> Done
 
 # View detection results
 knitr::kable(template_matches, digits = 2)
