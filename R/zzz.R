@@ -10,3 +10,10 @@
     .pkg_env[[paste0("has_", pkg)]] <- requireNamespace(pkg, quietly = TRUE)
   }
 }
+
+.onAttach <- function(libname, pkgname) {
+  ver <- utils::packageVersion(pkgname)
+  packageStartupMessage(
+    "ASAP v", ver, " loaded. "
+  )
+}
