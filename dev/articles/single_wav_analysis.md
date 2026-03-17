@@ -21,6 +21,7 @@ We’ll cover:
 
 ``` r
 library(ASAP)
+#> ASAP v0.3.4.9001 loaded.
 
 # Get path to example WAV file included with the package
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
@@ -340,7 +341,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.4.9000
+#> [1] ASAP_0.3.4.9001
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    
