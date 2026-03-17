@@ -24,6 +24,7 @@ create_motif_clips(
   name_prefix = NULL,
   keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
+  noise_reduction = FALSE,
   cores = NULL,
   overwrite = TRUE,
   write_metadata = TRUE,
@@ -44,6 +45,7 @@ create_motif_clips(
   name_prefix = NULL,
   keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
+  noise_reduction = FALSE,
   cores = NULL,
   overwrite = TRUE,
   write_metadata = TRUE,
@@ -115,6 +117,12 @@ create_motif_clips(
 
   Waveform amplitude normalization applied to exported clips: one of
   "none", "peak", or "rms" (default: "none")
+
+- noise_reduction:
+
+  Logical. If TRUE, denoise source WAV files before extracting motif
+  clips. Denoised sources are written under
+  `output_dir/motifs/denoised_sources` and used for clip extraction.
 
 - cores:
 
