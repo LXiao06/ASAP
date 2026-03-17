@@ -30,6 +30,9 @@
 #'   original recording is important. Overrides \code{name_prefix}.
 #' @param amp_normalize Waveform amplitude normalization applied to exported clips:
 #'   one of "none", "peak", or "rms" (default: "none")
+#' @param noise_reduction Logical. If TRUE, denoise source WAV files before
+#'   extracting motif clips. Denoised sources are written under
+#'   \code{output_dir/motifs/denoised_sources} and used for clip extraction.
 #' @param cores Number of CPU cores used for clip processing.
 #' @param overwrite Logical. Overwrite existing output file(s) when TRUE.
 #'   Default is TRUE.
@@ -95,6 +98,7 @@ create_motif_clips.default <- function(x,
                                        name_prefix = NULL,
                                        keep_source_file_name = FALSE,
                                        amp_normalize = c("none", "peak", "rms"),
+                                       noise_reduction = FALSE,
                                        cores = NULL,
                                        overwrite = TRUE,
                                        write_metadata = TRUE,
@@ -120,6 +124,9 @@ create_motif_clips.default <- function(x,
   wav_dir <- normalizePath(wav_dir, mustWork = TRUE)
   output_format <- match.arg(output_format)
   amp_normalize <- .parse_amp_normalize(amp_normalize)
+  if (!is.logical(noise_reduction) || length(noise_reduction) != 1) {
+    stop("noise_reduction must be TRUE or FALSE")
+  }
 
   if (is.null(output_dir) || !is.character(output_dir) || length(output_dir) != 1) {
     stop("output_dir must be provided as a single directory path")
@@ -149,6 +156,7 @@ create_motif_clips.default <- function(x,
     name_prefix = name_prefix,
     keep_source_file_name = keep_source_file_name,
     amp_normalize = amp_normalize,
+    noise_reduction = noise_reduction,
     cores = cores,
     overwrite = overwrite,
     write_metadata = write_metadata,
@@ -171,6 +179,7 @@ create_motif_clips.Sap <- function(x,
                                    name_prefix = NULL,
                                    keep_source_file_name = FALSE,
                                    amp_normalize = c("none", "peak", "rms"),
+                                   noise_reduction = FALSE,
                                    cores = NULL,
                                    overwrite = TRUE,
                                    write_metadata = TRUE,
@@ -185,6 +194,9 @@ create_motif_clips.Sap <- function(x,
   }
 
   amp_normalize <- .parse_amp_normalize(amp_normalize)
+  if (!is.logical(noise_reduction) || length(noise_reduction) != 1) {
+    stop("noise_reduction must be TRUE or FALSE")
+  }
   if (is.null(name_prefix)) {
     name_prefix <- "motif"
   }
@@ -217,6 +229,7 @@ create_motif_clips.Sap <- function(x,
     name_prefix = name_prefix,
     keep_source_file_name = keep_source_file_name,
     amp_normalize = amp_normalize,
+    noise_reduction = noise_reduction,
     cores = cores,
     overwrite = overwrite,
     write_metadata = write_metadata,
@@ -227,6 +240,7 @@ create_motif_clips.Sap <- function(x,
     creation_date = Sys.time(),
     output_format = match.arg(output_format),
     amp_normalize = amp_normalize,
+    noise_reduction = isTRUE(noise_reduction),
     output_dir = normalizePath(output_dir, mustWork = TRUE),
     n_requested = if (!is.null(indices)) {
       length(indices)
@@ -671,6 +685,7 @@ create_bout_clips.Sap <- function(x,
                               name_prefix,
                               keep_source_file_name,
                               amp_normalize,
+                              noise_reduction = FALSE,
                               cores,
                               overwrite,
                               write_metadata,
@@ -706,6 +721,49 @@ create_bout_clips.Sap <- function(x,
     file.path(wav_dir, as.character(jobs$day_post_hatch), as.character(jobs$filename)),
     file.path(wav_dir, as.character(jobs$filename))
   )
+
+  if (isTRUE(noise_reduction)) {
+    denoise_root <- file.path(output_dir, output_subdir, "denoised_sources")
+    if (!dir.exists(denoise_root)) dir.create(denoise_root, recursive = TRUE, showWarnings = FALSE)
+    unique_sources <- unique(jobs[, c("source_path", "day_clean"), drop = FALSE])
+    denoise_map <- character(0)
+
+    if (verbose) {
+      message(sprintf("Denoising %d source file(s) before clip export...", nrow(unique_sources)))
+    }
+
+    for (i in seq_len(nrow(unique_sources))) {
+      source_path <- as.character(unique_sources$source_path[[i]])
+      day_dir <- as.character(unique_sources$day_clean[[i]])
+      out_dir <- file.path(denoise_root, day_dir)
+      if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+      if (!file.exists(source_path)) {
+        warning("Skipping missing source file for denoise: ", source_path)
+        next
+      }
+
+      clean_path <- tryCatch(
+        denoise.default(
+          source_path,
+          output_dir = out_dir,
+          overwrite = overwrite,
+          wl = 512L,
+          ovlp = 75L,
+          plot = FALSE,
+          verbose = FALSE
+        ),
+        error = function(e) {
+          stop("Denoise failed for: ", source_path, "\n", conditionMessage(e))
+        }
+      )
+      denoise_map[source_path] <- clean_path
+    }
+
+    mapped <- denoise_map[jobs$source_path]
+    mapped[is.na(mapped)] <- jobs$source_path[is.na(mapped)]
+    jobs$source_path <- unname(mapped)
+  }
 
   process_one <- function(i) {
     row <- jobs[i, , drop = FALSE]
@@ -765,6 +823,7 @@ create_bout_clips.Sap <- function(x,
         end_time = as.numeric(row$end_time),
         duration = as.numeric(duration),
         amp_normalize = amp_normalize,
+        noise_reduction = isTRUE(noise_reduction),
         clip_id = as.character(row$clip_id),
         output_path = normalizePath(out_path, mustWork = TRUE),
         stringsAsFactors = FALSE
@@ -805,6 +864,7 @@ create_bout_clips.Sap <- function(x,
       end_time = as.numeric(row$end_time),
       duration = as.numeric(duration),
       amp_normalize = amp_normalize,
+      noise_reduction = isTRUE(noise_reduction),
       clip_id = as.character(row$clip_id),
       output_path = paste0("/", as.character(row$bird_id_clean), "/", as.character(row$day_clean), "/", as.character(row$clip_id)),
       stringsAsFactors = FALSE
@@ -852,6 +912,7 @@ create_bout_clips.Sap <- function(x,
       hdf5r::h5attr(ds, "end_time") <- as.numeric(res$metadata$end_time[[1]])
       hdf5r::h5attr(ds, "label") <- as.character(res$metadata$label[[1]])
       hdf5r::h5attr(ds, "amp_normalize") <- as.character(amp_normalize)
+      hdf5r::h5attr(ds, "noise_reduction") <- as.logical(isTRUE(noise_reduction))
       ds$close()
       sample_rates <- c(sample_rates, as.integer(res$sample_rate))
     }
@@ -859,6 +920,7 @@ create_bout_clips.Sap <- function(x,
     hdf5r::h5attr(h5, "creation_date") <- as.character(Sys.time())
     hdf5r::h5attr(h5, "n_clips") <- as.integer(sum(vapply(results, function(x) identical(x$status, "written"), logical(1))))
     hdf5r::h5attr(h5, "amp_normalize") <- as.character(amp_normalize)
+    hdf5r::h5attr(h5, "noise_reduction") <- as.character(isTRUE(noise_reduction))
     if (length(sample_rates) > 0 && length(unique(sample_rates)) == 1) {
       hdf5r::h5attr(h5, "sample_rate") <- as.integer(sample_rates[[1]])
     } else if (length(sample_rates) > 0) {
