@@ -9,8 +9,7 @@
 #' @noRd
 #' @keywords internal
 construct_wav_path <- function(x,
-                             wav_dir = NULL) {
-
+                               wav_dir = NULL) {
   # Check required column
   if (!("filename" %in% names(x))) {
     stop("Input must contain 'filename' column")
@@ -76,9 +75,11 @@ select_segments <- function(segments_df,
     missing_clusters <- clusters[!clusters %in% available_clusters]
 
     if (length(missing_clusters) > 0) {
-      stop(sprintf("Clusters not found: %s\nAvailable clusters: %s",
-                   paste(missing_clusters, collapse = ", "),
-                   paste(available_clusters, collapse = ", ")))
+      stop(sprintf(
+        "Clusters not found: %s\nAvailable clusters: %s",
+        paste(missing_clusters, collapse = ", "),
+        paste(available_clusters, collapse = ", ")
+      ))
     }
 
     segments_df <- segments_df[segments_df$cluster %in% clusters, ]
@@ -90,9 +91,11 @@ select_segments <- function(segments_df,
     available_labels <- unique(segments_df$label)
     missing_labels <- labels[!labels %in% available_labels]
     if (length(missing_labels) > 0) {
-      stop(sprintf("Labels not found: %s\nAvailable labels: %s",
-                   paste(missing_labels, collapse = ", "),
-                   paste(available_labels, collapse = ", ")))
+      stop(sprintf(
+        "Labels not found: %s\nAvailable labels: %s",
+        paste(missing_labels, collapse = ", "),
+        paste(available_labels, collapse = ", ")
+      ))
     }
     segments_df <- segments_df[segments_df$label %in% labels, ]
   }
@@ -119,7 +122,7 @@ select_segments <- function(segments_df,
   if (balanced) {
     group_counts <- segments_df |>
       dplyr::count(label)
-    n_sample <- floor(min(group_counts$n) / 10) * 10  # Round to nearest 10
+    n_sample <- floor(min(group_counts$n) / 10) * 10 # Round to nearest 10
 
     message(sprintf("\nBalancing groups to %d segments each", n_sample))
 
@@ -142,7 +145,7 @@ select_segments <- function(segments_df,
       dplyr::group_modify(~ {
         n_available <- nrow(.x)
         n_to_sample <- ceiling(n_available * sample_percent / 100)
-        dplyr::slice_sample(.x, n = n_to_sample)  |>
+        dplyr::slice_sample(.x, n = n_to_sample) |>
           dplyr::arrange(.data$.original_order)
       }) |>
       dplyr::ungroup() |>
@@ -153,7 +156,7 @@ select_segments <- function(segments_df,
 
   # Final cleanup and ordering
   segments_df <- segments_df |>
-    dplyr::arrange(.data$.original_order) |>  # Global order preservation
+    dplyr::arrange(.data$.original_order) |> # Global order preservation
     dplyr::select(-.data$.original_order)
 
   # Print final summary if data was modified
@@ -195,8 +198,8 @@ parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE) {
 
   # Determine which package is needed based on OS
   if (cores > 1) {
-    if (Sys.info()["sysname"] %in% c("Darwin", "Linux")) {
-      # macOS/Linux needs pbmcapply
+    if (Sys.info()["sysname"] == "Darwin") {
+      # macOS needs pbmcapply
       ensure_pkgs("pbmcapply")
       result <- pbmcapply::pbmclapply(
         indices,
@@ -205,7 +208,7 @@ parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE) {
         mc.preschedule = use_preschedule
       )
     } else {
-      # Windows needs pbapply and parallel for clusters
+      # Windows/Linux needs pbapply and parallel for clusters
       ensure_pkgs("pbapply", "parallel")
       cl <- parallel::makeCluster(cores)
       on.exit(parallel::stopCluster(cl), add = TRUE)
@@ -237,36 +240,48 @@ check_python_dependencies <- function(verbose = FALSE) {
   ensure_pkgs("reticulate")
 
   # Check for librosa
-  tryCatch({
-    reticulate::py_module_available("librosa")
-  }, error = function(e) {
-    if (verbose) {
-      message("Librosa is not installed. Attempting to install...")
-    }
+  tryCatch(
+    {
+      reticulate::py_module_available("librosa")
+    },
+    error = function(e) {
+      if (verbose) {
+        message("Librosa is not installed. Attempting to install...")
+      }
 
-    # Try to install librosa
-    tryCatch({
-      reticulate::py_install("librosa", pip = TRUE)
-    }, error = function(e) {
-      stop("Failed to install librosa. Please install it manually using pip: pip install librosa")
-    })
-  })
+      # Try to install librosa
+      tryCatch(
+        {
+          reticulate::py_install("librosa", pip = TRUE)
+        },
+        error = function(e) {
+          stop("Failed to install librosa. Please install it manually using pip: pip install librosa")
+        }
+      )
+    }
+  )
 
   # Check for numpy
-  tryCatch({
-    reticulate::py_module_available("numpy")
-  }, error = function(e) {
-    if (verbose) {
-      message("Numpy is not installed. Attempting to install...")
-    }
+  tryCatch(
+    {
+      reticulate::py_module_available("numpy")
+    },
+    error = function(e) {
+      if (verbose) {
+        message("Numpy is not installed. Attempting to install...")
+      }
 
-    # Try to install numpy
-    tryCatch({
-      reticulate::py_install("numpy", pip = TRUE)
-    }, error = function(e) {
-      stop("Failed to install numpy. Please install it manually using pip: pip install numpy")
-    })
-  })
+      # Try to install numpy
+      tryCatch(
+        {
+          reticulate::py_install("numpy", pip = TRUE)
+        },
+        error = function(e) {
+          stop("Failed to install numpy. Please install it manually using pip: pip install numpy")
+        }
+      )
+    }
+  )
 }
 
 #' @keywords internal
@@ -295,8 +310,10 @@ calculate_segment_stats <- function(feature_matrix,
   all_stats <- parallel_apply(
     labels,
     function(label) {
-      process_label(label, feature_matrix, segment_starts, segment_ends,
-                    valid_segments, time_step)
+      process_label(
+        label, feature_matrix, segment_starts, segment_ends,
+        valid_segments, time_step
+      )
     },
     cores = cores
   )
@@ -313,7 +330,9 @@ process_label <- function(label, feature_matrix, segment_starts, segment_ends,
                           valid_segments, time_step) {
   # Get columns belonging to this label
   label_cols <- which(colnames(feature_matrix) == label)
-  if (length(label_cols) == 0) return(NULL)
+  if (length(label_cols) == 0) {
+    return(NULL)
+  }
 
   # Create all combinations of label columns and segments
   combinations <- expand.grid(
@@ -337,7 +356,6 @@ process_label <- function(label, feature_matrix, segment_starts, segment_ends,
 
       # Only proceed if we have more then two non-zero values for statistics
       if (length(non_zero_vals) > 2) {
-
         data.frame(
           label = label,
           segment_id = i,
@@ -351,15 +369,19 @@ process_label <- function(label, feature_matrix, segment_starts, segment_ends,
           n_samples = length(non_zero_vals),
           stringsAsFactors = FALSE
         )
-      } else NULL
-    } else NULL
+      } else {
+        NULL
+      }
+    } else {
+      NULL
+    }
   }
 
   # Use parallel_apply to process combinations
   parallel_apply(
     1:nrow(combinations),
-    function(idx) process_combination(combinations[idx,]),
-    cores = NULL  # Will use default core detection
+    function(idx) process_combination(combinations[idx, ]),
+    cores = NULL # Will use default core detection
   )
 }
 
@@ -418,7 +440,7 @@ anova_analysis <- function(stats_df, plot = TRUE) {
   # Store ANOVA and Tukey results
   results_list <- stats_df |>
     dplyr::group_by(.data$segment_id) |>
-    dplyr::filter(dplyr::n_distinct(.data$label) > 1) |>  # Only compare segments with multiple labels
+    dplyr::filter(dplyr::n_distinct(.data$label) > 1) |> # Only compare segments with multiple labels
     dplyr::group_split() |>
     lapply(function(seg_data) {
       # Perform ANOVA
@@ -471,17 +493,19 @@ anova_analysis <- function(stats_df, plot = TRUE) {
   cat("\nlabel       segment      diff         lwr          upr         p adj   sign")
 
   # Print Tukey results for each segment
-  for(result in results_list) {
+  for (result in results_list) {
     tukey_df <- result$tukey
-    for(i in 1:nrow(tukey_df)) {
-      cat(sprintf("\n%-10s %5.0f %12.4f %12.4f %12.4f %12.5f    %s",
-                  tukey_df$comparison[i],
-                  tukey_df$segment_id[i],
-                  tukey_df$diff[i],
-                  tukey_df$lwr[i],
-                  tukey_df$upr[i],
-                  tukey_df$`p adj`[i],
-                  tukey_df$significance[i]))
+    for (i in 1:nrow(tukey_df)) {
+      cat(sprintf(
+        "\n%-10s %5.0f %12.4f %12.4f %12.4f %12.5f    %s",
+        tukey_df$comparison[i],
+        tukey_df$segment_id[i],
+        tukey_df$diff[i],
+        tukey_df$lwr[i],
+        tukey_df$upr[i],
+        tukey_df$`p adj`[i],
+        tukey_df$significance[i]
+      ))
     }
   }
 
@@ -493,15 +517,17 @@ anova_analysis <- function(stats_df, plot = TRUE) {
   cat("\n'ns'  >= 0.05\n")
 
   # Create plot if requested
-  if(plot) {
+  if (plot) {
     ensure_pkgs("ggplot2")
     p <- ggplot2::ggplot(stats_df, ggplot2::aes(x = .data$label, y = .data$mean)) +
       ggplot2::geom_boxplot() +
       ggplot2::facet_wrap(~ .data$segment_id) +
       ggplot2::theme_minimal() +
-      ggplot2::labs(title = "Mean Values by Label across Segments",
-                    x = "Label",
-                    y = "Mean Value")
+      ggplot2::labs(
+        title = "Mean Values by Label across Segments",
+        x = "Label",
+        y = "Mean Value"
+      )
     print(p)
   }
 
@@ -539,16 +565,19 @@ ensure_pkgs <- function(...) {
     message("Installing required packages: ", paste(missing_pkgs, collapse = ", "))
 
     install_results <- lapply(missing_pkgs, function(pkg) {
-      tryCatch({
-        utils::install.packages(pkg)
-        pkg_available <- requireNamespace(pkg, quietly = TRUE)
-        # Update cached status
-        .pkg_env[[paste0("has_", pkg)]] <- pkg_available
-        return(pkg_available)
-      }, error = function(e) {
-        message("Failed to install ", pkg, ": ", conditionMessage(e))
-        return(FALSE)
-      })
+      tryCatch(
+        {
+          utils::install.packages(pkg)
+          pkg_available <- requireNamespace(pkg, quietly = TRUE)
+          # Update cached status
+          .pkg_env[[paste0("has_", pkg)]] <- pkg_available
+          return(pkg_available)
+        },
+        error = function(e) {
+          message("Failed to install ", pkg, ": ", conditionMessage(e))
+          return(FALSE)
+        }
+      )
     })
 
     still_missing <- missing_pkgs[!unlist(install_results)]
@@ -556,9 +585,10 @@ ensure_pkgs <- function(...) {
     # If any packages couldn't be installed, throw an error
     if (length(still_missing) > 0) {
       stop("Failed to install required packages: ",
-           paste(still_missing, collapse = ", "),
-           ". Please install them manually with install.packages().",
-           call. = FALSE)
+        paste(still_missing, collapse = ", "),
+        ". Please install them manually with install.packages().",
+        call. = FALSE
+      )
     }
   }
 
