@@ -174,15 +174,6 @@ template_matches <- detect_template(x = wav_file,
                                     template = template,
                                     proximity_window = 1,  # Filter detections within 1s
                                     save_plot = FALSE)
-#> 
-#> Starting  d . . .
-#>  Fourier transform on survey . . .
-#>  Continuing. . .
-#> 
-#>  Done.
-#> 
-#> Done with  d
-#> Done
 
 # View detection results
 knitr::kable(template_matches, digits = 2)
