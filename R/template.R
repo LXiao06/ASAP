@@ -593,16 +593,19 @@ detect_template.default <- function(x, # x is wav file path
     plot_dir <- file.path(dirname(x), "plots", "template_matches")
   }
 
-  # Suppress monitoR output
-  null_con <- file(tempfile(), open = "w")
-  on.exit({
-    sink(type = "output")
-    sink(type = "message")
-    close(null_con)
-  })
-  sink(null_con, type = "output")
-  sink(null_con, type = "message")
-
+  # Only suppress output on Linux/Windows where monitoR can flood the console
+  needs_sink <- Sys.info()["sysname"] != "Darwin"
+  if (needs_sink) {
+    null_con <- file("/dev/null", open = "w")
+    on.exit({
+      sink(type = "output")
+      sink(type = "message")
+      close(null_con)
+    })
+    sink(null_con, type = "output")
+    sink(null_con, type = "message")
+  }
+  
   # Perform correlation matching
   scores <- suppressWarnings(
     monitoR::corMatch(
