@@ -611,3 +611,45 @@ ensure_pkgs <- function(...) {
   # At this point, all packages should be available
   return(invisible(TRUE))
 }
+
+#' Get Indices of WAV Files in SAP Object Metadata
+#'
+#' @description
+#' Finds the row indices of specified WAV files within the metadata of a Sound Analysis Pro (SAP) object.
+#'
+#' @param sap A SAP object
+#' @param wav_files A character vector of WAV file names
+#'
+#' @return A numeric vector representing the row indices of the specified WAV files
+#'   in the SAP object's metadata.
+#'
+#' @export
+get_wav_indices <- function(sap, wav_files) {
+  # Validate inputs
+  if (!inherits(sap, "Sap")) {
+    stop("Input 'sap' must be a Sap object.")
+  }
+
+  if (!is.character(wav_files) || length(wav_files) == 0) {
+    stop("Input 'wav_files' must be a non-empty character vector.")
+  }
+
+  # Find indices where the filename matches the requested files
+  indices <- which(sap$metadata$filename %in% wav_files)
+
+  # Check for missing files
+  if (length(indices) == 0) {
+    warning("None of the specified WAV files were found in the SAP metadata.")
+  } else {
+    found_files <- unique(sap$metadata$filename[indices])
+    missing_files <- setdiff(wav_files, found_files)
+    if (length(missing_files) > 0) {
+      warning(
+        "The following WAV files were not found in the SAP metadata:\n",
+        paste(missing_files, collapse = ", ")
+      )
+    }
+  }
+
+  return(indices)
+}

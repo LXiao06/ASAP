@@ -125,3 +125,4 @@ reference:
     contents:
       - compute_wav_durations
       - denoise
+      - get_wav_indices
