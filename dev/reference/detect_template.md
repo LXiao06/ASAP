@@ -32,6 +32,7 @@ detect_template(
   plot_percent = 10,
   verbose = TRUE,
   proximity_window = NULL,
+  use_preschedule = FALSE,
   ...
 )
 ```
@@ -95,6 +96,15 @@ detect_template(
 - verbose:
 
   For SAP objects: Whether to print progress messages
+
+- use_preschedule:
+
+  For SAP objects: Whether to use pre-scheduling for parallel processing
+  (default: FALSE). When TRUE, tasks are distributed to workers before
+  processing starts, providing more consistent performance but may be
+  slower if files have variable processing times. When FALSE (default),
+  workers dynamically grab tasks from a queue, providing better load
+  balancing but with slightly more overhead.
 
 ## Value
 
@@ -180,6 +190,13 @@ sap_obj <- detect_template(sap_object,
 sap_obj <- detect_template(sap_object,
   template_name = "template1",
   proximity_window = 0.5
+)
+
+# Use pre-scheduling for more consistent performance
+sap_obj <- detect_template(sap_object,
+  template_name = "template1",
+  cores = 4,
+  use_preschedule = TRUE
 )
 } # }
 ```

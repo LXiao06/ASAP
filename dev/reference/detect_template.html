@@ -66,6 +66,7 @@
 <span>  plot_percent <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  proximity_window <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  use_preschedule <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -130,6 +131,16 @@ Only the detection with the highest score within each window is retained.</p></d
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>For SAP objects: Whether to print progress messages</p></dd>
 
+
+<dt id="arg-use-preschedule">use_preschedule<a class="anchor" aria-label="anchor" href="#arg-use-preschedule"></a></dt>
+<dd><p>For SAP objects: Whether to use pre-scheduling
+for parallel processing (default: FALSE). When TRUE, tasks are
+distributed to workers before processing starts, providing more
+consistent performance but may be slower if files have variable
+processing times. When FALSE (default), workers dynamically grab
+tasks from a queue, providing better load balancing but with
+slightly more overhead.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -193,6 +204,13 @@ only the one with the highest score is kept. This is useful for removing false p
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
 <span class="r-in"><span>  template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
 <span class="r-in"><span>  proximity_window <span class="op">=</span> <span class="fl">0.5</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Use pre-scheduling for more consistent performance</span></span></span>
+<span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
+<span class="r-in"><span>  template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
+<span class="r-in"><span>  cores <span class="op">=</span> <span class="fl">4</span>,</span></span>
+<span class="r-in"><span>  use_preschedule <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
