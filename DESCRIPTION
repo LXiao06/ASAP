@@ -1,6 +1,6 @@
 Package: ASAP
-Version: 0.3.4.9001
-Date: 2026-02-27
+Version: 0.3.4.9002
+Date: 2026-03-18
 Title: Automated Sound Analysis Pipeline for Avian Vocalization Research
 Authors@R: 
     person("Lei", "Xiao", email = "Leixiao2006@gmail.com", 
