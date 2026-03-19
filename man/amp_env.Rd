@@ -48,30 +48,34 @@ The function processes audio segments with the following steps:
 \examples{
 \dontrun{
 # Basic envelope calculation
-env <- amp_env(segments[1,], wav_dir = "path/to/wavs")
+env <- amp_env(segments[1, ], wav_dir = "path/to/wavs")
 
 # With smoothing and normalization
-env <- amp_env(segments[1,],
-               wav_dir = "path/to/wavs",
-               msmooth = c(256, 50))
+env <- amp_env(segments[1, ],
+  wav_dir = "path/to/wavs",
+  msmooth = c(256, 50)
+)
 
 # With waveform peak normalization
-env <- amp_env(segments[1,],
-               wav_dir = "path/to/wavs",
-               msmooth = c(256, 50),
-               amp_normalize = "peak")
+env <- amp_env(segments[1, ],
+  wav_dir = "path/to/wavs",
+  msmooth = c(256, 50),
+  amp_normalize = "peak"
+)
 
 # With waveform RMS normalization
-env <- amp_env(segments[1,],
-               wav_dir = "path/to/wavs",
-               msmooth = c(256, 50),
-               amp_normalize = "rms")
+env <- amp_env(segments[1, ],
+  wav_dir = "path/to/wavs",
+  msmooth = c(256, 50),
+  amp_normalize = "rms"
+)
 
 # With plot
-env <- amp_env(segments[1,],
-               wav_dir = "path/to/wavs",
-               msmooth = c(256, 50),
-               plot = TRUE)
+env <- amp_env(segments[1, ],
+  wav_dir = "path/to/wavs",
+  msmooth = c(256, 50),
+  plot = TRUE
+)
 }
 
 }

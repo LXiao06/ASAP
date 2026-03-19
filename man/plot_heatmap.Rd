@@ -154,30 +154,35 @@ plot_heatmap(segments, wav_dir = "path/to/wavs")
 
 # SAP object with options
 plot_heatmap(sap_obj,
-             segment_type = "motifs",
-             balanced = TRUE,
-             ordered = TRUE)
+  segment_type = "motifs",
+  balanced = TRUE,
+  ordered = TRUE
+)
 
 # Compare waveform normalization strategies in heatmaps
 plot_heatmap(sap_obj,
-             segment_type = "motifs",
-             amp_normalize = "peak")
+  segment_type = "motifs",
+  amp_normalize = "peak"
+)
 plot_heatmap(sap_obj,
-             segment_type = "motifs",
-             amp_normalize = "rms")
+  segment_type = "motifs",
+  amp_normalize = "rms"
+)
 
 # Matrix with specific labels
 plot_heatmap(amp_matrix,
-             labels = c("a", "b"),
-             contrast = 2)
+  labels = c("a", "b"),
+  contrast = 2
+)
 
 # Advanced SAP object usage
 plot_heatmap(sap_obj,
-             segment_type = "bouts",
-             sample_percent = 80,
-             cores = 4,
-             ordered = TRUE,
-             descending = FALSE)
+  segment_type = "bouts",
+  sample_percent = 80,
+  cores = 4,
+  ordered = TRUE,
+  descending = FALSE
+)
 }
 
 }
