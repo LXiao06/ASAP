@@ -167,6 +167,8 @@ Various utility functions for preprocessing or formatting.
   : Compute WAV File Durations
 - [`denoise()`](https://lxiao06.github.io/ASAP/dev/reference/denoise.md)
   : Denoise Audio Files
+- [`get_wav_indices()`](https://lxiao06.github.io/ASAP/dev/reference/get_wav_indices.md)
+  : Get Indices of WAV Files in SAP Object Metadata
 
 # Get Started
 
