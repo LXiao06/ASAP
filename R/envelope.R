@@ -37,30 +37,34 @@
 #' @examples
 #' \dontrun{
 #' # Basic envelope calculation
-#' env <- amp_env(segments[1,], wav_dir = "path/to/wavs")
+#' env <- amp_env(segments[1, ], wav_dir = "path/to/wavs")
 #'
 #' # With smoothing and normalization
-#' env <- amp_env(segments[1,],
-#'                wav_dir = "path/to/wavs",
-#'                msmooth = c(256, 50))
+#' env <- amp_env(segments[1, ],
+#'   wav_dir = "path/to/wavs",
+#'   msmooth = c(256, 50)
+#' )
 #'
 #' # With waveform peak normalization
-#' env <- amp_env(segments[1,],
-#'                wav_dir = "path/to/wavs",
-#'                msmooth = c(256, 50),
-#'                amp_normalize = "peak")
+#' env <- amp_env(segments[1, ],
+#'   wav_dir = "path/to/wavs",
+#'   msmooth = c(256, 50),
+#'   amp_normalize = "peak"
+#' )
 #'
 #' # With waveform RMS normalization
-#' env <- amp_env(segments[1,],
-#'                wav_dir = "path/to/wavs",
-#'                msmooth = c(256, 50),
-#'                amp_normalize = "rms")
+#' env <- amp_env(segments[1, ],
+#'   wav_dir = "path/to/wavs",
+#'   msmooth = c(256, 50),
+#'   amp_normalize = "rms"
+#' )
 #'
 #' # With plot
-#' env <- amp_env(segments[1,],
-#'                wav_dir = "path/to/wavs",
-#'                msmooth = c(256, 50),
-#'                plot = TRUE)
+#' env <- amp_env(segments[1, ],
+#'   wav_dir = "path/to/wavs",
+#'   msmooth = c(256, 50),
+#'   plot = TRUE
+#' )
 #' }
 #'
 #' @seealso \code{\link{find_motif}} for creating segment data
@@ -71,7 +75,6 @@ amp_env <- function(segment_row,
                     msmooth = NULL,
                     amp_normalize = c("none", "peak", "rms"),
                     plot = FALSE) {
-
   # Check if input is valid
   if (!is.data.frame(segment_row) || nrow(segment_row) != 1) {
     stop("segment_row must be a single row from a data frame")
@@ -99,9 +102,10 @@ amp_env <- function(segment_row,
 
   # Read wave file using timestamps
   wv <- tuneR::readWave(sound_path,
-                        from = segment_row$start_time,
-                        to = segment_row$end_time,
-                        units = "seconds")
+    from = segment_row$start_time,
+    to = segment_row$end_time,
+    units = "seconds"
+  )
 
   # Optional waveform amplitude normalization before envelope extraction
   amp_normalize <- .parse_amp_normalize(amp_normalize)
@@ -144,7 +148,9 @@ amp_env <- function(segment_row,
                                       target_rms = 0.1,
                                       eps = 1e-8) {
   method <- .parse_amp_normalize(method)
-  if (method == "none") return(wv)
+  if (method == "none") {
+    return(wv)
+  }
 
   if (!is.numeric(target_rms) || length(target_rms) != 1 || target_rms <= 0) {
     stop("target_rms must be a single positive numeric value")
@@ -157,7 +163,9 @@ amp_env <- function(segment_row,
 
   normalize_channel <- function(ch) {
     ch <- as.numeric(ch)
-    if (length(ch) == 0) return(ch)
+    if (length(ch) == 0) {
+      return(ch)
+    }
 
     scale <- 1
     if (method == "peak") {
@@ -263,30 +271,35 @@ amp_env <- function(segment_row,
 #'
 #' # SAP object with options
 #' plot_heatmap(sap_obj,
-#'              segment_type = "motifs",
-#'              balanced = TRUE,
-#'              ordered = TRUE)
+#'   segment_type = "motifs",
+#'   balanced = TRUE,
+#'   ordered = TRUE
+#' )
 #'
 #' # Compare waveform normalization strategies in heatmaps
 #' plot_heatmap(sap_obj,
-#'              segment_type = "motifs",
-#'              amp_normalize = "peak")
+#'   segment_type = "motifs",
+#'   amp_normalize = "peak"
+#' )
 #' plot_heatmap(sap_obj,
-#'              segment_type = "motifs",
-#'              amp_normalize = "rms")
+#'   segment_type = "motifs",
+#'   amp_normalize = "rms"
+#' )
 #'
 #' # Matrix with specific labels
 #' plot_heatmap(amp_matrix,
-#'              labels = c("a", "b"),
-#'              contrast = 2)
+#'   labels = c("a", "b"),
+#'   contrast = 2
+#' )
 #'
 #' # Advanced SAP object usage
 #' plot_heatmap(sap_obj,
-#'              segment_type = "bouts",
-#'              sample_percent = 80,
-#'              cores = 4,
-#'              ordered = TRUE,
-#'              descending = FALSE)
+#'   segment_type = "bouts",
+#'   sample_percent = 80,
+#'   cores = 4,
+#'   ordered = TRUE,
+#'   descending = FALSE
+#' )
 #' }
 #'
 #' @rdname plot_heatmap
@@ -299,19 +312,20 @@ plot_heatmap <- function(x, ...) {
 #' @export
 plot_heatmap.default <- function(x,
                                  wav_dir = NULL,
-                                 msmooth = c(256,50),
+                                 msmooth = c(256, 50),
                                  amp_normalize = c("none", "peak", "rms"),
                                  color_palette = NULL,
                                  n_colors = 500,
                                  contrast = 3,
                                  ...) {
-
   # Check required columns
   required_cols <- c("filename", "start_time", "end_time")
   missing_cols <- required_cols[!required_cols %in% names(x)]
   if (length(missing_cols) > 0) {
-    stop(sprintf("Missing required columns: %s",
-                 paste(missing_cols, collapse = ", ")))
+    stop(sprintf(
+      "Missing required columns: %s",
+      paste(missing_cols, collapse = ", ")
+    ))
   }
 
   # Check if data is empty
@@ -332,19 +346,30 @@ plot_heatmap.default <- function(x,
   # Generate amplitude envelope matrix using appropriate progress bar function
   amp_normalize <- .parse_amp_normalize(amp_normalize)
   if (Sys.info()["sysname"] == "Darwin") {
-    amp_list <- pbmcapply::pbmclapply(1:nrow(x),
-                                      function(i) amp_env(x[i,],
-                                                          wav_dir = wav_dir,
-                                                          msmooth = msmooth,
-                                                          amp_normalize = amp_normalize))
+    # macOS uses fork-based parallelism (fast startup)
+    amp_list <- pbmcapply::pbmclapply(
+      1:nrow(x),
+      function(i) {
+        amp_env(x[i, ],
+          wav_dir = wav_dir,
+          msmooth = msmooth,
+          amp_normalize = amp_normalize
+        )
+      }
+    )
     amp_matrix <- do.call(cbind, amp_list)
   } else {
+    # Windows and Linux use socket clusters (avoids RStudio hang issue)
     amp_matrix <- pbapply::pbsapply(1:nrow(x),
-                                    function(i) amp_env(x[i,],
-                                                        wav_dir = wav_dir,
-                                                        msmooth = msmooth,
-                                                        amp_normalize = amp_normalize),
-                                    simplify = TRUE)
+      function(i) {
+        amp_env(x[i, ],
+          wav_dir = wav_dir,
+          msmooth = msmooth,
+          amp_normalize = amp_normalize
+        )
+      },
+      simplify = TRUE
+    )
   }
 
   # Calculate time window from first segment
@@ -357,36 +382,38 @@ plot_heatmap.default <- function(x,
 
   # Create heatmap
   heatmap <- lattice::levelplot(amp_matrix,
-                                col.regions = color_palette(n_colors),
-                                at = seq(min(amp_matrix),
-                                         max(amp_matrix)/contrast,
-                                         length.out = n_colors),
-
-                                border = "transparent",
-                                ylab = "Rendition",
-                                xlab = "Time (s)",
-                                main = "Amplitude Envelope Heatmap",
-                                scales = list(
-                                  x = list(
-                                    at = seq(0, nrow(amp_matrix), length.out = 5),
-                                    labels = sprintf("%.1f", seq(0, time_window, length.out = 5))
-                                  )
-                                ),
-                                pretty = TRUE,
-                                aspect = "fill",
-                                colorkey = list(
-                                  space = "right",
-                                  width = 1,
-                                  height = 0.75,
-                                  labels = list(
-                                    at = seq(min(amp_matrix),
-                                             max(amp_matrix) / contrast,
-                                             length.out = 3),
-                                    cex = 1,
-                                    col = "black",
-                                    labels = sprintf("%.1f", seq(0, 1, length.out = 3))
-                                  )
-                                ))
+    col.regions = color_palette(n_colors),
+    at = seq(min(amp_matrix),
+      max(amp_matrix) / contrast,
+      length.out = n_colors
+    ),
+    border = "transparent",
+    ylab = "Rendition",
+    xlab = "Time (s)",
+    main = "Amplitude Envelope Heatmap",
+    scales = list(
+      x = list(
+        at = seq(0, nrow(amp_matrix), length.out = 5),
+        labels = sprintf("%.1f", seq(0, time_window, length.out = 5))
+      )
+    ),
+    pretty = TRUE,
+    aspect = "fill",
+    colorkey = list(
+      space = "right",
+      width = 1,
+      height = 0.75,
+      labels = list(
+        at = seq(min(amp_matrix),
+          max(amp_matrix) / contrast,
+          length.out = 3
+        ),
+        cex = 1,
+        col = "black",
+        labels = sprintf("%.1f", seq(0, 1, length.out = 3))
+      )
+    )
+  )
 
   print(heatmap)
 
@@ -439,7 +466,7 @@ plot_heatmap.matrix <- function(x,
       stop("Some provided labels not found in matrix")
     }
     x <- x[, colnames(x) %in% labels]
-    attr(x, "time_window") <- time_window  # Preserve just the time_window attribute
+    attr(x, "time_window") <- time_window # Preserve just the time_window attribute
   }
 
   # Create reversed matrix for plotting
@@ -459,10 +486,10 @@ plot_heatmap.matrix <- function(x,
   reversed_labels <- rev(unique(current_labels))
 
   ordered_labels <- factor(current_labels, levels = unique(current_labels))
-  samples_per_label <- rev(table(ordered_labels))  # rev() for bottom-to-top plotting
+  samples_per_label <- rev(table(ordered_labels)) # rev() for bottom-to-top plotting
 
   cumulative_positions <- cumsum(c(0, head(samples_per_label, -1)))
-  label_positions <- cumulative_positions + samples_per_label/2
+  label_positions <- cumulative_positions + samples_per_label / 2
   hline_positions <- cumsum(samples_per_label)[-length(samples_per_label)]
 
   # Handle reference lines
@@ -482,56 +509,63 @@ plot_heatmap.matrix <- function(x,
 
   # Create heatmap
   heatmap <- lattice::levelplot(reversed_amp_matrix,
-                                col.regions = color_palette(n_colors),
-                                at = seq(min(reversed_amp_matrix),
-                                         max(reversed_amp_matrix)/contrast,
-                                         length.out = n_colors),
-                                border = "transparent",
-                                ylab = ylabel,
-                                xlab = "Time (s)",
-                                main = main,
-                                scales = list(
-                                  x = list(
-                                    at = seq(0, nrow(reversed_amp_matrix), length.out = 5),
-                                    labels = sprintf("%.1f", seq(0, time_window, length.out = 5))
-                                  ),
-                                  y = list(
-                                    at = label_positions,
-                                    labels = reversed_labels
-                                  )
-                                ),
-                                panel = function(x, y, z, ...) {
-                                  lattice::panel.levelplot(x, y, z, ...)
+    col.regions = color_palette(n_colors),
+    at = seq(min(reversed_amp_matrix),
+      max(reversed_amp_matrix) / contrast,
+      length.out = n_colors
+    ),
+    border = "transparent",
+    ylab = ylabel,
+    xlab = "Time (s)",
+    main = main,
+    scales = list(
+      x = list(
+        at = seq(0, nrow(reversed_amp_matrix), length.out = 5),
+        labels = sprintf("%.1f", seq(0, time_window, length.out = 5))
+      ),
+      y = list(
+        at = label_positions,
+        labels = reversed_labels
+      )
+    ),
+    panel = function(x, y, z, ...) {
+      lattice::panel.levelplot(x, y, z, ...)
 
-                                  # Draw horizontal lines between labels
-                                  lattice::panel.abline(h = hline_positions,
-                                                        col = "white",
-                                                        lwd = 2)
+      # Draw horizontal lines between labels
+      lattice::panel.abline(
+        h = hline_positions,
+        col = "white",
+        lwd = 2
+      )
 
-                                  # Draw vertical reference lines if provided
-                                  if (!is.null(reference_lines)) {
-                                    for (i in seq_along(reference_lines)) {
-                                      lattice::panel.abline(v = reference_lines[i],
-                                                            col = reference_line_color[i],
-                                                            lwd = 3,
-                                                            lty = 2)  # dashed lines
-                                    }
-                                  }
-                                },
-                                aspect = "fill",
-                                colorkey = list(
-                                  space = "right",
-                                  width = 1,
-                                  height = 0.75,
-                                  labels = list(
-                                    at = seq(min(x),
-                                             max(x) / contrast,
-                                             length.out = 3),
-                                    cex = 1,
-                                    col = "black",
-                                    labels = sprintf("%.1f", seq(0, 1, length.out = 3))
-                                  )
-                                ))
+      # Draw vertical reference lines if provided
+      if (!is.null(reference_lines)) {
+        for (i in seq_along(reference_lines)) {
+          lattice::panel.abline(
+            v = reference_lines[i],
+            col = reference_line_color[i],
+            lwd = 3,
+            lty = 2
+          ) # dashed lines
+        }
+      }
+    },
+    aspect = "fill",
+    colorkey = list(
+      space = "right",
+      width = 1,
+      height = 0.75,
+      labels = list(
+        at = seq(min(x),
+          max(x) / contrast,
+          length.out = 3
+        ),
+        cex = 1,
+        col = "black",
+        labels = sprintf("%.1f", seq(0, 1, length.out = 3))
+      )
+    )
+  )
 
   print(heatmap)
 }
@@ -546,7 +580,7 @@ plot_heatmap.Sap <- function(x,
                              clusters = NULL,
                              cores = NULL,
                              seed = 222,
-                             msmooth = c(256,50),
+                             msmooth = c(256, 50),
                              amp_normalize = c("none", "peak", "rms"),
                              color_palette = NULL,
                              n_colors = 500,
@@ -560,7 +594,7 @@ plot_heatmap.Sap <- function(x,
                              ylabel = "Labels",
                              verbose = TRUE,
                              ...) {
-  if(verbose) message(sprintf("\n=== Starting Heatmap Plotting ===\n"))
+  if (verbose) message(sprintf("\n=== Starting Heatmap Plotting ===\n"))
 
   # Input validation
   segment_type <- match.arg(segment_type)
@@ -595,8 +629,10 @@ plot_heatmap.Sap <- function(x,
       # Recycle colors if different length
       reference_line_color <- rep(reference_line_color, length.out = length(reference_lines))
       if (verbose) {
-        message(sprintf("Note: Recycling %d colors for %d reference lines",
-                        length(unique(reference_line_color)), length(reference_lines)))
+        message(sprintf(
+          "Note: Recycling %d colors for %d reference lines",
+          length(unique(reference_line_color)), length(reference_lines)
+        ))
       }
     }
   }
@@ -639,11 +675,12 @@ plot_heatmap.Sap <- function(x,
 
   # Select and balance segments
   segments_df <- select_segments(segments_df,
-                                 labels = labels,
-                                 clusters = clusters,
-                                 balanced = balanced,
-                                 sample_percent = sample_percent,
-                                 seed = seed)
+    labels = labels,
+    clusters = clusters,
+    balanced = balanced,
+    sample_percent = sample_percent,
+    seed = seed
+  )
 
   # Check if segments_df is empty after subsetting
   if (nrow(segments_df) == 0) {
@@ -658,21 +695,22 @@ plot_heatmap.Sap <- function(x,
   # Function to process a single row
   if (segment_type == "motifs") {
     process_row <- function(i) {
-      amp_env(segments_df[i,],
-              wav_dir = x$base_path,
-              msmooth = msmooth,
-              amp_normalize = amp_normalize)
+      amp_env(segments_df[i, ],
+        wav_dir = x$base_path,
+        msmooth = msmooth,
+        amp_normalize = amp_normalize
+      )
     }
     time_window <- segments_df$duration[1]
     alignment_point <- segments_df$detection_time[1] - segments_df$start_time[1]
 
     # Get sampling rate for motifs
-    test_env <- amp_env(segments_df[1,],
-                        wav_dir = x$base_path,
-                        msmooth = msmooth,
-                        amp_normalize = amp_normalize)
+    test_env <- amp_env(segments_df[1, ],
+      wav_dir = x$base_path,
+      msmooth = msmooth,
+      amp_normalize = amp_normalize
+    )
     samples_per_second <- length(test_env) / segments_df$duration[1]
-
   } else if (segment_type == "bouts") {
     required_cols <- c("start_time", "end_time", "align_time")
     if (!all(required_cols %in% colnames(segments_df))) {
@@ -694,8 +732,10 @@ plot_heatmap.Sap <- function(x,
       max_post_window <- window[2]
 
       if (verbose) {
-        message(sprintf("Using provided window: pre=%.3f, post=%.3f seconds",
-                        max_pre_window, max_post_window))
+        message(sprintf(
+          "Using provided window: pre=%.3f, post=%.3f seconds",
+          max_pre_window, max_post_window
+        ))
       }
     } else {
       # Calculate windows using quantiles (existing method)
@@ -703,17 +743,20 @@ plot_heatmap.Sap <- function(x,
       max_post_window <- quantile(segments_df$post_window, padding_quantile, na.rm = TRUE)
 
       if (verbose) {
-        message(sprintf("Auto-calculated window: pre=%.3f, post=%.3f seconds (quantile=%.2f)",
-                        max_pre_window, max_post_window, padding_quantile))
+        message(sprintf(
+          "Auto-calculated window: pre=%.3f, post=%.3f seconds (quantile=%.2f)",
+          max_pre_window, max_post_window, padding_quantile
+        ))
       }
     }
 
     # Get sampling rate
     test_row <- segments_df[1, ]
     test_env <- amp_env(test_row,
-                        wav_dir = x$base_path,
-                        msmooth = msmooth,
-                        amp_normalize = amp_normalize)
+      wav_dir = x$base_path,
+      msmooth = msmooth,
+      amp_normalize = amp_normalize
+    )
     samples_per_second <- length(test_env) / test_row$duration
 
     # Create processing function
@@ -729,12 +772,13 @@ plot_heatmap.Sap <- function(x,
       )
     }
     time_window <- max_pre_window + max_post_window
-    alignment_point <- max_pre_window   # Alignment point for bouts (in seconds from start)
+    alignment_point <- max_pre_window # Alignment point for bouts (in seconds from start)
   }
 
   # Generate amplitude envelope matrix using parallel processing
   if (cores > 1) {
-    if (Sys.info()["sysname"] == "Darwin") {#"Linux"
+    if (Sys.info()["sysname"] == "Darwin") {
+      # macOS uses fork-based parallelism (fast startup)
       amp_list <- pbmcapply::pbmclapply(
         seq_len(nrow(segments_df)),
         process_row,
@@ -743,17 +787,20 @@ plot_heatmap.Sap <- function(x,
       )
       amp_matrix <- do.call(cbind, amp_list)
     } else {
+      # Windows and Linux use socket clusters (avoids RStudio hang issue)
       amp_matrix <- pbapply::pbsapply(
         seq_len(nrow(segments_df)),
         process_row,
         cl = cores,
-        simplify = TRUE)
+        simplify = TRUE
+      )
     }
   } else {
     amp_matrix <- pbapply::pbsapply(
       seq_len(nrow(segments_df)),
       process_row,
-      simplify = TRUE)
+      simplify = TRUE
+    )
   }
 
   # Check for non-finite values and handle
@@ -775,13 +822,16 @@ plot_heatmap.Sap <- function(x,
     final_reference_colors <- reference_line_color[valid_positions]
 
     if (length(reference_line_positions) < length(reference_lines) && verbose) {
-      message(sprintf("Note: %d reference line(s) outside the display window were removed",
-                      length(reference_lines) - length(reference_line_positions)))
+      message(sprintf(
+        "Note: %d reference line(s) outside the display window were removed",
+        length(reference_lines) - length(reference_line_positions)
+      ))
     }
 
     if (verbose && length(reference_line_positions) > 0) {
       color_info <- paste(paste0(reference_lines[valid_positions], "s (", final_reference_colors, ")"),
-                          collapse = ", ")
+        collapse = ", "
+      )
       message(sprintf("Reference lines at time positions: %s (relative to alignment)", color_info))
     }
   }
@@ -808,22 +858,23 @@ plot_heatmap.Sap <- function(x,
   x$features[[feature_type]][["amp_env"]] <- amp_matrix
 
   #  Guidance on accessing the amplitude envelope matrix
-  if(verbose) {
+  if (verbose) {
     message(sprintf("\nAccess amplitude envelope matrix via: x$features$%s$amp_env", feature_type))
     message(sprintf("Access attributes via: attributes(x$features$%s$amp_env)", feature_type))
   }
 
   # Create heatmap using matrix method
   plot_heatmap(amp_matrix,
-               labels = labels,
-               color_palette = color_palette,
-               n_colors = n_colors,
-               contrast = contrast,
-               reference_lines = reference_line_positions,
-               reference_line_color = final_reference_colors,
-               main = paste("Heatmap of", segment_type),
-               ylabel = ylabel,
-               ...)
+    labels = labels,
+    color_palette = color_palette,
+    n_colors = n_colors,
+    contrast = contrast,
+    reference_lines = reference_line_positions,
+    reference_line_color = final_reference_colors,
+    main = paste("Heatmap of", segment_type),
+    ylabel = ylabel,
+    ...
+  )
 
   invisible(x)
 }
@@ -856,12 +907,12 @@ pad_amp_env <- function(segment_row,
                         samples_per_second = NULL,
                         pad_value = 0,
                         ...) {
-
   # Extract original amplitude envelope
-  orig_env <- amp_env(segment_row = segment_row,
-                      wav_dir = wav_dir,
-                      msmooth = msmooth,
-                      amp_normalize = amp_normalize
+  orig_env <- amp_env(
+    segment_row = segment_row,
+    wav_dir = wav_dir,
+    msmooth = msmooth,
+    amp_normalize = amp_normalize
   )
 
   # Calculate pre and post windows in samples
@@ -877,7 +928,7 @@ pad_amp_env <- function(segment_row,
     # Truncate
     start_idx <- pre_samples - max_pre_samples + 1
     pre_env <- orig_env[start_idx:pre_samples]
-    pre_pad <- numeric(0)  # No padding needed
+    pre_pad <- numeric(0) # No padding needed
   } else {
     # Pad
     pre_env <- orig_env[1:pre_samples]
@@ -888,7 +939,7 @@ pad_amp_env <- function(segment_row,
   if (post_samples > max_post_samples) {
     # Truncate
     post_env <- orig_env[(pre_samples + 1):(pre_samples + max_post_samples)]
-    post_pad <- numeric(0)  # No padding needed
+    post_pad <- numeric(0) # No padding needed
   } else {
     # Pad
     post_env <- orig_env[(pre_samples + 1):(pre_samples + post_samples)]
