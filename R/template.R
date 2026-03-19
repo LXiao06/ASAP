@@ -500,6 +500,13 @@ create_template.Sap <- function(x, # x is Sap object
 #' @param cores For SAP objects: Number of cores for parallel processing
 #' @param plot_percent For SAP objects: Percentage of files to plot (default: 10)
 #' @param verbose For SAP objects: Whether to print progress messages
+#' @param use_preschedule For SAP objects: Whether to use pre-scheduling
+#'        for parallel processing (default: FALSE). When TRUE, tasks are
+#'        distributed to workers before processing starts, providing more
+#'        consistent performance but may be slower if files have variable
+#'        processing times. When FALSE (default), workers dynamically grab
+#'        tasks from a queue, providing better load balancing but with
+#'        slightly more overhead.
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
@@ -564,6 +571,13 @@ create_template.Sap <- function(x, # x is Sap object
 #' sap_obj <- detect_template(sap_object,
 #'   template_name = "template1",
 #'   proximity_window = 0.5
+#' )
+#'
+#' # Use pre-scheduling for more consistent performance
+#' sap_obj <- detect_template(sap_object,
+#'   template_name = "template1",
+#'   cores = 4,
+#'   use_preschedule = TRUE
 #' )
 #' }
 #'
@@ -684,6 +698,7 @@ detect_template.Sap <- function(x, # x is SAP object
                                 plot_percent = 10,
                                 verbose = TRUE,
                                 proximity_window = NULL,
+                                use_preschedule = FALSE,
                                 ...) {
   if (verbose) message(sprintf("\n=== Starting Template Detection ==="))
 
@@ -827,7 +842,9 @@ detect_template.Sap <- function(x, # x is SAP object
     }
 
     # Parallel processing
-    day_results <- parallel_apply(unique_files, process_file, cores)
+    day_results <- parallel_apply(unique_files, process_file, cores,
+      use_preschedule = use_preschedule
+    )
 
     valid_detections <- day_results[!sapply(day_results, is.null)]
     if (length(valid_detections) > 0) {
