@@ -593,19 +593,17 @@ detect_template.default <- function(x, # x is wav file path
     plot_dir <- file.path(dirname(x), "plots", "template_matches")
   }
 
-  # Only suppress output on Linux/Windows where monitoR can flood the console
-  needs_sink <- Sys.info()["sysname"] != "Darwin"
-  if (needs_sink) {
-    null_con <- file("/dev/null", open = "w")
-    on.exit({
-      sink(type = "output")
-      sink(type = "message")
-      close(null_con)
-    })
-    sink(null_con, type = "output")
-    sink(null_con, type = "message")
-  }
-  
+  # Suppress monitoR output
+  null_con <- file("/dev/null", open = "w")
+  on.exit({
+    sink(type = "output")
+    sink(type = "message")
+    close(null_con)
+  })
+  sink(null_con, type = "output")
+  sink(null_con, type = "message")
+
+
   # Perform correlation matching
   scores <- suppressWarnings(
     monitoR::corMatch(
@@ -633,9 +631,12 @@ detect_template.default <- function(x, # x is wav file path
   }
 
   # Process final output
-  detections <- detections %>%
-    dplyr::rename(filename = .data$id) %>%
-    dplyr::select(-.data$date.time)
+  names(detections)[names(detections) == "id"] <- "filename"
+  detections$date.time <- NULL
+
+  # detections <- detections %>%
+  #   dplyr::rename(filename = .data$id) %>%
+  #   dplyr::select(-.data$date.time)
 
   # Generate plot with filtered detections
   if (save_plot) {
