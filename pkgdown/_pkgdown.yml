@@ -93,7 +93,6 @@ reference:
       - amp_env
       - refine_FF
       - refine_sh
-      - anova_analysis
 
   - title: "Dimensionality Reduction"
     desc: "Functions dedicated to reducing acoustic parameter dimensionality"
@@ -121,8 +120,10 @@ reference:
       - manual_label
 
   - title: "Utilities"
-    desc: "Various utility functions for preprocessing or formatting."
+    desc: "Various utility functions for working with ASAP objects and audio files."
     contents:
       - compute_wav_durations
       - denoise
       - get_wav_indices
+      - list_numeric_dirs
+      - anova_analysis
