@@ -653,3 +653,42 @@ get_wav_indices <- function(sap, wav_files) {
 
   return(indices)
 }
+
+#' List Numeric Subdirectory Names
+#'
+#' @description
+#' Detects all subfolders within a specified directory that have purely numeric names
+#' (e.g., "1", "100", "042") and returns them as a character vector.
+#'
+#' @param directory Path to the parent directory to search within
+#'
+#' @return A character vector of the numeric subfolder names. Returns an empty character
+#'   vector if none are found.
+#'
+#' @export
+list_numeric_dirs <- function(directory) {
+  # Input validation
+  if (!is.character(directory) || length(directory) != 1) {
+    stop("Input 'directory' must be a single character string.")
+  }
+  
+  if (!dir.exists(directory)) {
+    stop(sprintf("Directory does not exist: %s", directory))
+  }
+
+  # List all subdirectories, extracting only the folder names (not full paths)
+  subdirs <- list.dirs(directory, full.names = FALSE, recursive = FALSE)
+
+  # Filter for strings that consist exclusively of numbers
+  # ^        Start of string
+  # [0-9]+   One or more digits
+  # $        End of string
+  numeric_subdirs <- subdirs[grepl("^[0-9]+$", subdirs)]
+
+  # Sort numerically (e.g., so "20" comes before "100")
+  if (length(numeric_subdirs) > 0) {
+    numeric_subdirs <- numeric_subdirs[order(as.numeric(numeric_subdirs))]
+  }
+
+  return(as.character(numeric_subdirs))
+}
