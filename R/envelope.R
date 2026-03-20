@@ -212,6 +212,7 @@ amp_env <- function(segment_row,
 #' @param n_colors Number of colors in heatmap (default: 500)
 #' @param contrast Contrast factor for visualization (default: 3)
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'bouts', 'syllables', 'segments')
+#' @param indices For SAP objects: Numeric vector indicating specific row indices of segments to plot
 #' @param sample_percent For SAP objects: Percentage to sample
 #' @param balanced For SAP objects: Balance across labels
 #' @param clusters Numeric vector of cluster IDs to filter
@@ -574,6 +575,7 @@ plot_heatmap.matrix <- function(x,
 #' @export
 plot_heatmap.Sap <- function(x,
                              segment_type = c("motifs", "bouts"),
+                             indices = NULL,
                              sample_percent = NULL,
                              balanced = FALSE,
                              labels = NULL,
@@ -671,6 +673,22 @@ plot_heatmap.Sap <- function(x,
   # Validation
   if (!inherits(segments_df, "segment") || nrow(segments_df) == 0) {
     stop("No segments found in the specified segment type")
+  }
+
+  # Apply manual indices if provided
+  if (!is.null(indices)) {
+    if (!is.numeric(indices)) {
+      stop("'indices' must be a numeric vector")
+    }
+    
+    valid_indices <- indices[indices > 0 & indices <= nrow(segments_df)]
+    if (length(valid_indices) == 0) {
+      stop("None of the provided 'indices' are valid for the selected segment_type")
+    } else if (length(valid_indices) < length(indices) && verbose) {
+      message(sprintf("Note: %d invalid indices were ignored", length(indices) - length(valid_indices)))
+    }
+    
+    segments_df <- segments_df[valid_indices, , drop = FALSE]
   }
 
   # Select and balance segments
