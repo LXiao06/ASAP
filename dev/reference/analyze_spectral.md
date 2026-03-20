@@ -34,8 +34,9 @@ analyze_spectral(
   balanced = FALSE,
   labels = NULL,
   seed = 222,
-  export_motif_spectral_csv = FALSE,
-  motif_spectral_csv_filename = "motif_spectral_features.csv",
+  export_csv = FALSE,
+  csv_filename = NULL,
+  output_dir = NULL,
   time_match_digits = 3,
   cores = NULL,
   wl = 512,
@@ -133,15 +134,20 @@ analyze_spectral(
 
   For SAP objects: Random seed for sampling (default: 222)
 
-- export_motif_spectral_csv:
+- export_csv:
 
-  For SAP motifs only. If TRUE and `indices` exactly match the latest
-  motif export `exported_indices`, merge stored export metadata with
-  spectral features and write merged CSV.
+  If TRUE and `indices` exactly match the latest export
+  `exported_indices` for the corresponding segment type, merges stored
+  export metadata with spectral features and writes a merged CSV.
 
-- motif_spectral_csv_filename:
+- csv_filename:
 
-  Output CSV filename when `export_motif_spectral_csv = TRUE`.
+  Output CSV filename. Must be provided if `export_csv = TRUE`.
+
+- output_dir:
+
+  Directory to save the CSV. If NULL, defaults to the previous export's
+  output directory, or the working directory if unavailable.
 
 - time_match_digits:
 

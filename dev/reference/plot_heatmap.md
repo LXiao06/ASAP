@@ -38,6 +38,7 @@ plot_heatmap(
 plot_heatmap(
   x,
   segment_type = c("motifs", "bouts"),
+  indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
   labels = NULL,
@@ -126,6 +127,11 @@ plot_heatmap(
 
   For SAP objects: Type of segments ('motifs', 'bouts', 'syllables',
   'segments')
+
+- indices:
+
+  For SAP objects: Numeric vector indicating specific row indices of
+  segments to plot
 
 - sample_percent:
 

@@ -66,8 +66,6 @@ segments
   : Refine Fundamental Frequency Detection
 - [`refine_sh()`](https://lxiao06.github.io/ASAP/dev/reference/refine_sh.md)
   : Refine Spectral Entropy Using Temporal Template
-- [`anova_analysis()`](https://lxiao06.github.io/ASAP/dev/reference/anova_analysis.md)
-  : Perform ANOVA and Multiple Comparisons Analysis
 
 ## Dimensionality Reduction
 
@@ -112,7 +110,7 @@ Functions for annotating clustered syllables
 
 ## Utilities
 
-Various utility functions for preprocessing or formatting.
+Various utility functions for working with ASAP objects and audio files.
 
 - [`compute_wav_durations()`](https://lxiao06.github.io/ASAP/dev/reference/compute_wav_durations.md)
   : Compute WAV File Durations
@@ -120,3 +118,7 @@ Various utility functions for preprocessing or formatting.
   : Denoise Audio Files
 - [`get_wav_indices()`](https://lxiao06.github.io/ASAP/dev/reference/get_wav_indices.md)
   : Get Indices of WAV Files in SAP Object Metadata
+- [`list_numeric_dirs()`](https://lxiao06.github.io/ASAP/dev/reference/list_numeric_dirs.md)
+  : List Numeric Subdirectory Names
+- [`anova_analysis()`](https://lxiao06.github.io/ASAP/dev/reference/anova_analysis.md)
+  : Perform ANOVA and Multiple Comparisons Analysis

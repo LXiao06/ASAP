@@ -75,6 +75,7 @@ multiple data sources and visualization options.</p>
 <span><span class="fu">plot_heatmap</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  segment_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"motifs"</span>, <span class="st">"bouts"</span><span class="op">)</span>,</span>
+<span>  indices <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_percent <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  balanced <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -162,6 +163,10 @@ colors will be recycled.</p></dd>
 
 <dt id="arg-segment-type">segment_type<a class="anchor" aria-label="anchor" href="#arg-segment-type"></a></dt>
 <dd><p>For SAP objects: Type of segments ('motifs', 'bouts', 'syllables', 'segments')</p></dd>
+
+
+<dt id="arg-indices">indices<a class="anchor" aria-label="anchor" href="#arg-indices"></a></dt>
+<dd><p>For SAP objects: Numeric vector indicating specific row indices of segments to plot</p></dd>
 
 
 <dt id="arg-sample-percent">sample_percent<a class="anchor" aria-label="anchor" href="#arg-sample-percent"></a></dt>

@@ -71,8 +71,9 @@ parallel processing and organized data structures.</p>
 <span>  balanced <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">222</span>,</span>
-<span>  export_motif_spectral_csv <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  motif_spectral_csv_filename <span class="op">=</span> <span class="st">"motif_spectral_features.csv"</span>,</span>
+<span>  export_csv <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  csv_filename <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_match_digits <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  cores <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  wl <span class="op">=</span> <span class="fl">512</span>,</span>
@@ -170,15 +171,19 @@ one of "none", "peak", or "rms" (default: "none")</p></dd>
 <dd><p>For SAP objects: Random seed for sampling (default: 222)</p></dd>
 
 
-<dt id="arg-export-motif-spectral-csv">export_motif_spectral_csv<a class="anchor" aria-label="anchor" href="#arg-export-motif-spectral-csv"></a></dt>
-<dd><p>For SAP motifs only. If TRUE and <code>indices</code>
-exactly match the latest motif export <code>exported_indices</code>, merge stored
-export metadata with spectral features and write merged CSV.</p></dd>
+<dt id="arg-export-csv">export_csv<a class="anchor" aria-label="anchor" href="#arg-export-csv"></a></dt>
+<dd><p>If TRUE and <code>indices</code> exactly match the latest export
+<code>exported_indices</code> for the corresponding segment type, merges stored
+export metadata with spectral features and writes a merged CSV.</p></dd>
 
 
-<dt id="arg-motif-spectral-csv-filename">motif_spectral_csv_filename<a class="anchor" aria-label="anchor" href="#arg-motif-spectral-csv-filename"></a></dt>
-<dd><p>Output CSV filename when
-<code>export_motif_spectral_csv = TRUE</code>.</p></dd>
+<dt id="arg-csv-filename">csv_filename<a class="anchor" aria-label="anchor" href="#arg-csv-filename"></a></dt>
+<dd><p>Output CSV filename. Must be provided if <code>export_csv = TRUE</code>.</p></dd>
+
+
+<dt id="arg-output-dir">output_dir<a class="anchor" aria-label="anchor" href="#arg-output-dir"></a></dt>
+<dd><p>Directory to save the CSV. If NULL, defaults to the previous
+export's output directory, or the working directory if unavailable.</p></dd>
 
 
 <dt id="arg-time-match-digits">time_match_digits<a class="anchor" aria-label="anchor" href="#arg-time-match-digits"></a></dt>

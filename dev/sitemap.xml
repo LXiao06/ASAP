@@ -39,6 +39,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/detect_template.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-forward_stft.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-inverse_stft.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-merge_metadata_with_spectral.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-spectral_gate.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/ensure_pkgs.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_single_spec.html</loc></url>
@@ -55,6 +56,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/get_wav_indices.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/goodness.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/index.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/list_numeric_dirs.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/manual_label.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/merge_similar_clusters.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/new_sap.html</loc></url>
