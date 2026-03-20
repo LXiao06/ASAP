@@ -205,6 +205,7 @@ create_motif_clips.Sap <- function(x,
     stop("output_dir must be provided as a single directory path")
   }
 
+  output_dir <- file.path(output_dir, "motifs")
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
@@ -223,7 +224,7 @@ create_motif_clips.Sap <- function(x,
     wav_dir = x$base_path,
     output_format = match.arg(output_format),
     output_dir = output_dir,
-    output_subdir = "motifs",
+    output_subdir = "",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -414,6 +415,7 @@ create_bout_clips.default <- function(x,
     stop("output_dir must be provided as a single directory path")
   }
 
+  output_dir <- file.path(output_dir, "bouts")
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
@@ -427,7 +429,7 @@ create_bout_clips.default <- function(x,
     wav_dir = wav_dir,
     output_format = output_format,
     output_dir = output_dir,
-    output_subdir = "bouts",
+    output_subdir = "",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -477,6 +479,7 @@ create_bout_clips.Sap <- function(x,
     stop("output_dir must be provided as a single directory path")
   }
 
+  output_dir <- file.path(output_dir, "bouts")
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
@@ -495,7 +498,7 @@ create_bout_clips.Sap <- function(x,
     wav_dir = x$base_path,
     output_format = match.arg(output_format),
     output_dir = output_dir,
-    output_subdir = "bouts",
+    output_subdir = "",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -978,66 +981,4 @@ create_bout_clips.Sap <- function(x,
     return(parent[[group_name]])
   }
   parent$create_group(group_name)
-}
-
-
-.merge_motif_metadata_with_spectral <- function(metadata_df,
-                                                spectral_df,
-                                                output_file,
-                                                time_digits = 6,
-                                                verbose = TRUE) {
-  # metadata_df must have all canonical columns (it is the left / authoritative side).
-  required_meta <- c("filename", "start_time", "end_time", "duration", "day_post_hatch", "label")
-  if (!all(required_meta %in% names(metadata_df))) {
-    stop("metadata_df must contain: filename, start_time, end_time, duration, day_post_hatch, label")
-  }
-
-  # Coerce spectral_df to a plain data.frame to guard against tibble / matrix
-  # edge cases where names() might behave unexpectedly after parallel rbind.
-  spectral_df <- as.data.frame(spectral_df)
-
-  # spectral_df needs only filename + time columns for key-building.
-  # duration is intentionally excluded: spectral_analysis() rounds it to
-  # 1 decimal while metadata_df stores it at full precision, causing key
-  # mismatches. filename + start_time + end_time alone uniquely identify a row.
-  required_spec <- c("filename", "start_time", "end_time")
-  missing_spec <- setdiff(required_spec, names(spectral_df))
-  if (length(missing_spec) > 0) {
-    stop("spectral_df must contain: ", paste(missing_spec, collapse = ", "))
-  }
-
-  # Build the merge key using only filename, start_time, end_time.
-  # day_post_hatch / label are omitted (they come from metadata_df's left-join)
-  # and duration is omitted (precision mismatch between the two data frames).
-  make_key <- function(df) {
-    filename <- as.character(df$filename)
-    start_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$start_time), time_digits))
-    end_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$end_time), time_digits))
-    paste(filename, start_key, end_key, sep = "||")
-  }
-
-  metadata_df$.merge_key <- make_key(metadata_df)
-  spectral_df$.merge_key <- make_key(spectral_df)
-
-  # Keep metadata columns as canonical output columns; add only spectral-specific columns.
-  keep_spec <- setdiff(names(spectral_df), intersect(names(spectral_df), names(metadata_df)))
-  keep_spec <- union(".merge_key", keep_spec)
-  spectral_reduced <- spectral_df[, keep_spec, drop = FALSE]
-
-  merged <- merge(
-    metadata_df,
-    spectral_reduced,
-    by = ".merge_key",
-    all.x = TRUE,
-    sort = FALSE
-  )
-  merged$.merge_key <- NULL
-
-  utils::write.csv(merged, output_file, row.names = FALSE)
-
-  if (verbose) {
-    message(sprintf("Merged CSV path: %s", normalizePath(output_file, mustWork = TRUE)))
-  }
-
-  merged
 }
