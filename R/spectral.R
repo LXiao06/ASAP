@@ -26,11 +26,12 @@
 #' @param balanced For SAP objects: Whether to balance groups across labels
 #' @param labels For SAP objects: Specific labels to include
 #' @param seed For SAP objects: Random seed for sampling (default: 222)
-#' @param export_motif_spectral_csv For SAP motifs only. If TRUE and \code{indices}
-#'   exactly match the latest motif export \code{exported_indices}, merge stored
-#'   export metadata with spectral features and write merged CSV.
-#' @param motif_spectral_csv_filename Output CSV filename when
-#'   \code{export_motif_spectral_csv = TRUE}.
+#' @param export_csv If TRUE and \code{indices} exactly match the latest export
+#'   \code{exported_indices} for the corresponding segment type, merges stored
+#'   export metadata with spectral features and writes a merged CSV.
+#' @param csv_filename Output CSV filename. Must be provided if \code{export_csv = TRUE}.
+#' @param output_dir Directory to save the CSV. If NULL, defaults to the previous
+#'   export's output directory, or the working directory if unavailable.
 #' @param time_match_digits Integer digits for matching \code{start_time}/\code{end_time}
 #'   when merging metadata and spectral features (default: 3).
 #' @param verbose For SAP objects: Whether to print progress messages
@@ -195,8 +196,9 @@ analyze_spectral.Sap <- function(x,
                                  balanced = FALSE,
                                  labels = NULL,
                                  seed = 222,
-                                 export_motif_spectral_csv = FALSE,
-                                 motif_spectral_csv_filename = "motif_spectral_features.csv",
+                                 export_csv = FALSE,
+                                 csv_filename = NULL,
+                                 output_dir = NULL,
                                  time_match_digits = 3,
                                  cores = NULL,
                                  wl = 512,
@@ -279,45 +281,70 @@ analyze_spectral.Sap <- function(x,
   # Add message about data access
   message(sprintf("Spectral features have been stored in x$features$%s$spectral_feature", feature_type))
 
-  # Optional merge+export with latest motif export metadata
-  if (isTRUE(export_motif_spectral_csv) && segment_type == "motifs") {
-    if (verbose) {
-      message("Exporting motif spectral CSV from selected motifs...")
+  # Optional merge+export with latest export metadata
+  if (isTRUE(export_csv)) {
+    if (is.null(csv_filename)) {
+      stop("csv_filename must be provided when export_csv is TRUE")
     }
-    exports <- x$misc$motif_clip_exports
+
+    if (verbose) {
+      message(sprintf("Exporting %s spectral CSV from selected segments...", segment_type))
+    }
+
+    # Extract the correct export list based on segment type
+    export_list_name <- switch(segment_type,
+      "motifs" = "motif_clip_exports",
+      "bouts" = "bout_clip_exports",
+      "syllables" = "syllable_clip_exports",
+      "segments" = "segment_clip_exports"
+    )
+
+    exports <- if (!is.null(export_list_name)) x$misc[[export_list_name]] else NULL
+
     if (!is.null(exports) && length(exports) > 0) {
       last_export <- exports[[length(exports)]]
       exp_idx <- last_export$exported_indices
+
       if (!is.null(indices) && !is.null(exp_idx) && length(exp_idx) > 0) {
         same_idx <- setequal(as.integer(indices), as.integer(exp_idx))
         if (same_idx) {
           metadata_df <- last_export$metadata_df
           if (is.null(metadata_df) || !is.data.frame(metadata_df) || nrow(metadata_df) == 0) {
-            warning("Latest motif export metadata is empty; skipping merge.")
+            warning(sprintf("Latest %s export metadata is empty; skipping merge.", segment_type))
           } else {
-            # Keep clip-export normalization for provenance, but make
-            # amp_normalize reflect spectral extraction settings.
+            # Keep clip-export normalization for provenance
             if ("amp_normalize" %in% names(metadata_df) &&
                 !"clip_amp_normalize" %in% names(metadata_df)) {
               metadata_df$clip_amp_normalize <- metadata_df$amp_normalize
             }
             metadata_df$amp_normalize <- amp_normalize
 
-            out_dir <- last_export$output_dir %||% getwd()
-            if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
-            out_csv <- file.path(out_dir, motif_spectral_csv_filename)
+            # Resolve output directory
+            if (!is.null(output_dir)) {
+              out_dir <- output_dir
+            } else if (!is.null(last_export$output_dir)) {
+              out_dir <- last_export$output_dir
+            } else {
+              out_dir <- getwd()
+            }
 
-            merged_df <- .merge_motif_metadata_with_spectral(
+            if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+            out_csv <- file.path(out_dir, csv_filename)
+
+            merged_df <- .merge_metadata_with_spectral(
               metadata_df = metadata_df,
               spectral_df = result,
               output_file = out_csv,
               time_digits = time_match_digits,
               verbose = FALSE
             )
-            x$features$motif$merged_export_spectral <- merged_df
+
+            x$features[[feature_type]]$merged_export_spectral <- merged_df
+
             if (verbose) {
               message(sprintf(
-                "Exported motif spectral CSV: %d/%d rows to %s",
+                "Exported %s spectral CSV: %d/%d rows to %s",
+                segment_type,
                 nrow(merged_df),
                 nrow(metadata_df),
                 normalizePath(out_csv, mustWork = TRUE)
@@ -328,6 +355,8 @@ analyze_spectral.Sap <- function(x,
           warning("indices do not match latest exported_indices; skipping merge.")
         }
       }
+    } else {
+      warning(sprintf("No previous exports found for segment_type '%s'; skipping merge.", segment_type))
     }
   }
 
@@ -1164,3 +1193,72 @@ sspectro <- function(wave, f, wl = 512, ovlp = 0, wn = "hanning",
   }
   return(z)
 }
+
+#' Merge Segment Metadata with Spectral Features
+#'
+#' @description
+#' Internal helper to merge exported segment metadata with newly extracted
+#' spectral features before writing to a CSV.
+#'
+#' @keywords internal
+.merge_metadata_with_spectral <- function(metadata_df,
+                                                spectral_df,
+                                                output_file,
+                                                time_digits = 6,
+                                                verbose = TRUE) {
+  # metadata_df must have all canonical columns (it is the left / authoritative side).
+  required_meta <- c("filename", "start_time", "end_time", "duration", "day_post_hatch", "label")
+  if (!all(required_meta %in% names(metadata_df))) {
+    stop("metadata_df must contain: filename, start_time, end_time, duration, day_post_hatch, label")
+  }
+
+  # Coerce spectral_df to a plain data.frame to guard against tibble / matrix
+  # edge cases where names() might behave unexpectedly after parallel rbind.
+  spectral_df <- as.data.frame(spectral_df)
+
+  # spectral_df needs only filename + time columns for key-building.
+  # duration is intentionally excluded: spectral_analysis() rounds it to
+  # 1 decimal while metadata_df stores it at full precision, causing key
+  # mismatches. filename + start_time + end_time alone uniquely identify a row.
+  required_spec <- c("filename", "start_time", "end_time")
+  missing_spec <- setdiff(required_spec, names(spectral_df))
+  if (length(missing_spec) > 0) {
+    stop("spectral_df must contain: ", paste(missing_spec, collapse = ", "))
+  }
+
+  # Build the merge key using only filename, start_time, end_time.
+  # day_post_hatch / label are omitted (they come from metadata_df's left-join)
+  # and duration is omitted (precision mismatch between the two data frames).
+  make_key <- function(df) {
+    filename <- as.character(df$filename)
+    start_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$start_time), time_digits))
+    end_key <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$end_time), time_digits))
+    paste(filename, start_key, end_key, sep = "||")
+  }
+
+  metadata_df$.merge_key <- make_key(metadata_df)
+  spectral_df$.merge_key <- make_key(spectral_df)
+
+  # Keep metadata columns as canonical output columns; add only spectral-specific columns.
+  keep_spec <- setdiff(names(spectral_df), intersect(names(spectral_df), names(metadata_df)))
+  keep_spec <- union(".merge_key", keep_spec)
+  spectral_reduced <- spectral_df[, keep_spec, drop = FALSE]
+
+  merged <- merge(
+    metadata_df,
+    spectral_reduced,
+    by = ".merge_key",
+    all.x = TRUE,
+    sort = FALSE
+  )
+  merged$.merge_key <- NULL
+
+  utils::write.csv(merged, output_file, row.names = FALSE)
+
+  if (verbose) {
+    message(sprintf("Merged CSV path: %s", normalizePath(output_file, mustWork = TRUE)))
+  }
+
+  merged
+}
+
