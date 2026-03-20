@@ -36,6 +36,7 @@ plot_heatmap(x, ...)
 \method{plot_heatmap}{Sap}(
   x,
   segment_type = c("motifs", "bouts"),
+  indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
   labels = NULL,
@@ -92,6 +93,8 @@ colors will be recycled.}
 \item{ylabel}{Character string specifying the label for the y-axis. (default: "Labels")}
 
 \item{segment_type}{For SAP objects: Type of segments ('motifs', 'bouts', 'syllables', 'segments')}
+
+\item{indices}{For SAP objects: Numeric vector indicating specific row indices of segments to plot}
 
 \item{sample_percent}{For SAP objects: Percentage to sample}
 

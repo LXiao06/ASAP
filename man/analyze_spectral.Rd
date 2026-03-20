@@ -32,8 +32,9 @@ analyze_spectral(x, ...)
   balanced = FALSE,
   labels = NULL,
   seed = 222,
-  export_motif_spectral_csv = FALSE,
-  motif_spectral_csv_filename = "motif_spectral_features.csv",
+  export_csv = FALSE,
+  csv_filename = NULL,
+  output_dir = NULL,
   time_match_digits = 3,
   cores = NULL,
   wl = 512,
@@ -89,12 +90,14 @@ one of "none", "peak", or "rms" (default: "none")}
 
 \item{seed}{For SAP objects: Random seed for sampling (default: 222)}
 
-\item{export_motif_spectral_csv}{For SAP motifs only. If TRUE and \code{indices}
-exactly match the latest motif export \code{exported_indices}, merge stored
-export metadata with spectral features and write merged CSV.}
+\item{export_csv}{If TRUE and \code{indices} exactly match the latest export
+\code{exported_indices} for the corresponding segment type, merges stored
+export metadata with spectral features and writes a merged CSV.}
 
-\item{motif_spectral_csv_filename}{Output CSV filename when
-\code{export_motif_spectral_csv = TRUE}.}
+\item{csv_filename}{Output CSV filename. Must be provided if \code{export_csv = TRUE}.}
+
+\item{output_dir}{Directory to save the CSV. If NULL, defaults to the previous
+export's output directory, or the working directory if unavailable.}
 
 \item{time_match_digits}{Integer digits for matching \code{start_time}/\code{end_time}
 when merging metadata and spectral features (default: 3).}
