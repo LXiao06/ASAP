@@ -12,5 +12,5 @@
 ^pkgdown$
 ^tests$
 ^vignettes/
-^inst/extdata/.+/
+^inst/extdata/(?!zf_example\.wav$).*
 ^skills$
