@@ -205,8 +205,14 @@ Research Data Repository:
 > subfolders (72–97 dph), ~14 GB unzipped. DOI:
 > [10.7924/r4j38x43h](https://doi.org/10.7924/r4j38x43h)
 
+You can download and extract the dataset using the following
+command-line interface (CLI) commands in your terminal:
+
 ``` bash
+# Download the dataset
 curl -L -O https://research.repository.duke.edu/record/135/files/sil469_raw_wav.zip
+
+# Unzip the downloaded file
 unzip -o -q sil469_raw_wav.zip
 ```
 
