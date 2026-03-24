@@ -198,23 +198,8 @@ parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE) {
 
   # Determine which package is needed based on OS and environment
   if (cores > 1) {
-    # Check if running in RStudio on Linux (fork causes hangs at 99%)
-    # See: https://github.com/rstudio/rstudio/issues/2597
-    in_rstudio <- !is.na(Sys.getenv("RSTUDIO", unset = NA))
-    is_linux <- Sys.info()["sysname"] == "Linux"
-
     if (Sys.info()["sysname"] == "Darwin") {
-      # macOS always uses fork (fast and reliable)
-      ensure_pkgs("pbmcapply")
-      result <- pbmcapply::pbmclapply(
-        indices,
-        FUN,
-        mc.cores = cores,
-        mc.preschedule = use_preschedule
-      )
-    } else if (is_linux && !in_rstudio) {
-      # Linux command line/script: use fork (fast)
-      # Note: fork doesn't work in RStudio on Linux (hangs at 99%)
+      # macOS: use fork-based pbmclapply (fast and reliable on macOS)
       ensure_pkgs("pbmcapply")
       result <- pbmcapply::pbmclapply(
         indices,
@@ -223,8 +208,11 @@ parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE) {
         mc.preschedule = use_preschedule
       )
     } else {
-      # Windows OR Linux+RStudio: use PSOCK clusters
-      # Slower startup but reliable and works in all environments
+      # Linux/Windows: use PSOCK clusters
+      # Fork-based parallelism on Linux causes sink() to corrupt connection
+      # state inside worker functions (e.g. detect_template.default), leading
+      # to silent zero-detection failures. PSOCK workers are independent
+      # processes without this issue.
       ensure_pkgs("pbapply", "parallel")
       cl <- parallel::makeCluster(cores, type = "PSOCK")
       on.exit(parallel::stopCluster(cl), add = TRUE)

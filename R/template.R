@@ -608,6 +608,8 @@ detect_template.default <- function(x, # x is wav file path
   }
 
   # Suppress monitoR output
+  # Safe on macOS: fork workers each get their own copy of the connection stack
+  # Safe on Linux: PSOCK workers are isolated fresh R processes
   null_con <- file("/dev/null", open = "w")
   on.exit({
     sink(type = "output")
@@ -616,7 +618,6 @@ detect_template.default <- function(x, # x is wav file path
   })
   sink(null_con, type = "output")
   sink(null_con, type = "message")
-
 
   # Perform correlation matching
   scores <- suppressWarnings(
@@ -631,9 +632,9 @@ detect_template.default <- function(x, # x is wav file path
 
   # Find peaks with or without proximity filtering
   if (is.null(proximity_window)) {
-    pks <- monitoR::findPeaks(score.obj = scores)
+    pks <- suppressMessages(monitoR::findPeaks(score.obj = scores))
   } else {
-    pks <- find_peaks_with_proximity(scores, proximity_window)
+    pks <- suppressMessages(find_peaks_with_proximity(scores, proximity_window))
   }
 
   # Get detections
@@ -659,8 +660,12 @@ detect_template.default <- function(x, # x is wav file path
 
     tryCatch(
       {
-        # Open device
-        png(plot_file, width = 1200, height = 800, res = 150)
+        # On Linux, use Cairo PNG device to avoid Fontconfig warnings
+        # ("using without calling FcInit()") that appear when font libraries
+        # are accessed in fresh worker processes before fontconfig is initialized.
+        png_type <- if (Sys.info()["sysname"] == "Linux" &&
+          capabilities("cairo")) "cairo" else "png"
+        png(plot_file, width = 1200, height = 800, res = 150, type = png_type)
         on.exit(if (dev.cur() > 1) dev.off(), add = TRUE)
 
         # Get plot method once per function call
