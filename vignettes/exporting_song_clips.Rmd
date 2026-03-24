@@ -145,6 +145,11 @@ The **sil469** dataset is a longitudinal recording collection from a single juve
 > sil469_raw_wav.zip (~10 GB) — 33,159 raw `.wav` files across 26 daily subfolders (72–97 dph), ~14 GB unzipped.
 > DOI: [10.7924/r4j38x43h](https://doi.org/10.7924/r4j38x43h)
 
+```bash
+curl -L -O https://research.repository.duke.edu/record/135/files/sil469_raw_wav.zip
+unzip -o -q sil469_raw_wav.zip
+```
+
 ### Full Pipeline
 
 After downloading and unzipping the dataset, the Scenario B pipeline runs as follows:
