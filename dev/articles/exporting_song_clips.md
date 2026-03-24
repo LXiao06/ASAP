@@ -205,6 +205,11 @@ Research Data Repository:
 > subfolders (72–97 dph), ~14 GB unzipped. DOI:
 > [10.7924/r4j38x43h](https://doi.org/10.7924/r4j38x43h)
 
+``` bash
+curl -L -O https://research.repository.duke.edu/record/135/files/sil469_raw_wav.zip
+unzip -o -q sil469_raw_wav.zip
+```
+
 ### Full Pipeline
 
 After downloading and unzipping the dataset, the Scenario B pipeline
