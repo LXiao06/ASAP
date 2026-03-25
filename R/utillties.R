@@ -214,6 +214,7 @@ parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE, cl = NU
       ensure_pkgs("pbapply", "parallel")
       if (is.null(cl)) {
         cl <- parallel::makeCluster(cores, type = "PSOCK")
+        parallel::clusterEvalQ(cl, loadNamespace("ASAP"))
         on.exit(parallel::stopCluster(cl), add = TRUE)
       }
       result <- pbapply::pblapply(
