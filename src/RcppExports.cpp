@@ -41,10 +41,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// suppress_stderr
+int suppress_stderr();
+RcppExport SEXP _ASAP_suppress_stderr() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(suppress_stderr());
+    return rcpp_result_gen;
+END_RCPP
+}
+// restore_stderr
+void restore_stderr(int saved_fd);
+RcppExport SEXP _ASAP_restore_stderr(SEXP saved_fdSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type saved_fd(saved_fdSEXP);
+    restore_stderr(saved_fd);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ASAP_RunModularityClusteringCpp", (DL_FUNC) &_ASAP_RunModularityClusteringCpp, 9},
     {"_ASAP_ComputeSNN", (DL_FUNC) &_ASAP_ComputeSNN, 2},
+    {"_ASAP_suppress_stderr", (DL_FUNC) &_ASAP_suppress_stderr, 0},
+    {"_ASAP_restore_stderr", (DL_FUNC) &_ASAP_restore_stderr, 1},
     {NULL, NULL, 0}
 };
 

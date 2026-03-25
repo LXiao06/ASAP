@@ -9,3 +9,28 @@ ComputeSNN <- function(nn_ranked, prune) {
     .Call(`_ASAP_ComputeSNN`, nn_ranked, prune)
 }
 
+#' Suppress C-level stderr output
+#'
+#' Redirects file descriptor 2 (C stderr) to /dev/null and returns
+#' the saved file descriptor so it can be restored later.
+#' This suppresses C-library warnings (e.g. fontconfig's
+#' "using without calling FcInit()") that R's sink() cannot intercept.
+#'
+#' @return Integer file descriptor to pass to \code{restore_stderr()},
+#'   or -1 on Windows where this is a no-op.
+#' @keywords internal
+suppress_stderr <- function() {
+    .Call(`_ASAP_suppress_stderr`)
+}
+
+#' Restore C-level stderr output
+#'
+#' Restores file descriptor 2 from a previously saved descriptor
+#' returned by \code{suppress_stderr()}.
+#'
+#' @param saved_fd Integer file descriptor from \code{suppress_stderr()}.
+#' @keywords internal
+restore_stderr <- function(saved_fd) {
+    invisible(.Call(`_ASAP_restore_stderr`, saved_fd))
+}
+
