@@ -389,6 +389,14 @@ find_bout.Sap <- function(x, # x is SAP object
     cores <- parallel::detectCores() - 1
   }
 
+  # On Linux, create one PSOCK cluster and reuse it across all days
+  psock_cl <- NULL
+  if (Sys.info()["sysname"] != "Darwin" && cores > 1) {
+    ensure_pkgs("parallel")
+    psock_cl <- parallel::makeCluster(cores, type = "PSOCK")
+    on.exit(parallel::stopCluster(psock_cl), add = TRUE)
+  }
+
   # Create plot directories if save_plot is TRUE
   if (save_plot) {
     plots_dir <- file.path(x$base_path, "plots", "bout_detection")
@@ -512,7 +520,8 @@ find_bout.Sap <- function(x, # x is SAP object
       indices = unique_files,
       FUN = process_file,
       cores = cores,
-      use_preschedule = if (is.null(list(...)$use_preschedule)) FALSE else list(...)$use_preschedule
+      use_preschedule = if (is.null(list(...)$use_preschedule)) FALSE else list(...)$use_preschedule,
+      cl = psock_cl
     )
 
     # Track which files had bouts (day_results aligned with unique_files)

@@ -362,6 +362,14 @@ denoise.Sap <- function(x,
   # Set cores
   if (is.null(cores)) cores <- max(1L, parallel::detectCores() - 1L)
 
+  # On Linux, create one PSOCK cluster and reuse it across all days
+  psock_cl <- NULL
+  if (Sys.info()["sysname"] != "Darwin" && cores > 1) {
+    ensure_pkgs("parallel")
+    psock_cl <- parallel::makeCluster(cores, type = "PSOCK")
+    on.exit(parallel::stopCluster(psock_cl), add = TRUE)
+  }
+
   # Determine days to process (mirrors detect_template.Sap)
   if (!is.null(day)) {
     process_metadata <- x$metadata[x$metadata$day_post_hatch %in% day, ]
@@ -450,7 +458,7 @@ denoise.Sap <- function(x,
       )
     }
 
-    day_results <- unlist(parallel_apply(unique_files, process_file, cores))
+    day_results <- unlist(parallel_apply(unique_files, process_file, cores, cl = psock_cl))
 
     n_success <- sum(day_results == "success", na.rm = TRUE)
     n_skip <- sum(day_results == "skipped", na.rm = TRUE)

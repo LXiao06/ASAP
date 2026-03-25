@@ -454,6 +454,14 @@ segment.Sap <- function(x,  # x is SAP object
     cores <- parallel::detectCores() - 1
   }
 
+  # On Linux, create one PSOCK cluster and reuse it across all days
+  psock_cl <- NULL
+  if (Sys.info()["sysname"] != "Darwin" && cores > 1) {
+    ensure_pkgs("parallel")
+    psock_cl <- parallel::makeCluster(cores, type = "PSOCK")
+    on.exit(parallel::stopCluster(psock_cl), add = TRUE)
+  }
+
   # Create plot directories if save_plot is TRUE
   if (save_plot) {
     plots_dir <- file.path(x$base_path, "plots", "syllable_detection")
@@ -563,7 +571,7 @@ segment.Sap <- function(x,  # x is SAP object
 
     # Parallel processing
     if (fftw) ensure_pkgs("fftw")
-    day_results <- parallel_apply(file_indices, process_segment, cores)
+    day_results <- parallel_apply(file_indices, process_segment, cores, cl = psock_cl)
 
     # Combine results for this day
     valid_detections <- day_results[!sapply(day_results, is.null)]
