@@ -5,5 +5,5 @@ parallel processing function
 ## Usage
 
 ``` r
-parallel_apply(indices, FUN, cores, use_preschedule = FALSE)
+parallel_apply(indices, FUN, cores, use_preschedule = FALSE, cl = NULL)
 ```
