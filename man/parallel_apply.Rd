@@ -4,7 +4,7 @@
 \alias{parallel_apply}
 \title{parallel processing function}
 \usage{
-parallel_apply(indices, FUN, cores, use_preschedule = FALSE)
+parallel_apply(indices, FUN, cores, use_preschedule = FALSE, cl = NULL)
 }
 \description{
 parallel processing function
