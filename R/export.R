@@ -185,6 +185,8 @@ create_motif_clips.Sap <- function(x,
                                    write_metadata = TRUE,
                                    verbose = TRUE,
                                    ...) {
+  if (verbose) message("\n=== Starting Motif Clip Extraction ===")
+
   if (!inherits(x, "Sap")) {
     stop("Input must be a SAP object")
   }
@@ -193,6 +195,7 @@ create_motif_clips.Sap <- function(x,
     stop("No motifs found in SAP object. Run find_motif() first.")
   }
 
+  output_format <- match.arg(output_format)
   amp_normalize <- .parse_amp_normalize(amp_normalize)
   if (!is.logical(noise_reduction) || length(noise_reduction) != 1) {
     stop("noise_reduction must be TRUE or FALSE")
@@ -222,7 +225,7 @@ create_motif_clips.Sap <- function(x,
   export_meta <- .export_clip_rows(
     motifs = motifs,
     wav_dir = x$base_path,
-    output_format = match.arg(output_format),
+    output_format = output_format,
     output_dir = output_dir,
     output_subdir = "",
     hdf5_filename = hdf5_filename,
@@ -239,7 +242,7 @@ create_motif_clips.Sap <- function(x,
 
   current_export <- list(
     creation_date = Sys.time(),
-    output_format = match.arg(output_format),
+    output_format = output_format,
     amp_normalize = amp_normalize,
     noise_reduction = isTRUE(noise_reduction),
     output_dir = normalizePath(output_dir, mustWork = TRUE),
@@ -462,6 +465,8 @@ create_bout_clips.Sap <- function(x,
                                   write_metadata = TRUE,
                                   verbose = TRUE,
                                   ...) {
+  if (verbose) message("\n=== Starting Bout Clip Extraction ===")
+
   if (!inherits(x, "Sap")) {
     stop("Input must be a SAP object")
   }
@@ -470,6 +475,7 @@ create_bout_clips.Sap <- function(x,
     stop("No bouts found in SAP object. Run find_bout() first.")
   }
 
+  output_format <- match.arg(output_format)
   amp_normalize <- .parse_amp_normalize(amp_normalize)
   if (is.null(name_prefix)) {
     name_prefix <- "bout"
@@ -496,7 +502,7 @@ create_bout_clips.Sap <- function(x,
   export_meta <- .export_clip_rows(
     motifs = bouts,
     wav_dir = x$base_path,
-    output_format = match.arg(output_format),
+    output_format = output_format,
     output_dir = output_dir,
     output_subdir = "",
     hdf5_filename = hdf5_filename,
@@ -512,7 +518,7 @@ create_bout_clips.Sap <- function(x,
 
   current_export <- list(
     creation_date = Sys.time(),
-    output_format = match.arg(output_format),
+    output_format = output_format,
     amp_normalize = amp_normalize,
     output_dir = normalizePath(output_dir, mustWork = TRUE),
     n_requested = if (!is.null(indices)) {
