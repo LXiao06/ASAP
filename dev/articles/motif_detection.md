@@ -400,7 +400,7 @@ sessionInfo()
 #> [25] cachem_1.1.0       yaml_2.3.12        av_0.9.6           tools_4.5.3       
 #> [29] parallel_4.5.3     dplyr_1.2.0        ggplot2_4.0.2      reticulate_1.45.0 
 #> [33] vctrs_0.7.2        R6_2.6.1           png_0.1-9          lifecycle_1.0.5   
-#> [37] fs_2.0.0           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
+#> [37] fs_2.0.1           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
 #> [41] desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1      bslib_0.10.0      
 #> [45] gtable_0.3.6       glue_1.8.0         Rcpp_1.1.1         systemfonts_1.3.2 
 #> [49] xfun_0.57          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
