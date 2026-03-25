@@ -660,8 +660,13 @@ detect_template.default <- function(x, # x is wav file path
 
     tryCatch(
       {
-        # Open device
+        # Suppress C-level fontconfig warnings during PNG device creation.
+        # On Linux, png() triggers fontconfig initialization which prints
+        # "using without calling FcInit()" via fprintf(stderr, ...).
+        # R's sink() cannot intercept C-level stderr; dup2() is required.
+        saved_fd <- suppress_stderr()
         png(plot_file, width = 1200, height = 800, res = 150)
+        restore_stderr(saved_fd)
         on.exit(if (dev.cur() > 1) dev.off(), add = TRUE)
 
         # Get plot method once per function call
@@ -761,6 +766,19 @@ detect_template.Sap <- function(x, # x is SAP object
   if (Sys.info()["sysname"] != "Darwin" && cores > 1) {
     ensure_pkgs("parallel")
     psock_cl <- parallel::makeCluster(cores, type = "PSOCK")
+    # Pre-initialize fontconfig in each PSOCK worker to suppress
+    # "using without calling FcInit()" warnings from png().
+    parallel::clusterEvalQ(psock_cl, {
+      loadNamespace("ASAP")
+      saved <- ASAP:::suppress_stderr()
+      tmp <- tempfile(fileext = ".png")
+      grDevices::png(tmp)
+      # Must actually draw text to trigger lazy fontconfig initialization!
+      plot(1, 1, main = "Init")
+      grDevices::dev.off()
+      unlink(tmp)
+      ASAP:::restore_stderr(saved)
+    })
     on.exit(parallel::stopCluster(psock_cl), add = TRUE)
   }
 
