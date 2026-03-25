@@ -367,6 +367,7 @@ denoise.Sap <- function(x,
   if (Sys.info()["sysname"] != "Darwin" && cores > 1) {
     ensure_pkgs("parallel")
     psock_cl <- parallel::makeCluster(cores, type = "PSOCK")
+    parallel::clusterEvalQ(psock_cl, loadNamespace("ASAP"))
     on.exit(parallel::stopCluster(psock_cl), add = TRUE)
   }
 
