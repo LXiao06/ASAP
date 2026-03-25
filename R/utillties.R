@@ -184,7 +184,7 @@ select_segments <- function(segments_df,
 #' parallel processing function
 #'
 #' @keywords internal
-parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE) {
+parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE, cl = NULL) {
   # Set number of cores
   if (is.null(cores)) {
     ensure_pkgs("parallel")
@@ -208,15 +208,14 @@ parallel_apply <- function(indices, FUN, cores, use_preschedule = FALSE) {
         mc.preschedule = use_preschedule
       )
     } else {
-      # Linux/Windows: use PSOCK clusters
-      # Fork-based parallelism on Linux causes sink() to corrupt connection
-      # state inside worker functions (e.g. detect_template.default), leading
-      # to silent zero-detection failures. PSOCK workers are independent
-      # processes without this issue.
+      # Linux/Windows: use PSOCK clusters.
+      # If a pre-created cluster is passed in, reuse it (avoids repeated
+      # makeCluster startup cost when called in a loop over many days).
       ensure_pkgs("pbapply", "parallel")
-      cl <- parallel::makeCluster(cores, type = "PSOCK")
-      on.exit(parallel::stopCluster(cl), add = TRUE)
-
+      if (is.null(cl)) {
+        cl <- parallel::makeCluster(cores, type = "PSOCK")
+        on.exit(parallel::stopCluster(cl), add = TRUE)
+      }
       result <- pbapply::pblapply(
         indices,
         FUN,
