@@ -83,6 +83,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/refine_FF.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/refine_motif_boundaries.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/refine_sh.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/restore_stderr.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/run_pca.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/run_umap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/sample_rows.html</loc></url>
@@ -91,6 +92,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/spectral_entropy.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/split_at_dips.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/summary.segment.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/suppress_stderr.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_sap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_segment.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_template_collection.html</loc></url>
