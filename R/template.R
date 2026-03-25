@@ -660,12 +660,8 @@ detect_template.default <- function(x, # x is wav file path
 
     tryCatch(
       {
-        # On Linux, use Cairo PNG device to avoid Fontconfig warnings
-        # ("using without calling FcInit()") that appear when font libraries
-        # are accessed in fresh worker processes before fontconfig is initialized.
-        png_type <- if (Sys.info()["sysname"] == "Linux" &&
-          capabilities("cairo")) "cairo" else "png"
-        png(plot_file, width = 1200, height = 800, res = 150, type = png_type)
+        # Open device
+        png(plot_file, width = 1200, height = 800, res = 150)
         on.exit(if (dev.cur() > 1) dev.off(), add = TRUE)
 
         # Get plot method once per function call
@@ -757,6 +753,17 @@ detect_template.Sap <- function(x, # x is SAP object
     cores <- parallel::detectCores() - 1
   }
 
+  # On Linux, create one PSOCK cluster here and reuse it across all days.
+  # This avoids paying the makeCluster startup cost (spawning N Rscript
+  # processes) once per day. On macOS, fork-based pbmclapply is used
+  # instead and needs no pre-created cluster.
+  psock_cl <- NULL
+  if (Sys.info()["sysname"] != "Darwin" && cores > 1) {
+    ensure_pkgs("parallel")
+    psock_cl <- parallel::makeCluster(cores, type = "PSOCK")
+    on.exit(parallel::stopCluster(psock_cl), add = TRUE)
+  }
+
   # Create plot directories if save_plot is TRUE
   if (save_plot) {
     plots_dir <- file.path(x$base_path, "plots", "template_matches")
@@ -846,9 +853,10 @@ detect_template.Sap <- function(x, # x is SAP object
       )
     }
 
-    # Parallel processing
+    # Parallel processing (pass pre-created cluster on Linux to avoid
+    # repeated makeCluster overhead across days)
     day_results <- parallel_apply(unique_files, process_file, cores,
-      use_preschedule = use_preschedule
+      use_preschedule = use_preschedule, cl = psock_cl
     )
 
     valid_detections <- day_results[!sapply(day_results, is.null)]
