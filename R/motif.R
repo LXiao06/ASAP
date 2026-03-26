@@ -140,8 +140,7 @@ find_motif.default <- function(x,
 
     # Filter out boundaries that extend beyond wav file
     valid_motifs <- motif_data[
-      motif_data$start_time >= 0 &
-        motif_data$end_time <= wav_duration,
+      which(motif_data$start_time >= 0 & motif_data$end_time <= wav_duration),
     ]
 
     if (nrow(valid_motifs) > 0) {

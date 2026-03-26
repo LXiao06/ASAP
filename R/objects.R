@@ -792,12 +792,12 @@ validate_segment <- function(x) {
   }
 
   # Check for negative durations
-  if (any(x$end_time < x$start_time)) {
+  if (any(x$end_time < x$start_time, na.rm = TRUE)) {
     stop("Found negative durations (end_time < start_time)")
   }
 
   # Check for negative times
-  if (any(x$start_time < 0) || any(x$end_time < 0)) {
+  if (any(x$start_time < 0, na.rm = TRUE) || any(x$end_time < 0, na.rm = TRUE)) {
     stop("Found negative times")
   }
 
@@ -826,9 +826,6 @@ as_segment <- function(x) {
     x <- new_segment(x)
   }
 
-  # Validate
-  validate_segment(x)
-
   # Check for NA values in required columns
   required_cols <- c("filename", "day_post_hatch", "label",
                      "start_time", "end_time", "duration")
@@ -837,6 +834,9 @@ as_segment <- function(x) {
       stop("Found NA values in column: ", col)
     }
   }
+
+  # Validate
+  validate_segment(x)
 
   # Reorder columns
   standard_cols <- c("filename", "day_post_hatch", "label",
