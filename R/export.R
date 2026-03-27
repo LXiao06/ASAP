@@ -1,5 +1,5 @@
 # Create motif/bout clips --------------------------------------------------------
-# Update date : Mar. 9, 2026
+# Update date : Mar. 26, 2026
 
 #' Create Motif Audio Clips
 #'
@@ -132,25 +132,25 @@ create_motif_clips.default <- function(x,
     stop("output_dir must be provided as a single directory path")
   }
 
+  output_dir <- file.path(output_dir, "motifs")
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
   output_dir <- normalizePath(output_dir, mustWork = TRUE)
 
-  motifs <- .subset_clip_rows(
+  clips <- subset_clip_rows(
     x,
     indices = indices,
     n_clips = n_motifs,
     seed = seed
   )
-  motifs <- .prepare_clip_export_rows(motifs)
+  clips <- prepare_clip_export_rows(clips)
 
-  export_meta <- .export_clip_rows(
-    motifs = motifs,
+  export_meta <- export_clip_rows(
+    clips = clips,
     wav_dir = wav_dir,
     output_format = output_format,
     output_dir = output_dir,
-    output_subdir = "motifs",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -213,21 +213,20 @@ create_motif_clips.Sap <- function(x,
     dir.create(output_dir, recursive = TRUE)
   }
 
-  motifs <- .subset_clip_rows(
+  clips <- subset_clip_rows(
     x$motifs,
     indices = indices,
     n_clips = n_motifs,
     seed = seed
   )
-  motifs <- .add_bird_id_from_metadata(motifs = motifs, metadata = x$metadata)
-  motifs <- .prepare_clip_export_rows(motifs)
+  clips <- add_bird_id_from_metadata(clips = clips, metadata = x$metadata)
+  clips <- prepare_clip_export_rows(clips)
 
-  export_meta <- .export_clip_rows(
-    motifs = motifs,
+  export_meta <- export_clip_rows(
+    clips = clips,
     wav_dir = x$base_path,
     output_format = output_format,
     output_dir = output_dir,
-    output_subdir = "",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -260,16 +259,16 @@ create_motif_clips.Sap <- function(x,
       nrow(x$motifs)
     },
     n_written = nrow(export_meta),
-    selected_indices = as.integer(motifs$.source_index),
+    selected_indices = as.integer(clips$.source_index),
     exported_indices = if (nrow(export_meta) > 0 && "source_index" %in% names(export_meta)) {
       as.integer(export_meta$source_index)
     } else {
       integer(0)
     },
     skipped_indices = if (nrow(export_meta) > 0 && "source_index" %in% names(export_meta)) {
-      setdiff(as.integer(motifs$.source_index), as.integer(export_meta$source_index))
+      setdiff(as.integer(clips$.source_index), as.integer(export_meta$source_index))
     } else {
-      as.integer(motifs$.source_index)
+      as.integer(clips$.source_index)
     },
     metadata_path = if (write_metadata) {
       file.path(normalizePath(output_dir, mustWork = TRUE), metadata_filename)
@@ -323,6 +322,13 @@ create_motif_clips.Sap <- function(x,
 #'   original recording is important. Overrides \code{name_prefix}.
 #' @param amp_normalize Waveform amplitude normalization applied to exported clips:
 #'   one of "none", "peak", or "rms" (default: "none").
+#' @param margin Numeric vector of length 2 giving the time margin in seconds to
+#'   prepend before each bout start and append after each bout end,
+#'   e.g. \code{c(1, 2)} adds 1 s before and 2 s after.
+#'   Both values must be non-negative. Default \code{c(0, 0)} preserves the
+#'   original boundaries. Bouts whose adjusted \code{start_time} would fall
+#'   below 0, or whose adjusted \code{end_time} would exceed the source WAV
+#'   duration, are dropped and reported in the console summary.
 #' @param cores Number of CPU cores used for clip processing.
 #' @param overwrite Logical. Overwrite existing output file(s) when TRUE.
 #'   Default is TRUE.
@@ -388,6 +394,7 @@ create_bout_clips.default <- function(x,
                                       name_prefix = NULL,
                                       keep_source_file_name = FALSE,
                                       amp_normalize = c("none", "peak", "rms"),
+                                      margin = c(0, 0),
                                       cores = NULL,
                                       overwrite = TRUE,
                                       write_metadata = TRUE,
@@ -424,15 +431,30 @@ create_bout_clips.default <- function(x,
   }
   output_dir <- normalizePath(output_dir, mustWork = TRUE)
 
-  bouts <- .subset_clip_rows(x, indices = indices, n_clips = n_bouts, seed = seed)
-  bouts <- .prepare_clip_export_rows(bouts)
+  bouts <- subset_clip_rows(x, indices = indices, n_clips = n_bouts, seed = seed)
+  bouts <- prepare_clip_export_rows(bouts)
 
-  export_meta <- .export_clip_rows(
-    motifs = bouts,
+  margin_result <- apply_clip_margin(bouts, wav_dir = wav_dir, margin = margin)
+  bouts <- margin_result$valid
+  n_violated <- margin_result$n_violated
+
+  if (n_violated > 0 && verbose) {
+    message(sprintf(
+      "Note: %d bout(s) dropped — adjusted time window falls outside source WAV bounds.",
+      n_violated
+    ))
+  }
+
+  if (nrow(bouts) == 0) {
+    warning("No valid bouts remain after applying margin. Returning empty metadata.")
+    return(data.frame())
+  }
+
+  export_meta <- export_clip_rows(
+    clips = bouts,
     wav_dir = wav_dir,
     output_format = output_format,
     output_dir = output_dir,
-    output_subdir = "",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -460,6 +482,7 @@ create_bout_clips.Sap <- function(x,
                                   name_prefix = NULL,
                                   keep_source_file_name = FALSE,
                                   amp_normalize = c("none", "peak", "rms"),
+                                  margin = c(0, 0),
                                   cores = NULL,
                                   overwrite = TRUE,
                                   write_metadata = TRUE,
@@ -490,21 +513,36 @@ create_bout_clips.Sap <- function(x,
     dir.create(output_dir, recursive = TRUE)
   }
 
-  bouts <- .subset_clip_rows(
+  bouts <- subset_clip_rows(
     x$bouts,
     indices = indices,
     n_clips = n_bouts,
     seed = seed
   )
-  bouts <- .add_bird_id_from_metadata(motifs = bouts, metadata = x$metadata)
-  bouts <- .prepare_clip_export_rows(bouts)
+  bouts <- add_bird_id_from_metadata(clips = bouts, metadata = x$metadata)
+  bouts <- prepare_clip_export_rows(bouts)
 
-  export_meta <- .export_clip_rows(
-    motifs = bouts,
+  margin_result <- apply_clip_margin(bouts, wav_dir = x$base_path, margin = margin)
+  bouts <- margin_result$valid
+  n_violated <- margin_result$n_violated
+
+  if (n_violated > 0 && verbose) {
+    message(sprintf(
+      "Note: %d bout(s) dropped — adjusted time window falls outside source WAV bounds.",
+      n_violated
+    ))
+  }
+
+  if (nrow(bouts) == 0) {
+    warning("No valid bouts remain after applying margin. Returning SAP object unchanged.")
+    invisible(x)
+  }
+
+  export_meta <- export_clip_rows(
+    clips = bouts,
     wav_dir = x$base_path,
     output_format = output_format,
     output_dir = output_dir,
-    output_subdir = "",
     hdf5_filename = hdf5_filename,
     metadata_filename = metadata_filename,
     name_prefix = name_prefix,
@@ -568,7 +606,103 @@ create_bout_clips.Sap <- function(x,
 
 # Internal helpers ------------------------------------------------------------
 
-.subset_clip_rows <- function(rows, indices = NULL, n_clips = NULL, seed = 222) {
+#' Apply Time Margin to Clip Rows and Validate Against WAV Duration
+#'
+#' @description
+#' Expands \code{start_time} and \code{end_time} in a clip data frame by the
+#' requested margin, then validates each clip against its source WAV file
+#' duration (read via header only). Clips whose adjusted
+#' \code{start_time < 0} or adjusted \code{end_time > wav_duration} are
+#' silently dropped and counted.
+#'
+#' @param clips Prepared clip data frame (must have \code{filename},
+#'   \code{start_time}, \code{end_time}, and optionally \code{day_post_hatch}).
+#' @param wav_dir Root directory containing source WAV files.
+#' @param margin Numeric vector of length 2: seconds to prepend before start
+#'   and append after end. Both values must be non-negative.
+#'
+#' @return A list with:
+#'   \describe{
+#'     \item{valid}{Clip data frame with validated, adjusted times.}
+#'     \item{n_violated}{Integer count of dropped clips.}
+#'   }
+#'
+#' @keywords internal
+apply_clip_margin <- function(clips, wav_dir, margin) {
+  # --- Validate margin -------------------------------------------------------
+  if (!is.numeric(margin) || length(margin) != 2L) {
+    stop("margin must be a numeric vector of length 2.")
+  }
+  if (any(is.na(margin)) || any(margin < 0)) {
+    stop("Both margin values must be non-negative numbers.")
+  }
+
+  # Apply margin
+  clips$start_time <- clips$start_time - margin[1]
+  clips$end_time <- clips$end_time + margin[2]
+
+  # If zero margin, skip expensive WAV-header reads
+  if (margin[1] == 0 && margin[2] == 0) {
+    return(list(valid = clips, n_violated = 0L))
+  }
+
+  # --- Check start_time < 0 (no file read needed) ----------------------------
+  neg_start <- clips$start_time < 0
+
+  # --- Check end_time > wav_duration (WAV header read, per unique file) -------
+  has_day <- "day_post_hatch" %in% names(clips) &
+    !is.na(clips$day_post_hatch) &
+    clips$day_post_hatch != "unknown_day"
+
+  source_paths <- ifelse(
+    has_day,
+    file.path(wav_dir, as.character(clips$day_post_hatch), as.character(clips$filename)),
+    file.path(wav_dir, as.character(clips$filename))
+  )
+
+  unique_paths <- unique(source_paths)
+  dur_map <- vapply(unique_paths, function(p) {
+    if (!file.exists(p)) {
+      return(NA_real_)
+    }
+    hdr <- tryCatch(
+      tuneR::readWave(p, header = TRUE),
+      error = function(e) NULL
+    )
+    if (is.null(hdr)) {
+      return(NA_real_)
+    }
+    hdr$samples / hdr$sample.rate
+  }, FUN.VALUE = numeric(1L))
+  names(dur_map) <- unique_paths
+
+  wav_dur <- dur_map[source_paths]
+  exceed_end <- !is.na(wav_dur) & clips$end_time > wav_dur
+
+  violated <- neg_start | exceed_end
+  list(
+    valid      = clips[!violated, , drop = FALSE],
+    n_violated = sum(violated)
+  )
+}
+
+#' Subset Clip Rows by Index or Random Sample
+#'
+#' @description
+#' Subsets a clip data frame using explicit row indices or by randomly sampling
+#' up to \code{n_clips} rows per day. Attaches a \code{.source_index} column
+#' recording each row's original position in the input.
+#'
+#' @param rows Data frame of clip rows (e.g. motifs or bouts).
+#' @param indices Optional integer vector of explicit row indices.
+#' @param n_clips Optional integer. Maximum clips to sample per day when
+#'   \code{indices} is NULL.
+#' @param seed Integer random seed (fixed to 222 in this repository).
+#'
+#' @return Subset of \code{rows} with an added \code{.source_index} column.
+#'
+#' @keywords internal
+subset_clip_rows <- function(rows, indices = NULL, n_clips = NULL, seed = 222) {
   if (is.null(indices)) {
     if (!is.null(n_clips)) {
       if (!is.numeric(n_clips) || length(n_clips) != 1 || is.na(n_clips)) {
@@ -636,27 +770,41 @@ create_bout_clips.Sap <- function(x,
   return(result)
 }
 
-.add_bird_id_from_metadata <- function(motifs, metadata) {
-  if ("bird_id" %in% names(motifs) && all(!is.na(motifs$bird_id))) {
-    return(motifs)
+#' Add Bird ID from SAP Metadata
+#'
+#' @description
+#' Joins the \code{bird_id} column from a SAP metadata table into a clip data
+#' frame using shared key columns (\code{filename}, \code{day_post_hatch},
+#' \code{label}). Rows that cannot be matched are assigned
+#' \code{"unknown_bird"}.
+#'
+#' @param clips Data frame of clip rows.
+#' @param metadata SAP metadata data frame containing a \code{bird_id} column.
+#'
+#' @return \code{clips} with a populated \code{bird_id} column.
+#'
+#' @keywords internal
+add_bird_id_from_metadata <- function(clips, metadata) {
+  if ("bird_id" %in% names(clips) && all(!is.na(clips$bird_id))) {
+    return(clips)
   }
 
   if (!is.data.frame(metadata) || !"bird_id" %in% names(metadata)) {
-    motifs$bird_id <- "unknown_bird"
-    return(motifs)
+    clips$bird_id <- "unknown_bird"
+    return(clips)
   }
 
-  keys <- intersect(c("filename", "day_post_hatch", "label"), names(motifs))
+  keys <- intersect(c("filename", "day_post_hatch", "label"), names(clips))
   md_keys <- intersect(c("filename", "day_post_hatch", "label"), names(metadata))
   keys <- intersect(keys, md_keys)
 
   if (length(keys) == 0) {
-    motifs$bird_id <- "unknown_bird"
-    return(motifs)
+    clips$bird_id <- "unknown_bird"
+    return(clips)
   }
 
   md_unique <- unique(metadata[, c(keys, "bird_id"), drop = FALSE])
-  merged <- merge(motifs, md_unique, by = keys, all.x = TRUE, sort = FALSE)
+  merged <- merge(clips, md_unique, by = keys, all.x = TRUE, sort = FALSE)
 
   if (!".source_index" %in% names(merged)) {
     merged$.source_index <- seq_len(nrow(merged))
@@ -666,44 +814,82 @@ create_bout_clips.Sap <- function(x,
   merged
 }
 
-.prepare_clip_export_rows <- function(motifs) {
-  if (!"day_post_hatch" %in% names(motifs)) {
-    motifs$day_post_hatch <- "unknown_day"
+#' Prepare Clip Data Frame for Export
+#'
+#' @description
+#' Ensures required columns (\code{day_post_hatch}, \code{label},
+#' \code{bird_id}) are present, substituting sensible defaults for missing or
+#' NA values.
+#'
+#' @param clips Data frame of clip rows.
+#'
+#' @return Standardised clip data frame ready for \code{export_clip_rows}.
+#'
+#' @keywords internal
+prepare_clip_export_rows <- function(clips) {
+  if (!"day_post_hatch" %in% names(clips)) {
+    clips$day_post_hatch <- "unknown_day"
   }
 
-  if (!"label" %in% names(motifs)) {
-    motifs$label <- NA_character_
+  if (!"label" %in% names(clips)) {
+    clips$label <- NA_character_
   }
 
-  if (!"bird_id" %in% names(motifs)) {
-    motifs$bird_id <- "unknown_bird"
+  if (!"bird_id" %in% names(clips)) {
+    clips$bird_id <- "unknown_bird"
   }
 
-  motifs$bird_id[is.na(motifs$bird_id) | motifs$bird_id == ""] <- "unknown_bird"
-  motifs$day_post_hatch[is.na(motifs$day_post_hatch)] <- "unknown_day"
-  motifs
+  clips$bird_id[is.na(clips$bird_id) | clips$bird_id == ""] <- "unknown_bird"
+  clips$day_post_hatch[is.na(clips$day_post_hatch)] <- "unknown_day"
+  clips
 }
 
-.export_clip_rows <- function(motifs,
-                              wav_dir,
-                              output_format,
-                              output_dir,
-                              output_subdir,
-                              hdf5_filename,
-                              metadata_filename,
-                              name_prefix,
-                              keep_source_file_name,
-                              amp_normalize,
-                              noise_reduction = FALSE,
-                              cores,
-                              overwrite,
-                              write_metadata,
-                              verbose) {
-  jobs <- motifs
+#' Core Clip Extraction and Writing Engine
+#'
+#' @description
+#' Iterates over a prepared clip data frame, extracts each clip from its source
+#' WAV file, applies optional amplitude normalisation or denoising, and writes
+#' the result to WAV files or a single HDF5 archive. Returns a metadata data
+#' frame describing every successfully written clip.
+#'
+#' @param clips Prepared clip data frame (output of \code{prepare_clip_export_rows}).
+#' @param wav_dir Root directory containing source WAV files.
+#' @param output_format One of \code{"wav"} or \code{"hdf5"}.
+#' @param output_dir Directory where clips are written.
+#' @param hdf5_filename File name for the HDF5 archive.
+#' @param metadata_filename File name for the metadata CSV.
+#' @param name_prefix Prefix for generated clip file names.
+#' @param keep_source_file_name Logical; use WAV stem + index as clip name.
+#' @param amp_normalize Amplitude normalisation method (\code{"none"},
+#'   \code{"peak"}, or \code{"rms"}).
+#' @param noise_reduction Logical; denoise source files before extraction.
+#' @param cores Number of parallel cores.
+#' @param overwrite Logical; overwrite existing files.
+#' @param write_metadata Logical; write a metadata CSV.
+#' @param verbose Logical; print per-day progress messages.
+#'
+#' @return Data frame of export metadata (one row per successfully written clip).
+#'
+#' @keywords internal
+export_clip_rows <- function(clips,
+                             wav_dir,
+                             output_format,
+                             output_dir,
+                             hdf5_filename,
+                             metadata_filename,
+                             name_prefix,
+                             keep_source_file_name,
+                             amp_normalize,
+                             noise_reduction = FALSE,
+                             cores,
+                             overwrite,
+                             write_metadata,
+                             verbose) {
+  jobs <- clips
   jobs$day_summary <- as.character(jobs$day_post_hatch)
   jobs$day_summary[is.na(jobs$day_summary) | jobs$day_summary == ""] <- "unknown_day"
-  jobs$bird_id_clean <- vapply(as.character(jobs$bird_id), .sanitize_group_name, FUN.VALUE = character(1))
-  jobs$day_clean <- vapply(as.character(jobs$day_post_hatch), .sanitize_group_name, FUN.VALUE = character(1))
+  jobs$bird_id_clean <- vapply(as.character(jobs$bird_id), sanitize_group_name, FUN.VALUE = character(1))
+  jobs$day_clean <- vapply(as.character(jobs$day_post_hatch), sanitize_group_name, FUN.VALUE = character(1))
   group_key <- paste(jobs$bird_id_clean, jobs$day_clean, sep = "::")
   jobs$clip_seq <- stats::ave(seq_len(nrow(jobs)), group_key, FUN = seq_along)
   if (keep_source_file_name) {
@@ -732,7 +918,7 @@ create_bout_clips.Sap <- function(x,
   )
 
   if (isTRUE(noise_reduction)) {
-    denoise_root <- file.path(output_dir, output_subdir, "denoised_sources")
+    denoise_root <- file.path(output_dir, "denoised_sources")
     if (!dir.exists(denoise_root)) dir.create(denoise_root, recursive = TRUE, showWarnings = FALSE)
     unique_sources <- unique(jobs[, c("source_path", "day_clean"), drop = FALSE])
     denoise_map <- character(0)
@@ -789,7 +975,7 @@ create_bout_clips.Sap <- function(x,
     }
 
     if (output_format == "wav") {
-      out_dir <- file.path(output_dir, output_subdir, as.character(row$bird_id_clean), as.character(row$day_clean))
+      out_dir <- file.path(output_dir, as.character(row$bird_id_clean), as.character(row$day_clean))
       if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
       out_path <- file.path(out_dir, paste0(as.character(row$clip_id), ".wav"))
 
@@ -912,8 +1098,8 @@ create_bout_clips.Sap <- function(x,
 
     for (res in results) {
       if (!identical(res$status, "written")) next
-      bird_group <- .h5_get_or_create_group(h5, res$bird_id)
-      day_group <- .h5_get_or_create_group(bird_group, res$day)
+      bird_group <- h5_get_or_create_group(h5, res$bird_id)
+      day_group <- h5_get_or_create_group(bird_group, res$day)
       ds <- day_group$create_dataset(name = res$clip_id, robj = res$sample_vec)
       hdf5r::h5attr(ds, "sample_rate") <- as.integer(res$sample_rate)
       hdf5r::h5attr(ds, "source_file") <- as.character(res$metadata$filename[[1]])
@@ -975,14 +1161,37 @@ create_bout_clips.Sap <- function(x,
   export_meta
 }
 
-.sanitize_group_name <- function(x) {
+#' Sanitize a String for Use as a Group Name
+#'
+#' @description
+#' Replaces any character that is not alphanumeric, a dot, underscore, or
+#' hyphen with an underscore. Returns \code{"unknown"} for empty or NA input.
+#'
+#' @param x Character scalar to sanitize.
+#'
+#' @return Sanitized character string.
+#'
+#' @keywords internal
+sanitize_group_name <- function(x) {
   if (length(x) == 0 || is.na(x) || x == "") {
     return("unknown")
   }
   gsub("[^A-Za-z0-9._-]", "_", x)
 }
 
-.h5_get_or_create_group <- function(parent, group_name) {
+#' Get or Create an HDF5 Group
+#'
+#' @description
+#' Returns an existing group from an HDF5 parent object, or creates it if it
+#' does not already exist.
+#'
+#' @param parent An \code{H5File} or \code{H5Group} object.
+#' @param group_name Character name of the group to retrieve or create.
+#'
+#' @return The requested HDF5 group object.
+#'
+#' @keywords internal
+h5_get_or_create_group <- function(parent, group_name) {
   if (group_name %in% names(parent)) {
     return(parent[[group_name]])
   }
