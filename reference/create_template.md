@@ -117,24 +117,27 @@ for creating audio clips
 if (FALSE) { # \dontrun{
 # Create template from WAV file
 template <- create_template("path/to/song.wav",
-                           template_name = "template1",
-                           start_time = 1.0,
-                           end_time = 2.0,
-                           freq_min = 2,
-                           freq_max = 8)
+  template_name = "template1",
+  start_time = 1.0,
+  end_time = 2.0,
+  freq_min = 2,
+  freq_max = 8
+)
 
 # Create and save template
 template <- create_template("song.wav",
-                           template_name = "template2",
-                           start_time = 1.0,
-                           end_time = 2.0,
-                           write_template = TRUE)
+  template_name = "template2",
+  start_time = 1.0,
+  end_time = 2.0,
+  write_template = TRUE
+)
 
 # Create template from SAP object
 sap_obj <- create_template(sap_object,
-                          template_name = "template1",
-                          clip_name = "clip1",
-                          freq_min = 2,
-                          freq_max = 8)
+  template_name = "template1",
+  clip_name = "clip1",
+  freq_min = 2,
+  freq_max = 8
+)
 } # }
 ```

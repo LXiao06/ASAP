@@ -96,21 +96,24 @@ For SAP objects:
 if (FALSE) { # \dontrun{
 # Create clip from single WAV file
 create_audio_clip("path/to/song.wav",
-                  start_time = 10,
-                  end_time = 20,
-                  clip_name = "song_clip")
+  start_time = 10,
+  end_time = 20,
+  clip_name = "song_clip"
+)
 
 # Create multiple clips from SAP object
 create_audio_clip(sap_object,
-                  indices = c(1, 2),
-                  start_time = c(10, 20),
-                  end_time = c(20, 30),
-                  clip_names = c("clip1", "clip2"))
+  indices = c(1, 2),
+  start_time = c(10, 20),
+  end_time = c(20, 30),
+  clip_names = c("clip1", "clip2")
+)
 
 # Create clip with millisecond units
 create_audio_clip("song.wav",
-                  start_time = 10000,
-                  end_time = 20000,
-                  unit = "millisecond")
+  start_time = 10000,
+  end_time = 20000,
+  unit = "millisecond"
+)
 } # }
 ```

@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Get Started • ASAP</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -21,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ASAP</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +35,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/installation.html">Installation</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Get Started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -51,8 +57,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Get Started</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Get Started</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/LXiao06/ASAP/blob/HEAD/vignettes/index.Rmd" class="external-link"><code>vignettes/index.Rmd</code></a></small>
@@ -261,6 +266,21 @@
   </a>
 
   <!-- Card 6 -->
+  <a class="gs-card" href="exporting_song_clips.html">
+    <div class="gs-card-img-wrap" style="background:#fff;">
+      <img src="figures/exporting_clips_card.png" alt="Conceptual illustration of audio motif and bout extraction">
+</div>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Exporting Curated Song Clips</div>
+      <div class="gs-card-desc">
+        Generate precisely cropped motif or bout-level audio files (WAV or 
+        HDF5) from raw recordings for use in external processing pipelines.
+      </div>
+      <span class="gs-card-tag">Intermediate · ~10 min</span>
+    </div>
+  </a>
+
+  <!-- Card 7 -->
   <a class="gs-card" href="longitudinal_syllable_segmentation.html">
     <div class="gs-card-img-wrap" style="background:#fff;">
       <img src="figures/longitudinal_syllable_umap.png" alt="UMAP of syllable segments coloured by cluster">
@@ -276,10 +296,10 @@
     </div>
   </a>
 
-  <!-- Card 7 -->
+  <!-- Card 8 -->
   <a class="gs-card" href="syllable_labeling.html">
     <div class="gs-card-img-wrap" style="background:#fff;">
-      <img src="figures/longitudinal_heatmap_ordered.png" alt="Syllable cluster heatmap after labeling">
+      <img src="figures/longitudinal_syllable_manual_heatmap.png" alt="Syllable cluster heatmap after labeling">
 </div>
     <div class="gs-card-body">
       <div class="gs-card-title">Syllable Labeling</div>

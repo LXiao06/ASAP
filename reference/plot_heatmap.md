@@ -13,6 +13,7 @@ plot_heatmap(
   x,
   wav_dir = NULL,
   msmooth = c(256, 50),
+  amp_normalize = c("none", "peak", "rms"),
   color_palette = NULL,
   n_colors = 500,
   contrast = 3,
@@ -37,6 +38,7 @@ plot_heatmap(
 plot_heatmap(
   x,
   segment_type = c("motifs", "bouts"),
+  indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
   labels = NULL,
@@ -44,6 +46,7 @@ plot_heatmap(
   cores = NULL,
   seed = 222,
   msmooth = c(256, 50),
+  amp_normalize = c("none", "peak", "rms"),
   color_palette = NULL,
   n_colors = 500,
   contrast = 3,
@@ -76,6 +79,11 @@ plot_heatmap(
 - msmooth:
 
   Smoothing parameters c(window_length, overlap_percentage)
+
+- amp_normalize:
+
+  Waveform amplitude normalization before envelope extraction: one of
+  "none", "peak", or "rms" (default: "none")
 
 - color_palette:
 
@@ -119,6 +127,11 @@ plot_heatmap(
 
   For SAP objects: Type of segments ('motifs', 'bouts', 'syllables',
   'segments')
+
+- indices:
+
+  For SAP objects: Numeric vector indicating specific row indices of
+  segments to plot
 
 - sample_percent:
 
@@ -206,21 +219,34 @@ plot_heatmap(segments, wav_dir = "path/to/wavs")
 
 # SAP object with options
 plot_heatmap(sap_obj,
-             segment_type = "motifs",
-             balanced = TRUE,
-             ordered = TRUE)
+  segment_type = "motifs",
+  balanced = TRUE,
+  ordered = TRUE
+)
+
+# Compare waveform normalization strategies in heatmaps
+plot_heatmap(sap_obj,
+  segment_type = "motifs",
+  amp_normalize = "peak"
+)
+plot_heatmap(sap_obj,
+  segment_type = "motifs",
+  amp_normalize = "rms"
+)
 
 # Matrix with specific labels
 plot_heatmap(amp_matrix,
-             labels = c("a", "b"),
-             contrast = 2)
+  labels = c("a", "b"),
+  contrast = 2
+)
 
 # Advanced SAP object usage
 plot_heatmap(sap_obj,
-             segment_type = "bouts",
-             sample_percent = 80,
-             cores = 4,
-             ordered = TRUE,
-             descending = FALSE)
+  segment_type = "bouts",
+  sample_percent = 80,
+  cores = 4,
+  ordered = TRUE,
+  descending = FALSE
+)
 } # }
 ```

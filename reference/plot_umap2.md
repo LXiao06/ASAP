@@ -147,21 +147,24 @@ plot_umap2(traj_df, color.by = ".time")
 
 # Overlay comparison plot
 plot_umap2(traj_df,
-           overlay_mode = TRUE,
-           base_label = "a",
-           compare_labels = c("b", "c"))
+  overlay_mode = TRUE,
+  base_label = "a",
+  compare_labels = c("b", "c")
+)
 
 # Plot motif trajectories from SAP object
 plot_umap2(sap_obj,
-           segment_type = "motifs",
-           data_type = "traj.embeds",
-           color.by = ".time")
+  segment_type = "motifs",
+  data_type = "traj.embeds",
+  color.by = ".time"
+)
 
 # Compare trajectories between labels
 plot_umap2(sap_obj,
-           segment_type = "motifs",
-           data_type = "traj.embeds",
-           overlay_mode = TRUE,
-           base_label = "pre")
+  segment_type = "motifs",
+  data_type = "traj.embeds",
+  overlay_mode = TRUE,
+  base_label = "pre"
+)
 } # }
 ```

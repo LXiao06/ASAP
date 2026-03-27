@@ -71,6 +71,18 @@ and track changes in bout duration and density over development.
 
 Intermediate · ~20 min
 
+[](https://lxiao06.github.io/ASAP/articles/exporting_song_clips.md)
+
+![Conceptual illustration of audio motif and bout
+extraction](figures/exporting_clips_card.png)
+
+Exporting Curated Song Clips
+
+Generate precisely cropped motif or bout-level audio files (WAV or HDF5)
+from raw recordings for use in external processing pipelines.
+
+Intermediate · ~10 min
+
 [](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.md)
 
 ![UMAP of syllable segments coloured by
@@ -87,7 +99,7 @@ Advanced · ~25 min
 [](https://lxiao06.github.io/ASAP/articles/syllable_labeling.md)
 
 ![Syllable cluster heatmap after
-labeling](figures/longitudinal_heatmap_ordered.png)
+labeling](figures/longitudinal_syllable_manual_heatmap.png)
 
 Syllable Labeling
 

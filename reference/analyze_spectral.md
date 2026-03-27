@@ -21,6 +21,7 @@ analyze_spectral(
   threshold = 15,
   fsmooth = 0.1,
   fast = TRUE,
+  amp_normalize = c("none", "peak", "rms"),
   ...
 )
 
@@ -28,10 +29,15 @@ analyze_spectral(
 analyze_spectral(
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
+  indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
   labels = NULL,
   seed = 222,
+  export_csv = FALSE,
+  csv_filename = NULL,
+  output_dir = NULL,
+  time_match_digits = 3,
   cores = NULL,
   wl = 512,
   ovlp = 50,
@@ -41,6 +47,7 @@ analyze_spectral(
   threshold = 15,
   fsmooth = 0.1,
   fast = TRUE,
+  amp_normalize = c("none", "peak", "rms"),
   verbose = TRUE,
   ...
 )
@@ -96,10 +103,20 @@ analyze_spectral(
 
   Whether to skip peak frequency calculation (default: TRUE)
 
+- amp_normalize:
+
+  Waveform amplitude normalization before spectral extraction: one of
+  "none", "peak", or "rms" (default: "none")
+
 - segment_type:
 
   For SAP objects: Type of segments ('motifs', 'syllables', 'bouts',
   'segments')
+
+- indices:
+
+  For SAP objects: Optional row indices of the selected segment_type to
+  process.
 
 - sample_percent:
 
@@ -116,6 +133,26 @@ analyze_spectral(
 - seed:
 
   For SAP objects: Random seed for sampling (default: 222)
+
+- export_csv:
+
+  If TRUE and `indices` exactly match the latest export
+  `exported_indices` for the corresponding segment type, merges stored
+  export metadata with spectral features and writes a merged CSV.
+
+- csv_filename:
+
+  Output CSV filename. Must be provided if `export_csv = TRUE`.
+
+- output_dir:
+
+  Directory to save the CSV. If NULL, defaults to the previous export's
+  output directory, or the working directory if unavailable.
+
+- time_match_digits:
+
+  Integer digits for matching `start_time`/`end_time` when merging
+  metadata and spectral features (default: 3).
 
 - verbose:
 
@@ -155,28 +192,37 @@ For SAP objects:
 if (FALSE) { # \dontrun{
 # Analyze segments from data frame
 features <- analyze_spectral(segments,
-                            wav_dir = "path/to/wavs",
-                            cores = 4,
-                            freq_range = c(1, 10))
+  wav_dir = "path/to/wavs",
+  cores = 4,
+  freq_range = c(1, 10)
+)
 
 # Basic analysis from SAP object
 sap_obj <- analyze_spectral(sap_object,
-                           segment_type = "motifs",
-                           cores = 4)
+  segment_type = "motifs",
+  cores = 4
+)
 
 # Balanced sampling with specific labels
 sap_obj <- analyze_spectral(sap_object,
-                           segment_type = "syllables",
-                           sample_percent = 80,
-                           balanced = TRUE,
-                           labels = c("a", "b"))
+  segment_type = "syllables",
+  sample_percent = 80,
+  balanced = TRUE,
+  labels = c("a", "b")
+)
 
 # Custom spectral parameters
 sap_obj <- analyze_spectral(sap_object,
-                           segment_type = "motifs",
-                           wl = 1024,
-                           ovlp = 75,
-                           freq_range = c(2, 8))
-} # }
+  segment_type = "motifs",
+  wl = 1024,
+  ovlp = 75,
+  freq_range = c(2, 8)
+)
 
+# With waveform RMS normalization before spectral extraction
+sap_obj <- analyze_spectral(sap_object,
+  segment_type = "motifs",
+  amp_normalize = "rms"
+)
+} # }
 ```

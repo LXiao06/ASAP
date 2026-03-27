@@ -21,6 +21,7 @@ spectral_analysis(
   threshold = 15,
   fsmooth = 0.1,
   fast = TRUE,
+  amp_normalize = c("none", "peak", "rms"),
   ...
 )
 ```
@@ -62,6 +63,11 @@ spectral_analysis(
 - fast:
 
   Skip peak frequency calculation
+
+- amp_normalize:
+
+  Waveform amplitude normalization before spectral extraction: one of
+  "none", "peak", or "rms" (default: "none")
 
 - ...:
 

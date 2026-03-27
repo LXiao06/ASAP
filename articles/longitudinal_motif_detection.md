@@ -43,24 +43,32 @@ sap <- create_sap_object(
 
 # Run the complete motif detection pipeline
 sap <- sap |>
-  create_audio_clip(indices = 1, 
-                    start_time = 1, 
-                    end_time = 2.5, 
-                    clip_names = "motif_ref") |>
-  create_template(template_name = "syllable_d", 
-                  clip_name = "motif_ref",
-                  start_time = 0.72, 
-                  end_time = 0.84,
-                  freq_min = 1, 
-                  freq_max = 10, 
-                  threshold = 0.5, 
-                  write_template = TRUE) |>
-  detect_template(template_name = "syllable_d",
-                  threshold = 0.5,
-                  proximity_window = 1) |>
-  find_motif(template_name = "syllable_d", 
-             pre_time = 0.7, 
-             lag_time = 0.5)
+  create_audio_clip(
+    indices = 1,
+    start_time = 1,
+    end_time = 2.5,
+    clip_names = "motif_ref"
+  ) |>
+  create_template(
+    template_name = "syllable_d",
+    clip_name = "motif_ref",
+    start_time = 0.72,
+    end_time = 0.84,
+    freq_min = 1,
+    freq_max = 10,
+    threshold = 0.5,
+    write_template = TRUE
+  ) |>
+  detect_template(
+    template_name = "syllable_d",
+    threshold = 0.5,
+    proximity_window = 1
+  ) |>
+  find_motif(
+    template_name = "syllable_d",
+    pre_time = 0.7,
+    lag_time = 0.5
+  )
 ```
 
 ### Understanding SAP Object Behavior
@@ -144,9 +152,10 @@ smaller than the audio data
 
 ``` r
 # Visualize sample motifs from each time point
-visualize_segments(sap, 
-                   segment_type = "motifs", 
-                   n_samples = 3)
+visualize_segments(sap,
+  segment_type = "motifs",
+  n_samples = 3
+)
 ```
 
 ![Sample motif spectrograms across developmental time
@@ -181,6 +190,53 @@ points.](figures/longitudinal_heatmap.png)
 Amplitude envelope heatmap showing temporal structure across time
 points.
 
+## Exporting Motif Clips
+
+Once motifs are detected, you may want to export them as individual
+audio files for external analysis, sharing, or manual review. The
+[`create_motif_clips()`](https://lxiao06.github.io/ASAP/reference/create_motif_clips.md)
+function makes this easy by extracting the audio segments for your
+detected motifs and saving them in an organized directory structure.
+
+``` r
+# Export up to 200 motifs per day as individual WAV files
+sap <- create_motif_clips(
+  sap,
+  output_format = "wav",
+  output_dir = "exported_motifs",
+  n_motifs = 200, # randomly sample up to 200 motifs per day
+  amp_normalize = "peak", # Normalize amplitude to prevent clipping
+  verbose = TRUE
+)
+```
+
+By default, this will organize the exported `.wav` files into a clean
+folder hierarchy
+(`exported_motifs/motifs/{bird_id}/{day_post_hatch}/motif_xxx.wav`) and
+automatically generate a companion `metadata.csv` containing the timing
+and source information for each audio clip.
+
+### Exporting as HDF5
+
+For large-scale datasets or machine learning workflows, you can export
+all clips into a single HDF5 file instead of individual WAV files. This
+keeps everything self-contained and is faster to load in Python or R:
+
+``` r
+sap <- create_motif_clips(
+  sap,
+  output_format = "hdf5",
+  output_dir    = "exported_motifs",
+  n_motifs      = 200,
+  hdf5_filename = "motifs.h5"
+)
+```
+
+For a full walkthrough of exporting options across different scenarios,
+see the [Exporting Curated Song
+Clips](https://lxiao06.github.io/ASAP/articles/exporting_song_clips.md)
+vignette.
+
 ## Feature Extraction and Analysis
 
 Extracting spectral features allows you to quantify motif acoustic
@@ -196,8 +252,8 @@ useful for:
 # Extract spectral features (frequency, entropy, duration, etc.)
 sap <- sap |>
   analyze_spectral(balanced = TRUE) |>
-  find_clusters() |>              # Group acoustically similar motifs
-  run_umap()                       # Dimensionality reduction for visualization
+  find_clusters() |> # Group acoustically similar motifs
+  run_umap() # Dimensionality reduction for visualization
 
 # Visualize UMAP by time point
 plot_umap(sap, split.by = "label")
@@ -279,9 +335,9 @@ Ordered amplitude envelope heatmap grouped by acoustic similarity.
 
 ``` r
 sessionInfo()
-#> R version 4.5.2 (2025-10-31)
+#> R version 4.5.3 (2026-03-11)
 #> Platform: x86_64-pc-linux-gnu
-#> Running under: Ubuntu 24.04.3 LTS
+#> Running under: Ubuntu 24.04.4 LTS
 #> 
 #> Matrix products: default
 #> BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
@@ -301,10 +357,10 @@ sessionInfo()
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    
-#>  [5] xfun_0.56         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
-#>  [9] rmarkdown_2.30    lifecycle_1.0.5   cli_3.6.5         sass_0.4.10      
+#>  [5] xfun_0.57         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
+#>  [9] rmarkdown_2.31    lifecycle_1.0.5   cli_3.6.5         sass_0.4.10      
 #> [13] pkgdown_2.2.0     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.2
-#> [17] compiler_4.5.2    tools_4.5.2       ragg_1.5.1        evaluate_1.0.5   
+#> [17] compiler_4.5.3    tools_4.5.3       ragg_1.5.2        evaluate_1.0.5   
 #> [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.1.7      
-#> [25] fs_1.6.7
+#> [25] fs_2.0.1
 ```

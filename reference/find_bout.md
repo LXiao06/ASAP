@@ -30,7 +30,7 @@ find_bout(
   x,
   day = NULL,
   indices = NULL,
-  segment_type = "motifs",
+  segment_type = c("motifs", "raw"),
   cores = NULL,
   save_plot = FALSE,
   plot_percent = 10,
@@ -43,6 +43,8 @@ find_bout(
   edge_window = 0.05,
   freq_range = c(3, 5),
   summary = FALSE,
+  dry_run = FALSE,
+  overwrite_metadata = FALSE,
   verbose = TRUE,
   ...
 )
@@ -112,7 +114,13 @@ find_bout(
 
 - segment_type:
 
-  For SAP objects: Type of segments (default: "motifs")
+  For SAP objects: Source of data to drive bout detection. `"motifs"`
+  (default) uses pre-detected motif data — only files containing at
+  least one motif are processed, and detected bouts are validated to
+  contain at least one motif. `"raw"` uses the SAP metadata directly, so
+  every audio file in the object is scanned for bouts based on amplitude
+  alone, with no motif requirement. Use `"raw"` for Scenario A (general
+  compression) before motif detection has been run.
 
 - cores:
 
@@ -125,6 +133,19 @@ find_bout(
 - summary:
 
   For SAP objects: Include additional statistics (default: FALSE)
+
+- dry_run:
+
+  For SAP objects with `segment_type = "raw"`: when `TRUE`, do not write
+  `x$bouts`. Instead, report how many WAV files contain bouts. If
+  `overwrite_metadata = TRUE`, remove files with no detected bouts from
+  `x$metadata`.
+
+- overwrite_metadata:
+
+  For SAP objects: when `TRUE` and `dry_run = TRUE` with
+  `segment_type = "raw"`, remove WAV files with no detected bouts from
+  `x$metadata` so they are skipped in downstream processing.
 
 - verbose:
 
@@ -191,25 +212,29 @@ syllable-level segmentation
 if (FALSE) { # \dontrun{
 # Basic bout detection from file
 bouts <- find_bout("song.wav",
-                   rms_threshold = 0.1,
-                   min_duration = 0.7)
+  rms_threshold = 0.1,
+  min_duration = 0.7
+)
 
 # Custom parameters with visualization
 bouts <- find_bout("song.wav",
-                   freq_range = c(2, 8),
-                   plot = TRUE,
-                   save_plot = TRUE)
+  freq_range = c(2, 8),
+  plot = TRUE,
+  save_plot = TRUE
+)
 
 # Process SAP object with summary
 sap_obj <- find_bout(sap_object,
-                     segment_type = "motifs",
-                     day = c(30, 40),
-                     summary = TRUE)
+  segment_type = "motifs",
+  day = c(30, 40),
+  summary = TRUE
+)
 
 # Process specific files with plots
 sap_obj <- find_bout(sap_object,
-                     indices = 1:5,
-                     save_plot = TRUE,
-                     cores = 4)
+  indices = 1:5,
+  save_plot = TRUE,
+  cores = 4
+)
 } # }
 ```

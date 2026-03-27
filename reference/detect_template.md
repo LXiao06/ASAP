@@ -32,6 +32,7 @@ detect_template(
   plot_percent = 10,
   verbose = TRUE,
   proximity_window = NULL,
+  use_preschedule = FALSE,
   ...
 )
 ```
@@ -96,6 +97,15 @@ detect_template(
 
   For SAP objects: Whether to print progress messages
 
+- use_preschedule:
+
+  For SAP objects: Whether to use pre-scheduling for parallel processing
+  (default: FALSE). When TRUE, tasks are distributed to workers before
+  processing starts, providing more consistent performance but may be
+  slower if files have variable processing times. When FALSE (default),
+  workers dynamically grab tasks from a queue, providing better load
+  balancing but with slightly more overhead.
+
 ## Value
 
 For default method: A data frame containing detection results with
@@ -157,25 +167,36 @@ for creating templates
 if (FALSE) { # \dontrun{
 # Detect template in single WAV file
 detections <- detect_template("path/to/song.wav",
-                             template = template_obj,
-                             save_plot = TRUE)
+  template = template_obj,
+  save_plot = TRUE
+)
 
 # Detect template in SAP object
 sap_obj <- detect_template(sap_object,
-                          template_name = "template1",
-                          day = c(30, 40),
-                          threshold = 0.7,
-                          cores = 4)
+  template_name = "template1",
+  day = c(30, 40),
+  threshold = 0.7,
+  cores = 4
+)
 
 # Process specific indices with plots
 sap_obj <- detect_template(sap_object,
-                          template_name = "template1",
-                          indices = 1:10,
-                          save_plot = TRUE)
+  template_name = "template1",
+  indices = 1:10,
+  save_plot = TRUE
+)
 
 # Filter nearby detections within 0.5 seconds
 sap_obj <- detect_template(sap_object,
-                          template_name = "template1",
-                          proximity_window = 0.5)
+  template_name = "template1",
+  proximity_window = 0.5
+)
+
+# Use pre-scheduling for more consistent performance
+sap_obj <- detect_template(sap_object,
+  template_name = "template1",
+  cores = 4,
+  use_preschedule = TRUE
+)
 } # }
 ```

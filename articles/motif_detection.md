@@ -35,6 +35,7 @@ The workflow involves:
 
 ``` r
 library(ASAP)
+#> ASAP v0.3.5 loaded.
 
 # Get path to example WAV file included with the package
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
@@ -366,9 +367,9 @@ sap |>
 
 ``` r
 sessionInfo()
-#> R version 4.5.2 (2025-10-31)
+#> R version 4.5.3 (2026-03-11)
 #> Platform: x86_64-pc-linux-gnu
-#> Running under: Ubuntu 24.04.3 LTS
+#> Running under: Ubuntu 24.04.4 LTS
 #> 
 #> Matrix products: default
 #> BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
@@ -387,22 +388,22 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.4
+#> [1] ASAP_0.3.5
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-7    
-#>  [5] digest_0.6.39      magrittr_2.0.4     evaluate_1.0.5     grid_4.5.2        
+#>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    
+#>  [5] digest_0.6.39      magrittr_2.0.4     evaluate_1.0.5     grid_4.5.3        
 #>  [9] RColorBrewer_1.1-3 fastmap_1.2.0      jsonlite_2.0.0     Matrix_1.7-4      
 #> [13] monitoR_1.2        tuneR_1.4.7        purrr_1.2.1        scales_1.4.0      
 #> [17] pbapply_1.7-4      textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.5         
 #> [21] rlang_1.1.7        pbmcapply_1.5.1    withr_3.0.2        seewave_2.2.4     
-#> [25] cachem_1.1.0       yaml_2.3.12        av_0.9.6           tools_4.5.2       
-#> [29] parallel_4.5.2     dplyr_1.2.0        ggplot2_4.0.2      reticulate_1.45.0 
-#> [33] vctrs_0.7.1        R6_2.6.1           png_0.1-8          lifecycle_1.0.5   
-#> [37] fs_1.6.7           MASS_7.3-65        ragg_1.5.1         pkgconfig_2.0.3   
+#> [25] cachem_1.1.0       yaml_2.3.12        av_0.9.6           tools_4.5.3       
+#> [29] parallel_4.5.3     dplyr_1.2.0        ggplot2_4.0.2      reticulate_1.45.0 
+#> [33] vctrs_0.7.2        R6_2.6.1           png_0.1-9          lifecycle_1.0.5   
+#> [37] fs_2.0.1           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
 #> [41] desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1      bslib_0.10.0      
 #> [45] gtable_0.3.6       glue_1.8.0         Rcpp_1.1.1         systemfonts_1.3.2 
-#> [49] xfun_0.56          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
-#> [53] farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.30    
-#> [57] signal_1.8-1       compiler_4.5.2     S7_0.2.1
+#> [49] xfun_0.57          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
+#> [53] farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31    
+#> [57] signal_1.8-1       compiler_4.5.3     S7_0.2.1
 ```

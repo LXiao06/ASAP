@@ -195,25 +195,29 @@ plot_umap(umap_df, group.by = "cluster")
 
 # Plot with highlighting
 plot_umap(umap_df,
-          group.by = "cluster",
-          highlight.by = "label",
-          highlight.value = "a")
+  group.by = "cluster",
+  highlight.by = "label",
+  highlight.value = "a"
+)
 
 # Plot with faceting
 plot_umap(umap_df,
-          group.by = "cluster",
-          split.by = "day_post_hatch")
+  group.by = "cluster",
+  split.by = "day_post_hatch"
+)
 
 # Plot from SAP object
 plot_umap(sap_obj,
-          segment_type = "motifs",
-          group.by = "label")
+  segment_type = "motifs",
+  group.by = "label"
+)
 
 # SAP object plot with custom grouping and highlighting
 plot_umap(sap_obj,
-          segment_type = "syllables",
-          group.by = "label",
-          highlight.by = "cluster",
-          highlight.value = c(1, 2))
+  segment_type = "syllables",
+  group.by = "label",
+  highlight.by = "cluster",
+  highlight.value = c(1, 2)
+)
 } # }
 ```
