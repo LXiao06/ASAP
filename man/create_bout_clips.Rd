@@ -21,6 +21,7 @@ create_bout_clips(x, ...)
   name_prefix = NULL,
   keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
+  margin = c(0, 0),
   cores = NULL,
   overwrite = TRUE,
   write_metadata = TRUE,
@@ -40,6 +41,7 @@ create_bout_clips(x, ...)
   name_prefix = NULL,
   keep_source_file_name = FALSE,
   amp_normalize = c("none", "peak", "rms"),
+  margin = c(0, 0),
   cores = NULL,
   overwrite = TRUE,
   write_metadata = TRUE,
@@ -84,6 +86,14 @@ original recording is important. Overrides \code{name_prefix}.}
 
 \item{amp_normalize}{Waveform amplitude normalization applied to exported clips:
 one of "none", "peak", or "rms" (default: "none").}
+
+\item{margin}{Numeric vector of length 2 giving the time margin in seconds to
+prepend before each bout start and append after each bout end,
+e.g. \code{c(1, 2)} adds 1 s before and 2 s after.
+Both values must be non-negative. Default \code{c(0, 0)} preserves the
+original boundaries. Bouts whose adjusted \code{start_time} would fall
+below 0, or whose adjusted \code{end_time} would exceed the source WAV
+duration, are dropped and reported in the console summary.}
 
 \item{cores}{Number of CPU cores used for clip processing.}
 
