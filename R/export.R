@@ -440,7 +440,7 @@ create_bout_clips.default <- function(x,
 
   if (n_violated > 0 && verbose) {
     message(sprintf(
-      "Note: %d bout(s) dropped — adjusted time window falls outside source WAV bounds.",
+      "Note: %d bout(s) dropped - adjusted time window falls outside source WAV bounds.",
       n_violated
     ))
   }
@@ -528,7 +528,7 @@ create_bout_clips.Sap <- function(x,
 
   if (n_violated > 0 && verbose) {
     message(sprintf(
-      "Note: %d bout(s) dropped — adjusted time window falls outside source WAV bounds.",
+      "Note: %d bout(s) dropped - adjusted time window falls outside source WAV bounds.",
       n_violated
     ))
   }
