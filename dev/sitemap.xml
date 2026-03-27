@@ -18,9 +18,11 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/Fundamental_Frequency.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/GroupSingletons.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/RunModularityClustering.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/add_bird_id_from_metadata.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/amp_env.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/analyze_spectral.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/anova_analysis.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/apply_clip_margin.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/as_segment.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/auto_label.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/check_pkg.html</loc></url>
@@ -42,6 +44,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-merge_metadata_with_spectral.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-spectral_gate.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/ensure_pkgs.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/export_clip_rows.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_single_spec.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_spec.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/fast_pca.html</loc></url>
@@ -55,6 +58,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/find_segment_neighbors.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/get_wav_indices.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/goodness.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/h5_get_or_create_group.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/index.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/list_numeric_dirs.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/manual_label.html</loc></url>
@@ -79,6 +83,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_traces.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_umap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_umap2.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/prepare_clip_export_rows.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/print.segment.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/refine_FF.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/refine_motif_boundaries.html</loc></url>
@@ -87,10 +92,12 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/run_pca.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/run_umap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/sample_rows.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/sanitize_group_name.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/segment.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/spectral_analysis.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/spectral_entropy.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/split_at_dips.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/subset_clip_rows.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/summary.segment.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/suppress_stderr.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_sap.html</loc></url>
