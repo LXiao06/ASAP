@@ -59,10 +59,10 @@ remotes::install_github("LXiao06/ASAP")
 
 ## Tutorials
 
-Explore our comprehensive guides to get up and running with ASAP. You can find all documentation on the [ASAP website](https://lxiao06.github.io/ASAP/).
+Explore our guides to get up and running with ASAP. You can find all documentation on the [ASAP website](https://lxiao06.github.io/ASAP/).
 
 ### Quick Start
-- [Overview: ASAP 101](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.html): Learn the single-file workflow with spectrograms, bout detection and export, and syllable segmentation.
+- [ASAP 101](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.html): Learn the single-file workflow with spectrograms, bout detection and export, and syllable segmentation.
 - [Motif Detection](https://lxiao06.github.io/ASAP/articles/motif_detection.html): Introduction to automated motif extraction using template matching.
 - [Acoustic Feature Analysis](https://lxiao06.github.io/ASAP/articles/acoustic_feature_analysis.html): Measure spectral entropy, pitch contours, and amplitude envelopes.
 
