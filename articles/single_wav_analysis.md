@@ -203,30 +203,56 @@ The returned data frame contains:
 
 ## 4. Export Bout Clips
 
-Once you are happy with bout detection, you can export selected bouts as
-standalone audio clips. Here we write the first detected bout to a
-temporary directory, visualize the exported clip, and then remove the
-temporary files at the end of the vignette. This keeps the example
-self-contained and avoids leaving extra files behind after the vignette
-runs.
+Once you are happy with bout detection, you can export bouts as
+standalone WAV files. In this example we export **all detected bouts**
+to a temporary directory, inspect the export metadata, visualize the
+exported files, and then remove the temporary files at the end of the
+vignette.
+
+### Step 1: Create a temporary export directory
+
+This keeps the example self-contained and avoids leaving extra files
+behind after the vignette runs.
 
 ``` r
+# Create a temporary directory for the exported WAV files
 bout_export_dir <- file.path(tempdir(), "asap_bout_export")
 dir.create(bout_export_dir, recursive = TRUE, showWarnings = FALSE)
-bout_export_meta <- NULL
-exported_bout_file <- NULL
 
-if (!is.null(bouts) && nrow(bouts) >= 1) {
+# Initialize objects that will be filled in by the export step
+bout_export_meta <- NULL
+exported_bout_files <- character(0)
+```
+
+### Step 2: Export all detected bouts
+
+[`create_bout_clips()`](https://lxiao06.github.io/ASAP/reference/create_bout_clips.md)
+reads the bout table returned by
+[`find_bout()`](https://lxiao06.github.io/ASAP/reference/find_bout.md)
+and writes one WAV file per row. Because `bouts` already contains the
+start and end times, we can pass the full data frame directly.
+
+``` r
+if (!is.null(bouts) && nrow(bouts) > 0) {
   bout_export_meta <- create_bout_clips(
-    bouts[1, , drop = FALSE],
+    bouts,
     wav_dir = dirname(wav_file),
     output_dir = bout_export_dir,
     output_format = "wav",
     write_metadata = FALSE,
     verbose = FALSE
   )
+}
+```
 
-  exported_bout_file <- bout_export_meta$output_path[1]
+### Step 3: Review the export metadata
+
+The returned metadata table records which bout was exported, where it
+came from, and where the generated WAV file was written.
+
+``` r
+if (!is.null(bout_export_meta) && nrow(bout_export_meta) > 0) {
+  exported_bout_files <- bout_export_meta$output_path
 
   knitr::kable(
     bout_export_meta[, c("clip_id", "start_time", "end_time", "duration", "output_path")],
@@ -237,22 +263,30 @@ if (!is.null(bouts) && nrow(bouts) >= 1) {
 
 | clip_id  | start_time | end_time | duration | output_path                                                                  |
 |:---------|-----------:|---------:|---------:|:-----------------------------------------------------------------------------|
-| bout_001 |      1.057 |    3.553 |    2.496 | /tmp/RtmpSt4HEU/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_001 |      1.057 |    3.553 |    2.496 | /tmp/RtmptqwY81/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_002 |      4.156 |    4.946 |    0.789 | /tmp/RtmptqwY81/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
+
+### Step 4: Visualize the exported bout files
+
+Because this example recording only contains two bouts, we can inspect
+every exported clip directly.
 
 ``` r
-if (!is.null(exported_bout_file)) {
-  visualize_song(exported_bout_file)
+if (length(exported_bout_files) > 0) {
+  for (i in seq_along(exported_bout_files)) {
+    visualize_song(exported_bout_files[i])
+  }
 }
+#> Song visualization completed for: bout_001.wav
+#> Song visualization completed for: bout_002.wav
 ```
 
-![](single_wav_analysis_files/figure-html/visualize-exported-bout-1.png)
+![](single_wav_analysis_files/figure-html/visualize-exported-bouts-1.png)![](single_wav_analysis_files/figure-html/visualize-exported-bouts-2.png)
 
-    #> Song visualization completed for: bout_001.wav
-
-The exported metadata table includes the clip name, original time
-boundaries, duration, and the path to the generated file. In longer
-workflows this metadata is useful for tracing exported clips back to the
-source recording.
+In longer workflows, exporting all bouts is a convenient way to create a
+clean set of song clips for manual review or downstream analysis. The
+metadata table is especially useful for tracing each exported clip back
+to the original WAV file and bout boundaries.
 
 ------------------------------------------------------------------------
 
