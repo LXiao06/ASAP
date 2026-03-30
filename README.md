@@ -66,12 +66,17 @@ website](https://lxiao06.github.io/ASAP/).
 
 ### Quick Start
 
-- [Single WAV File
-  Analysis](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.html):
-  Learn ASAP’s core functions using individual audio recordings.
+- [Overview: ASAP
+  101](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.html):
+  Learn the single-file workflow with spectrograms, bout detection,
+  syllable segmentation, and bout export.
 - [Motif
   Detection](https://lxiao06.github.io/ASAP/articles/motif_detection.html):
   Introduction to automated motif extraction using template matching.
+- [Acoustic Feature
+  Analysis](https://lxiao06.github.io/ASAP/articles/acoustic_feature_analysis.html):
+  Measure spectral entropy, pitch contours, and amplitude envelopes from
+  single recordings.
 
 ### Longitudinal Analysis Pipeline
 
@@ -88,3 +93,7 @@ multiple developmental time points:
     Segmentation](https://lxiao06.github.io/ASAP/articles/longitudinal_syllable_segmentation.html)
 5.  [Syllable
     Labeling](https://lxiao06.github.io/ASAP/articles/syllable_labeling.html)
+6.  [Exporting Curated Song
+    Clips](https://lxiao06.github.io/ASAP/articles/exporting_song_clips.html):
+    Export bout- or motif-level clips as WAV or HDF5 files for downstream
+    workflows.

@@ -26,7 +26,7 @@ song production patterns during development.
 
 **Prerequisites**: Before reading this vignette, we recommend completing:
 
-- [Overview: Basic Audio Analysis](single_wav_analysis.html) - Core ASAP functions
+- [Overview: ASAP 101](single_wav_analysis.html) - Basic ASAP functions
 - [Constructing SAP Object](construct_sap_object.html) - SAP object creation
 - [Longitudinal Motif Detection](longitudinal_motif_detection.html) - Motif-based workflow
 

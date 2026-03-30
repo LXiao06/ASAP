@@ -1,0 +1,217 @@
+---
+title: "Acoustic Feature Analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Acoustic Feature Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 5,
+  out.width = "100%"
+)
+```
+
+## Introduction
+
+This vignette focuses on acoustic measurements you can extract from a single
+recording after identifying bouts or syllables of interest. It pairs naturally
+with [Overview: ASAP 101](single_wav_analysis.html) and can also be used after
+[Motif Detection](motif_detection.html) when you want to inspect the structure
+of selected song segments in more detail.
+
+**Prerequisites**: Before reading this vignette, we recommend completing:
+
+- [Overview: ASAP 101](single_wav_analysis.html) - Basic ASAP functions
+
+**What you will learn**:
+
+1. How to measure spectral structure with entropy
+2. How to extract pitch contours from a single song segment
+3. How to compare amplitude-envelope shapes across bouts and syllables
+
+---
+
+## Overview
+
+These feature-analysis functions are best used after you have already located a
+time window, bout, or syllable worth inspecting. Because this is a single-WAV
+tutorial, the vignette stays focused on a few small runnable examples rather
+than wrapping everything in a larger umbrella workflow. The aim is to show what
+each feature captures and how to interpret the resulting plots.
+
+---
+
+## Setup
+
+```{r setup}
+library(ASAP)
+
+wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
+
+bouts <- find_bout(
+  wav_file,
+  rms_threshold = 0.1,
+  min_duration = 0.7,
+  plot = FALSE
+)
+
+syllables <- segment(
+  wav_file,
+  start_time = 1,
+  end_time = 5,
+  flim = c(1, 8),
+  silence_threshold = 0.01,
+  min_syllable_ms = 20,
+  max_syllable_ms = 240,
+  min_level_db = 10,
+  verbose = FALSE,
+  plot = FALSE
+)
+```
+
+---
+
+## 1. Spectral Entropy Analysis
+
+Spectral entropy measures how structured or noisy the frequency distribution is
+within a sound segment. Harmonic syllables tend to have lower entropy, while
+broader-band noisy sounds tend to have higher entropy.
+
+```{r spectral-entropy, fig.height=5}
+entropy_result <- spectral_entropy(
+  wav_file,
+  start_time = 1.5,
+  end_time = 2.5,
+  method = "wiener",
+  normalize = TRUE,
+  plot = TRUE
+)
+```
+
+### Interpreting entropy values
+
+- **Low entropy (near 0)**: Structured, harmonic sounds
+- **High entropy (near 1)**: Noisy, unstructured sounds
+
+### Available methods
+
+- `"wiener"`: Ratio of geometric to arithmetic mean
+- `"shannon"`: Information-theoretic entropy
+
+### Quality check
+
+Use the plot to compare low-entropy tonal structure against higher-entropy
+noisy regions. If the segment includes long silent stretches, tighten the time
+window so the estimate reflects the vocalization itself rather than surrounding
+silence.
+
+---
+
+## 2. Fundamental Frequency (Pitch) Analysis
+
+The `FF()` function extracts the fundamental frequency contour, which describes
+how perceived pitch changes over time.
+
+```{r fundamental-frequency, fig.height=5}
+pitch_result <- FF(
+  wav_file,
+  start_time = 1.5,
+  end_time = 2.5,
+  method = "cepstrum",
+  fmax = 1400,
+  threshold = 10,
+  plot = TRUE
+)
+```
+
+### Key parameters
+
+- `fmax`: Maximum fundamental frequency to detect
+- `threshold`: Higher values filter out uncertain estimates
+- `method`: `"cepstrum"` (default) or `"yin"`
+
+### The result contains
+
+- `f0`: Fundamental frequency values over time
+- `time`: Corresponding time stamps
+
+### Tuning tips
+
+| Parameter | Role | Typical effect |
+|-----------|------|----------------|
+| `fmax` | Upper bound for pitch search | Raise it if the contour clips at the top; lower it to avoid implausibly high estimates |
+| `threshold` | Confidence filter | Higher values remove uncertain estimates but may leave gaps |
+| `method` | Pitch extraction algorithm | `"cepstrum"` is a good default for quick inspection |
+
+---
+
+## 3. Amplitude Envelope
+
+The amplitude envelope summarizes how sound intensity changes over time. This is
+useful for comparing bout or syllable shapes after you have segmented them.
+
+### Bout-level envelope
+
+```{r amplitude-envelope-bout, fig.height=4}
+if (!is.null(bouts) && nrow(bouts) >= 1) {
+  env_bout <- amp_env(
+    bouts[1, ],
+    wav_dir = dirname(wav_file),
+    msmooth = c(256, 50),
+    amp_normalize = "peak",
+    plot = TRUE
+  )
+}
+```
+
+### Syllable-level envelope
+
+```{r amplitude-envelope-syllable, fig.height=4}
+if (!is.null(syllables) && nrow(syllables) >= 1) {
+  env_syl <- amp_env(
+    syllables[1, ],
+    wav_dir = dirname(wav_file),
+    msmooth = c(256, 50),
+    amp_normalize = "peak",
+    plot = TRUE
+  )
+}
+```
+
+### Smoothing parameters
+
+The `msmooth` argument controls envelope smoothing:
+
+- First value: Window length in samples
+- Second value: Overlap percentage
+
+Smoother envelopes are useful for broad temporal structure, while lighter
+smoothing preserves fine timing differences between syllables.
+
+---
+
+## Summary
+
+These three functions provide a compact toolkit for exploring acoustic
+variation in a single recording:
+
+| Function | What it captures |
+|----------|------------------|
+| `spectral_entropy()` | Spectral structure or noisiness |
+| `FF()` | Pitch contour over time |
+| `amp_env()` | Amplitude dynamics within bouts or syllables |
+
+For motif-scale acoustic analysis across many recordings, continue to the SAP
+object workflow starting with [Constructing SAP Object](construct_sap_object.html).
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
