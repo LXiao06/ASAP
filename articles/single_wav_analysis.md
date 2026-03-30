@@ -237,7 +237,7 @@ if (!is.null(bouts) && nrow(bouts) >= 1) {
 
 | clip_id  | start_time | end_time | duration | output_path                                                                  |
 |:---------|-----------:|---------:|---------:|:-----------------------------------------------------------------------------|
-| bout_001 |      1.057 |    3.553 |    2.496 | /tmp/RtmpWA4ScG/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_001 |      1.057 |    3.553 |    2.496 | /tmp/RtmpSt4HEU/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
 
 ``` r
 if (!is.null(exported_bout_file)) {
