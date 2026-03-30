@@ -10,9 +10,9 @@ song production patterns during development.
 **Prerequisites**: Before reading this vignette, we recommend
 completing:
 
-- [Overview: Basic Audio
-  Analysis](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.md) -
-  Core ASAP functions
+- [Overview: ASAP
+  101](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.md) -
+  Basic ASAP functions
 - [Constructing SAP
   Object](https://lxiao06.github.io/ASAP/articles/construct_sap_object.md) -
   SAP object creation

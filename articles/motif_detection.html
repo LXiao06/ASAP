@@ -73,39 +73,42 @@
 motifs</strong> from a single zebra finch WAV file using ASAP’s template
 matching workflow. A motif is the stereotyped sequence of syllables that
 adult male zebra finches repeat during singing.</p>
-<p><strong>Purpose of this vignette</strong>: This tutorial provides the
-fundamental concepts for template-based motif detection in ASAP. You’ll
-learn how to interactively optimize template parameters using a single
-recording before applying them to bulk processing. The emphasis is on
-developing a reliable “anchor” template that will serve as the
-foundation for detecting motifs across longitudinal recordings.</p>
-<p>The workflow involves:</p>
+<p>This tutorial introduces the core logic of template-based motif
+detection in ASAP. The emphasis is on interactively optimizing a
+reliable “anchor” template using one recording before carrying the same
+strategy into longitudinal analysis.</p>
+<p><strong>Prerequisites</strong>: Before reading this vignette, we
+recommend completing:</p>
+<ul>
+<li>
+<a href="single_wav_analysis.html">Overview: ASAP 101</a> - Basic
+ASAP functions</li>
+</ul>
+<p><strong>What you will learn</strong>:</p>
 <ol style="list-style-type: decimal">
-<li>
-<strong>Visualizing the song</strong> - Identify a clear motif
-rendition</li>
-<li>
-<strong>Creating an audio clip</strong> - Extract a segment
-containing the motif</li>
-<li>
-<strong>Creating a template</strong> - Select a distinctive syllable
-as an anchor point</li>
-<li>
-<strong>Detecting the template</strong> - Find all occurrences of
-the template</li>
-<li>
-<strong>Extracting motifs</strong> - Define motif boundaries around
-template detections</li>
-<li>
-<strong>Visualizing results</strong> - View extracted motifs and
-amplitude heatmaps</li>
+<li>How to choose a good reference motif from a single recording</li>
+<li>How to create and test a syllable template for motif detection</li>
+<li>How to verify extracted motifs with spectrograms and heatmaps</li>
 </ol>
+<hr>
+</div>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p>Motif detection in ASAP is an iterative single-file workflow:
+identify a clear motif rendition, choose a distinctive anchor syllable,
+detect that template throughout the recording, and then inspect the
+extracted motifs. Unlike the SAP object tutorials, the goal here is not
+to present a full batch-processing pipeline. Instead, this vignette
+focuses on the small decisions that make a template robust before you
+scale up.</p>
 <blockquote>
-<p><strong>Iterative Optimization</strong>: Steps 3-6 should be repeated
-multiple times to refine template parameters until reliable detection is
-achieved. This optimization is crucial before proceeding to bulk
-processing.</p>
+<p><strong>Iterative optimization</strong>: Steps 3-6 should usually be
+repeated more than once. Refining the template is the most important
+part of getting reliable motif boundaries later in longitudinal
+analysis.</p>
 </blockquote>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
@@ -116,6 +119,7 @@ processing.</p>
 <span></span>
 <span><span class="co"># Get path to example WAV file included with the package</span></span>
 <span><span class="va">wav_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"zf_example.wav"</span>, package <span class="op">=</span> <span class="st">"ASAP"</span><span class="op">)</span></span></code></pre></div>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="visualize-the-song">1. Visualize the Song<a class="anchor" aria-label="anchor" href="#visualize-the-song"></a>
@@ -129,11 +133,16 @@ structure:</p>
 <p>We can see multiple motif renditions in this recording. Let’s zoom in
 on a clear section to identify a good reference motif:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/visualize_song.html">visualize_song</a></span><span class="op">(</span><span class="va">wav_file</span>, </span>
-<span>               start_time_in_second <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>               end_time_in_second <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/visualize_song.html">visualize_song</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
+<span>  start_time_in_second <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  end_time_in_second <span class="op">=</span> <span class="fl">2.5</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="motif_detection_files/figure-html/visualize-segment-1.png" class="r-plt" alt="" width="100%"></p>
 <pre><code><span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre>
+<p>This zoomed view helps you choose a clean motif rendition with clear
+syllable boundaries and minimal overlap from neighboring
+vocalizations.</p>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="create-an-audio-clip">2. Create an Audio Clip<a class="anchor" aria-label="anchor" href="#create-an-audio-clip"></a>
@@ -144,13 +153,15 @@ complete motif.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create an audio clip from the WAV file</span></span>
 <span><span class="va">clip_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
-<span>                               start_time <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                               end_time <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span></span>
+<span>  start_time <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  end_time <span class="op">=</span> <span class="fl">2.5</span></span>
+<span><span class="op">)</span></span>
 <span><span class="co">#&gt; Song clip clip_zf_example.wav is generated.</span></span>
 <span></span>
 <span><span class="co"># View the created clip path</span></span>
 <span><span class="va">clip_path</span></span>
 <span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/ASAP/extdata/templates/clip_zf_example.wav"</span></span></code></pre></div>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="create-a-template-critical-step">3. Create a Template (Critical Step)<a class="anchor" aria-label="anchor" href="#create-a-template-critical-step"></a>
@@ -193,20 +204,22 @@ region:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># First, visualize the template region</span></span>
 <span><span class="fu"><a href="../reference/visualize_song.html">visualize_song</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
-<span>               start_time_in_second <span class="op">=</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.72</span>,</span>
-<span>               end_time_in_second <span class="op">=</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.84</span><span class="op">)</span></span></code></pre></div>
+<span>  start_time_in_second <span class="op">=</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.72</span>,</span>
+<span>  end_time_in_second <span class="op">=</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.84</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="motif_detection_files/figure-html/create-template-1.png" class="r-plt" alt="" width="40%" style="display: block; margin: auto;"></p>
 <pre><code><span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre>
 <p>Now create the template with specified frequency bounds:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create the template</span></span>
 <span><span class="va">template</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span><span class="va">clip_path</span>,</span>
-<span>                            template_name <span class="op">=</span> <span class="st">"d"</span>,</span>
-<span>                            start_time <span class="op">=</span> <span class="fl">0.72</span>,</span>
-<span>                            end_time <span class="op">=</span> <span class="fl">0.84</span>,</span>
-<span>                            freq_min <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                            freq_max <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>                            write_template <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>  template_name <span class="op">=</span> <span class="st">"d"</span>,</span>
+<span>  start_time <span class="op">=</span> <span class="fl">0.72</span>,</span>
+<span>  end_time <span class="op">=</span> <span class="fl">0.84</span>,</span>
+<span>  freq_min <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  freq_max <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  write_template <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="motif_detection_files/figure-html/make-template-1.png" class="r-plt" alt="" width="40%" style="display: block; margin: auto;"></p>
 <pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Automatic point selection.</span></span>
@@ -253,6 +266,20 @@ region:</p>
 </tbody>
 </table>
 </div>
+<div class="section level3">
+<h3 id="tuning-tips">Tuning tips<a class="anchor" aria-label="anchor" href="#tuning-tips"></a>
+</h3>
+<ul>
+<li>If the template matches too many unrelated sounds, narrow
+<code>freq_min/freq_max</code> around the most distinctive part of the
+syllable.</li>
+<li>If good motif renditions are being missed, expand the time window
+slightly so the full syllable is captured.</li>
+<li>Prefer a syllable that appears once per motif; repeated syllables
+are more likely to produce ambiguous detections.</li>
+</ul>
+<hr>
+</div>
 </div>
 <div class="section level2">
 <h2 id="detect-template-occurrences">4. Detect Template Occurrences<a class="anchor" aria-label="anchor" href="#detect-template-occurrences"></a>
@@ -262,10 +289,12 @@ recording:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run template detection on the original WAV file</span></span>
 <span><span class="co"># proximity_window filters out multiple detections within the same motif</span></span>
-<span><span class="va">template_matches</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">wav_file</span>,</span>
-<span>                                    template <span class="op">=</span> <span class="va">template</span>,</span>
-<span>                                    proximity_window <span class="op">=</span> <span class="fl">1</span>,  <span class="co"># Filter detections within 1s</span></span>
-<span>                                    save_plot <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">template_matches</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="va">wav_file</span>,</span>
+<span>  template <span class="op">=</span> <span class="va">template</span>,</span>
+<span>  proximity_window <span class="op">=</span> <span class="fl">1</span>, <span class="co"># Filter detections within 1s</span></span>
+<span>  save_plot <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># View detection results</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">template_matches</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
@@ -350,6 +379,7 @@ spaced if motifs occur regularly.</li>
 <li>Adjusting time boundaries</li>
 <li>Modifying frequency range</li>
 </ul>
+<hr>
 </div>
 </div>
 <div class="section level2">
@@ -362,9 +392,10 @@ by extending a fixed time window before and after each detection:</p>
 <span><span class="co"># pre_time: how much before the template to include</span></span>
 <span><span class="co"># lag_time: how much after the template to include</span></span>
 <span><span class="va">motifs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span><span class="va">template_matches</span>,</span>
-<span>                     pre_time <span class="op">=</span> <span class="fl">0.7</span>,</span>
-<span>                     lag_time <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>                     wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span><span class="op">)</span></span>
+<span>  pre_time <span class="op">=</span> <span class="fl">0.7</span>,</span>
+<span>  lag_time <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="co">#&gt; Processed zf_example.wav: 3/3 valid motifs (0 excluded)</span></span>
 <span><span class="co">#&gt; Total valid motifs found: 3 (excluded: 0)</span></span>
 <span></span>
@@ -429,6 +460,7 @@ by extending a fixed time window before and after each detection:</p>
 </tr>
 </tbody>
 </table>
+<hr>
 </div>
 </div>
 <div class="section level2">
@@ -438,9 +470,10 @@ by extending a fixed time window before and after each detection:</p>
 correctly:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Visualize all extracted motifs</span></span>
-<span><span class="fu"><a href="../reference/visualize_segments.html">visualize_segments</a></span><span class="op">(</span><span class="va">motifs</span>, </span>
-<span>                   wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
-<span>                   n_samples <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">motifs</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/visualize_segments.html">visualize_segments</a></span><span class="op">(</span><span class="va">motifs</span>,</span>
+<span>  wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
+<span>  n_samples <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">motifs</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span>
 <span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre></div>
 <p><img src="motif_detection_files/figure-html/visualize-motifs-1.png" class="r-plt" alt="" width="100%"></p>
@@ -457,6 +490,7 @@ correctly:</p>
 </ul>
 <p>If issues are found, <strong>iterate back through Steps 3-6</strong>
 with adjusted parameters.</p>
+<hr>
 </div>
 </div>
 <div class="section level2">
@@ -471,6 +505,7 @@ structure:</p>
 <p><img src="motif_detection_files/figure-html/plot-heatmap-1.png" class="r-plt" alt="" width="100%"></p>
 <p>A well-detected set of motifs will show consistent vertical banding
 patterns corresponding to syllables across all renditions.</p>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
@@ -584,42 +619,12 @@ data</li>
 Motif Detection</strong></a> - Applying optimized templates across
 multiple recordings</li>
 </ul>
-<p>Here’s a preview of the SAP object pipeline using the parameters we
-optimized above:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create SAP object from organized recording folders</span></span>
-<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_sap_object.html">create_sap_object</a></span><span class="op">(</span></span>
-<span>  base_path <span class="op">=</span> <span class="st">"/path/to/recordings"</span>,</span>
-<span>  subfolders_to_include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"190"</span>, <span class="st">"201"</span>, <span class="st">"203"</span><span class="op">)</span>,</span>
-<span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BL"</span>, <span class="st">"Post"</span>, <span class="st">"Rec"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Run motif detection pipeline with optimized parameters</span></span>
-<span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/create_audio_clip.html">create_audio_clip</a></span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span>, start_time <span class="op">=</span> <span class="fl">1</span>, end_time <span class="op">=</span> <span class="fl">2.5</span>, </span>
-<span>                    clip_names <span class="op">=</span> <span class="st">"m1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/create_template.html">create_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, clip_name <span class="op">=</span> <span class="st">"m1"</span>,</span>
-<span>                  start_time <span class="op">=</span> <span class="fl">0.72</span>, end_time <span class="op">=</span> <span class="fl">0.84</span>,  <span class="co"># Optimized</span></span>
-<span>                  freq_min <span class="op">=</span> <span class="fl">1</span>, freq_max <span class="op">=</span> <span class="fl">10</span>, </span>
-<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,            <span class="co"># Filter low-scoring matches</span></span>
-<span>                  write_template <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/detect_template.html">detect_template</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>,</span>
-<span>                  threshold <span class="op">=</span> <span class="fl">0.5</span>,            <span class="co"># Can adjust threshold here too</span></span>
-<span>                  proximity_window <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span>    <span class="co"># Remove duplicate detections</span></span>
-<span>  <span class="fu"><a href="../reference/find_motif.html">find_motif</a></span><span class="op">(</span>template_name <span class="op">=</span> <span class="st">"d"</span>, pre_time <span class="op">=</span> <span class="fl">0.7</span>, lag_time <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/analyze_spectral.html">analyze_spectral</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/find_clusters.html">find_clusters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualize results</span></span>
-<span><span class="va">sap</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/plot_heatmap.html">plot_heatmap</a></span><span class="op">(</span>balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/plot_umap.html">plot_umap</a></span><span class="op">(</span>split.by <span class="op">=</span> <span class="st">"label"</span><span class="op">)</span></span></code></pre></div>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.3 (2026-03-11)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>

@@ -11,13 +11,13 @@ Learn ASAP functions using individual audio files.
 
 [](https://lxiao06.github.io/ASAP/articles/single_wav_analysis.md)
 
-![Basic audio analysis — amplitude envelope and
-spectrogram](figures/basic_audio_analysis.png)
+![Overview vignette showing spectrogram-based audio
+exploration](figures/basic_audio_analysis.png)
 
-Overview & Basic Audio Analysis
+Overview: ASAP 101
 
-Load WAV files, visualise spectrograms, and explore the basic audio
-analysis tools that underpin the ASAP workflow.
+Load a WAV file, visualise spectrograms, detect bouts, segment
+syllables, and export an example bout clip.
 
 Beginner · ~10 min
 
@@ -31,6 +31,17 @@ Build a cross-correlation template, detect motif occurrences in a single
 recording, and review the detected segments.
 
 Beginner · ~15 min
+
+[](https://lxiao06.github.io/ASAP/articles/acoustic_feature_analysis.md)
+
+![Spectral entropy analysis plot](figures/acoustic_feature_analysis.png)
+
+Acoustic Feature Analysis
+
+Measure spectral entropy, extract pitch contours, and compare
+amplitude-envelope structure from individual song segments.
+
+Beginner · ~10 min
 
 Longitudinal Recording Analysis with SAP Object
 
