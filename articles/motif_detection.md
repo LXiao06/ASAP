@@ -24,6 +24,7 @@ completing:
 1.  How to choose a good reference motif from a single recording
 2.  How to create and test a syllable template for motif detection
 3.  How to verify extracted motifs with spectrograms and heatmaps
+4.  How to export detected motifs as standalone clips
 
 ------------------------------------------------------------------------
 
@@ -335,6 +336,87 @@ patterns corresponding to syllables across all renditions.
 
 ------------------------------------------------------------------------
 
+## 8. Export Motif Clips
+
+Once you are satisfied with the detected motif boundaries, you can
+export each motif as its own WAV file. This is useful for manual review,
+sharing examples, or preparing a small set of motif clips for downstream
+analysis.
+
+### Step 1: Create a temporary export directory
+
+``` r
+# Create a temporary directory for exported motif clips
+motif_export_dir <- file.path(tempdir(), "asap_motif_export")
+dir.create(motif_export_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Initialize objects filled in by the export step
+motif_export_meta <- NULL
+exported_motif_files <- character(0)
+```
+
+### Step 2: Export all detected motifs
+
+[`create_motif_clips()`](https://lxiao06.github.io/ASAP/reference/create_motif_clips.md)
+reads the detected motif table and writes one WAV file per motif. For
+this example recording, the three detected motifs are small enough that
+we can export all of them.
+
+``` r
+if (!is.null(motifs) && nrow(motifs) > 0) {
+  motif_export_meta <- create_motif_clips(
+    motifs,
+    wav_dir = dirname(wav_file),
+    output_dir = motif_export_dir,
+    output_format = "wav",
+    write_metadata = FALSE,
+    verbose = FALSE
+  )
+}
+```
+
+### Step 3: Review the export metadata
+
+The returned metadata table tracks the original motif boundaries and the
+output path of each generated file.
+
+``` r
+if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
+  exported_motif_files <- motif_export_meta$output_path
+
+  knitr::kable(
+    motif_export_meta[, c("clip_id", "start_time", "end_time", "duration", "output_path")],
+    digits = 3
+  )
+}
+```
+
+| clip_id   | start_time | end_time | duration | output_path                                                                     |
+|:----------|-----------:|---------:|---------:|:--------------------------------------------------------------------------------|
+| motif_001 |       1.06 |     2.26 |      1.2 | /tmp/RtmpJQANsf/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 |       2.37 |     3.57 |      1.2 | /tmp/RtmpJQANsf/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 |       3.96 |     5.16 |      1.2 | /tmp/RtmpJQANsf/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+
+### Step 4: Visualize the exported motif files
+
+Because this example only contains three motifs, we can inspect every
+exported clip directly.
+
+``` r
+if (length(exported_motif_files) > 0) {
+  for (i in seq_along(exported_motif_files)) {
+    visualize_song(exported_motif_files[i])
+  }
+}
+#> Song visualization completed for: motif_001.wav
+#> Song visualization completed for: motif_002.wav
+#> Song visualization completed for: motif_003.wav
+```
+
+![](motif_detection_files/figure-html/visualize-exported-motifs-1.png)![](motif_detection_files/figure-html/visualize-exported-motifs-2.png)![](motif_detection_files/figure-html/visualize-exported-motifs-3.png)
+
+------------------------------------------------------------------------
+
 ## Summary
 
 This vignette demonstrated the core ASAP workflow for finding motifs in
@@ -351,6 +433,7 @@ results are satisfactory.
 | 5    | [`find_motif()`](https://lxiao06.github.io/ASAP/reference/find_motif.md)                 | Define motif boundaries around detections     |
 | 6    | [`visualize_segments()`](https://lxiao06.github.io/ASAP/reference/visualize_segments.md) | View extracted motif spectrograms             |
 | 7    | [`plot_heatmap()`](https://lxiao06.github.io/ASAP/reference/plot_heatmap.md)             | Visualize amplitude envelope patterns         |
+| 8    | [`create_motif_clips()`](https://lxiao06.github.io/ASAP/reference/create_motif_clips.md) | Export detected motifs as WAV clips           |
 
 ### Key Parameters Reference
 

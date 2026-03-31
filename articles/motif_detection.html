@@ -89,6 +89,7 @@ ASAP functions</li>
 <li>How to choose a good reference motif from a single recording</li>
 <li>How to create and test a syllable template for motif detection</li>
 <li>How to verify extracted motifs with spectrograms and heatmaps</li>
+<li>How to export detected motifs as standalone clips</li>
 </ol>
 <hr>
 </div>
@@ -508,6 +509,115 @@ patterns corresponding to syllables across all renditions.</p>
 <hr>
 </div>
 <div class="section level2">
+<h2 id="export-motif-clips">8. Export Motif Clips<a class="anchor" aria-label="anchor" href="#export-motif-clips"></a>
+</h2>
+<p>Once you are satisfied with the detected motif boundaries, you can
+export each motif as its own WAV file. This is useful for manual review,
+sharing examples, or preparing a small set of motif clips for downstream
+analysis.</p>
+<div class="section level3">
+<h3 id="step-1-create-a-temporary-export-directory">Step 1: Create a temporary export directory<a class="anchor" aria-label="anchor" href="#step-1-create-a-temporary-export-directory"></a>
+</h3>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create a temporary directory for exported motif clips</span></span>
+<span><span class="va">motif_export_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"asap_motif_export"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">motif_export_dir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Initialize objects filled in by the export step</span></span>
+<span><span class="va">motif_export_meta</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
+<span><span class="va">exported_motif_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="step-2-export-all-detected-motifs">Step 2: Export all detected motifs<a class="anchor" aria-label="anchor" href="#step-2-export-all-detected-motifs"></a>
+</h3>
+<p><code><a href="../reference/create_motif_clips.html">create_motif_clips()</a></code> reads the detected motif table and
+writes one WAV file per motif. For this example recording, the three
+detected motifs are small enough that we can export all of them.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">motifs</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">motifs</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">motif_export_meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_motif_clips.html">create_motif_clips</a></span><span class="op">(</span></span>
+<span>    <span class="va">motifs</span>,</span>
+<span>    wav_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span>,</span>
+<span>    output_dir <span class="op">=</span> <span class="va">motif_export_dir</span>,</span>
+<span>    output_format <span class="op">=</span> <span class="st">"wav"</span>,</span>
+<span>    write_metadata <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="step-3-review-the-export-metadata">Step 3: Review the export metadata<a class="anchor" aria-label="anchor" href="#step-3-review-the-export-metadata"></a>
+</h3>
+<p>The returned metadata table tracks the original motif boundaries and
+the output path of each generated file.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">motif_export_meta</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">motif_export_meta</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">exported_motif_files</span> <span class="op">&lt;-</span> <span class="va">motif_export_meta</span><span class="op">$</span><span class="va">output_path</span></span>
+<span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>    <span class="va">motif_export_meta</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clip_id"</span>, <span class="st">"start_time"</span>, <span class="st">"end_time"</span>, <span class="st">"duration"</span>, <span class="st">"output_path"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>    digits <span class="op">=</span> <span class="fl">3</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="8%">
+<col width="9%">
+<col width="7%">
+<col width="7%">
+<col width="67%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">clip_id</th>
+<th align="right">start_time</th>
+<th align="right">end_time</th>
+<th align="right">duration</th>
+<th align="left">output_path</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">motif_001</td>
+<td align="right">1.06</td>
+<td align="right">2.26</td>
+<td align="right">1.2</td>
+<td align="left">/tmp/RtmpJQANsf/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav</td>
+</tr>
+<tr class="even">
+<td align="left">motif_002</td>
+<td align="right">2.37</td>
+<td align="right">3.57</td>
+<td align="right">1.2</td>
+<td align="left">/tmp/RtmpJQANsf/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav</td>
+</tr>
+<tr class="odd">
+<td align="left">motif_003</td>
+<td align="right">3.96</td>
+<td align="right">5.16</td>
+<td align="right">1.2</td>
+<td align="left">/tmp/RtmpJQANsf/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="step-4-visualize-the-exported-motif-files">Step 4: Visualize the exported motif files<a class="anchor" aria-label="anchor" href="#step-4-visualize-the-exported-motif-files"></a>
+</h3>
+<p>Because this example only contains three motifs, we can inspect every
+exported clip directly.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">exported_motif_files</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">exported_motif_files</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="../reference/visualize_song.html">visualize_song</a></span><span class="op">(</span><span class="va">exported_motif_files</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; Song visualization completed for: motif_001.wav</span></span>
+<span><span class="co">#&gt; Song visualization completed for: motif_002.wav</span></span>
+<span><span class="co">#&gt; Song visualization completed for: motif_003.wav</span></span></code></pre></div>
+<p><img src="motif_detection_files/figure-html/visualize-exported-motifs-1.png" class="r-plt" alt="" width="100%"><img src="motif_detection_files/figure-html/visualize-exported-motifs-2.png" class="r-plt" alt="" width="100%"><img src="motif_detection_files/figure-html/visualize-exported-motifs-3.png" class="r-plt" alt="" width="100%"></p>
+<hr>
+</div>
+</div>
+<div class="section level2">
 <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>
 <p>This vignette demonstrated the core ASAP workflow for finding motifs
@@ -560,6 +670,11 @@ repeated until detection results are satisfactory.</p>
 <td>7</td>
 <td><code><a href="../reference/plot_heatmap.html">plot_heatmap()</a></code></td>
 <td>Visualize amplitude envelope patterns</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td><code><a href="../reference/create_motif_clips.html">create_motif_clips()</a></code></td>
+<td>Export detected motifs as WAV clips</td>
 </tr>
 </tbody>
 </table>
@@ -624,7 +739,7 @@ multiple recordings</li>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.3 (2026-03-11)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
