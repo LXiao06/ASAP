@@ -19,11 +19,25 @@ knitr::opts_chunk$set(
 
 ## Introduction
 
-This vignette focuses on acoustic measurements you can extract from a single
-recording after identifying bouts or syllables of interest. It pairs naturally
-with [Overview: ASAP 101](single_wav_analysis.html) and can also be used after
-[Motif Detection](motif_detection.html) when you want to inspect the structure
-of selected song segments in more detail.
+This vignette covers three ASAP functions for examining acoustic structure within
+a single recording: `spectral_entropy()`, `FF()`, and `amp_env()`.
+
+- **`spectral_entropy()`** measures how tonal or noisy a sound is at each point
+  in time by quantifying how evenly power is spread across frequencies.
+  Zebra finch syllables are often highly structured and may show low entropy, 
+  especially for harmonic stack syllables or certain calls; in contrast, noisier 
+  syllables, broadband calls, or background noise tend to produce higher-entropy 
+  traces.
+- **`FF()`** tracks fundamental frequency (perceived pitch) over time. It is the
+  go-to tool for looking at pitch contours within a single syllable or comparing
+  pitch trajectories across many renditions.
+- **`amp_env()`** extracts the amplitude envelope, summarizing how the overall
+  intensity of sound rises and falls across the duration of a segment.
+
+The vignette walks through how to call each function on a simple time window
+(provide a file path and start/end times), and then shows how the same functions
+accept a segment data frame produced by `segment()` — a natural bridge toward
+population-level analysis with SAP objects.
 
 **Prerequisites**: Before reading this vignette, we recommend completing:
 
@@ -31,19 +45,47 @@ of selected song segments in more detail.
 
 **What you will learn**:
 
-1. How to measure spectral structure with entropy
-2. How to extract pitch contours from a single song segment
-3. How to compare amplitude-envelope shapes across bouts and syllables
+1. What kinds of data each function accepts
+2. How to measure spectral structure with entropy (Wiener and Shannon)
+3. How to extract pitch contours with the cepstrum method
+4. How to measure amplitude envelopes and reuse segment data frames for
+   feature analysis
 
 ---
 
-## Overview
+## Overview: What Data Do These Functions Accept?
 
-These feature-analysis functions are best used after you have already located a
-time window, bout, or syllable worth inspecting. Because this is a single-WAV
-tutorial, the vignette stays focused on a few small runnable examples rather
-than wrapping everything in a larger umbrella workflow. The aim is to show what
-each feature captures and how to interpret the resulting plots.
+All three functions share a common design: they dispatch on the class of their
+first argument, so you can pass different kinds of input without changing the
+function name.
+
+### `spectral_entropy()` and `FF()`
+
+| Input type | What to pass | Key extra argument |
+|---|---|---|
+| Single WAV file | Character path to `.wav` file | `start_time`, `end_time` (seconds) |
+| Segment data frame | Data frame with `filename`, `start_time`, `end_time` columns | `wav_dir` (directory containing the WAV files) |
+| SAP object | A `Sap` object | `segment_type`, sampling/filtering options |
+| Pre-computed matrix | An entropy or F0 matrix returned by a previous call | — (re-plots the stored matrix) |
+
+When `x` is a **character path**, `start_time` and `end_time` default to the
+full file duration if omitted.
+
+When `x` is a **data frame**, it must contain at least `filename`, `start_time`,
+and `end_time` columns. A single-row data frame behaves identically to the WAV
+file method. A multi-row data frame triggers parallel processing and returns an
+aligned matrix.
+
+### `amp_env()`
+
+`amp_env()` always takes a **single-row data frame** (`segment_row`) — the row
+must contain at least `start_time` and `end_time`. Provide `wav_dir` when the
+WAV file directory is not embedded in the data frame as an attribute.
+
+```
+amp_env(segment_row, wav_dir = NULL, msmooth = NULL,
+        amp_normalize = c("none", "peak", "rms"), plot = FALSE)
+```
 
 ---
 
@@ -53,26 +95,8 @@ each feature captures and how to interpret the resulting plots.
 library(ASAP)
 
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
-
-bouts <- find_bout(
-  wav_file,
-  rms_threshold = 0.1,
-  min_duration = 0.7,
-  plot = FALSE
-)
-
-syllables <- segment(
-  wav_file,
-  start_time = 1,
-  end_time = 5,
-  flim = c(1, 8),
-  silence_threshold = 0.01,
-  min_syllable_ms = 20,
-  max_syllable_ms = 240,
-  min_level_db = 10,
-  verbose = FALSE,
-  plot = FALSE
-)
+analysis_start <- 1.5
+analysis_end <- 2.5
 ```
 
 ---
@@ -83,26 +107,76 @@ Spectral entropy measures how structured or noisy the frequency distribution is
 within a sound segment. Harmonic syllables tend to have lower entropy, while
 broader-band noisy sounds tend to have higher entropy.
 
-```{r spectral-entropy, fig.height=5}
-entropy_result <- spectral_entropy(
+### Choosing `method` and `normalize`
+
+Two arguments control what the trace looks like:
+
+- **`method`**: `"wiener"` (default) quantifies spectral flatness — more negative
+  values mean more structured sound, 0 means noise-like. `"shannon"` quantifies
+  information content — higher values reflect more uniform spectral energy.
+- **`normalize`**: `FALSE` returns the native scale; `TRUE` rescales the output
+  to 0–1, making it easier to compare plots across different recordings or methods.
+
+These arguments are independent — you can use either method with or without
+normalization:
+
+```{r spectral-entropy-wiener-raw, fig.height=5}
+# Wiener entropy, native scale
+wiener_raw <- spectral_entropy(
   wav_file,
-  start_time = 1.5,
-  end_time = 2.5,
-  method = "wiener",
-  normalize = TRUE,
-  plot = TRUE
+  start_time = analysis_start,
+  end_time   = analysis_end,
+  method     = "wiener",
+  normalize  = FALSE,
+  plot       = TRUE
 )
 ```
 
-### Interpreting entropy values
+```{r spectral-entropy-wiener-norm, fig.height=5}
+# Wiener entropy, normalized to 0–1
+wiener_norm <- spectral_entropy(
+  wav_file,
+  start_time = analysis_start,
+  end_time   = analysis_end,
+  method     = "wiener",
+  normalize  = TRUE,
+  plot       = TRUE
+)
+```
 
-- **Low entropy (near 0)**: Structured, harmonic sounds
-- **High entropy (near 1)**: Noisy, unstructured sounds
+```{r spectral-entropy-shannon-raw, fig.height=5}
+# Shannon entropy, native scale
+shannon_raw <- spectral_entropy(
+  wav_file,
+  start_time = analysis_start,
+  end_time   = analysis_end,
+  method     = "shannon",
+  normalize  = FALSE,
+  plot       = TRUE
+)
+```
 
-### Available methods
+```{r spectral-entropy-shannon-norm, fig.height=5}
+# Shannon entropy, normalized to 0–1
+shannon_norm <- spectral_entropy(
+  wav_file,
+  start_time = analysis_start,
+  end_time   = analysis_end,
+  method     = "shannon",
+  normalize  = TRUE,
+  plot       = TRUE
+)
+```
 
-- `"wiener"`: Ratio of geometric to arithmetic mean
-- `"shannon"`: Information-theoretic entropy
+### Argument guide
+
+| Argument | Options | How to think about it |
+|---|---|---|
+| `method` | `"wiener"` or `"shannon"` | Use Wiener for spectral flatness (classic bioacoustics metric); use Shannon for information-content style entropy |
+| `normalize` | `FALSE` or `TRUE` | Use `FALSE` to keep the native scale; use `TRUE` for a 0–1 scale that is easier to compare across plots |
+
+All four combinations of `method` × `normalize` are valid; pick whichever suits
+your analysis question.
 
 ### Quality check
 
@@ -115,84 +189,198 @@ silence.
 
 ## 2. Fundamental Frequency (Pitch) Analysis
 
-The `FF()` function extracts the fundamental frequency contour, which describes
-how perceived pitch changes over time.
+The `FF()` function extracts the fundamental frequency contour, showing how
+perceived pitch changes over time.
 
-```{r fundamental-frequency, fig.height=5}
-pitch_result <- FF(
+The two most important arguments for a single recording are:
+
+- `method`: `"cepstrum"` or `"yin"`
+- `fmax`: the upper pitch limit to search (Hz)
+
+### Cepstrum method
+
+`"cepstrum"` is the default and the easiest place to start. It is fast and
+works well for quick inspection of tonal syllables.
+
+```{r ff-cepstrum, fig.height=5}
+pitch_cepstrum <- FF(
   wav_file,
-  start_time = 1.5,
-  end_time = 2.5,
-  method = "cepstrum",
-  fmax = 1400,
-  threshold = 10,
-  plot = TRUE
+  start_time = analysis_start,
+  end_time   = analysis_end,
+  method     = "cepstrum",
+  fmax       = 1400,
+  threshold  = 10,
+  plot       = TRUE
 )
 ```
 
-### Key parameters
+### YIN method
 
-- `fmax`: Maximum fundamental frequency to detect
-- `threshold`: Higher values filter out uncertain estimates
-- `method`: `"cepstrum"` (default) or `"yin"`
+`"yin"` can be more robust for some signals, but it requires Python
+dependencies through `reticulate`, including `librosa` and `numpy`.
+
+```{r ff-yin, fig.height=5}
+# ASAP attempts to auto-install librosa/numpy via reticulate when needed.
+# This chunk runs only when Python and its dependencies are available;
+# it skips gracefully otherwise (e.g. on CRAN or CI build servers).
+has_yin <- tryCatch({
+  requireNamespace("reticulate", quietly = TRUE) &&
+    reticulate::py_module_available("librosa") &&
+    reticulate::py_module_available("numpy")
+}, error = function(e) FALSE)
+
+if (has_yin) {
+  pitch_yin <- FF(
+    wav_file,
+    start_time = analysis_start,
+    end_time   = analysis_end,
+    method     = "yin",
+    fmax       = 1400,
+    threshold  = 10,
+    plot       = TRUE
+  )
+} else {
+  message("YIN method requires Python with librosa and numpy. Skipping.")
+}
+```
+
+### Argument guide
+
+| Argument | Options | How to think about it |
+|---|---|---|
+| `method` | `"cepstrum"` or `"yin"` | Start with `cepstrum`; try `yin` if you want an alternative pitch tracker and have Python dependencies installed |
+| `fmax` | Numeric upper limit in Hz | Raise it if the contour clips too low; lower it to reduce implausibly high estimates |
+| `threshold` | Confidence filter (%) | Higher values remove uncertain estimates but may introduce gaps |
 
 ### The result contains
 
-- `f0`: Fundamental frequency values over time
-- `time`: Corresponding time stamps
-
-### Tuning tips
-
-| Parameter | Role | Typical effect |
-|-----------|------|----------------|
-| `fmax` | Upper bound for pitch search | Raise it if the contour clips at the top; lower it to avoid implausibly high estimates |
-| `threshold` | Confidence filter | Higher values remove uncertain estimates but may leave gaps |
-| `method` | Pitch extraction algorithm | `"cepstrum"` is a good default for quick inspection |
+- `f0`: Fundamental frequency values over time (kHz)
+- `time`: Corresponding time stamps (seconds)
 
 ---
 
-## 3. Amplitude Envelope
+## 3. Amplitude Envelope from a Syllable Data Frame
 
-The amplitude envelope summarizes how sound intensity changes over time. This is
-useful for comparing bout or syllable shapes after you have segmented them.
+The amplitude envelope summarizes how sound intensity changes over time.
+`amp_env()` takes a single-row segment data frame with `filename`, `start_time`,
+and `end_time` columns. A syllable data frame from `segment()` is a simple way
+to create that input.
 
-### Bout-level envelope
+### Step 1: Segment a small time window into syllables
 
-```{r amplitude-envelope-bout, fig.height=4}
-if (!is.null(bouts) && nrow(bouts) >= 1) {
-  env_bout <- amp_env(
-    bouts[1, ],
-    wav_dir = dirname(wav_file),
-    msmooth = c(256, 50),
-    amp_normalize = "peak",
-    plot = TRUE
-  )
+```{r amplitude-envelope-segment}
+syllables <- segment(
+  wav_file,
+  start_time         = 1,
+  end_time           = 5,
+  flim               = c(1, 8),
+  silence_threshold  = 0.01,
+  min_syllable_ms    = 20,
+  max_syllable_ms    = 240,
+  min_level_db       = 10,
+  verbose            = FALSE,
+  plot               = FALSE
+)
+
+knitr::kable(head(syllables), digits = 3)
+```
+
+### Step 2: Choose one syllable row
+
+```{r amplitude-envelope-row}
+example_syllable <- NULL
+if (!is.null(syllables) && nrow(syllables) >= 1) {
+  example_syllable <- syllables[1, , drop = FALSE]
+  knitr::kable(example_syllable, digits = 3)
 }
 ```
 
-### Syllable-level envelope
+### Step 3: Extract the envelope
 
 ```{r amplitude-envelope-syllable, fig.height=4}
-if (!is.null(syllables) && nrow(syllables) >= 1) {
+if (!is.null(example_syllable)) {
   env_syl <- amp_env(
-    syllables[1, ],
-    wav_dir = dirname(wav_file),
-    msmooth = c(256, 50),
+    example_syllable,
+    wav_dir       = dirname(wav_file),
+    msmooth       = c(256, 50),
     amp_normalize = "peak",
-    plot = TRUE
+    plot          = TRUE
   )
 }
 ```
 
-### Smoothing parameters
+### Smoothing and normalization
 
-The `msmooth` argument controls envelope smoothing:
+- **`msmooth`**: a length-2 vector `c(window_samples, overlap_percent)`. Larger
+  windows smooth out fine-grained amplitude fluctuations; smaller windows
+  preserve rapid transients.
+- **`amp_normalize`**: `"none"` keeps the raw scale; `"peak"` scales to the
+  maximum amplitude (good for comparing envelope shapes); `"rms"` scales by
+  RMS energy (good for comparing absolute loudness).
 
-- First value: Window length in samples
-- Second value: Overlap percentage
+### Argument guide
 
-Smoother envelopes are useful for broad temporal structure, while lighter
-smoothing preserves fine timing differences between syllables.
+| Argument | Options | How to think about it |
+|---|---|---|
+| `segment_row` | Single-row data frame | Must contain `filename`, `start_time`, `end_time` |
+| `wav_dir` | Path string | Directory containing the WAV files |
+| `msmooth` | Numeric vector c(window, overlap) | Larger window = smoother envelope; smaller = more temporal detail |
+| `amp_normalize` | `"none"`, `"peak"`, `"rms"` | Use `"peak"` when comparing envelope shapes across segments |
+
+---
+
+## 4. Add-on: Entropy and Pitch from a Segment Data Frame
+
+The same syllable table can also be passed directly to `spectral_entropy()` and
+`FF()`. This is useful when you want to analyze a set of detected segments
+instead of manually specifying `start_time` and `end_time` for each one.
+
+### Step 1: Select a few syllable rows
+
+```{r feature-data-frame-rows}
+example_syllables <- NULL
+if (!is.null(syllables) && nrow(syllables) >= 3) {
+  example_syllables <- syllables[1:3, ]
+  knitr::kable(example_syllables, digits = 3)
+}
+```
+
+### Step 2: Run spectral entropy on the data frame
+
+The same `method` and `normalize` arguments from the single-file examples
+apply here. Mix and match freely — for example, try `method = "shannon"` with
+`normalize = FALSE` if you prefer the information-content scale.
+
+```{r spectral-entropy-data-frame, fig.height=5}
+if (!is.null(example_syllables)) {
+  entropy_df <- spectral_entropy(
+    example_syllables,
+    wav_dir   = dirname(wav_file),
+    method    = "wiener",
+    normalize = TRUE,
+    plot      = TRUE
+  )
+}
+```
+
+### Step 3: Run pitch analysis on the data frame
+
+For data-frame input, `FF()` aligns the selected segments onto a common time
+axis and returns a multi-segment result. The `method`, `fmax`, and `threshold`
+arguments work the same way as for a single WAV file.
+
+```{r ff-data-frame, fig.height=5}
+if (!is.null(example_syllables)) {
+  pitch_df <- FF(
+    example_syllables,
+    wav_dir   = dirname(wav_file),
+    method    = "cepstrum",
+    fmax      = 1400,
+    threshold = 10,
+    plot      = TRUE
+  )
+}
+```
 
 ---
 
@@ -201,11 +389,11 @@ smoothing preserves fine timing differences between syllables.
 These three functions provide a compact toolkit for exploring acoustic
 variation in a single recording:
 
-| Function | What it captures |
-|----------|------------------|
-| `spectral_entropy()` | Spectral structure or noisiness |
-| `FF()` | Pitch contour over time |
-| `amp_env()` | Amplitude dynamics within bouts or syllables |
+| Function | What it captures | Primary input types |
+|---|---|---|
+| `spectral_entropy()` | Spectral structure or noisiness | WAV path, data frame, SAP object, pre-computed matrix |
+| `FF()` | Pitch contour over time | WAV path, data frame, SAP object, pre-computed matrix |
+| `amp_env()` | Amplitude dynamics within a segment | Single-row data frame |
 
 For motif-scale acoustic analysis across many recordings, continue to the SAP
 object workflow starting with [Constructing SAP Object](construct_sap_object.html).
