@@ -132,7 +132,7 @@ detected motifs at once. Consistent spectrogram structure across panels
 confirms the offset is correctly aligned before committing it to the
 feature-extraction loop.
 
-```{r visualize-syllable-windows, fig.height=4, fig.width=1.5}
+```{r visualize-syllable-windows, fig.height=4, fig.width=1.5, out.width='30%'}
 visualize_segments(syl_windows,
   wav_dir   = wav_dir,
   n_samples = nrow(syl_windows)
