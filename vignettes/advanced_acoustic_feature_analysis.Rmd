@@ -1,0 +1,393 @@
+---
+title: "Advanced Acoustic Feature Analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Advanced Acoustic Feature Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 5,
+  out.width = "100%"
+)
+```
+
+## Introduction
+
+This vignette demonstrates an end-to-end workflow for extracting quantitative
+acoustic features from a set of detected song motifs. The pipeline has two
+phases:
+
+1. **Motif detection** — run template-based detection on a single WAV file,
+   define motif boundaries with `find_motif()`, and identify a syllable of
+   interest within the motif.
+2. **Feature extraction** — iterate over every detected motif and measure
+   spectral entropy, fundamental frequency, and amplitude envelope within the
+   selected syllable window; then summarize and plot how those features change
+   across consecutive renditions.
+
+The emphasis throughout is on structuring the output as tidy data frames that
+are immediately ready for downstream statistical analysis.
+
+**Prerequisites**: Before reading this vignette, we recommend completing:
+
+- [Overview: ASAP 101](single_wav_analysis.html)
+- [Motif Detection](motif_detection.html)
+- [Acoustic Feature Analysis](acoustic_feature_analysis.html)
+
+**What you will learn**:
+
+1. How to recap motif detection in a few key lines
+2. How to define a syllable window of interest relative to motif boundaries
+3. How to iterate `spectral_entropy()`, `FF()`, and `amp_env()` over all
+   motifs to build a per-motif feature table
+4. How to summarize and visualize feature trajectories across renditions
+
+---
+
+## Setup
+
+```{r setup}
+library(ASAP)
+
+wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
+wav_dir  <- dirname(wav_file)
+```
+
+---
+
+## Phase 1: Motif Detection
+
+The visualization and parameter-tuning steps are covered in detail in the
+[Motif Detection](motif_detection.html) vignette. Here we recap only the
+core lines needed to produce the `motifs` table that drives Phase 2.
+
+```{r motif-detection}
+# 1. Extract a reference clip and build a template from syllable "d"
+clip_path <- create_audio_clip(wav_file, start_time = 1, end_time = 2.5)
+
+template <- create_template(clip_path,
+  template_name  = "d",
+  start_time     = 0.72,
+  end_time       = 0.84,
+  freq_min       = 1,
+  freq_max       = 10,
+  write_template = FALSE
+)
+
+# 2. Detect template occurrences across the full recording
+template_matches <- detect_template(
+  x                = wav_file,
+  template         = template,
+  proximity_window = 1,
+  save_plot        = FALSE
+)
+
+# 3. Expand each detection into full-motif boundaries
+motifs <- find_motif(template_matches,
+  pre_time = 0.7,
+  lag_time = 0.5,
+  wav_dir  = wav_dir
+)
+
+knitr::kable(motifs, digits = 3)
+```
+
+---
+
+## Phase 2: Selecting a Syllable Window of Interest
+
+Rather than analyzing the entire motif, we focus on a specific syllable to
+reduce noise and make comparisons more precise. We define the syllable window
+as a fixed offset **relative to each motif's `start_time`**.
+
+Based on visual inspection of the motif spectrogram (see the
+[Motif Detection](motif_detection.html) vignette), syllable "e" falls
+roughly 0.78–0.85 s after the motif onset. We encode these offsets once so
+they are applied consistently across every motif row.
+
+```{r syllable-window}
+# Offsets from each motif's start_time (seconds) — syllable "e"
+syl_pre  <- 0.78   # syllable onset relative to motif start
+syl_post <- 0.85   # syllable offset relative to motif start
+
+# Build a per-motif data frame for the syllable window
+syl_windows <- motifs
+syl_windows$start_time <- motifs$start_time + syl_pre
+syl_windows$end_time   <- motifs$start_time + syl_post
+syl_windows$duration   <- syl_post - syl_pre
+
+knitr::kable(syl_windows[, c("filename", "start_time", "end_time", "duration")],
+             digits = 3)
+```
+
+Visualize the first motif's syllable "e" window to confirm the offset is
+correctly aligned before applying it to all renditions:
+
+```{r visualize-syllable-window, fig.height=4, fig.width=4, out.width="45%", fig.align="center"}
+visualize_song(wav_file,
+  start_time_in_second = syl_windows$start_time[1],
+  end_time_in_second   = syl_windows$end_time[1]
+)
+```
+
+## Phase 3: Feature Extraction Across All Motifs
+
+We now iterate over every row of `syl_windows` and compute three features.
+Each function accepts a single-row data frame plus `wav_dir`, so the pattern
+is uniform for all three.
+
+### 3a. Spectral Entropy
+
+```{r entropy-loop}
+entropy_results <- vector("list", nrow(syl_windows))
+
+for (i in seq_len(nrow(syl_windows))) {
+  row <- syl_windows[i, , drop = FALSE]
+
+  # spectral_entropy() returns a 2-column matrix: [time, entropy]
+  ent_mat <- spectral_entropy(
+    row,
+    wav_dir    = wav_dir,
+    method     = "wiener",
+    normalize  = FALSE,
+    plot       = FALSE
+  )
+
+  entropy_results[[i]] <- data.frame(
+    motif_index  = i,
+    start_time   = row$start_time,
+    mean_entropy = mean(ent_mat[, 2], na.rm = TRUE),
+    sd_entropy   = sd(ent_mat[, 2],   na.rm = TRUE)
+  )
+}
+
+entropy_df <- do.call(rbind, entropy_results)
+knitr::kable(entropy_df, digits = 4)
+```
+
+### 3b. Fundamental Frequency
+
+```{r ff-loop}
+ff_results <- vector("list", nrow(syl_windows))
+
+for (i in seq_len(nrow(syl_windows))) {
+  row <- syl_windows[i, , drop = FALSE]
+
+  # FF() returns a 2-column matrix: [time, frequency (kHz)]
+  ff_mat <- FF(
+    row,
+    wav_dir   = wav_dir,
+    method    = "cepstrum",
+    fmax      = 1400,
+    threshold = 10,
+    plot      = FALSE
+  )
+
+  # Exclude zeros (unvoiced frames)
+  voiced <- ff_mat[ff_mat[, 2] > 0, 2]
+
+  ff_results[[i]] <- data.frame(
+    motif_index = i,
+    start_time  = row$start_time,
+    mean_ff_kHz = ifelse(length(voiced) > 0, mean(voiced, na.rm = TRUE), NA_real_),
+    sd_ff_kHz   = ifelse(length(voiced) > 0, sd(voiced,   na.rm = TRUE), NA_real_)
+  )
+}
+
+ff_df <- do.call(rbind, ff_results)
+knitr::kable(ff_df, digits = 4)
+```
+
+### 3c. Amplitude Envelope
+
+We summarize the envelope by its peak amplitude and the time-averaged RMS,
+which together capture both the loudness ceiling and the mean energy.
+
+```{r env-loop}
+env_results <- vector("list", nrow(syl_windows))
+
+for (i in seq_len(nrow(syl_windows))) {
+  row <- syl_windows[i, , drop = FALSE]
+
+  # amp_env() returns a numeric vector of envelope values
+  env <- amp_env(
+    row,
+    wav_dir       = wav_dir,
+    msmooth       = c(256, 50),
+    amp_normalize = "peak",
+    plot          = FALSE
+  )
+
+  env_results[[i]] <- data.frame(
+    motif_index = i,
+    start_time  = row$start_time,
+    peak_amp    = max(env,             na.rm = TRUE),
+    mean_amp    = mean(env,            na.rm = TRUE),
+    rms_amp     = sqrt(mean(env^2,     na.rm = TRUE))
+  )
+}
+
+env_df <- do.call(rbind, env_results)
+knitr::kable(env_df, digits = 4)
+```
+
+---
+
+## Phase 4: Combine and Visualize Feature Trajectories
+
+Merge all three feature tables and look at how each metric changes across
+consecutive motif renditions.
+
+```{r combine-features}
+feature_df <- Reduce(
+  function(a, b) merge(a, b, by = c("motif_index", "start_time")),
+  list(entropy_df, ff_df, env_df)
+)
+
+knitr::kable(feature_df, digits = 4)
+```
+
+### Average entropy across renditions
+
+```{r plot-entropy, fig.height=4}
+plot(
+  feature_df$motif_index,
+  feature_df$mean_entropy,
+  type  = "b",
+  pch   = 16,
+  col   = "steelblue",
+  xlab  = "Motif index",
+  ylab  = "Mean Wiener entropy",
+  main  = "Spectral entropy across consecutive motif renditions",
+  xaxt  = "n"
+)
+axis(1, at = feature_df$motif_index)
+
+# ±1 SD ribbon
+arrows(
+  x0     = feature_df$motif_index,
+  y0     = feature_df$mean_entropy - feature_df$sd_entropy,
+  y1     = feature_df$mean_entropy + feature_df$sd_entropy,
+  length = 0.04,
+  angle  = 90,
+  code   = 3,
+  col    = "steelblue"
+)
+```
+
+### Mean fundamental frequency across renditions
+
+```{r plot-ff, fig.height=4}
+plot(
+  feature_df$motif_index,
+  feature_df$mean_ff_kHz,
+  type  = "b",
+  pch   = 16,
+  col   = "tomato",
+  xlab  = "Motif index",
+  ylab  = "Mean F0 (kHz)",
+  main  = "Fundamental frequency across consecutive motif renditions",
+  xaxt  = "n"
+)
+axis(1, at = feature_df$motif_index)
+
+arrows(
+  x0     = feature_df$motif_index,
+  y0     = feature_df$mean_ff_kHz - feature_df$sd_ff_kHz,
+  y1     = feature_df$mean_ff_kHz + feature_df$sd_ff_kHz,
+  length = 0.04,
+  angle  = 90,
+  code   = 3,
+  col    = "tomato"
+)
+```
+
+### Envelope amplitude across renditions
+
+```{r plot-env, fig.height=4}
+plot(
+  feature_df$motif_index,
+  feature_df$mean_amp,
+  type  = "b",
+  pch   = 16,
+  col   = "darkorange",
+  ylim  = range(c(feature_df$mean_amp, feature_df$peak_amp), na.rm = TRUE),
+  xlab  = "Motif index",
+  ylab  = "Amplitude (peak-normalized)",
+  main  = "Amplitude envelope across consecutive motif renditions",
+  xaxt  = "n"
+)
+axis(1, at = feature_df$motif_index)
+
+lines(feature_df$motif_index, feature_df$peak_amp,
+      type = "b", pch = 1, col = "darkorange", lty = 2)
+
+legend("topright",
+  legend = c("Mean amplitude", "Peak amplitude"),
+  col    = "darkorange",
+  pch    = c(16, 1),
+  lty    = c(1, 2),
+  bty    = "n"
+)
+```
+
+---
+
+## Exporting the Feature Table
+
+The combined `feature_df` is a standard R data frame ready for any downstream
+analysis — linear models, mixed effects models, or further visualization.
+
+```{r export-features, eval=FALSE}
+# Save as CSV for use in other tools or scripts
+write.csv(feature_df,
+  file      = "motif_features.csv",
+  row.names = FALSE
+)
+```
+
+---
+
+## Summary
+
+This vignette demonstrated a complete single-recording pipeline that bridges
+motif detection and acoustic feature analysis:
+
+| Phase | Key steps | Output |
+|---|---|---|
+| Motif detection | `detect_template()` → `find_motif()` | `motifs` data frame |
+| Syllable window | Fixed offset from `start_time` | `syl_windows` data frame |
+| Entropy | `spectral_entropy()` per row | Mean + SD per motif |
+| Pitch | `FF()` per row, voiced frames only | Mean F0 ± SD per motif |
+| Envelope | `amp_env()` per row | Peak, mean, RMS per motif |
+| Visualization | Base R `plot()` | Trajectory plots across renditions |
+
+The same pattern — iterate per row, collect scalar summaries, bind into a
+data frame — scales directly to larger datasets by replacing the `for` loop
+with `lapply()` or `parallel_apply()`, or by passing a multi-row data frame
+directly to `spectral_entropy()` or `FF()`.
+
+### Relationship to SAP generic functions
+
+This workflow — detect motifs, build syllable windows, iterate per-row feature
+extraction, collect scalar summaries — is exactly what the SAP-method generics
+(`spectral_entropy.Sap()`, `FF.Sap()`, `plot_heatmap.Sap()`) do internally.
+The difference is that the SAP methods wrap these steps into a single function
+call and extend them to handle multiple WAV files spread across multiple
+directories (one per day). Working through the single-file version here makes
+it easier to understand what those functions are doing under the hood and to
+interpret their outputs.
+
+---
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```

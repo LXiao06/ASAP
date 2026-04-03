@@ -168,6 +168,23 @@ vignette: >
     </div>
   </a>
 
+  <!-- Card 4 -->
+  <a class="gs-card" href="advanced_acoustic_feature_analysis.html">
+    <div class="gs-card-img-wrap">
+      <img src="figures/acoustic_feature_analysis.png"
+           alt="Feature trajectory plots across motif renditions">
+    </div>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Advanced Acoustic Feature Analysis</div>
+      <div class="gs-card-desc">
+        Detect motifs, define a syllable window of interest, and extract
+        entropy, pitch, and amplitude features across all renditions for
+        statistical analysis.
+      </div>
+      <span class="gs-card-tag">Intermediate &middot; ~20 min</span>
+    </div>
+  </a>
+
 </div>
 
 <!-- ══════════════════════════════════════════════════════════ -->
