@@ -7,39 +7,53 @@ a single zebra finch WAV file using ASAP’s template matching workflow. A
 motif is the stereotyped sequence of syllables that adult male zebra
 finches repeat during singing.
 
-**Purpose of this vignette**: This tutorial provides the fundamental
-concepts for template-based motif detection in ASAP. You’ll learn how to
-interactively optimize template parameters using a single recording
-before applying them to bulk processing. The emphasis is on developing a
-reliable “anchor” template that will serve as the foundation for
-detecting motifs across longitudinal recordings.
+This tutorial introduces the core logic of template-based motif
+detection in ASAP. The emphasis is on interactively optimizing a
+reliable “anchor” template using one recording before carrying the same
+strategy into longitudinal analysis.
 
-The workflow involves:
+**Prerequisites**: Before reading this vignette, we recommend
+completing:
 
-1.  **Visualizing the song** - Identify a clear motif rendition
-2.  **Creating an audio clip** - Extract a segment containing the motif
-3.  **Creating a template** - Select a distinctive syllable as an anchor
-    point
-4.  **Detecting the template** - Find all occurrences of the template
-5.  **Extracting motifs** - Define motif boundaries around template
-    detections
-6.  **Visualizing results** - View extracted motifs and amplitude
-    heatmaps
+- [Overview: ASAP
+  101](https://lxiao06.github.io/ASAP/dev/articles/single_wav_analysis.md) -
+  Basic ASAP functions
 
-> **Iterative Optimization**: Steps 3-6 should be repeated multiple
-> times to refine template parameters until reliable detection is
-> achieved. This optimization is crucial before proceeding to bulk
-> processing.
+**What you will learn**:
+
+1.  How to choose a good reference motif from a single recording
+2.  How to create and test a syllable template for motif detection
+3.  How to verify extracted motifs with spectrograms and heatmaps
+4.  How to export detected motifs as standalone clips
+
+------------------------------------------------------------------------
+
+## Overview
+
+Motif detection in ASAP is an iterative single-file workflow: identify a
+clear motif rendition, choose a distinctive anchor syllable, detect that
+template throughout the recording, and then inspect the extracted
+motifs. Unlike the SAP object tutorials, the goal here is not to present
+a full batch-processing pipeline. Instead, this vignette focuses on the
+small decisions that make a template robust before you scale up.
+
+> **Iterative optimization**: Steps 3-6 should usually be repeated more
+> than once. Refining the template is the most important part of getting
+> reliable motif boundaries later in longitudinal analysis.
+
+------------------------------------------------------------------------
 
 ## Setup
 
 ``` r
 library(ASAP)
-#> ASAP v0.3.4.9003 loaded.
+#> ASAP v0.3.5.9000 loaded.
 
 # Get path to example WAV file included with the package
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
 ```
+
+------------------------------------------------------------------------
 
 ## 1. Visualize the Song
 
@@ -57,14 +71,20 @@ We can see multiple motif renditions in this recording. Let’s zoom in on
 a clear section to identify a good reference motif:
 
 ``` r
-visualize_song(wav_file, 
-               start_time_in_second = 1, 
-               end_time_in_second = 2.5)
+visualize_song(wav_file,
+  start_time_in_second = 1,
+  end_time_in_second = 2.5
+)
 ```
 
 ![](motif_detection_files/figure-html/visualize-segment-1.png)
 
     #> Song visualization completed for: zf_example.wav
+
+This zoomed view helps you choose a clean motif rendition with clear
+syllable boundaries and minimal overlap from neighboring vocalizations.
+
+------------------------------------------------------------------------
 
 ## 2. Create an Audio Clip
 
@@ -75,14 +95,17 @@ complete motif.
 ``` r
 # Create an audio clip from the WAV file
 clip_path <- create_audio_clip(wav_file,
-                               start_time = 1,
-                               end_time = 2.5)
+  start_time = 1,
+  end_time = 2.5
+)
 #> Song clip clip_zf_example.wav is generated.
 
 # View the created clip path
 clip_path
 #> [1] "/home/runner/work/_temp/Library/ASAP/extdata/templates/clip_zf_example.wav"
 ```
+
+------------------------------------------------------------------------
 
 ## 3. Create a Template (Critical Step)
 
@@ -115,8 +138,9 @@ region:
 ``` r
 # First, visualize the template region
 visualize_song(wav_file,
-               start_time_in_second = 1 + 0.72,
-               end_time_in_second = 1 + 0.84)
+  start_time_in_second = 1 + 0.72,
+  end_time_in_second = 1 + 0.84
+)
 ```
 
 ![](motif_detection_files/figure-html/create-template-1.png)
@@ -128,12 +152,13 @@ Now create the template with specified frequency bounds:
 ``` r
 # Create the template
 template <- create_template(clip_path,
-                            template_name = "d",
-                            start_time = 0.72,
-                            end_time = 0.84,
-                            freq_min = 1,
-                            freq_max = 10,
-                            write_template = FALSE)
+  template_name = "d",
+  start_time = 0.72,
+  end_time = 0.84,
+  freq_min = 1,
+  freq_max = 10,
+  write_template = FALSE
+)
 ```
 
 ![](motif_detection_files/figure-html/make-template-1.png)
@@ -162,6 +187,17 @@ template <- create_template(clip_path,
 | `start_time/end_time` | Syllable boundaries   | Adjust to capture complete syllable without gaps             |
 | `freq_min/freq_max`   | Frequency range (kHz) | Narrow range reduces noise; 1-10 kHz typical for zebra finch |
 
+### Tuning tips
+
+- If the template matches too many unrelated sounds, narrow
+  `freq_min/freq_max` around the most distinctive part of the syllable.
+- If good motif renditions are being missed, expand the time window
+  slightly so the full syllable is captured.
+- Prefer a syllable that appears once per motif; repeated syllables are
+  more likely to produce ambiguous detections.
+
+------------------------------------------------------------------------
+
 ## 4. Detect Template Occurrences
 
 Now we search for all occurrences of this template throughout the
@@ -170,10 +206,12 @@ recording:
 ``` r
 # Run template detection on the original WAV file
 # proximity_window filters out multiple detections within the same motif
-template_matches <- detect_template(x = wav_file,
-                                    template = template,
-                                    proximity_window = 1,  # Filter detections within 1s
-                                    save_plot = FALSE)
+template_matches <- detect_template(
+  x = wav_file,
+  template = template,
+  proximity_window = 1, # Filter detections within 1s
+  save_plot = FALSE
+)
 
 # View detection results
 knitr::kable(template_matches, digits = 2)
@@ -209,6 +247,8 @@ If detection results are unsatisfactory, **return to Step 3** and try:
 - Adjusting time boundaries
 - Modifying frequency range
 
+------------------------------------------------------------------------
+
 ## 5. Extract Motif Boundaries
 
 Once we have reliable template detections, we define motif boundaries by
@@ -219,9 +259,10 @@ extending a fixed time window before and after each detection:
 # pre_time: how much before the template to include
 # lag_time: how much after the template to include
 motifs <- find_motif(template_matches,
-                     pre_time = 0.7,
-                     lag_time = 0.5,
-                     wav_dir = dirname(wav_file))
+  pre_time = 0.7,
+  lag_time = 0.5,
+  wav_dir = dirname(wav_file)
+)
 #> Processed zf_example.wav: 3/3 valid motifs (0 excluded)
 #> Total valid motifs found: 3 (excluded: 0)
 
@@ -242,6 +283,8 @@ knitr::kable(motifs, digits = 2)
 | `pre_time` | Time before template anchor | Should capture syllables preceding the anchor |
 | `lag_time` | Time after template anchor  | Should capture syllables following the anchor |
 
+------------------------------------------------------------------------
+
 ## 6. Visualize Detected Motifs
 
 Let’s visualize the detected motifs to verify our detection worked
@@ -249,9 +292,10 @@ correctly:
 
 ``` r
 # Visualize all extracted motifs
-visualize_segments(motifs, 
-                   wav_dir = dirname(wav_file),
-                   n_samples = min(nrow(motifs), 4))
+visualize_segments(motifs,
+  wav_dir = dirname(wav_file),
+  n_samples = min(nrow(motifs), 4)
+)
 #> Song visualization completed for: zf_example.wav
 #> Song visualization completed for: zf_example.wav
 ```
@@ -272,6 +316,8 @@ Examine the extracted motifs:
 If issues are found, **iterate back through Steps 3-6** with adjusted
 parameters.
 
+------------------------------------------------------------------------
+
 ## 7. Amplitude Envelope Heatmap
 
 Once satisfied with detection quality, create a heatmap of amplitude
@@ -287,6 +333,89 @@ plot_heatmap(motifs, wav_dir = dirname(wav_file))
 
 A well-detected set of motifs will show consistent vertical banding
 patterns corresponding to syllables across all renditions.
+
+------------------------------------------------------------------------
+
+## 8. Export Motif Clips
+
+Once you are satisfied with the detected motif boundaries, you can
+export each motif as its own WAV file. This is useful for manual review,
+sharing examples, or preparing a small set of motif clips for downstream
+analysis.
+
+### Step 1: Create a temporary export directory
+
+``` r
+# Create a temporary directory for exported motif clips
+motif_export_dir <- file.path(tempdir(), "asap_motif_export")
+dir.create(motif_export_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Initialize objects filled in by the export step
+motif_export_meta <- NULL
+exported_motif_files <- character(0)
+```
+
+### Step 2: Export all detected motifs
+
+[`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md)
+reads the detected motif table and writes one WAV file per motif. For
+this example recording, the three detected motifs are small enough that
+we can export all of them.
+
+``` r
+if (!is.null(motifs) && nrow(motifs) > 0) {
+  motif_export_meta <- create_motif_clips(
+    motifs,
+    wav_dir = dirname(wav_file),
+    output_dir = motif_export_dir,
+    output_format = "wav",
+    write_metadata = FALSE,
+    verbose = FALSE
+  )
+}
+```
+
+### Step 3: Review the export metadata
+
+The returned metadata table tracks the original motif boundaries and the
+output path of each generated file.
+
+``` r
+if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
+  exported_motif_files <- motif_export_meta$output_path
+
+  knitr::kable(
+    motif_export_meta[, c("clip_id", "start_time", "end_time", "duration", "output_path")],
+    digits = 3
+  )
+}
+```
+
+| clip_id   | start_time | end_time | duration | output_path                                                                     |
+|:----------|-----------:|---------:|---------:|:--------------------------------------------------------------------------------|
+| motif_001 |       1.06 |     2.26 |      1.2 | /tmp/RtmpihHyHA/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 |       2.37 |     3.57 |      1.2 | /tmp/RtmpihHyHA/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 |       3.96 |     5.16 |      1.2 | /tmp/RtmpihHyHA/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+
+### Step 4: Visualize the exported motif files
+
+Because this example only contains three motifs, we can inspect every
+exported clip directly.
+
+``` r
+if (length(exported_motif_files) > 0) {
+  for (i in seq_along(exported_motif_files)) {
+    visualize_song(exported_motif_files[i])
+  }
+}
+#> Song visualization completed for: motif_001.wav
+#> Song visualization completed for: motif_002.wav
+#> Song visualization completed for: motif_003.wav
+```
+
+![](motif_detection_files/figure-html/visualize-exported-motifs-1.png)![](motif_detection_files/figure-html/visualize-exported-motifs-2.png)![](motif_detection_files/figure-html/visualize-exported-motifs-3.png)
+
+------------------------------------------------------------------------
 
 ## Summary
 
@@ -304,6 +433,7 @@ results are satisfactory.
 | 5    | [`find_motif()`](https://lxiao06.github.io/ASAP/dev/reference/find_motif.md)                 | Define motif boundaries around detections     |
 | 6    | [`visualize_segments()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_segments.md) | View extracted motif spectrograms             |
 | 7    | [`plot_heatmap()`](https://lxiao06.github.io/ASAP/dev/reference/plot_heatmap.md)             | Visualize amplitude envelope patterns         |
+| 8    | [`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md) | Export detected motifs as WAV clips           |
 
 ### Key Parameters Reference
 
@@ -329,39 +459,7 @@ The following vignettes cover the longitudinal analysis workflow:
   Detection**](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detection.md) -
   Applying optimized templates across multiple recordings
 
-Here’s a preview of the SAP object pipeline using the parameters we
-optimized above:
-
-``` r
-# Create SAP object from organized recording folders
-sap <- create_sap_object(
-  base_path = "/path/to/recordings",
-  subfolders_to_include = c("190", "201", "203"),
-  labels = c("BL", "Post", "Rec")
-)
-
-# Run motif detection pipeline with optimized parameters
-sap <- sap |>
-  create_audio_clip(indices = 1, start_time = 1, end_time = 2.5, 
-                    clip_names = "m1") |>
-  create_template(template_name = "d", clip_name = "m1",
-                  start_time = 0.72, end_time = 0.84,  # Optimized
-                  freq_min = 1, freq_max = 10, 
-                  threshold = 0.5,            # Filter low-scoring matches
-                  write_template = TRUE) |>
-  detect_template(template_name = "d",
-                  threshold = 0.5,            # Can adjust threshold here too
-                  proximity_window = 1) |>    # Remove duplicate detections
-  find_motif(template_name = "d", pre_time = 0.7, lag_time = 0.5) |>
-  analyze_spectral(balanced = TRUE) |>
-  find_clusters() |>
-  run_umap()
-
-# Visualize results
-sap |>
-  plot_heatmap(balanced = TRUE) |>
-  plot_umap(split.by = "label")
-```
+------------------------------------------------------------------------
 
 ## Session Info
 
@@ -388,7 +486,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.4.9003
+#> [1] ASAP_0.3.5.9000
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    

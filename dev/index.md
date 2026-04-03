@@ -30,10 +30,12 @@ remotes::install_github("LXiao06/ASAP")
 
 Explore our comprehensive guides to get up and running with ASAP:
 
-- [Single WAV File
-  Analysis](https://lxiao06.github.io/ASAP/dev/articles/single_wav_analysis.md)
+- [Overview: ASAP
+  101](https://lxiao06.github.io/ASAP/dev/articles/single_wav_analysis.md)
 - [Motif
   Detection](https://lxiao06.github.io/ASAP/dev/articles/motif_detection.md)
+- [Acoustic Feature
+  Analysis](https://lxiao06.github.io/ASAP/dev/articles/acoustic_feature_analysis.md)
 - [Constructing the SAP
   Object](https://lxiao06.github.io/ASAP/dev/articles/construct_sap_object.md)
 - [Longitudinal Bout

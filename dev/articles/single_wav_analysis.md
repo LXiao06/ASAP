@@ -1,43 +1,55 @@
-# Overview: Basic Audio Analysis
+# Overview: ASAP 101
 
 ## Introduction
 
-This vignette demonstrates how to use ASAP functions for analyzing
-single WAV files of zebra finch vocalizations. While ASAP is designed
-for large-scale longitudinal studies, all core analysis functions work
-directly with individual audio files, making it easy to explore and
-understand your data.
+This vignette is the quickest way to get oriented with ASAP on a single
+WAV file. While ASAP is designed for large-scale longitudinal studies,
+the core functions work directly on individual recordings, which makes
+them a useful starting point for learning the workflow.
 
-We’ll cover:
+The goal here is not to exhaust every function in the package. Instead,
+this article introduces the basic sequence most users need when first
+opening a new recording: inspect the song, detect bouts, segment
+syllables, and export a clean example clip.
 
-1.  **Audio Visualization** - View spectrograms
-2.  **Bout Detection** - Find singing periods
-3.  **Syllable Segmentation** - Detect individual syllables
-4.  **Spectral Entropy** - Measure spectral structure
-5.  **Fundamental Frequency** - Extract pitch contours
-6.  **Amplitude Envelope** - Analyze temporal dynamics
+**What you will learn**:
+
+1.  How to inspect a WAV file with ASAP spectrogram tools
+2.  How to detect bouts and segment syllables in a single recording
+3.  How to export a detected bout as a standalone WAV clip
+
+------------------------------------------------------------------------
+
+## Overview
+
+Single-file analysis is the fastest way to understand how ASAP behaves
+before moving on to SAP-object workflows. The same core functions used
+here also power the larger longitudinal tutorials, but running them on
+one example file makes it much easier to tune parameters and visually
+check the results.
 
 ## Setup
 
 ``` r
 library(ASAP)
-#> ASAP v0.3.4.9003 loaded.
+#> ASAP v0.3.5.9000 loaded.
 
 # Get path to example WAV file included with the package
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
 ```
+
+------------------------------------------------------------------------
 
 ## 1. Audio Visualization
 
 The
 [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md)
 function creates spectrogram visualizations of audio recordings. This is
-typically the first step in exploring your data.
+often the first step when inspecting a new recording.
 
 ### Full recording
 
 ``` r
-# Visualize the entire recording
 visualize_song(wav_file)
 ```
 
@@ -47,12 +59,12 @@ visualize_song(wav_file)
 
 ### Specific time window
 
-You can focus on a specific time range using `start_time_in_second` and
+You can focus on a smaller time range with `start_time_in_second` and
 `end_time_in_second`:
 
 ``` r
-# Visualize a 3-second segment
-visualize_song(wav_file,
+visualize_song(
+  wav_file,
   start_time_in_second = 1,
   end_time_in_second = 4
 )
@@ -62,27 +74,32 @@ visualize_song(wav_file,
 
     #> Song visualization completed for: zf_example.wav
 
+Use this zoomed view to sanity-check whether the recording contains
+clear song, where dense singing occurs, and which time window is a good
+candidate for the next analysis steps.
+
+------------------------------------------------------------------------
+
 ## 2. Bout Detection
 
 A “bout” is a continuous period of singing. The
 [`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
-function automatically detects bout boundaries using RMS (root mean
-square) amplitude thresholding with bandpass filtering.
+function detects bout boundaries using RMS amplitude thresholding after
+bandpass filtering.
 
 ``` r
-# Detect bouts in the recording
-bouts <- find_bout(wav_file,
-  rms_threshold = 0.1, # Amplitude threshold (0-1)
-  min_duration = 0.7, # Minimum bout length in seconds
+bouts <- find_bout(
+  wav_file,
+  rms_threshold = 0.1,
+  min_duration = 0.7,
   plot = TRUE
-) # Show detection plot
+)
 ```
 
 ![](single_wav_analysis_files/figure-html/find-bout-1.png)
 
 ``` r
 
-# View detected bouts as a table
 knitr::kable(bouts, digits = 3)
 ```
 
@@ -95,26 +112,37 @@ knitr::kable(bouts, digits = 3)
 
 - `rms_threshold`: Higher values require louder sounds; lower values
   detect quieter vocalizations
-- `min_duration`: Minimum bout length (filters out short sounds/noise)
+- `min_duration`: Minimum bout length (filters out short sounds or
+  noise)
 - `freq_range`: Bandpass filter range (default: 1-8 kHz for zebra finch)
+
+### Quality control
+
+The overlaid detection plot is the main QC step for bout finding. Check
+whether the detected start and end times match the visible song energy
+in the spectrogram. If bouts are being split too aggressively, try
+increasing `gap_duration` or lowering `rms_threshold`. If short noise
+events are being mistaken for song, increase `min_duration`.
+
+------------------------------------------------------------------------
 
 ## 3. Syllable Segmentation
 
 The
 [`segment()`](https://lxiao06.github.io/ASAP/dev/reference/segment.md)
-function detects individual syllables within a specified time window
-using dynamic spectral thresholding.
+function detects individual syllables within a chosen time window using
+dynamic spectral thresholding.
 
 ``` r
-# Segment syllables in a time window
-syllables <- segment(wav_file,
-  start_time = 1, # Start time (seconds)
-  end_time = 5, # End time (seconds)
-  flim = c(1, 8), # Frequency limits (kHz)
+syllables <- segment(
+  wav_file,
+  start_time = 1,
+  end_time = 5,
+  flim = c(1, 8),
   silence_threshold = 0.01,
-  min_syllable_ms = 20, # Minimum syllable duration
-  max_syllable_ms = 240, # Maximum syllable duration
-  min_level_db = 10, # Starting threshold (dB)
+  min_syllable_ms = 20,
+  max_syllable_ms = 240,
+  min_level_db = 10,
   verbose = FALSE
 )
 ```
@@ -123,7 +151,6 @@ syllables <- segment(wav_file,
 
 ``` r
 
-# View detected syllables as a table
 knitr::kable(syllables, digits = 2)
 ```
 
@@ -159,162 +186,123 @@ knitr::kable(syllables, digits = 2)
 
 The returned data frame contains:
 
-- `start_time`/`end_time`: Syllable boundaries (seconds)
+- `start_time`/`end_time`: Syllable boundaries in seconds
 - `duration`: Syllable length
-- `silence_gap`: Gap before the next syllable (useful for syntax
-  analysis)
+- `silence_gap`: Gap before the next syllable
 - `selec`: Selection number for tracking
 
-## 4. Spectral Entropy Analysis
+### Tuning tips
 
-Spectral entropy measures the “randomness” or structure in the frequency
-distribution. Harmonic sounds (like syllables) have low entropy, while
-noisy sounds have high entropy.
+| Parameter           | Role                                 | Typical effect                                                          |
+|---------------------|--------------------------------------|-------------------------------------------------------------------------|
+| `silence_threshold` | Minimum silent gap between syllables | Lower values merge nearby events; higher values split more aggressively |
+| `min_syllable_ms`   | Short-event filter                   | Increase to suppress clicks and noise                                   |
+| `max_syllable_ms`   | Long-event filter                    | Decrease to avoid merging long phrases into one syllable                |
+| `min_level_db`      | Detection threshold                  | Raise it for noisier files; lower it for quieter syllables              |
+
+------------------------------------------------------------------------
+
+## 4. Export Bout Clips
+
+Once you are happy with bout detection, you can export bouts as
+standalone WAV files. In this example we export **all detected bouts**
+to a temporary directory, inspect the export metadata, visualize the
+exported files, and then remove the temporary files at the end of the
+vignette.
+
+### Step 1: Create a temporary export directory
+
+This keeps the example self-contained and avoids leaving extra files
+behind after the vignette runs.
 
 ``` r
-# Calculate spectral entropy for a segment
-entropy_result <- spectral_entropy(wav_file,
-  start_time = 1.5,
-  end_time = 2.5,
-  method = "wiener", # or "shannon"
-  normalize = TRUE,
-  plot = TRUE
-)
+# Create a temporary directory for the exported WAV files
+bout_export_dir <- file.path(tempdir(), "asap_bout_export")
+dir.create(bout_export_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Initialize objects that will be filled in by the export step
+bout_export_meta <- NULL
+exported_bout_files <- character(0)
 ```
 
-![](single_wav_analysis_files/figure-html/spectral-entropy-1.png)
+### Step 2: Export all detected bouts
 
-### Interpreting entropy values
-
-- **Low entropy (near 0)**: Structured, harmonic sounds (e.g., tonal
-  syllables)
-- **High entropy (near 1)**: Noisy, unstructured sounds (e.g., calls,
-  noise)
-
-### Available methods
-
-- `"wiener"`: Wiener entropy (ratio of geometric to arithmetic mean)
-- `"shannon"`: Shannon entropy (information-theoretic measure)
-
-## 5. Fundamental Frequency (Pitch) Analysis
-
-The
-[`FF()`](https://lxiao06.github.io/ASAP/dev/reference/Fundamental_Frequency.md)
-function extracts the fundamental frequency (F0) contour, which
-represents the perceived pitch of the vocalization over time.
+[`create_bout_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_bout_clips.md)
+reads the bout table returned by
+[`find_bout()`](https://lxiao06.github.io/ASAP/dev/reference/find_bout.md)
+and writes one WAV file per row. Because `bouts` already contains the
+start and end times, we can pass the full data frame directly.
 
 ``` r
-# Extract fundamental frequency
-pitch_result <- FF(wav_file,
-  start_time = 1.5,
-  end_time = 2.5,
-  method = "cepstrum", # Cepstral analysis
-  fmax = 1400, # Maximum F0 to detect (Hz)
-  threshold = 10, # Confidence threshold
-  plot = TRUE
-)
-```
-
-![](single_wav_analysis_files/figure-html/fundamental-frequency-1.png)
-
-### Key parameters
-
-- `fmax`: Maximum fundamental frequency to detect (1400 Hz typical for
-  zebra finch)
-- `threshold`: Higher values filter out uncertain estimates
-- `method`: `"cepstrum"` (default) or `"yin"` (requires Python librosa)
-
-### The result contains:
-
-- `f0`: Fundamental frequency values over time
-- `time`: Corresponding time stamps
-
-## 6. Amplitude Envelope
-
-The amplitude envelope represents the temporal dynamics of sound
-intensity. Use
-[`amp_env()`](https://lxiao06.github.io/ASAP/dev/reference/amp_env.md)
-on segmented data to extract envelope profiles.
-
-``` r
-# Extract amplitude envelope for the second bout
-if (!is.null(bouts) && nrow(bouts) >= 2) {
-  env_bout <- amp_env(bouts[2, ],
-    wav_dir = dirname(wav_file),
-    msmooth = c(256, 50),
-    amp_normalize = "peak",
-    plot = TRUE
-  )
-}
-```
-
-![](single_wav_analysis_files/figure-html/amplitude-envelope-bout-1.png)
-
-We can also extract the envelope for individual syllables:
-
-``` r
-# Extract amplitude envelope for the 7th syllable
-if (!is.null(syllables) && nrow(syllables) >= 7) {
-  env_syl <- amp_env(syllables[7, ],
-    wav_dir = dirname(wav_file),
-    msmooth = c(256, 50),
-    amp_normalize = "peak",
-    plot = TRUE
-  )
-}
-```
-
-![](single_wav_analysis_files/figure-html/amplitude-envelope-syllable-1.png)
-
-### Smoothing parameters
-
-The `msmooth` argument controls envelope smoothing:
-
-- First value: Window length (samples)
-- Second value: Overlap percentage
-
-## Putting It All Together
-
-Here’s a typical workflow for single-file analysis:
-
-``` r
-library(ASAP)
-
-# 1. Load and visualize
-wav_file <- "path/to/your/recording.wav"
-visualize_song(wav_file, start_time_in_second = 0, end_time_in_second = 10)
-
-# 2. Detect bouts
-bouts <- find_bout(wav_file, rms_threshold = 0.1, min_duration = 0.7)
-
-# 3. Segment syllables
 if (!is.null(bouts) && nrow(bouts) > 0) {
-  syllables <- segment(wav_file,
-    start_time = bouts$start_time[1],
-    end_time = bouts$end_time[1],
-    min_level_db = 10
+  bout_export_meta <- create_bout_clips(
+    bouts,
+    wav_dir = dirname(wav_file),
+    output_dir = bout_export_dir,
+    output_format = "wav",
+    write_metadata = FALSE,
+    verbose = FALSE
   )
 }
-
-# 4. Analyze spectral features
-entropy <- spectral_entropy(wav_file,
-  start_time = bouts$start_time[1],
-  end_time = bouts$end_time[1]
-)
-
-pitch <- FF(wav_file,
-  start_time = bouts$start_time[1],
-  end_time = bouts$end_time[1]
-)
-
-# 5. Extract amplitude envelope
-env <- amp_env(bouts[1, ],
-  wav_dir = dirname(wav_file),
-  msmooth = c(256, 50),
-  amp_normalize = "peak",
-  plot = TRUE
-)
 ```
+
+### Step 3: Review the export metadata
+
+The returned metadata table records which bout was exported, where it
+came from, and where the generated WAV file was written.
+
+``` r
+if (!is.null(bout_export_meta) && nrow(bout_export_meta) > 0) {
+  exported_bout_files <- bout_export_meta$output_path
+
+  knitr::kable(
+    bout_export_meta[, c("clip_id", "start_time", "end_time", "duration", "output_path")],
+    digits = 3
+  )
+}
+```
+
+| clip_id  | start_time | end_time | duration | output_path                                                                  |
+|:---------|-----------:|---------:|---------:|:-----------------------------------------------------------------------------|
+| bout_001 |      1.057 |    3.553 |    2.496 | /tmp/RtmpTJJZ4B/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_002 |      4.156 |    4.946 |    0.789 | /tmp/RtmpTJJZ4B/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
+
+### Step 4: Visualize the exported bout files
+
+Because this example recording only contains two bouts, we can inspect
+every exported clip directly.
+
+``` r
+if (length(exported_bout_files) > 0) {
+  for (i in seq_along(exported_bout_files)) {
+    visualize_song(exported_bout_files[i])
+  }
+}
+#> Song visualization completed for: bout_001.wav
+#> Song visualization completed for: bout_002.wav
+```
+
+![](single_wav_analysis_files/figure-html/visualize-exported-bouts-1.png)![](single_wav_analysis_files/figure-html/visualize-exported-bouts-2.png)
+
+In longer workflows, exporting all bouts is a convenient way to create a
+clean set of song clips for manual review or downstream analysis. The
+metadata table is especially useful for tracing each exported clip back
+to the original WAV file and bout boundaries.
+
+------------------------------------------------------------------------
+
+## Next Steps
+
+After you are comfortable with these basics, the next two
+single-recording vignettes extend the workflow in two different
+directions:
+
+- [Motif
+  Detection](https://lxiao06.github.io/ASAP/dev/articles/motif_detection.md) -
+  Template matching on a single WAV file
+- [Acoustic Feature
+  Analysis](https://lxiao06.github.io/ASAP/dev/articles/acoustic_feature_analysis.md) -
+  Spectral entropy, pitch, and amplitude-envelope analysis
 
 ## Session Info
 
@@ -341,7 +329,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.4.9003
+#> [1] ASAP_0.3.5.9000
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    

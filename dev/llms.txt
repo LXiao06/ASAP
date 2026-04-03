@@ -30,10 +30,12 @@ remotes::install_github("LXiao06/ASAP")
 
 Explore our comprehensive guides to get up and running with ASAP:
 
-- [Single WAV File
-  Analysis](https://lxiao06.github.io/ASAP/dev/articles/single_wav_analysis.md)
+- [Overview: ASAP
+  101](https://lxiao06.github.io/ASAP/dev/articles/single_wav_analysis.md)
 - [Motif
   Detection](https://lxiao06.github.io/ASAP/dev/articles/motif_detection.md)
+- [Acoustic Feature
+  Analysis](https://lxiao06.github.io/ASAP/dev/articles/acoustic_feature_analysis.md)
 - [Constructing the SAP
   Object](https://lxiao06.github.io/ASAP/dev/articles/construct_sap_object.md)
 - [Longitudinal Bout
@@ -185,13 +187,13 @@ Learn ASAP functions using individual audio files.
 
 [](https://lxiao06.github.io/ASAP/dev/articles/single_wav_analysis.md)
 
-![Basic audio analysis — amplitude envelope and
-spectrogram](figures/basic_audio_analysis.png)
+![Overview vignette showing spectrogram-based audio
+exploration](figures/basic_audio_analysis.png)
 
-Overview & Basic Audio Analysis
+Overview: ASAP 101
 
-Load WAV files, visualise spectrograms, and explore the basic audio
-analysis tools that underpin the ASAP workflow.
+Load a WAV file, visualise spectrograms, detect bouts, segment
+syllables, and export an example bout clip.
 
 Beginner · ~10 min
 
@@ -205,6 +207,30 @@ Build a cross-correlation template, detect motif occurrences in a single
 recording, and review the detected segments.
 
 Beginner · ~15 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/acoustic_feature_analysis.md)
+
+![Spectral entropy analysis plot](figures/acoustic_feature_analysis.png)
+
+Acoustic Feature Analysis
+
+Measure spectral entropy, extract pitch contours, and compare
+amplitude-envelope structure from individual song segments.
+
+Beginner · ~10 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/advanced_acoustic_feature_analysis.md)
+
+![Feature trajectory plots across motif
+renditions](figures/acoustic_feature_analysis.png)
+
+Advanced Acoustic Feature Analysis
+
+Detect motifs, define a syllable window of interest, and extract
+entropy, pitch, and amplitude features across all renditions for
+statistical analysis.
+
+Intermediate · ~20 min
 
 Longitudinal Recording Analysis with SAP Object
 
