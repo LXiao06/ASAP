@@ -70,23 +70,9 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>This vignette demonstrates an end-to-end workflow for extracting
-quantitative acoustic features from a set of detected song motifs. The
-pipeline has two phases:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Motif detection</strong> — run template-based detection on a
-single WAV file, define motif boundaries with <code><a href="../reference/find_motif.html">find_motif()</a></code>,
-and identify a syllable of interest within the motif.</li>
-<li>
-<strong>Feature extraction</strong> — iterate over every detected
-motif and measure spectral entropy, fundamental frequency, and amplitude
-envelope within the selected syllable window; then summarize and plot
-how those features change across consecutive renditions.</li>
-</ol>
-<p>The emphasis throughout is on structuring the output as tidy data
-frames that are immediately ready for downstream statistical
-analysis.</p>
+<p>This vignette shows how to detect motifs in a single recording and
+extract quantitative acoustic features from a selected syllable across
+repeated renditions.</p>
 <p><strong>Prerequisites</strong>: Before reading this vignette, we
 recommend completing:</p>
 <ul>
@@ -109,6 +95,18 @@ renditions</li>
 <hr>
 </div>
 <div class="section level2">
+<h2 id="overview-">Overview.<a class="anchor" aria-label="anchor" href="#overview-"></a>
+</h2>
+<p>The workflow has three steps:</p>
+<ol style="list-style-type: decimal">
+<li>Detect repeated motifs in the recording</li>
+<li>Define a consistent syllable window within each motif</li>
+<li>Measure entropy, pitch, and amplitude for that window and summarize
+the results across renditions</li>
+</ol>
+<hr>
+</div>
+<div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -116,11 +114,11 @@ renditions</li>
 <span><span class="co">#&gt; ASAP v0.3.5.9000 loaded.</span></span>
 <span></span>
 <span><span class="va">wav_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"zf_example.wav"</span>, package <span class="op">=</span> <span class="st">"ASAP"</span><span class="op">)</span></span>
-<span><span class="va">wav_dir</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">wav_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">dirname</a></span><span class="op">(</span><span class="va">wav_file</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="phase-1-motif-detection">Phase 1: Motif Detection<a class="anchor" aria-label="anchor" href="#phase-1-motif-detection"></a>
+<h2 id="motif-detection">Motif Detection<a class="anchor" aria-label="anchor" href="#motif-detection"></a>
 </h2>
 <p>The visualization and parameter-tuning steps are covered in detail in
 the <a href="motif_detection.html">Motif Detection</a> vignette. Here we
@@ -138,9 +136,8 @@ table that drives Phase 2.</p>
 <span>  freq_min       <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  freq_max       <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  write_template <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="advanced_acoustic_feature_analysis_files/figure-html/motif-detection-1.png" class="r-plt" alt="" width="100%"></p>
-<pre><code><span><span class="co">#&gt; </span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Automatic point selection.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Done.</span></span>
@@ -162,7 +159,7 @@ table that drives Phase 2.</p>
 <span><span class="co">#&gt; Processed zf_example.wav: 3/3 valid motifs (0 excluded)</span></span>
 <span><span class="co">#&gt; Total valid motifs found: 3 (excluded: 0)</span></span>
 <span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">motifs</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">motifs</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">filename</th>
@@ -198,7 +195,7 @@ table that drives Phase 2.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="phase-2-selecting-a-syllable-window-of-interest">Phase 2: Selecting a Syllable Window of Interest<a class="anchor" aria-label="anchor" href="#phase-2-selecting-a-syllable-window-of-interest"></a>
+<h2 id="selecting-a-syllable-window-of-interest">Selecting a Syllable Window of Interest<a class="anchor" aria-label="anchor" href="#selecting-a-syllable-window-of-interest"></a>
 </h2>
 <p>Rather than analyzing the entire motif, we focus on a specific
 syllable to reduce noise and make comparisons more precise. We define
@@ -207,19 +204,20 @@ the syllable window as a fixed offset <strong>relative to each motif’s
 <p>Based on visual inspection of the motif spectrogram (see the <a href="motif_detection.html">Motif Detection</a> vignette), syllable “e”
 falls roughly 0.78–0.85 s after the motif onset. We encode these offsets
 once so they are applied consistently across every motif row.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Offsets from each motif's start_time (seconds) — syllable "e"</span></span>
-<span><span class="va">syl_pre</span>  <span class="op">&lt;-</span> <span class="fl">0.78</span>   <span class="co"># syllable onset relative to motif start</span></span>
-<span><span class="va">syl_post</span> <span class="op">&lt;-</span> <span class="fl">0.85</span>   <span class="co"># syllable offset relative to motif start</span></span>
+<span><span class="va">syl_pre</span> <span class="op">&lt;-</span> <span class="fl">0.8</span> <span class="co"># syllable onset relative to motif start</span></span>
+<span><span class="va">syl_post</span> <span class="op">&lt;-</span> <span class="fl">0.85</span> <span class="co"># syllable offset relative to motif start</span></span>
 <span></span>
 <span><span class="co"># Build a per-motif data frame for the syllable window</span></span>
 <span><span class="va">syl_windows</span> <span class="op">&lt;-</span> <span class="va">motifs</span></span>
 <span><span class="va">syl_windows</span><span class="op">$</span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="va">motifs</span><span class="op">$</span><span class="va">start_time</span> <span class="op">+</span> <span class="va">syl_pre</span></span>
-<span><span class="va">syl_windows</span><span class="op">$</span><span class="va">end_time</span>   <span class="op">&lt;-</span> <span class="va">motifs</span><span class="op">$</span><span class="va">start_time</span> <span class="op">+</span> <span class="va">syl_post</span></span>
-<span><span class="va">syl_windows</span><span class="op">$</span><span class="va">duration</span>   <span class="op">&lt;-</span> <span class="va">syl_post</span> <span class="op">-</span> <span class="va">syl_pre</span></span>
+<span><span class="va">syl_windows</span><span class="op">$</span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="va">motifs</span><span class="op">$</span><span class="va">start_time</span> <span class="op">+</span> <span class="va">syl_post</span></span>
+<span><span class="va">syl_windows</span><span class="op">$</span><span class="va">duration</span> <span class="op">&lt;-</span> <span class="va">syl_post</span> <span class="op">-</span> <span class="va">syl_pre</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">syl_windows</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"filename"</span>, <span class="st">"start_time"</span>, <span class="st">"end_time"</span>, <span class="st">"duration"</span><span class="op">)</span><span class="op">]</span>,</span>
-<span>             digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<span>  digits <span class="op">=</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">filename</th>
@@ -230,36 +228,40 @@ once so they are applied consistently across every motif row.</p>
 <tbody>
 <tr class="odd">
 <td align="left">zf_example.wav</td>
-<td align="right">1.84</td>
+<td align="right">1.86</td>
 <td align="right">1.91</td>
-<td align="right">0.07</td>
+<td align="right">0.05</td>
 </tr>
 <tr class="even">
 <td align="left">zf_example.wav</td>
-<td align="right">3.15</td>
+<td align="right">3.17</td>
 <td align="right">3.22</td>
-<td align="right">0.07</td>
+<td align="right">0.05</td>
 </tr>
 <tr class="odd">
 <td align="left">zf_example.wav</td>
-<td align="right">4.74</td>
+<td align="right">4.76</td>
 <td align="right">4.81</td>
-<td align="right">0.07</td>
+<td align="right">0.05</td>
 </tr>
 </tbody>
 </table>
-<p>Visualize the first motif’s syllable “e” window to confirm the offset
-is correctly aligned before applying it to all renditions:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/visualize_song.html">visualize_song</a></span><span class="op">(</span><span class="va">wav_file</span>,</span>
-<span>  start_time_in_second <span class="op">=</span> <span class="va">syl_windows</span><span class="op">$</span><span class="va">start_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>  end_time_in_second   <span class="op">=</span> <span class="va">syl_windows</span><span class="op">$</span><span class="va">end_time</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="advanced_acoustic_feature_analysis_files/figure-html/visualize-syllable-window-1.png" class="r-plt" alt="" width="45%" style="display: block; margin: auto;"></p>
+<p>Use <code><a href="../reference/visualize_segments.html">visualize_segments()</a></code> to inspect the syllable “e”
+window across <strong>all</strong> detected motifs at once. Consistent
+spectrogram structure across panels confirms the offset is correctly
+aligned before committing it to the feature-extraction loop.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/visualize_segments.html">visualize_segments</a></span><span class="op">(</span><span class="va">syl_windows</span>,</span>
+<span>  wav_dir   <span class="op">=</span> <span class="va">wav_dir</span>,</span>
+<span>  n_samples <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">syl_windows</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span>
+<span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre></div>
+<p><img src="advanced_acoustic_feature_analysis_files/figure-html/visualize-syllable-windows-1.png" class="r-plt" alt="" width="100%"></p>
 <pre><code><span><span class="co">#&gt; Song visualization completed for: zf_example.wav</span></span></code></pre>
 </div>
 <div class="section level2">
-<h2 id="phase-3-feature-extraction-across-all-motifs">Phase 3: Feature Extraction Across All Motifs<a class="anchor" aria-label="anchor" href="#phase-3-feature-extraction-across-all-motifs"></a>
+<h2 id="feature-extraction-across-all-motifs">Feature Extraction Across All Motifs<a class="anchor" aria-label="anchor" href="#feature-extraction-across-all-motifs"></a>
 </h2>
 <p>We now iterate over every row of <code>syl_windows</code> and compute
 three features. Each function accepts a single-row data frame plus
@@ -267,7 +269,7 @@ three features. Each function accepts a single-row data frame plus
 <div class="section level3">
 <h3 id="a--spectral-entropy">3a. Spectral Entropy<a class="anchor" aria-label="anchor" href="#a--spectral-entropy"></a>
 </h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">entropy_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">syl_windows</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">syl_windows</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -282,11 +284,12 @@ three features. Each function accepts a single-row data frame plus
 <span>    plot       <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
+<span>  <span class="va">n_frames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ent_mat</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">entropy_results</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    motif_index  <span class="op">=</span> <span class="va">i</span>,</span>
 <span>    start_time   <span class="op">=</span> <span class="va">row</span><span class="op">$</span><span class="va">start_time</span>,</span>
 <span>    mean_entropy <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">ent_mat</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    sd_entropy   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">ent_mat</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>,   na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>    sem_entropy  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">ent_mat</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">n_frames</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -297,26 +300,26 @@ three features. Each function accepts a single-row data frame plus
 <th align="right">motif_index</th>
 <th align="right">start_time</th>
 <th align="right">mean_entropy</th>
-<th align="right">sd_entropy</th>
+<th align="right">sem_entropy</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="right">1</td>
-<td align="right">1.84</td>
-<td align="right">-0.4877</td>
-<td align="right">0.2972</td>
+<td align="right">1.86</td>
+<td align="right">-0.6019</td>
+<td align="right">0.1226</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">3.15</td>
-<td align="right">-0.4565</td>
-<td align="right">0.2819</td>
+<td align="right">3.17</td>
+<td align="right">-0.6281</td>
+<td align="right">0.0431</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
-<td align="right">4.74</td>
-<td align="right">-0.5657</td>
-<td align="right">0.2985</td>
+<td align="right">4.76</td>
+<td align="right">-0.7398</td>
+<td align="right">0.0306</td>
 </tr>
 </tbody>
 </table>
@@ -324,7 +327,7 @@ three features. Each function accepts a single-row data frame plus
 <div class="section level3">
 <h3 id="b--fundamental-frequency">3b. Fundamental Frequency<a class="anchor" aria-label="anchor" href="#b--fundamental-frequency"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ff_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">syl_windows</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">syl_windows</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -335,7 +338,7 @@ three features. Each function accepts a single-row data frame plus
 <span>    <span class="va">row</span>,</span>
 <span>    wav_dir   <span class="op">=</span> <span class="va">wav_dir</span>,</span>
 <span>    method    <span class="op">=</span> <span class="st">"cepstrum"</span>,</span>
-<span>    fmax      <span class="op">=</span> <span class="fl">1400</span>,</span>
+<span>    fmax      <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>    threshold <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>    plot      <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span>
@@ -347,7 +350,7 @@ three features. Each function accepts a single-row data frame plus
 <span>    motif_index <span class="op">=</span> <span class="va">i</span>,</span>
 <span>    start_time  <span class="op">=</span> <span class="va">row</span><span class="op">$</span><span class="va">start_time</span>,</span>
 <span>    mean_ff_kHz <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">voiced</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">voiced</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="cn">NA_real_</span><span class="op">)</span>,</span>
-<span>    sd_ff_kHz   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">voiced</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">voiced</span>,   na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="cn">NA_real_</span><span class="op">)</span></span>
+<span>    sem_ff_kHz  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">voiced</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">voiced</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">voiced</span><span class="op">)</span><span class="op">)</span>, <span class="cn">NA_real_</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -358,26 +361,26 @@ three features. Each function accepts a single-row data frame plus
 <th align="right">motif_index</th>
 <th align="right">start_time</th>
 <th align="right">mean_ff_kHz</th>
-<th align="right">sd_ff_kHz</th>
+<th align="right">sem_ff_kHz</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="right">1</td>
-<td align="right">1.84</td>
-<td align="right">0.6281</td>
-<td align="right">0.2302</td>
+<td align="right">1.86</td>
+<td align="right">0.5737</td>
+<td align="right">0.0719</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">3.15</td>
-<td align="right">0.7580</td>
-<td align="right">0.3266</td>
+<td align="right">3.17</td>
+<td align="right">0.6397</td>
+<td align="right">0.0844</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
-<td align="right">4.74</td>
-<td align="right">0.6744</td>
-<td align="right">0.3610</td>
+<td align="right">4.76</td>
+<td align="right">0.5374</td>
+<td align="right">0.0841</td>
 </tr>
 </tbody>
 </table>
@@ -388,7 +391,7 @@ three features. Each function accepts a single-row data frame plus
 <p>We summarize the envelope by its peak amplitude and the time-averaged
 RMS, which together capture both the loudness ceiling and the mean
 energy.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">env_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">syl_windows</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">syl_windows</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -399,16 +402,16 @@ energy.</p>
 <span>    <span class="va">row</span>,</span>
 <span>    wav_dir       <span class="op">=</span> <span class="va">wav_dir</span>,</span>
 <span>    msmooth       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">50</span><span class="op">)</span>,</span>
-<span>    amp_normalize <span class="op">=</span> <span class="st">"peak"</span>,</span>
 <span>    plot          <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
+<span>  <span class="va">n_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">env</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">env_results</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    motif_index <span class="op">=</span> <span class="va">i</span>,</span>
 <span>    start_time  <span class="op">=</span> <span class="va">row</span><span class="op">$</span><span class="va">start_time</span>,</span>
-<span>    peak_amp    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">env</span>,             na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    mean_amp    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">env</span>,            na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    rms_amp     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">env</span><span class="op">^</span><span class="fl">2</span>,     na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span>    mean_amp    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">env</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>    sem_amp     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">env</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">n_env</span><span class="op">)</span>,</span>
+<span>    rms_amp     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">env</span><span class="op">^</span><span class="fl">2</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -418,31 +421,31 @@ energy.</p>
 <thead><tr class="header">
 <th align="right">motif_index</th>
 <th align="right">start_time</th>
-<th align="right">peak_amp</th>
 <th align="right">mean_amp</th>
+<th align="right">sem_amp</th>
 <th align="right">rms_amp</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="right">1</td>
-<td align="right">1.84</td>
-<td align="right">1</td>
-<td align="right">0.3984</td>
-<td align="right">0.5087</td>
+<td align="right">1.86</td>
+<td align="right">3853.205</td>
+<td align="right">667.5323</td>
+<td align="right">4640.170</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">3.15</td>
-<td align="right">1</td>
-<td align="right">0.5329</td>
-<td align="right">0.6408</td>
+<td align="right">3.17</td>
+<td align="right">4366.645</td>
+<td align="right">520.8094</td>
+<td align="right">4810.013</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
-<td align="right">4.74</td>
-<td align="right">1</td>
-<td align="right">0.5985</td>
-<td align="right">0.7007</td>
+<td align="right">4.76</td>
+<td align="right">6192.217</td>
+<td align="right">483.9166</td>
+<td align="right">6469.635</td>
 </tr>
 </tbody>
 </table>
@@ -450,86 +453,88 @@ energy.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="phase-4-combine-and-visualize-feature-trajectories">Phase 4: Combine and Visualize Feature Trajectories<a class="anchor" aria-label="anchor" href="#phase-4-combine-and-visualize-feature-trajectories"></a>
+<h2 id="combine-and-visualize-feature-trajectories">Combine and Visualize Feature Trajectories<a class="anchor" aria-label="anchor" href="#combine-and-visualize-feature-trajectories"></a>
 </h2>
 <p>Merge all three feature tables and look at how each metric changes
 across consecutive motif renditions.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">feature_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Reduce</a></span><span class="op">(</span></span>
 <span>  <span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"motif_index"</span>, <span class="st">"start_time"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">entropy_df</span>, <span class="va">ff_df</span>, <span class="va">env_df</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">feature_df</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<table style="width:100%;" class="table">
+<table class="table">
 <colgroup>
 <col width="12%">
 <col width="11%">
 <col width="13%">
-<col width="11%">
 <col width="12%">
-<col width="10%">
+<col width="12%">
+<col width="11%">
 <col width="9%">
 <col width="9%">
-<col width="8%">
+<col width="9%">
 </colgroup>
 <thead><tr class="header">
 <th align="right">motif_index</th>
 <th align="right">start_time</th>
 <th align="right">mean_entropy</th>
-<th align="right">sd_entropy</th>
+<th align="right">sem_entropy</th>
 <th align="right">mean_ff_kHz</th>
-<th align="right">sd_ff_kHz</th>
-<th align="right">peak_amp</th>
+<th align="right">sem_ff_kHz</th>
 <th align="right">mean_amp</th>
+<th align="right">sem_amp</th>
 <th align="right">rms_amp</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="right">1</td>
-<td align="right">1.84</td>
-<td align="right">-0.4877</td>
-<td align="right">0.2972</td>
-<td align="right">0.6281</td>
-<td align="right">0.2302</td>
-<td align="right">1</td>
-<td align="right">0.3984</td>
-<td align="right">0.5087</td>
+<td align="right">1.86</td>
+<td align="right">-0.6019</td>
+<td align="right">0.1226</td>
+<td align="right">0.5737</td>
+<td align="right">0.0719</td>
+<td align="right">3853.205</td>
+<td align="right">667.5323</td>
+<td align="right">4640.170</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">3.15</td>
-<td align="right">-0.4565</td>
-<td align="right">0.2819</td>
-<td align="right">0.7580</td>
-<td align="right">0.3266</td>
-<td align="right">1</td>
-<td align="right">0.5329</td>
-<td align="right">0.6408</td>
+<td align="right">3.17</td>
+<td align="right">-0.6281</td>
+<td align="right">0.0431</td>
+<td align="right">0.6397</td>
+<td align="right">0.0844</td>
+<td align="right">4366.645</td>
+<td align="right">520.8094</td>
+<td align="right">4810.013</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
-<td align="right">4.74</td>
-<td align="right">-0.5657</td>
-<td align="right">0.2985</td>
-<td align="right">0.6744</td>
-<td align="right">0.3610</td>
-<td align="right">1</td>
-<td align="right">0.5985</td>
-<td align="right">0.7007</td>
+<td align="right">4.76</td>
+<td align="right">-0.7398</td>
+<td align="right">0.0306</td>
+<td align="right">0.5374</td>
+<td align="right">0.0841</td>
+<td align="right">6192.217</td>
+<td align="right">483.9166</td>
+<td align="right">6469.635</td>
 </tr>
 </tbody>
 </table>
 <div class="section level3">
 <h3 id="average-entropy-across-renditions">Average entropy across renditions<a class="anchor" aria-label="anchor" href="#average-entropy-across-renditions"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span>,</span>
 <span>  <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_entropy</span>,</span>
 <span>  type  <span class="op">=</span> <span class="st">"b"</span>,</span>
 <span>  pch   <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  col   <span class="op">=</span> <span class="st">"steelblue"</span>,</span>
+<span>  ylim  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">feature_df</span><span class="op">$</span><span class="va">mean_entropy</span> <span class="op">-</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_entropy</span>,</span>
+<span>                  <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_entropy</span> <span class="op">+</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_entropy</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  xlab  <span class="op">=</span> <span class="st">"Motif index"</span>,</span>
 <span>  ylab  <span class="op">=</span> <span class="st">"Mean Wiener entropy"</span>,</span>
 <span>  main  <span class="op">=</span> <span class="st">"Spectral entropy across consecutive motif renditions"</span>,</span>
@@ -537,11 +542,11 @@ across consecutive motif renditions.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/axis.html" class="external-link">axis</a></span><span class="op">(</span><span class="fl">1</span>, at <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># ±1 SD ribbon</span></span>
+<span><span class="co"># ±1 SEM ribbon</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/arrows.html" class="external-link">arrows</a></span><span class="op">(</span></span>
 <span>  x0     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span>,</span>
-<span>  y0     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_entropy</span> <span class="op">-</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sd_entropy</span>,</span>
-<span>  y1     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_entropy</span> <span class="op">+</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sd_entropy</span>,</span>
+<span>  y0     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_entropy</span> <span class="op">-</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_entropy</span>,</span>
+<span>  y1     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_entropy</span> <span class="op">+</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_entropy</span>,</span>
 <span>  length <span class="op">=</span> <span class="fl">0.04</span>,</span>
 <span>  angle  <span class="op">=</span> <span class="fl">90</span>,</span>
 <span>  code   <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -552,13 +557,15 @@ across consecutive motif renditions.</p>
 <div class="section level3">
 <h3 id="mean-fundamental-frequency-across-renditions">Mean fundamental frequency across renditions<a class="anchor" aria-label="anchor" href="#mean-fundamental-frequency-across-renditions"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span>,</span>
 <span>  <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_ff_kHz</span>,</span>
 <span>  type  <span class="op">=</span> <span class="st">"b"</span>,</span>
 <span>  pch   <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  col   <span class="op">=</span> <span class="st">"tomato"</span>,</span>
+<span>  ylim  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">feature_df</span><span class="op">$</span><span class="va">mean_ff_kHz</span> <span class="op">-</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_ff_kHz</span>,</span>
+<span>                  <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_ff_kHz</span> <span class="op">+</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_ff_kHz</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  xlab  <span class="op">=</span> <span class="st">"Motif index"</span>,</span>
 <span>  ylab  <span class="op">=</span> <span class="st">"Mean F0 (kHz)"</span>,</span>
 <span>  main  <span class="op">=</span> <span class="st">"Fundamental frequency across consecutive motif renditions"</span>,</span>
@@ -568,8 +575,8 @@ across consecutive motif renditions.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/arrows.html" class="external-link">arrows</a></span><span class="op">(</span></span>
 <span>  x0     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span>,</span>
-<span>  y0     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_ff_kHz</span> <span class="op">-</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sd_ff_kHz</span>,</span>
-<span>  y1     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_ff_kHz</span> <span class="op">+</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sd_ff_kHz</span>,</span>
+<span>  y0     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_ff_kHz</span> <span class="op">-</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_ff_kHz</span>,</span>
+<span>  y1     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_ff_kHz</span> <span class="op">+</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_ff_kHz</span>,</span>
 <span>  length <span class="op">=</span> <span class="fl">0.04</span>,</span>
 <span>  angle  <span class="op">=</span> <span class="fl">90</span>,</span>
 <span>  code   <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -580,30 +587,30 @@ across consecutive motif renditions.</p>
 <div class="section level3">
 <h3 id="envelope-amplitude-across-renditions">Envelope amplitude across renditions<a class="anchor" aria-label="anchor" href="#envelope-amplitude-across-renditions"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span>,</span>
 <span>  <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_amp</span>,</span>
 <span>  type  <span class="op">=</span> <span class="st">"b"</span>,</span>
 <span>  pch   <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  col   <span class="op">=</span> <span class="st">"darkorange"</span>,</span>
-<span>  ylim  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">feature_df</span><span class="op">$</span><span class="va">mean_amp</span>, <span class="va">feature_df</span><span class="op">$</span><span class="va">peak_amp</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  ylim  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">feature_df</span><span class="op">$</span><span class="va">mean_amp</span> <span class="op">-</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_amp</span>,</span>
+<span>                  <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_amp</span> <span class="op">+</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_amp</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  xlab  <span class="op">=</span> <span class="st">"Motif index"</span>,</span>
-<span>  ylab  <span class="op">=</span> <span class="st">"Amplitude (peak-normalized)"</span>,</span>
+<span>  ylab  <span class="op">=</span> <span class="st">"Mean Amplitude"</span>,</span>
 <span>  main  <span class="op">=</span> <span class="st">"Amplitude envelope across consecutive motif renditions"</span>,</span>
 <span>  xaxt  <span class="op">=</span> <span class="st">"n"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/axis.html" class="external-link">axis</a></span><span class="op">(</span><span class="fl">1</span>, at <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span>, <span class="va">feature_df</span><span class="op">$</span><span class="va">peak_amp</span>,</span>
-<span>      type <span class="op">=</span> <span class="st">"b"</span>, pch <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="st">"darkorange"</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>,</span>
-<span>  legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mean amplitude"</span>, <span class="st">"Peak amplitude"</span><span class="op">)</span>,</span>
-<span>  col    <span class="op">=</span> <span class="st">"darkorange"</span>,</span>
-<span>  pch    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  lty    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span>
-<span>  bty    <span class="op">=</span> <span class="st">"n"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/arrows.html" class="external-link">arrows</a></span><span class="op">(</span></span>
+<span>  x0     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">motif_index</span>,</span>
+<span>  y0     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_amp</span> <span class="op">-</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_amp</span>,</span>
+<span>  y1     <span class="op">=</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">mean_amp</span> <span class="op">+</span> <span class="va">feature_df</span><span class="op">$</span><span class="va">sem_amp</span>,</span>
+<span>  length <span class="op">=</span> <span class="fl">0.04</span>,</span>
+<span>  angle  <span class="op">=</span> <span class="fl">90</span>,</span>
+<span>  code   <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  col    <span class="op">=</span> <span class="st">"darkorange"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="advanced_acoustic_feature_analysis_files/figure-html/plot-env-1.png" class="r-plt" alt="" width="100%"></p>
 <hr>
@@ -613,12 +620,11 @@ across consecutive motif renditions.</p>
 <h2 id="exporting-the-feature-table">Exporting the Feature Table<a class="anchor" aria-label="anchor" href="#exporting-the-feature-table"></a>
 </h2>
 <p>The combined <code>feature_df</code> is a standard R data frame ready
-for any downstream analysis — linear models, mixed effects models, or
-further visualization.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+for any downstream analysis.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Save as CSV for use in other tools or scripts</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">feature_df</span>,</span>
-<span>  file      <span class="op">=</span> <span class="st">"motif_features.csv"</span>,</span>
+<span>  file      <span class="op">=</span> <span class="st">"syllable_features.csv"</span>,</span>
 <span>  row.names <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <hr>
@@ -659,19 +665,19 @@ bridges motif detection and acoustic feature analysis:</p>
 <td>Entropy</td>
 <td>
 <code><a href="../reference/spectral_entropy.html">spectral_entropy()</a></code> per row</td>
-<td>Mean + SD per motif</td>
+<td>Mean ± SEM per motif</td>
 </tr>
 <tr class="even">
 <td>Pitch</td>
 <td>
 <code><a href="../reference/Fundamental_Frequency.html">FF()</a></code> per row, voiced frames only</td>
-<td>Mean F0 ± SD per motif</td>
+<td>Mean F0 ± SEM per motif</td>
 </tr>
 <tr class="odd">
 <td>Envelope</td>
 <td>
 <code><a href="../reference/amp_env.html">amp_env()</a></code> per row</td>
-<td>Peak, mean, RMS per motif</td>
+<td>Mean ± SEM, RMS per motif</td>
 </tr>
 <tr class="even">
 <td>Visualization</td>
@@ -686,25 +692,12 @@ into a data frame — scales directly to larger datasets by replacing the
 <code>for</code> loop with <code><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply()</a></code> or
 <code><a href="../reference/parallel_apply.html">parallel_apply()</a></code>, or by passing a multi-row data frame
 directly to <code><a href="../reference/spectral_entropy.html">spectral_entropy()</a></code> or <code><a href="../reference/Fundamental_Frequency.html">FF()</a></code>.</p>
-<div class="section level3">
-<h3 id="relationship-to-sap-generic-functions">Relationship to SAP generic functions<a class="anchor" aria-label="anchor" href="#relationship-to-sap-generic-functions"></a>
-</h3>
-<p>This workflow — detect motifs, build syllable windows, iterate
-per-row feature extraction, collect scalar summaries — is exactly what
-the SAP-method generics (<code><a href="../reference/spectral_entropy.html">spectral_entropy.Sap()</a></code>,
-<code><a href="../reference/Fundamental_Frequency.html">FF.Sap()</a></code>, <code><a href="../reference/plot_heatmap.html">plot_heatmap.Sap()</a></code>) do internally.
-The difference is that the SAP methods wrap these steps into a single
-function call and extend them to handle multiple WAV files spread across
-multiple directories (one per day). Working through the single-file
-version here makes it easier to understand what those functions are
-doing under the hood and to interpret their outputs.</p>
 <hr>
-</div>
 </div>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.3 (2026-03-11)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
