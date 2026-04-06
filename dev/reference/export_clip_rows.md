@@ -22,7 +22,8 @@ export_clip_rows(
   cores,
   overwrite,
   write_metadata,
-  verbose
+  verbose,
+  ...
 )
 ```
 

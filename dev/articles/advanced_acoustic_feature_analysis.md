@@ -472,13 +472,13 @@ sessionInfo()
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    
-#>  [5] digest_0.6.39      magrittr_2.0.4     evaluate_1.0.5     grid_4.5.3        
+#>  [5] digest_0.6.39      magrittr_2.0.5     evaluate_1.0.5     grid_4.5.3        
 #>  [9] RColorBrewer_1.1-3 fastmap_1.2.0      jsonlite_2.0.0     Matrix_1.7-4      
 #> [13] monitoR_1.2        tuneR_1.4.7        purrr_1.2.1        scales_1.4.0      
 #> [17] pbapply_1.7-4      textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.5         
 #> [21] rlang_1.1.7        pbmcapply_1.5.1    fftw_1.0-9         withr_3.0.2       
 #> [25] seewave_2.2.4      cachem_1.1.0       yaml_2.3.12        av_0.9.6          
-#> [29] tools_4.5.3        parallel_4.5.3     dplyr_1.2.0        ggplot2_4.0.2     
+#> [29] tools_4.5.3        parallel_4.5.3     dplyr_1.2.1        ggplot2_4.0.2     
 #> [33] reticulate_1.45.0  vctrs_0.7.2        R6_2.6.1           png_0.1-9         
 #> [37] lifecycle_1.0.5    fs_2.0.1           MASS_7.3-65        ragg_1.5.2        
 #> [41] pkgconfig_2.0.3    desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1     
