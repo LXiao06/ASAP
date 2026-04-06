@@ -160,7 +160,8 @@ create_motif_clips.default <- function(x,
     cores = cores,
     overwrite = overwrite,
     write_metadata = write_metadata,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
 
   return(export_meta)
@@ -236,7 +237,8 @@ create_motif_clips.Sap <- function(x,
     cores = cores,
     overwrite = overwrite,
     write_metadata = write_metadata,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
 
   current_export <- list(
@@ -463,7 +465,8 @@ create_bout_clips.default <- function(x,
     cores = cores,
     overwrite = overwrite,
     write_metadata = write_metadata,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
 
   return(export_meta)
@@ -551,7 +554,8 @@ create_bout_clips.Sap <- function(x,
     cores = cores,
     overwrite = overwrite,
     write_metadata = write_metadata,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
 
   current_export <- list(
@@ -884,7 +888,8 @@ export_clip_rows <- function(clips,
                              cores,
                              overwrite,
                              write_metadata,
-                             verbose) {
+                             verbose,
+                             ...) {
   jobs <- clips
   jobs$day_summary <- as.character(jobs$day_post_hatch)
   jobs$day_summary[is.na(jobs$day_summary) | jobs$day_summary == ""] <- "unknown_day"
@@ -939,15 +944,26 @@ export_clip_rows <- function(clips,
       }
 
       clean_path <- tryCatch(
-        denoise.default(
-          source_path,
-          output_dir = out_dir,
-          overwrite = overwrite,
-          wl = 512L,
-          ovlp = 75L,
-          plot = FALSE,
-          verbose = FALSE
-        ),
+        {
+          denoise_args <- list(...)
+          default_args <- list(
+            x = source_path,
+            output_dir = out_dir,
+            overwrite = overwrite,
+            wl = 512L,
+            ovlp = 75L,
+            plot = FALSE,
+            verbose = FALSE
+          )
+          
+          call_args <- utils::modifyList(default_args, denoise_args)
+          # Ensure core parameters cannot be overwritten by ...
+          call_args$x <- source_path
+          call_args$output_dir <- out_dir
+          call_args$overwrite <- overwrite
+
+          do.call(denoise.default, call_args)
+        },
         error = function(e) {
           stop("Denoise failed for: ", source_path, "\n", conditionMessage(e))
         }
