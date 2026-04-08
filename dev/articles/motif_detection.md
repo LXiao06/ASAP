@@ -393,9 +393,9 @@ if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
 
 | clip_id   | start_time | end_time | duration | output_path                                                                     |
 |:----------|-----------:|---------:|---------:|:--------------------------------------------------------------------------------|
-| motif_001 |       1.06 |     2.26 |      1.2 | /tmp/RtmpkKaJ6R/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
-| motif_002 |       2.37 |     3.57 |      1.2 | /tmp/RtmpkKaJ6R/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
-| motif_003 |       3.96 |     5.16 |      1.2 | /tmp/RtmpkKaJ6R/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+| motif_001 |       1.06 |     2.26 |      1.2 | /tmp/Rtmpth190C/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 |       2.37 |     3.57 |      1.2 | /tmp/Rtmpth190C/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 |       3.96 |     5.16 |      1.2 | /tmp/Rtmpth190C/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
 
 ### Step 4: Visualize the exported motif files
 
