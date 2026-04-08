@@ -476,7 +476,7 @@ sessionInfo()
 #>  [9] grid_4.5.3         RColorBrewer_1.1-3 fastmap_1.2.0      rprojroot_2.1.1   
 #> [13] jsonlite_2.0.0     Matrix_1.7-4       tuneR_1.4.7        purrr_1.2.1       
 #> [17] scales_1.4.0       pbapply_1.7-4      textshaping_1.0.5  jquerylib_0.1.4   
-#> [21] cli_3.6.5          rlang_1.1.7        pbmcapply_1.5.1    fftw_1.0-9        
+#> [21] cli_3.6.5          rlang_1.2.0        pbmcapply_1.5.1    fftw_1.0-9        
 #> [25] withr_3.0.2        seewave_2.2.4      cachem_1.1.0       yaml_2.3.12       
 #> [29] av_0.9.6           tools_4.5.3        parallel_4.5.3     dplyr_1.2.1       
 #> [33] ggplot2_4.0.2      here_1.0.2         reticulate_1.45.0  vctrs_0.7.2       

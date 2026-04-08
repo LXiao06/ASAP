@@ -264,8 +264,8 @@ if (!is.null(bout_export_meta) && nrow(bout_export_meta) > 0) {
 
 | clip_id  | start_time | end_time | duration | output_path                                                                  |
 |:---------|-----------:|---------:|---------:|:-----------------------------------------------------------------------------|
-| bout_001 |      1.057 |    3.553 |    2.496 | /tmp/Rtmp6FmHnI/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
-| bout_002 |      4.156 |    4.946 |    0.789 | /tmp/Rtmp6FmHnI/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
+| bout_001 |      1.057 |    3.553 |    2.496 | /tmp/Rtmp6m3z6s/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_002 |      4.156 |    4.946 |    0.789 | /tmp/Rtmp6m3z6s/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
 
 ### Step 4: Visualize the exported bout files
 
@@ -336,7 +336,7 @@ sessionInfo()
 #>  [5] digest_0.6.39      magrittr_2.0.5     evaluate_1.0.5     grid_4.5.3        
 #>  [9] RColorBrewer_1.1-3 fastmap_1.2.0      jsonlite_2.0.0     Matrix_1.7-4      
 #> [13] tuneR_1.4.7        purrr_1.2.1        scales_1.4.0       pbapply_1.7-4     
-#> [17] textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.5          rlang_1.1.7       
+#> [17] textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.5          rlang_1.2.0       
 #> [21] pbmcapply_1.5.1    fftw_1.0-9         seewave_2.2.4      cachem_1.1.0      
 #> [25] yaml_2.3.12        av_0.9.6           tools_4.5.3        parallel_4.5.3    
 #> [29] dplyr_1.2.1        ggplot2_4.0.2      reticulate_1.45.0  vctrs_0.7.2       
