@@ -73,17 +73,15 @@ Step-by-step guides for processing large longitudinal datasets spanning multiple
 
 ## Acknowledgements
 
-ASAP builds on the rich ecosystem of R packages for bioacoustics and data science. We gratefully acknowledge the developers of the following packages:
+ASAP relies on the following R packages:
+[seewave](https://cran.r-project.org/web/packages/seewave/index.html),
+[tuneR](https://cran.r-project.org/web/packages/tuneR/index.html),
+[warbleR](https://cran.r-project.org/web/packages/warbleR/index.html),
+[monitoR](https://cran.r-project.org/web/packages/monitoR/index.html), and
+[av](https://cran.r-project.org/web/packages/av/index.html).
 
--   [**seewave**](https://cran.r-project.org/web/packages/seewave/index.html) — provides a comprehensive suite of functions for time wave analysis, synthesis, and visualization of acoustic signals.
--   [**tuneR**](https://cran.r-project.org/web/packages/tuneR/index.html) — provides core tools for reading, writing, and manipulating sound data.
--   [**warbleR**](https://cran.r-project.org/web/packages/warbleR/index.html) — offers streamlined tools for the analysis of animal acoustic signals.
--   [**monitoR**](https://cran.r-project.org/web/packages/monitoR/index.html) — enables efficient template-based acoustic monitoring and detection.
--   [**av**](https://cran.r-project.org/web/packages/av/index.html) — supports spectrogram visualization and audio/video processing.
--   [**Seurat**](https://cran.r-project.org/web/packages/Seurat/index.html) — key modules are adapted for dimensionality reduction and clustering of acoustic features.
-
-This work was also inspired by the pioneering contributions of:
-
--   **Ofer Tchernichovski et al.** — [Sound Analysis Pro (SAP 2011)](http://soundanalysispro.com/), a comprehensive platform integrating both a recording framework and GUI for the detailed analysis of birdsong.
--   **Tim Sainburg** — [github.com/timsainb](https://github.com/timsainb), whose work on neural approaches to birdsong analysis provided key conceptual insights.
--   **Therese Koch** — [Animal Vocalization Network (AVN)](https://avn.readthedocs.io/en/latest/index.html), a specialized toolkit for computational analysis of birdsong.
+This work was inspired by the pioneering contributions of
+**Ofer Tchernichovski et al.** ([Sound Analysis Pro, SAP 2011](http://soundanalysispro.com/)),
+**Tim Sainburg** ([timsainb](https://github.com/timsainb)),
+**Therese Koch** ([AVN](https://avn.readthedocs.io/en/latest/index.html)), and
+**Seurat** ([Butler et al.](https://cran.r-project.org/web/packages/Seurat/index.html)).
