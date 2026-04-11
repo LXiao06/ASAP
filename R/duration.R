@@ -39,16 +39,30 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
   base_path <- x$base_path
 
   # Main computation function
+  # NOTE: construct_wav_path() internally calls stop() for missing files, so we
+  # build the path directly here and wrap the entire read in tryCatch so that
+  # any problem (missing file, corrupt WAV, etc.) returns NA_real_ instead of
+  # crashing the parallel worker and producing an uncoercible list.
   process_row <- function(i) {
-    wav_path <- construct_wav_path(metadata[i,], wav_dir = base_path)
+    row <- metadata[i, ]
+    if ("day_post_hatch" %in% names(row)) {
+      wav_path <- file.path(base_path, row$day_post_hatch, row$filename)
+    } else {
+      wav_path <- file.path(base_path, row$filename)
+    }
 
     if (!file.exists(wav_path)) {
       if (verbose) warning("File not found: ", wav_path)
       return(NA_real_)
     }
 
-    tuneR::readWave(wav_path) |>
-      seewave::duration()
+    tryCatch(
+      as.numeric(seewave::duration(tuneR::readWave(wav_path))),
+      error = function(e) {
+        if (verbose) warning("Error reading ", wav_path, ": ", conditionMessage(e))
+        NA_real_
+      }
+    )
   }
 
   # Execute in parallel
