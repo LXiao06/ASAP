@@ -46,6 +46,60 @@ feature_stats(
 
   Additional arguments passed to methods.
 
+- feature_name:
+
+  For default method: Character string used as the y-axis label and plot
+  title (default: `"Feature"`).
+
+- labels:
+
+  Optional character vector of labels to filter the data.
+
+- run_anova:
+
+  Logical. Whether to perform a one-way ANOVA (default: `TRUE`).
+
+- plot:
+
+  Logical. Whether to generate the ggplot visualization (default:
+  `TRUE`).
+
+- plot_type:
+
+  Character. Style of visual layer: `"both"` (default), `"boxplot"`, or
+  `"violin"`.
+
+- palette:
+
+  Character. RColorBrewer palette name for fills/colors (default:
+  `"Set1"`).
+
+- jitter:
+
+  Logical. Overlay individual rendition data points (default: `TRUE`).
+
+- point_alpha:
+
+  Numeric `[0, 1]`. Transparency of jittered points (default: `0.35`).
+
+- facet_segments:
+
+  Logical. Facet the plot by `segment_id` (default: `FALSE`).
+
+- ncol:
+
+  Integer. Number of columns for facets if `facet_segments = TRUE`.
+
+- feature:
+
+  For SAP objects: Feature to analyze, either `"fund_freq"` or
+  `"wiener_entropy"`.
+
+- segment_type:
+
+  For SAP objects: Type of segments to extract, either `"motifs"`,
+  `"syllables"`, or `"segments"`.
+
 ## Value
 
 A list (invisibly) with components:
@@ -66,4 +120,4 @@ A list (invisibly) with components:
 
 [`anova_analysis`](https://lxiao06.github.io/ASAP/dev/reference/anova_analysis.md),
 [`refine_FF`](https://lxiao06.github.io/ASAP/dev/reference/refine_FF.md),
-`refine_entropy`
+[`refine_sh`](https://lxiao06.github.io/ASAP/dev/reference/refine_sh.md)

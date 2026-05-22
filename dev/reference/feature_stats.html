@@ -88,6 +88,58 @@ and forwards them to the default method.</p>
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments passed to methods.</p></dd>
 
+
+<dt id="arg-feature-name">feature_name<a class="anchor" aria-label="anchor" href="#arg-feature-name"></a></dt>
+<dd><p>For default method: Character string used as the y-axis label
+and plot title (default: <code>"Feature"</code>).</p></dd>
+
+
+<dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
+<dd><p>Optional character vector of labels to filter the data.</p></dd>
+
+
+<dt id="arg-run-anova">run_anova<a class="anchor" aria-label="anchor" href="#arg-run-anova"></a></dt>
+<dd><p>Logical. Whether to perform a one-way ANOVA (default: <code>TRUE</code>).</p></dd>
+
+
+<dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
+<dd><p>Logical. Whether to generate the ggplot visualization (default: <code>TRUE</code>).</p></dd>
+
+
+<dt id="arg-plot-type">plot_type<a class="anchor" aria-label="anchor" href="#arg-plot-type"></a></dt>
+<dd><p>Character. Style of visual layer: <code>"both"</code> (default),
+<code>"boxplot"</code>, or <code>"violin"</code>.</p></dd>
+
+
+<dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
+<dd><p>Character. RColorBrewer palette name for fills/colors (default: <code>"Set1"</code>).</p></dd>
+
+
+<dt id="arg-jitter">jitter<a class="anchor" aria-label="anchor" href="#arg-jitter"></a></dt>
+<dd><p>Logical. Overlay individual rendition data points (default: <code>TRUE</code>).</p></dd>
+
+
+<dt id="arg-point-alpha">point_alpha<a class="anchor" aria-label="anchor" href="#arg-point-alpha"></a></dt>
+<dd><p>Numeric <code>[0, 1]</code>. Transparency of jittered points (default: <code>0.35</code>).</p></dd>
+
+
+<dt id="arg-facet-segments">facet_segments<a class="anchor" aria-label="anchor" href="#arg-facet-segments"></a></dt>
+<dd><p>Logical. Facet the plot by <code>segment_id</code> (default: <code>FALSE</code>).</p></dd>
+
+
+<dt id="arg-ncol">ncol<a class="anchor" aria-label="anchor" href="#arg-ncol"></a></dt>
+<dd><p>Integer. Number of columns for facets if <code>facet_segments = TRUE</code>.</p></dd>
+
+
+<dt id="arg-feature">feature<a class="anchor" aria-label="anchor" href="#arg-feature"></a></dt>
+<dd><p>For SAP objects: Feature to analyze, either <code>"fund_freq"</code> or
+<code>"wiener_entropy"</code>.</p></dd>
+
+
+<dt id="arg-segment-type">segment_type<a class="anchor" aria-label="anchor" href="#arg-segment-type"></a></dt>
+<dd><p>For SAP objects: Type of segments to extract, either <code>"motifs"</code>,
+<code>"syllables"</code>, or <code>"segments"</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -105,7 +157,7 @@ and forwards them to the default method.</p>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="anova_analysis.html">anova_analysis</a></code>, <code><a href="refine_FF.html">refine_FF</a></code>,
-<code>refine_entropy</code></p></div>
+<code><a href="refine_sh.html">refine_sh</a></code></p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -111,7 +111,7 @@ The function computes four per-rendition metrics in a shared UMAP grid:
 - Occupancy Entropy:
 
   Shannon entropy of the rendition's occupancy over grid bins,
-  normalized to 0, 1 using the full shared grid
+  normalized to `[0, 1]` using the full shared grid
 
 - Peripheral Fraction:
 

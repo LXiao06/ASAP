@@ -76,6 +76,25 @@ filter_trajectory_outliers(
   For SAP objects: Type of segments ('motifs', 'syllables', 'bouts',
   'segments')
 
+- plot:
+
+  Logical. If `TRUE`, plot a heatmap of the filtered trajectories
+  (default: `FALSE`).
+
+- balanced:
+
+  Logical. Whether to balance segment numbers across groups for the
+  heatmap (default: `FALSE`).
+
+- ordered:
+
+  Logical. Whether to order segments for the heatmap (default: `FALSE`).
+
+- clusters:
+
+  Integer vector of clusters to include for the heatmap (default:
+  `NULL`).
+
 ## Value
 
 For the default method: the filtered trajectory embeddings data frame
