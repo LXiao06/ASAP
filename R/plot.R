@@ -101,7 +101,7 @@ plot_traces <- function(x, ...) {
 plot_traces.default <- function(x,
                                 labels = NULL,
                                 plot_type = c("combined", "individual", "average", "cv"),
-                                feature = c("env", "pitch", "goodness", "entropy"),
+                                feature = c("env", "pitch", "goodness", "entropy", "PC1", "PC2", "UMAP1", "UMAP2"),
                                 alpha = 0.2,
                                 ncol = 1,
                                 palette = "Set1",
@@ -195,7 +195,11 @@ plot_traces.default <- function(x,
                     "env" = "Amplitude Envelope",
                     "pitch" = "Fundamental Frequency (kHz)",
                     "goodness" = "Pitch Goodness",
-                    "entropy" = "Wiener Entropy")
+                    "entropy" = "Wiener Entropy",
+                    "PC1" = "Principal Component 1",
+                    "PC2" = "Principal Component 2",
+                    "UMAP1" = "UMAP Dimension 1",
+                    "UMAP2" = "UMAP Dimension 2")
 
   # Create plot based on type
   if (plot_type == "individual") {
@@ -282,7 +286,7 @@ plot_traces.default <- function(x,
 #' @export
 plot_traces.Sap <- function(x,
                             segment_type = c("motifs", "syllables", "segments"),
-                            feature = c("env", "pitch", "goodness","entropy"),
+                            feature = c("env", "pitch", "goodness", "entropy", "PC1", "PC2", "UMAP1", "UMAP2"),
                             labels = NULL,
                             plot_type = c("combined", "individual", "average", "cv"),
                             alpha = 0.2,
@@ -303,27 +307,60 @@ plot_traces.Sap <- function(x,
     stop(sprintf("Feature type '%s' not found in the Sap object", feature_type))
   }
 
-  # Determine the matrix based on segment and feature type
-  if (feature == "env") {
-    matrix_name <- "amp_env"
-  } else if (feature == "pitch") {
-    matrix_name <- "fund_freq"
-  } else if (feature == "goodness") {
-    matrix_name <- "pitch_goodness"
-  } else if (feature == "entropy") {
-    matrix_name <- "wiener_entropy"
+  if (feature %in% c("env", "pitch", "goodness", "entropy")) {
+    # Determine the matrix based on segment and feature type
+    if (feature == "env") {
+      matrix_name <- "amp_env"
+    } else if (feature == "pitch") {
+      matrix_name <- "fund_freq"
+    } else if (feature == "goodness") {
+      matrix_name <- "pitch_goodness"
+    } else if (feature == "entropy") {
+      matrix_name <- "wiener_entropy"
+    }
+
+    # Check if the specific feature matrix exists
+    if (is.null(x$features[[feature_type]][[matrix_name]])) {
+      stop(sprintf("Feature '%s' not available for '%s'. Check if this feature has been calculated.",
+                   feature, segment_type))
+    }
+
+    # Get the matrix to plot
+    matrix_to_plot <- x$features[[feature_type]][[matrix_name]]
   } else {
-    stop("Invalid feature type")
-  }
+    # Handle trajectory embeddings (PC1, PC2, UMAP1, UMAP2)
+    traj_embeds <- x$features[[feature_type]][["traj.embeds"]]
+    if (is.null(traj_embeds)) {
+      stop(sprintf("Trajectory embeddings not available for '%s'. Check if create_trajectory_matrix has been run.",
+                   segment_type))
+    }
+    if (!feature %in% names(traj_embeds)) {
+      stop(sprintf("Dimension '%s' not found in trajectory embeddings. Run run_pca() or run_umap() first.", feature))
+    }
 
-  # Check if the specific feature matrix exists
-  if (is.null(x$features[[feature_type]][[matrix_name]])) {
-    stop(sprintf("Feature '%s' not available for '%s'. Check if this feature has been calculated.",
-                 feature, segment_type))
-  }
+    ensure_pkgs("tidyr", "dplyr")
 
-  # Get the matrix to plot
-  matrix_to_plot <- x$features[[feature_type]][[matrix_name]]
+    # Reshape traj.embeds into a time x rendition matrix
+    wide_df <- traj_embeds |>
+      dplyr::select(.data$.time, .data$rendition, dplyr::all_of(feature)) |>
+      tidyr::pivot_wider(names_from = "rendition", values_from = dplyr::all_of(feature)) |>
+      dplyr::arrange(.data$.time)
+
+    # Extract the numeric matrix (excluding .time column)
+    matrix_to_plot <- as.matrix(wide_df |> dplyr::select(-.data$.time))
+
+    # Assign column names using labels corresponding to each rendition
+    renditions <- as.numeric(colnames(matrix_to_plot))
+    label_map <- traj_embeds |>
+      dplyr::distinct(.data$rendition, .data$label)
+
+    colnames(matrix_to_plot) <- sapply(renditions, function(r) {
+      label_map$label[label_map$rendition == r][1]
+    })
+
+    # Add time_window attribute
+    attr(matrix_to_plot, "time_window") <- max(traj_embeds$.time)
+  }
 
   # Call the default method with the extracted matrix
   p <- plot_traces(matrix_to_plot,
@@ -616,7 +653,19 @@ plot_clusters.Sap <- function(x,
       stop("Feature embeddings required for ordered/clustered motif plots")
     }
 
-    segments_df <- x$features$motif$feat.embeds |>
+    # Select only key columns and embedding columns from feat.embeds
+    # This prevents duplicate metadata columns (like duration.x, duration.y)
+    embed_cols <- c("filename", "start_time", "end_time", "label", "day_post_hatch", 
+                    "UMAP1", "UMAP2", "cluster")
+    embed_cols <- intersect(embed_cols, names(x$features$motif$feat.embeds))
+    key_cols <- intersect(embed_cols, names(x[["motifs"]]))
+
+    segments_df <- x[["motifs"]] |>
+      dplyr::inner_join(
+        x$features$motif$feat.embeds[, embed_cols],
+        by = key_cols,
+        relationship = "many-to-many"
+      ) |>
       as_segment()
 
     # Apply UMAP-based ordering if requested
