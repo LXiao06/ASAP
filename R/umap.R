@@ -843,13 +843,22 @@ plot_single_umap <- function(
 #' @param order.by Column for ordering facets (default: "day_post_hatch")
 #' @param pt.size Point size (default: 1.2)
 #' @param alpha_range Range for alpha transparency (default: c(0.1, 0.5))
+#' @param max_points Maximum number of points to draw per plot panel. When
+#'   provided, dense plots are downsampled before plotting to reduce file size
+#'   while preserving the overall UMAP shape.
+#' @param sample_seed Random seed used when `max_points` triggers
+#'   downsampling.
 #' @param ncol Number of columns in layout
 #' @param title Plot title
 #' @param overlay_mode Whether to create overlay comparisons (default: FALSE)
 #' @param base_label Base label for overlay comparison
 #' @param compare_labels Labels to compare against base
 #' @param base_color Color for base label (default: "steelblue")
-#' @param compare_color Color for comparison labels (default: "orangered")
+#' @param compare_color Color for comparison labels (default: "orangered").
+#'   Can be a single color applied to every overlay, or a vector aligned with
+#'   `compare_labels` or named by label.
+#' @param label_colors Named vector of per-label colors for overlay mode.
+#'   When provided, matching labels override `base_color` and `compare_color`.
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
 #' @param data_type For SAP objects: Type of embedding data ('feat.embeds', 'traj.embeds')
 #' @param verbose For SAP objects: Whether to print progress messages
@@ -871,11 +880,15 @@ plot_single_umap <- function(
 #' # Basic trajectory plot
 #' plot_umap2(traj_df, color.by = ".time")
 #'
+#' # Smaller plotting payload for dense datasets
+#' plot_umap2(traj_df, color.by = ".time", max_points = 20000)
+#'
 #' # Overlay comparison plot
 #' plot_umap2(traj_df,
 #'   overlay_mode = TRUE,
 #'   base_label = "a",
-#'   compare_labels = c("b", "c")
+#'   compare_labels = c("b", "c"),
+#'   label_colors = c(a = "grey55", b = "#1b9e77", c = "#d95f02")
 #' )
 #'
 #' # Plot motif trajectories from SAP object
@@ -900,6 +913,109 @@ plot_umap2 <- function(x, ...) {
   UseMethod("plot_umap2")
 }
 
+plot_umap2_theme <- function() {
+  ggplot2::theme_classic() +
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "white", colour = NA),
+      plot.background = ggplot2::element_rect(fill = "white", colour = NA),
+      strip.background = ggplot2::element_blank(),
+      legend.position = "right",
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      axis.title = ggplot2::element_blank()
+    )
+}
+
+downsample_plot_umap2_data <- function(data,
+                                       max_points = NULL,
+                                       strata = NULL,
+                                       sample_seed = 1L) {
+  if (is.null(max_points) || nrow(data) == 0) {
+    return(data)
+  }
+
+  if (!is.numeric(max_points) || length(max_points) != 1 || is.na(max_points) ||
+    max_points < 1) {
+    stop("max_points must be a single positive number")
+  }
+
+  max_points <- as.integer(max_points)
+  if (nrow(data) <= max_points) {
+    return(data)
+  }
+
+  old_seed_exists <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  if (old_seed_exists) {
+    old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  }
+  on.exit({
+    if (old_seed_exists) {
+      assign(".Random.seed", old_seed, envir = .GlobalEnv)
+    } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+      rm(".Random.seed", envir = .GlobalEnv)
+    }
+  }, add = TRUE)
+  set.seed(sample_seed)
+
+  strata <- unique(stats::na.omit(strata))
+  if (length(strata) > 0) {
+    missing_strata <- setdiff(strata, colnames(data))
+    if (length(missing_strata) > 0) {
+      stop(sprintf(
+        "Cannot find downsampling strata in data: %s",
+        paste(missing_strata, collapse = ", ")
+      ))
+    }
+  }
+
+  if (length(strata) == 0) {
+    keep_idx <- sort(sample.int(nrow(data), max_points))
+    return(data[keep_idx, , drop = FALSE])
+  }
+
+  strata_key <- interaction(data[, strata, drop = FALSE],
+    drop = TRUE,
+    lex.order = TRUE,
+    sep = "|"
+  )
+  split_idx <- split(seq_len(nrow(data)), strata_key, drop = TRUE)
+  counts <- vapply(split_idx, length, integer(1))
+  alloc <- counts / sum(counts) * max_points
+  enforce_one <- max_points >= length(counts)
+  min_targets <- if (enforce_one) rep.int(1L, length(counts)) else rep.int(0L, length(counts))
+  targets <- pmin(counts, pmax(min_targets, floor(alloc)))
+  allocated <- sum(targets)
+  remainder_scores <- alloc - floor(alloc)
+
+  if (allocated < max_points) {
+    candidate_order <- order(remainder_scores, counts, decreasing = TRUE)
+    while (allocated < max_points) {
+      eligible <- candidate_order[counts[candidate_order] > targets[candidate_order]]
+      if (length(eligible) == 0) break
+      targets[eligible[1]] <- targets[eligible[1]] + 1L
+      allocated <- allocated + 1L
+    }
+  } else if (allocated > max_points) {
+    candidate_order <- order(remainder_scores, counts, decreasing = FALSE)
+    while (allocated > max_points) {
+      eligible <- candidate_order[targets[candidate_order] > min_targets[candidate_order]]
+      if (length(eligible) == 0) break
+      targets[eligible[1]] <- targets[eligible[1]] - 1L
+      allocated <- allocated - 1L
+    }
+  }
+
+  keep_idx <- unlist(Map(function(idx, n_keep) {
+    if (length(idx) <= n_keep) {
+      idx
+    } else {
+      sort(sample(idx, n_keep))
+    }
+  }, split_idx, targets), use.names = FALSE)
+
+  data[sort(keep_idx), , drop = FALSE]
+}
+
 #' @rdname plot_umap2
 #' @export
 plot_umap2.default <- function(x,
@@ -909,6 +1025,8 @@ plot_umap2.default <- function(x,
                                order.by = "day_post_hatch",
                                pt.size = 1.2,
                                alpha_range = c(0.1, 0.5),
+                               max_points = NULL,
+                               sample_seed = 1L,
                                ncol = NULL,
                                title = NULL,
                                overlay_mode = FALSE,
@@ -916,18 +1034,53 @@ plot_umap2.default <- function(x,
                                compare_labels = NULL,
                                base_color = "steelblue",
                                compare_color = "orangered",
+                               label_colors = NULL,
                                ...) {
   # Validate input
   if (!is.data.frame(x)) stop("Input must be a data frame")
+  if (!all(dims %in% colnames(x))) {
+    stop(sprintf("Cannot find UMAP coordinates: %s", paste(dims, collapse = ", ")))
+  }
+  if (!is.null(split.by) && !split.by %in% colnames(x)) {
+    stop(sprintf("Cannot find %s in data", split.by))
+  }
 
   if (overlay_mode) {
     # Validate overlay parameters
     if (is.null(base_label)) stop("base_label must be provided in overlay mode")
-    if (!base_label %in% x[[split.by]]) stop("base_label not found in data")
+    if (is.null(split.by)) stop("split.by must be provided in overlay mode")
+    if (!color.by %in% colnames(x)) {
+      stop(sprintf("Cannot find %s in data", color.by))
+    }
+    split_values <- unique(as.character(x[[split.by]]))
+    if (!base_label %in% split_values) stop("base_label not found in data")
 
     # If compare_labels is NULL, use all labels except base_label
     if (is.null(compare_labels)) {
-      compare_labels <- unique(x[[split.by]])[unique(x[[split.by]]) != base_label]
+      compare_labels <- split_values[split_values != base_label]
+    }
+
+    missing_labels <- setdiff(compare_labels, split_values)
+    if (length(missing_labels) > 0) {
+      stop(sprintf(
+        "compare_labels not found in data: %s",
+        paste(missing_labels, collapse = ", ")
+      ))
+    }
+
+    if (length(compare_labels) == 0) {
+      stop("No compare_labels available for overlay mode")
+    }
+
+    if (!is.null(label_colors) &&
+      (is.null(names(label_colors)) || any(names(label_colors) == ""))) {
+      stop("label_colors must be a named vector")
+    }
+
+    if (length(compare_color) > 1 &&
+      is.null(names(compare_color)) &&
+      length(compare_color) != length(compare_labels)) {
+      stop("compare_color must have length 1 or match compare_labels")
     }
 
     # Auto-determine number of columns if not specified
@@ -942,9 +1095,35 @@ plot_umap2.default <- function(x,
     all_plots <- lapply(compare_labels, function(compare_label) {
       filtered_data <- x |>
         dplyr::filter(!!rlang::sym(split.by) %in% c(base_label, compare_label))
+      filtered_data <- downsample_plot_umap2_data(
+        data = filtered_data,
+        max_points = max_points,
+        strata = split.by,
+        sample_seed = sample_seed
+      )
 
       # Create color mapping
-      color_values <- c(base_color, compare_color)
+      compare_color_value <- if (!is.null(label_colors) &&
+        compare_label %in% names(label_colors)) {
+        label_colors[[compare_label]]
+      } else if (length(compare_color) == 1) {
+        compare_color
+      } else if (!is.null(names(compare_color))) {
+        if (!compare_label %in% names(compare_color)) {
+          stop(sprintf("No compare_color provided for label '%s'", compare_label))
+        }
+        compare_color[[compare_label]]
+      } else {
+        compare_color[[match(compare_label, compare_labels)]]
+      }
+      base_color_value <- if (!is.null(label_colors) &&
+        base_label %in% names(label_colors)) {
+        label_colors[[base_label]]
+      } else {
+        base_color
+      }
+
+      color_values <- c(base_color_value, compare_color_value)
       names(color_values) <- c(base_label, compare_label)
 
       ggplot2::ggplot(
@@ -968,7 +1147,7 @@ plot_umap2.default <- function(x,
           title %||% "UMAP Overlay of",
           base_label, "vs", compare_label
         )) +
-        ggplot2::theme_minimal()
+        plot_umap2_theme()
     })
     ensure_pkgs("patchwork")
     return(patchwork::wrap_plots(all_plots, ncol = ncol))
@@ -989,6 +1168,26 @@ plot_umap2.default <- function(x,
       x[[split.by]] <- factor(x[[split.by]], levels = label_order)
     }
 
+    if (!is.null(split.by)) {
+      panel_data <- split(x, x[[split.by]], drop = TRUE)
+      x <- do.call(rbind, lapply(panel_data, function(panel_df) {
+        downsample_plot_umap2_data(
+          data = panel_df,
+          max_points = max_points,
+          strata = NULL,
+          sample_seed = sample_seed
+        )
+      }))
+      rownames(x) <- NULL
+    } else {
+      x <- downsample_plot_umap2_data(
+        data = x,
+        max_points = max_points,
+        strata = NULL,
+        sample_seed = sample_seed
+      )
+    }
+
     # Create regular plot
     p <- ggplot2::ggplot(x, ggplot2::aes(
       !!rlang::sym(dims[1]),
@@ -1000,7 +1199,7 @@ plot_umap2.default <- function(x,
         stroke = 0
       ) +
       ggplot2::scale_color_viridis_c(option = "inferno") +
-      ggplot2::theme_minimal()
+      plot_umap2_theme()
 
     if (!is.null(split.by)) {
       p <- p + ggplot2::facet_wrap(as.formula(paste("~", split.by)),
@@ -1027,6 +1226,8 @@ plot_umap2.Sap <- function(x,
                            order.by = "day_post_hatch",
                            pt.size = 1.2,
                            alpha_range = c(0.1, 0.5),
+                           max_points = NULL,
+                           sample_seed = 1L,
                            ncol = NULL,
                            title = NULL,
                            overlay_mode = FALSE,
@@ -1034,6 +1235,7 @@ plot_umap2.Sap <- function(x,
                            compare_labels = NULL,
                            base_color = "steelblue",
                            compare_color = "orangered",
+                           label_colors = NULL,
                            verbose = TRUE,
                            ...) {
   if (verbose) {
@@ -1083,6 +1285,8 @@ plot_umap2.Sap <- function(x,
     order.by = order.by,
     pt.size = pt.size,
     alpha_range = alpha_range,
+    max_points = max_points,
+    sample_seed = sample_seed,
     ncol = ncol,
     title = title,
     overlay_mode = overlay_mode,
@@ -1090,6 +1294,7 @@ plot_umap2.Sap <- function(x,
     compare_labels = compare_labels,
     base_color = base_color,
     compare_color = compare_color,
+    label_colors = label_colors,
     ...
   )
 
