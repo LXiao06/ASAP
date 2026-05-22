@@ -81,7 +81,7 @@ The function computes four per-rendition metrics in a shared UMAP grid:
 \describe{
 \item{Occupied Fraction}{Fraction of grid bins visited by the rendition}
 \item{Occupancy Entropy}{Shannon entropy of the rendition's occupancy over
-grid bins, normalized to \link{0, 1} using the full shared grid}
+grid bins, normalized to \code{[0, 1]} using the full shared grid}
 \item{Peripheral Fraction}{Fraction of the rendition's points falling in
 globally low-density bins of the shared UMAP manifold}
 \item{Same-Label kNN Dispersion}{Average distance from each point to its

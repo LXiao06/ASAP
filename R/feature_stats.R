@@ -11,6 +11,22 @@
 #'
 #' @param x An object containing statistics: either a data frame (e.g.
 #'   \code{sap$features$motif$stats_fund_freq}) or a \code{Sap} object.
+#' @param feature_name For default method: Character string used as the y-axis label
+#'   and plot title (default: \code{"Feature"}).
+#' @param labels Optional character vector of labels to filter the data.
+#' @param run_anova Logical. Whether to perform a one-way ANOVA (default: \code{TRUE}).
+#' @param plot Logical. Whether to generate the ggplot visualization (default: \code{TRUE}).
+#' @param plot_type Character. Style of visual layer: \code{"both"} (default),
+#'   \code{"boxplot"}, or \code{"violin"}.
+#' @param palette Character. RColorBrewer palette name for fills/colors (default: \code{"Set1"}).
+#' @param jitter Logical. Overlay individual rendition data points (default: \code{TRUE}).
+#' @param point_alpha Numeric \code{[0, 1]}. Transparency of jittered points (default: \code{0.35}).
+#' @param facet_segments Logical. Facet the plot by \code{segment_id} (default: \code{FALSE}).
+#' @param ncol Integer. Number of columns for facets if \code{facet_segments = TRUE}.
+#' @param feature For SAP objects: Feature to analyze, either \code{"fund_freq"} or
+#'   \code{"wiener_entropy"}.
+#' @param segment_type For SAP objects: Type of segments to extract, either \code{"motifs"},
+#'   \code{"syllables"}, or \code{"segments"}.
 #' @param ... Additional arguments passed to methods.
 #'
 #' @return A list (invisibly) with components:
@@ -21,7 +37,7 @@
 #' }
 #'
 #' @seealso \code{\link{anova_analysis}}, \code{\link{refine_FF}},
-#'          \code{\link{refine_entropy}}
+#'          \code{\link{refine_sh}}
 #'
 #' @export
 feature_stats <- function(x, ...) {
@@ -287,7 +303,7 @@ feature_stats.Sap <- function(x,
   if (is.null(stats_df)) {
     stop(sprintf(
       paste0("Slot 'sap$features$%s$%s' is NULL or does not exist.\n",
-             "Run refine_FF() or refine_entropy() with stats = TRUE first."),
+             "Run refine_FF() or refine_sh() with stats = TRUE first."),
       feature_type, slot_name
     ))
   }

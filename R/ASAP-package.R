@@ -33,5 +33,9 @@ utils::globalVariables(c(
   "end_time",
   "label",
   "filename",
-  "duration"
+  "duration",
+  "segment_id",
+  "grand_sd",
+  "min_val",
+  "max_val"
 ))

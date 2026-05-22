@@ -35,6 +35,34 @@ feature_stats(x, ...)
 \code{sap$features$motif$stats_fund_freq}) or a \code{Sap} object.}
 
 \item{...}{Additional arguments passed to methods.}
+
+\item{feature_name}{For default method: Character string used as the y-axis label
+and plot title (default: \code{"Feature"}).}
+
+\item{labels}{Optional character vector of labels to filter the data.}
+
+\item{run_anova}{Logical. Whether to perform a one-way ANOVA (default: \code{TRUE}).}
+
+\item{plot}{Logical. Whether to generate the ggplot visualization (default: \code{TRUE}).}
+
+\item{plot_type}{Character. Style of visual layer: \code{"both"} (default),
+\code{"boxplot"}, or \code{"violin"}.}
+
+\item{palette}{Character. RColorBrewer palette name for fills/colors (default: \code{"Set1"}).}
+
+\item{jitter}{Logical. Overlay individual rendition data points (default: \code{TRUE}).}
+
+\item{point_alpha}{Numeric \code{[0, 1]}. Transparency of jittered points (default: \code{0.35}).}
+
+\item{facet_segments}{Logical. Facet the plot by \code{segment_id} (default: \code{FALSE}).}
+
+\item{ncol}{Integer. Number of columns for facets if \code{facet_segments = TRUE}.}
+
+\item{feature}{For SAP objects: Feature to analyze, either \code{"fund_freq"} or
+\code{"wiener_entropy"}.}
+
+\item{segment_type}{For SAP objects: Type of segments to extract, either \code{"motifs"},
+\code{"syllables"}, or \code{"segments"}.}
 }
 \value{
 A list (invisibly) with components:
@@ -52,5 +80,5 @@ and forwards them to the default method.
 }
 \seealso{
 \code{\link{anova_analysis}}, \code{\link{refine_FF}},
-\code{\link{refine_entropy}}
+\code{\link{refine_sh}}
 }

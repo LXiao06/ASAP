@@ -57,8 +57,10 @@ Suggests:
     purrr,
     pracma,
     RANN,
+    RColorBrewer,
     reticulate,
     rmarkdown,
+    scales,
     tidyr,
     uwot (>= 0.1.10)
 URL: https://lxiao06.github.io/ASAP/, https://github.com/LXiao06/ASAP

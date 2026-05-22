@@ -50,6 +50,14 @@ before the entire rendition is removed (default: 0.1, i.e., 10\%)}
 \item{verbose}{Whether to print a removal summary (default: TRUE)}
 
 \item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')}
+
+\item{plot}{Logical. If \code{TRUE}, plot a heatmap of the filtered trajectories (default: \code{FALSE}).}
+
+\item{balanced}{Logical. Whether to balance segment numbers across groups for the heatmap (default: \code{FALSE}).}
+
+\item{ordered}{Logical. Whether to order segments for the heatmap (default: \code{FALSE}).}
+
+\item{clusters}{Integer vector of clusters to include for the heatmap (default: \code{NULL}).}
 }
 \value{
 For the default method: the filtered trajectory embeddings data frame (same

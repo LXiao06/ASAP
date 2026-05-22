@@ -431,6 +431,10 @@ create_sliding_window <- function(
 #' @param min_outlier_fraction Minimum fraction of time steps that must be outliers
 #'   before the entire rendition is removed (default: 0.1, i.e., 10%)
 #' @param labels Optional character vector to restrict filtering to specific labels
+#' @param plot Logical. If \code{TRUE}, plot a heatmap of the filtered trajectories (default: \code{FALSE}).
+#' @param balanced Logical. Whether to balance segment numbers across groups for the heatmap (default: \code{FALSE}).
+#' @param ordered Logical. Whether to order segments for the heatmap (default: \code{FALSE}).
+#' @param clusters Integer vector of clusters to include for the heatmap (default: \code{NULL}).
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
 #' @param verbose Whether to print a removal summary (default: TRUE)
 #' @param ... Additional arguments
@@ -602,7 +606,7 @@ filter_trajectory_outliers.default <- function(x,
     print(summary_df, row.names = FALSE)
     total_after <- length(unique(x_filtered$rendition))
     message(sprintf(
-      "\nTotal renditions: %d → %d  (removed %d, %.1f%%)",
+      "\nTotal renditions: %d -> %d  (removed %d, %.1f%%)",
       total_before, total_after,
       total_before - total_after,
       100 * (total_before - total_after) / total_before
@@ -1679,7 +1683,7 @@ trajectory_width_variability.Sap <- function(x,
 #' \describe{
 #'   \item{Occupied Fraction}{Fraction of grid bins visited by the rendition}
 #'   \item{Occupancy Entropy}{Shannon entropy of the rendition's occupancy over
-#'     grid bins, normalized to [0, 1] using the full shared grid}
+#'     grid bins, normalized to \code{[0, 1]} using the full shared grid}
 #'   \item{Peripheral Fraction}{Fraction of the rendition's points falling in
 #'     globally low-density bins of the shared UMAP manifold}
 #'   \item{Same-Label kNN Dispersion}{Average distance from each point to its
