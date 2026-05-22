@@ -62,12 +62,14 @@ with a standardized structure for storing acoustic segment information.</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Creates a segment object with a predefined structure. If no data frame is provided,
 it initializes an empty segment with the following columns:</p><ul><li><p>filename: Name of the source audio file</p></li>
-<li><p>day_post_hatch: Numeric day post-hatch</p></li>
+<li><p>day_post_hatch: Numeric day post-hatch (optional; filled with NA if absent)</p></li>
 <li><p>label: Categorical label for the segment</p></li>
 <li><p>start_time: Numeric start time of the segment</p></li>
 <li><p>end_time: Numeric end time of the segment</p></li>
 <li><p>duration: Numeric duration of the segment</p></li>
-</ul><p>When a data frame is provided, the function:</p><ul><li><p>Validates the presence of required columns</p></li>
+</ul><p>When a data frame is provided, the function:</p><ul><li><p>Validates the presence of required columns (filename, label,
+start_time, end_time)</p></li>
+<li><p>If <code>day_post_hatch</code> is missing, adds it as <code>NA</code> with a warning</p></li>
 <li><p>Converts columns to appropriate data types</p></li>
 <li><p>Calculates segment duration if not provided</p></li>
 </ul></div>

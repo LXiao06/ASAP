@@ -17,6 +17,8 @@ plot_umap2(
   order.by = "day_post_hatch",
   pt.size = 1.2,
   alpha_range = c(0.1, 0.5),
+  max_points = NULL,
+  sample_seed = 1L,
   ncol = NULL,
   title = NULL,
   overlay_mode = FALSE,
@@ -24,6 +26,7 @@ plot_umap2(
   compare_labels = NULL,
   base_color = "steelblue",
   compare_color = "orangered",
+  label_colors = NULL,
   ...
 )
 
@@ -38,6 +41,8 @@ plot_umap2(
   order.by = "day_post_hatch",
   pt.size = 1.2,
   alpha_range = c(0.1, 0.5),
+  max_points = NULL,
+  sample_seed = 1L,
   ncol = NULL,
   title = NULL,
   overlay_mode = FALSE,
@@ -45,6 +50,7 @@ plot_umap2(
   compare_labels = NULL,
   base_color = "steelblue",
   compare_color = "orangered",
+  label_colors = NULL,
   verbose = TRUE,
   ...
 )
@@ -84,6 +90,16 @@ plot_umap2(
 
   Range for alpha transparency (default: c(0.1, 0.5))
 
+- max_points:
+
+  Maximum number of points to draw per plot panel. When provided, dense
+  plots are downsampled before plotting to reduce file size while
+  preserving the overall UMAP shape.
+
+- sample_seed:
+
+  Random seed used when `max_points` triggers downsampling.
+
 - ncol:
 
   Number of columns in layout
@@ -110,7 +126,14 @@ plot_umap2(
 
 - compare_color:
 
-  Color for comparison labels (default: "orangered")
+  Color for comparison labels (default: "orangered"). Can be a single
+  color applied to every overlay, or a vector aligned with
+  `compare_labels` or named by label.
+
+- label_colors:
+
+  Named vector of per-label colors for overlay mode. When provided,
+  matching labels override `base_color` and `compare_color`.
 
 - segment_type:
 
@@ -145,11 +168,15 @@ if (FALSE) { # \dontrun{
 # Basic trajectory plot
 plot_umap2(traj_df, color.by = ".time")
 
+# Smaller plotting payload for dense datasets
+plot_umap2(traj_df, color.by = ".time", max_points = 20000)
+
 # Overlay comparison plot
 plot_umap2(traj_df,
   overlay_mode = TRUE,
   base_label = "a",
-  compare_labels = c("b", "c")
+  compare_labels = c("b", "c"),
+  label_colors = c(a = "grey55", b = "#1b9e77", c = "#d95f02")
 )
 
 # Plot motif trajectories from SAP object

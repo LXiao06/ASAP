@@ -118,6 +118,8 @@ segments
   : Refine Fundamental Frequency Detection
 - [`refine_sh()`](https://lxiao06.github.io/ASAP/dev/reference/refine_sh.md)
   : Refine Spectral Entropy Using Temporal Template
+- [`feature_stats()`](https://lxiao06.github.io/ASAP/dev/reference/feature_stats.md)
+  : Feature Statistics Summary and Analysis
 
 ## Dimensionality Reduction
 
@@ -129,6 +131,14 @@ Functions dedicated to reducing acoustic parameter dimensionality
   : Run UMAP Dimensionality Reduction
 - [`create_trajectory_matrix()`](https://lxiao06.github.io/ASAP/dev/reference/create_trajectory_matrix.md)
   : Create Spectrogram Matrices for Song Trajectory Analysis
+- [`filter_trajectory_outliers()`](https://lxiao06.github.io/ASAP/dev/reference/filter_trajectory_outliers.md)
+  : Filter Outlier Renditions from Trajectory Embeddings
+- [`trajectory_umap_occupancy()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md)
+  : Trajectory UMAP Occupancy Analysis
+- [`trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_variability.md)
+  : Trajectory Variability Analysis
+- [`trajectory_width_variability()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_width_variability.md)
+  : Trajectory Width Variability Analysis
 
 ## Plotting & Visualization
 

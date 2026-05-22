@@ -50,7 +50,9 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_single_spec.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_spec.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/fast_pca.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/feature_stats.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/filter_short_segments.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/filter_trajectory_outliers.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/find_bout.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/find_clusters.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/find_clusters_seurat_internals.html</loc></url>
@@ -102,6 +104,9 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/subset_clip_rows.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/summary.segment.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/suppress_stderr.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_variability.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_width_variability.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_sap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_segment.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_template_collection.html</loc></url>

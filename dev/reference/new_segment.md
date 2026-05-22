@@ -28,7 +28,8 @@ is provided, it initializes an empty segment with the following columns:
 
 - filename: Name of the source audio file
 
-- day_post_hatch: Numeric day post-hatch
+- day_post_hatch: Numeric day post-hatch (optional; filled with NA if
+  absent)
 
 - label: Categorical label for the segment
 
@@ -40,7 +41,10 @@ is provided, it initializes an empty segment with the following columns:
 
 When a data frame is provided, the function:
 
-- Validates the presence of required columns
+- Validates the presence of required columns (filename, label,
+  start_time, end_time)
+
+- If `day_post_hatch` is missing, adds it as `NA` with a warning
 
 - Converts columns to appropriate data types
 

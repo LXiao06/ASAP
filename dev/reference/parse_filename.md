@@ -1,7 +1,9 @@
 # Parse filename for SAP metadata
 
 Internal function to parse WAV filenames and extract metadata
-components.
+components. Supports the standard SAP2011 filename format and falls back
+to a generic parser for non-standard filenames, using file modification
+time for date/time.
 
 ## Usage
 
@@ -13,7 +15,7 @@ parse_filename(filename)
 
 - filename:
 
-  Character string of the filename to parse
+  Character string of the full file path to parse
 
 ## Value
 
@@ -30,3 +32,7 @@ A list containing parsed components:
 - recording_time:
 
   Parsed recording time
+
+- parse_method:
+
+  "standard" or "fallback"

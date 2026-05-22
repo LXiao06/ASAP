@@ -54,6 +54,8 @@ for continuous color mapping and overlay comparisons.</p>
 <span>  order.by <span class="op">=</span> <span class="st">"day_post_hatch"</span>,</span>
 <span>  pt.size <span class="op">=</span> <span class="fl">1.2</span>,</span>
 <span>  alpha_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>  max_points <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_seed <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  overlay_mode <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -61,6 +63,7 @@ for continuous color mapping and overlay comparisons.</p>
 <span>  compare_labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  base_color <span class="op">=</span> <span class="st">"steelblue"</span>,</span>
 <span>  compare_color <span class="op">=</span> <span class="st">"orangered"</span>,</span>
+<span>  label_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -75,6 +78,8 @@ for continuous color mapping and overlay comparisons.</p>
 <span>  order.by <span class="op">=</span> <span class="st">"day_post_hatch"</span>,</span>
 <span>  pt.size <span class="op">=</span> <span class="fl">1.2</span>,</span>
 <span>  alpha_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>  max_points <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_seed <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  overlay_mode <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -82,6 +87,7 @@ for continuous color mapping and overlay comparisons.</p>
 <span>  compare_labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  base_color <span class="op">=</span> <span class="st">"steelblue"</span>,</span>
 <span>  compare_color <span class="op">=</span> <span class="st">"orangered"</span>,</span>
+<span>  label_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -123,6 +129,17 @@ for continuous color mapping and overlay comparisons.</p>
 <dd><p>Range for alpha transparency (default: c(0.1, 0.5))</p></dd>
 
 
+<dt id="arg-max-points">max_points<a class="anchor" aria-label="anchor" href="#arg-max-points"></a></dt>
+<dd><p>Maximum number of points to draw per plot panel. When
+provided, dense plots are downsampled before plotting to reduce file size
+while preserving the overall UMAP shape.</p></dd>
+
+
+<dt id="arg-sample-seed">sample_seed<a class="anchor" aria-label="anchor" href="#arg-sample-seed"></a></dt>
+<dd><p>Random seed used when <code>max_points</code> triggers
+downsampling.</p></dd>
+
+
 <dt id="arg-ncol">ncol<a class="anchor" aria-label="anchor" href="#arg-ncol"></a></dt>
 <dd><p>Number of columns in layout</p></dd>
 
@@ -148,7 +165,14 @@ for continuous color mapping and overlay comparisons.</p>
 
 
 <dt id="arg-compare-color">compare_color<a class="anchor" aria-label="anchor" href="#arg-compare-color"></a></dt>
-<dd><p>Color for comparison labels (default: "orangered")</p></dd>
+<dd><p>Color for comparison labels (default: "orangered").
+Can be a single color applied to every overlay, or a vector aligned with
+<code>compare_labels</code> or named by label.</p></dd>
+
+
+<dt id="arg-label-colors">label_colors<a class="anchor" aria-label="anchor" href="#arg-label-colors"></a></dt>
+<dd><p>Named vector of per-label colors for overlay mode.
+When provided, matching labels override <code>base_color</code> and <code>compare_color</code>.</p></dd>
 
 
 <dt id="arg-segment-type">segment_type<a class="anchor" aria-label="anchor" href="#arg-segment-type"></a></dt>
@@ -180,11 +204,15 @@ For SAP objects: Updated SAP object with plot as side effect</p>
 <span class="r-in"><span><span class="co"># Basic trajectory plot</span></span></span>
 <span class="r-in"><span><span class="fu">plot_umap2</span><span class="op">(</span><span class="va">traj_df</span>, color.by <span class="op">=</span> <span class="st">".time"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Smaller plotting payload for dense datasets</span></span></span>
+<span class="r-in"><span><span class="fu">plot_umap2</span><span class="op">(</span><span class="va">traj_df</span>, color.by <span class="op">=</span> <span class="st">".time"</span>, max_points <span class="op">=</span> <span class="fl">20000</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Overlay comparison plot</span></span></span>
 <span class="r-in"><span><span class="fu">plot_umap2</span><span class="op">(</span><span class="va">traj_df</span>,</span></span>
 <span class="r-in"><span>  overlay_mode <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  base_label <span class="op">=</span> <span class="st">"a"</span>,</span></span>
-<span class="r-in"><span>  compare_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"c"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  compare_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"c"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  label_colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="st">"grey55"</span>, b <span class="op">=</span> <span class="st">"#1b9e77"</span>, c <span class="op">=</span> <span class="st">"#d95f02"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Plot motif trajectories from SAP object</span></span></span>

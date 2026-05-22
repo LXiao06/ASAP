@@ -15,7 +15,7 @@ plot_traces(
   x,
   labels = NULL,
   plot_type = c("combined", "individual", "average", "cv"),
-  feature = c("env", "pitch", "goodness", "entropy"),
+  feature = c("env", "pitch", "goodness", "entropy", "PC1", "PC2", "UMAP1", "UMAP2"),
   alpha = 0.2,
   ncol = 1,
   palette = "Set1",
@@ -26,7 +26,7 @@ plot_traces(
 plot_traces(
   x,
   segment_type = c("motifs", "syllables", "segments"),
-  feature = c("env", "pitch", "goodness", "entropy"),
+  feature = c("env", "pitch", "goodness", "entropy", "PC1", "PC2", "UMAP1", "UMAP2"),
   labels = NULL,
   plot_type = c("combined", "individual", "average", "cv"),
   alpha = 0.2,
