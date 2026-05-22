@@ -651,7 +651,20 @@ plot_heatmap.Sap <- function(x,
         stop("Feature embeddings required for ordered/clustered motif plots")
       }
 
-      segments_df <- x$features$motif$feat.embeds |>
+      # Select only key columns and embedding columns from feat.embeds
+      # This prevents duplicate metadata columns (like duration.x, duration.y)
+      embed_cols <- c("filename", "start_time", "end_time", "label", "day_post_hatch", 
+                      "UMAP1", "UMAP2", "cluster")
+      embed_cols <- intersect(embed_cols, names(x$features$motif$feat.embeds))
+      key_cols <- intersect(embed_cols, names(x[["motifs"]]))
+
+      # Merge using natural keys to keep all original metadata like 'subfolder'
+      segments_df <- x[["motifs"]] |>
+        dplyr::inner_join(
+          x$features$motif$feat.embeds[, embed_cols],
+          by = key_cols,
+          relationship = "many-to-many"
+        ) |>
         as_segment()
 
       # Apply UMAP-based ordering if requested
