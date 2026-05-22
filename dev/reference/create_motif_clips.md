@@ -149,9 +149,11 @@ For SAP input: updated SAP object with export summary in
 
 Output layout for `output_format = "wav"`:
 
+
     output_dir/motifs/{bird_id}/{day_post_hatch}/{name_prefix}_001.wav
 
 Output layout for `output_format = "hdf5"`:
+
 
     output_dir/{hdf5_filename}
       /{bird_id}/{day_post_hatch}/{name_prefix}_001

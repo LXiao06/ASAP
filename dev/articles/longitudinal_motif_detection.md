@@ -32,6 +32,7 @@ Pipeline](figures/longitudinal_pipeline.png)
 ## Complete Pipeline
 
 ``` r
+
 library(ASAP)
 
 # Load or create SAP object
@@ -91,6 +92,7 @@ The SAP object stores all analysis results in a structured format,
 making it easy to access detection outcomes:
 
 ``` r
+
 # Access template detection results
 sap$templates$template_matches[["syllable_d"]]
 
@@ -132,6 +134,7 @@ After completing the motif detection pipeline, you can save the SAP
 object for later use or to share with collaborators:
 
 ``` r
+
 # Save the complete SAP object with all results
 saveRDS(sap, "longitudinal_motif_analysis.rds")
 
@@ -151,6 +154,7 @@ smaller than the audio data
 ## Visualizing Results
 
 ``` r
+
 # Visualize sample motifs from each time point
 visualize_segments(sap,
   segment_type = "motifs",
@@ -180,6 +184,7 @@ and order them by their latent feature structure (see “Ordered Heatmap”
 section below).
 
 ``` r
+
 # Create amplitude envelope heatmap with balanced sampling
 plot_heatmap(sap, balanced = TRUE)
 ```
@@ -199,6 +204,7 @@ function makes this easy by extracting the audio segments for your
 detected motifs and saving them in an organized directory structure.
 
 ``` r
+
 # Export up to 200 motifs per day as individual WAV files
 sap <- create_motif_clips(
   sap,
@@ -223,6 +229,7 @@ all clips into a single HDF5 file instead of individual WAV files. This
 keeps everything self-contained and is faster to load in Python or R:
 
 ``` r
+
 sap <- create_motif_clips(
   sap,
   output_format = "hdf5",
@@ -249,6 +256,7 @@ useful for:
 - **Reducing noise** in downstream visualizations
 
 ``` r
+
 # Extract spectral features (frequency, entropy, duration, etc.)
 sap <- sap |>
   analyze_spectral(balanced = TRUE) |>
@@ -287,6 +295,7 @@ creates a **cleaner, more organized heatmap** that addresses the visual
 noise from duration variability.
 
 ``` r
+
 # Create heatmap ordered by cluster membership
 plot_heatmap(sap, balanced = TRUE, ordered = TRUE)
 ```
@@ -307,11 +316,11 @@ Ordered amplitude envelope heatmap grouped by acoustic similarity.
 
 ## Key Parameters for Longitudinal Analysis
 
-| Parameter          | Location                                                                                                                                                                        | Description                                                                                                                                                        |
-|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `threshold`        | [`create_template()`](https://lxiao06.github.io/ASAP/dev/reference/create_template.md) / [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md) | Minimum correlation score. Adjust in [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md) to refine without recreating template. |
-| `proximity_window` | [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md)                                                                                          | Filter duplicate detections within this time window (seconds).                                                                                                     |
-| `balanced`         | [`analyze_spectral()`](https://lxiao06.github.io/ASAP/dev/reference/analyze_spectral.md) / [`plot_heatmap()`](https://lxiao06.github.io/ASAP/dev/reference/plot_heatmap.md)     | Balance samples across time points.                                                                                                                                |
+| Parameter | Location | Description |
+|----|----|----|
+| `threshold` | [`create_template()`](https://lxiao06.github.io/ASAP/dev/reference/create_template.md) / [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md) | Minimum correlation score. Adjust in [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md) to refine without recreating template. |
+| `proximity_window` | [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md) | Filter duplicate detections within this time window (seconds). |
+| `balanced` | [`analyze_spectral()`](https://lxiao06.github.io/ASAP/dev/reference/analyze_spectral.md) / [`plot_heatmap()`](https://lxiao06.github.io/ASAP/dev/reference/plot_heatmap.md) | Balance samples across time points. |
 
 ## Tips for Longitudinal Analysis
 
@@ -334,8 +343,9 @@ Ordered amplitude envelope heatmap grouped by acoustic similarity.
 ## Session Info
 
 ``` r
+
 sessionInfo()
-#> R version 4.5.3 (2026-03-11)
+#> R version 4.6.0 (2026-04-24)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 24.04.4 LTS
 #> 
@@ -360,7 +370,7 @@ sessionInfo()
 #>  [5] xfun_0.57         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
 #>  [9] rmarkdown_2.31    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      
 #> [13] pkgdown_2.2.0     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.2
-#> [17] compiler_4.5.3    tools_4.5.3       ragg_1.5.2        evaluate_1.0.5   
-#> [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.2.0      
-#> [25] fs_2.0.1
+#> [17] compiler_4.6.0    tools_4.6.0       ragg_1.5.2        evaluate_1.0.5   
+#> [21] bslib_0.11.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.2.0      
+#> [25] fs_2.1.0
 ```

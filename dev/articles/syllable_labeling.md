@@ -58,6 +58,7 @@ longitudinal datasets.
 ## Setup
 
 ``` r
+
 library(ASAP)
 ```
 
@@ -70,6 +71,7 @@ Segmentation](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_syllable_
 Load the SAP object saved at the end of that tutorial:
 
 ``` r
+
 sap <- readRDS("longitudinal_syllable_analysis.rds")
 ```
 
@@ -82,6 +84,7 @@ renders a heatmap-style raster where each row is a segment and columns
 represent time within the motif, coloured by cluster identity.
 
 ``` r
+
 plot_clusters(sap, data_type = "segment", ordered = TRUE)
 ```
 
@@ -111,16 +114,17 @@ segments into candidate syllables automatically.
 
 ### Key parameters
 
-| Parameter           | Role                                                        | Default |
-|---------------------|-------------------------------------------------------------|---------|
-| `eps_time`          | Temporal separation sensitivity (smaller → more splits)     | `0.1`   |
-| `eps_umap`          | Acoustic similarity sensitivity (smaller → more splits)     | `0.6`   |
-| `min_pts`           | Minimum points to form a cluster                            | `5`     |
-| `weight_time`       | Relative weight of time position vs. duration               | `4`     |
-| `outlier_threshold` | Fraction of total points below which a cluster is discarded | `0.01`  |
-| `umap_threshold`    | UMAP distance below which two clusters are merged           | `1.0`   |
+| Parameter | Role | Default |
+|----|----|----|
+| `eps_time` | Temporal separation sensitivity (smaller → more splits) | `0.1` |
+| `eps_umap` | Acoustic similarity sensitivity (smaller → more splits) | `0.6` |
+| `min_pts` | Minimum points to form a cluster | `5` |
+| `weight_time` | Relative weight of time position vs. duration | `4` |
+| `outlier_threshold` | Fraction of total points below which a cluster is discarded | `0.01` |
+| `umap_threshold` | UMAP distance below which two clusters are merged | `1.0` |
 
 ``` r
+
 sap <- sap |>
   auto_label(
     eps_time          = 0.1,
@@ -137,6 +141,7 @@ contains a `cluster` column with integer cluster IDs. Visualise the
 auto-labelled clusters:
 
 ``` r
+
 sap <- sap |>
   plot_clusters(data_type = "syllable", ordered = TRUE)
 ```
@@ -171,6 +176,7 @@ Run in an **interactive R session** (e.g. RStudio console) to be
 prompted for each cluster:
 
 ``` r
+
 sap <- manual_label(sap, data_type = "syllable", interactive = TRUE)
 #> Found clusters: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
 #>
@@ -193,6 +199,7 @@ share the same letter are treated as the same syllable type. This
 approach is **fully reproducible** without interactive input.
 
 ``` r
+
 # Inspect the cluster plot above, then define the mapping
 map_df <- data.frame(
   cluster = 1:14,
@@ -215,6 +222,7 @@ sap <- sap |>
 The label map is stored as an attribute of the feature embeddings:
 
 ``` r
+
 stored_map <- attr(sap$features$syllable$feat.embeds, "label_map")
 print(stored_map)
 ```
@@ -229,6 +237,7 @@ by syllable letter to verify consistency across developmental stages.
 ### Heatmap by syllable type
 
 ``` r
+
 sap <- sap |>
   plot_clusters(label_type = "manual", ordered = TRUE)
 ```
@@ -249,6 +258,7 @@ stages (BL, Post, Rec) indicates stable syllable identity.
 All labelled syllables are stored in `sap$syllables`:
 
 ``` r
+
 head(sap$syllables)
 #> filename          day_post_hatch label cluster syllable UMAP1   UMAP2
 #> S237_42674.wav    190            BL    4       b        -1.23   2.45
@@ -257,6 +267,7 @@ head(sap$syllables)
 ```
 
 ``` r
+
 # Count syllables per type per developmental stage
 table(sap$syllables$label, sap$syllables$syllable)
 ```
@@ -281,6 +292,7 @@ period.
 ## Complete labelling pipeline (copy-paste reference)
 
 ``` r
+
 library(ASAP)
 
 # -- Assumes segmentation pipeline has already been run --
@@ -311,8 +323,9 @@ sap <- sap |>
 ## Session info
 
 ``` r
+
 sessionInfo()
-#> R version 4.5.3 (2026-03-11)
+#> R version 4.6.0 (2026-04-24)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 24.04.4 LTS
 #> 
@@ -337,7 +350,7 @@ sessionInfo()
 #>  [5] xfun_0.57         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
 #>  [9] rmarkdown_2.31    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      
 #> [13] pkgdown_2.2.0     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.2
-#> [17] compiler_4.5.3    tools_4.5.3       ragg_1.5.2        evaluate_1.0.5   
-#> [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.2.0      
-#> [25] fs_2.0.1
+#> [17] compiler_4.6.0    tools_4.6.0       ragg_1.5.2        evaluate_1.0.5   
+#> [21] bslib_0.11.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.2.0      
+#> [25] fs_2.1.0
 ```

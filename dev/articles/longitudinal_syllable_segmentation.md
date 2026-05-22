@@ -56,6 +56,7 @@ bouts (`segment_type = "bouts"`).
 ## Setup
 
 ``` r
+
 library(ASAP)
 ```
 
@@ -69,6 +70,7 @@ Here we assume you have already populated the object with detected bouts
 Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_bout_detection.md)).
 
 ``` r
+
 sap <- readRDS("longitudinal_bout_analysis.rds")
 ```
 
@@ -84,17 +86,17 @@ single example** so you can tune the parameters first.
 
 ### Key parameters
 
-| Parameter           | Role                                                                                              | Typical range  |
-|---------------------|---------------------------------------------------------------------------------------------------|----------------|
-| `segment_type`      | What to segment: `"bouts"` or `"motifs"`                                                          | —              |
-| `flim`              | Frequency range in kHz                                                                            | `c(1, 10)`     |
-| `silence_threshold` | Relative amplitude below which a frame is silent                                                  | `0.01 – 0.1`   |
-| `min_syllable_ms`   | Minimum syllable length                                                                           | `20 – 50 ms`   |
-| `max_syllable_ms`   | Maximum syllable length                                                                           | `150 – 300 ms` |
-| `min_level_db`      | Lower dB bound for adaptive search                                                                | `5 – 15 dB`    |
-| `db_delta`          | Step size for dB search                                                                           | `5 – 10 dB`    |
-| `search_direction`  | Direction for dB threshold search: `"up"` (quiet recordings) or `"down"` (loud, clear recordings) | `"up"`         |
-| `plot_percent`      | *(SAP method only)* Percentage of segments for which a PNG is saved                               | `10`           |
+| Parameter | Role | Typical range |
+|----|----|----|
+| `segment_type` | What to segment: `"bouts"` or `"motifs"` | — |
+| `flim` | Frequency range in kHz | `c(1, 10)` |
+| `silence_threshold` | Relative amplitude below which a frame is silent | `0.01 – 0.1` |
+| `min_syllable_ms` | Minimum syllable length | `20 – 50 ms` |
+| `max_syllable_ms` | Maximum syllable length | `150 – 300 ms` |
+| `min_level_db` | Lower dB bound for adaptive search | `5 – 15 dB` |
+| `db_delta` | Step size for dB search | `5 – 10 dB` |
+| `search_direction` | Direction for dB threshold search: `"up"` (quiet recordings) or `"down"` (loud, clear recordings) | `"up"` |
+| `plot_percent` | *(SAP method only)* Percentage of segments for which a PNG is saved | `10` |
 
 ### 2a — Interactive parameter tuning with default method
 
@@ -108,6 +110,7 @@ so the result appears in the plot pane right away.
 Try the **4th bout** first:
 
 ``` r
+
 example_bout <- sap$bouts[4, ]
 
 segment(
@@ -134,6 +137,7 @@ spectrogram with detected syllable boundaries (bottom)
 Then try the **22nd motif**.
 
 ``` r
+
 example_motif <- sap$motifs[22, ]
 
 segment(
@@ -183,6 +187,7 @@ They work together, not as alternatives. For example, to check bouts 1–5
 from the baseline day only:
 
 ``` r
+
 segment(
   sap,
   segment_type      = "bouts",
@@ -217,6 +222,7 @@ only a random 10 % of detection plots are saved — sufficient for a final
 sanity check without the overhead of writing thousands of PNGs.
 
 ``` r
+
 sap <- sap |>
   segment(
     segment_type      = "bouts", # segment within each detected bout
@@ -236,6 +242,7 @@ Detected syllable boundaries are stored in `sap$segments`. You can
 inspect them directly:
 
 ``` r
+
 head(sap$segments)
 #> filename          day_post_hatch label selec start_time end_time duration ...
 #> S237_42674.wav    190            BL    1-1   1.135      1.178    0.043    ...
@@ -258,6 +265,7 @@ default), whereas here we pass `segment_type = "segments"` to work on
 the individual syllables we just detected.
 
 ``` r
+
 sap <- sap |>
   analyze_spectral(
     segment_type = "segments"
@@ -284,6 +292,7 @@ tutorial. The embeddings are required by
 [`auto_label()`](https://lxiao06.github.io/ASAP/dev/reference/auto_label.md):
 
 ``` r
+
 saveRDS(sap, "longitudinal_syllable_analysis.rds")
 
 # Reload later with:
@@ -309,6 +318,7 @@ renders an interactive scatter plot of segments in UMAP space, coloured
 and faceted to reveal developmental differences.
 
 ``` r
+
 plot_umap(sap,
   segment_type = "segments",
   split.by     = "label", # one panel per developmental stage
@@ -344,6 +354,7 @@ parameters need adjustment.
 ## Complete pipeline (copy-paste reference)
 
 ``` r
+
 library(ASAP)
 
 # -- Create SAP object --
@@ -398,8 +409,9 @@ labelling.
 ## Session info
 
 ``` r
+
 sessionInfo()
-#> R version 4.5.3 (2026-03-11)
+#> R version 4.6.0 (2026-04-24)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 24.04.4 LTS
 #> 
@@ -424,7 +436,7 @@ sessionInfo()
 #>  [5] xfun_0.57         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
 #>  [9] rmarkdown_2.31    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      
 #> [13] pkgdown_2.2.0     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.2
-#> [17] compiler_4.5.3    tools_4.5.3       ragg_1.5.2        evaluate_1.0.5   
-#> [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.2.0      
-#> [25] fs_2.0.1
+#> [17] compiler_4.6.0    tools_4.6.0       ragg_1.5.2        evaluate_1.0.5   
+#> [21] bslib_0.11.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.2.0      
+#> [25] fs_2.1.0
 ```

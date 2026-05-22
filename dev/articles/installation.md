@@ -25,6 +25,7 @@ GitHub-hosted R packages is via the `remotes` package.
 Open RStudio and run the following in the Console:
 
 ``` r
+
 install.packages("remotes")
 ```
 
@@ -39,6 +40,7 @@ everyday use. Releases are tagged and tested, so this is the safest
 option.
 
 ``` r
+
 remotes::install_github("LXiao06/ASAP@*release")
 ```
 
@@ -50,6 +52,7 @@ released, you can install the **development version** directly from the
 features.
 
 ``` r
+
 remotes::install_github("LXiao06/ASAP")
 ```
 
@@ -60,6 +63,7 @@ can install any past release by specifying its version tag (e.g.,
 `v0.3.3`):
 
 ``` r
+
 remotes::install_github("LXiao06/ASAP@v0.3.3")
 ```
 
@@ -73,6 +77,7 @@ page](https://github.com/LXiao06/ASAP/releases).
 Once installed, load the package in your R session:
 
 ``` r
+
 library(ASAP)
 ```
 
@@ -96,6 +101,7 @@ If you encounter a `package 'xxx' is not available` error, try updating
 your R and `remotes` package first:
 
 ``` r
+
 update.packages(ask = FALSE)
 install.packages("remotes")
 ```

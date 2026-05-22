@@ -52,6 +52,7 @@ Detection](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_detect
 you can load that SAP object and add bout detection:
 
 ``` r
+
 library(ASAP)
 
 # Load SAP object from previous motif detection vignette
@@ -79,6 +80,7 @@ Object](https://lxiao06.github.io/ASAP/dev/articles/construct_sap_object.md)
 for detailed instructions):
 
 ``` r
+
 library(ASAP)
 
 # Create SAP object
@@ -120,6 +122,7 @@ function processes recordings based on the SAP object’s metadata:
 ### Example Output
 
 ``` r
+
 # View bout detection summary
 summary(sap$bouts)
 
@@ -144,6 +147,7 @@ After completing bout detection, you can save the SAP object for later
 use:
 
 ``` r
+
 # Save the SAP object with bout detection results
 saveRDS(sap, "longitudinal_bout_analysis.rds")
 
@@ -167,6 +171,7 @@ smaller than the audio data
 Visualize sample bouts from each time point to verify detection quality:
 
 ``` r
+
 # Visualize 3 random bouts per time point
 visualize_segments(sap, segment_type = "bouts", n_samples = 3, by_column = TRUE)
 ```
@@ -182,6 +187,7 @@ Amplitude envelope heatmaps visualize the temporal structure of detected
 bouts across song developmental stages.
 
 ``` r
+
 # Create amplitude envelope heatmap with balanced sampling
 plot_heatmap(sap, segment_type = "bouts", balanced = TRUE)
 ```
@@ -276,6 +282,7 @@ external analysis, manual review, or machine learning workflows using
 [`create_bout_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_bout_clips.md).
 
 ``` r
+
 # Export up to 50 bouts per day as WAV files
 sap <- create_bout_clips(
   sap,
@@ -312,6 +319,7 @@ Test parameters on representative files from each time point before
 processing the entire dataset:
 
 ``` r
+
 # Test on a single file
 test_file <- file.path(sap$base_path, "190", sap$metadata$filename[1])
 
@@ -332,6 +340,7 @@ Always visualize sample detections to verify bout boundaries are
 accurate:
 
 ``` r
+
 # Save plots for manual review
 sap <- sap |>
   find_bout(
@@ -349,6 +358,7 @@ Enable `summary = TRUE` when you have motif data to understand
 bout-motif relationships:
 
 ``` r
+
 # Requires existing motif detection
 sap <- sap |>
   find_motif(template_name = "d", pre_time = 0.7, lag_time = 0.5) |>
@@ -366,6 +376,7 @@ Use `balanced = TRUE` when creating visualizations or statistics for
 cross-timepoint comparisons:
 
 ``` r
+
 # Balanced heatmap for fair comparison
 sap |> plot_heatmap(segment_type = "bouts", balanced = TRUE)
 
@@ -389,8 +400,9 @@ Adjust parameters based on recording conditions:
 ## Session Info
 
 ``` r
+
 sessionInfo()
-#> R version 4.5.3 (2026-03-11)
+#> R version 4.6.0 (2026-04-24)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 24.04.4 LTS
 #> 
@@ -415,7 +427,7 @@ sessionInfo()
 #>  [5] xfun_0.57         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
 #>  [9] rmarkdown_2.31    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      
 #> [13] pkgdown_2.2.0     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.2
-#> [17] compiler_4.5.3    tools_4.5.3       ragg_1.5.2        evaluate_1.0.5   
-#> [21] bslib_0.10.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.2.0      
-#> [25] fs_2.0.1
+#> [17] compiler_4.6.0    tools_4.6.0       ragg_1.5.2        evaluate_1.0.5   
+#> [21] bslib_0.11.0      yaml_2.3.12       jsonlite_2.0.0    rlang_1.2.0      
+#> [25] fs_2.1.0
 ```

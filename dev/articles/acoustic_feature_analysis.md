@@ -55,12 +55,12 @@ changing the function name.
 
 ### `spectral_entropy()` and `FF()`
 
-| Input type          | What to pass                                                 | Key extra argument                             |
-|---------------------|--------------------------------------------------------------|------------------------------------------------|
-| Single WAV file     | Character path to `.wav` file                                | `start_time`, `end_time` (seconds)             |
-| Segment data frame  | Data frame with `filename`, `start_time`, `end_time` columns | `wav_dir` (directory containing the WAV files) |
-| SAP object          | A `Sap` object                                               | `segment_type`, sampling/filtering options     |
-| Pre-computed matrix | An entropy or F0 matrix returned by a previous call          | — (re-plots the stored matrix)                 |
+| Input type | What to pass | Key extra argument |
+|----|----|----|
+| Single WAV file | Character path to `.wav` file | `start_time`, `end_time` (seconds) |
+| Segment data frame | Data frame with `filename`, `start_time`, `end_time` columns | `wav_dir` (directory containing the WAV files) |
+| SAP object | A `Sap` object | `segment_type`, sampling/filtering options |
+| Pre-computed matrix | An entropy or F0 matrix returned by a previous call | — (re-plots the stored matrix) |
 
 When `x` is a **character path**, `start_time` and `end_time` default to
 the full file duration if omitted.
@@ -85,6 +85,7 @@ WAV file directory is not embedded in the data frame as an attribute.
 ## Setup
 
 ``` r
+
 library(ASAP)
 #> ASAP v0.3.5.9000 loaded.
 
@@ -118,6 +119,7 @@ These arguments are independent — you can use either method with or
 without normalization:
 
 ``` r
+
 # Wiener entropy, native scale
 wiener_raw <- spectral_entropy(
   wav_file,
@@ -132,6 +134,7 @@ wiener_raw <- spectral_entropy(
 ![](acoustic_feature_analysis_files/figure-html/spectral-entropy-wiener-raw-1.png)
 
 ``` r
+
 # Wiener entropy, normalized to 0–1
 wiener_norm <- spectral_entropy(
   wav_file,
@@ -146,6 +149,7 @@ wiener_norm <- spectral_entropy(
 ![](acoustic_feature_analysis_files/figure-html/spectral-entropy-wiener-norm-1.png)
 
 ``` r
+
 # Shannon entropy, native scale
 shannon_raw <- spectral_entropy(
   wav_file,
@@ -160,6 +164,7 @@ shannon_raw <- spectral_entropy(
 ![](acoustic_feature_analysis_files/figure-html/spectral-entropy-shannon-raw-1.png)
 
 ``` r
+
 # Shannon entropy, normalized to 0–1
 shannon_norm <- spectral_entropy(
   wav_file,
@@ -175,10 +180,10 @@ shannon_norm <- spectral_entropy(
 
 ### Argument guide
 
-| Argument    | Options                   | How to think about it                                                                                             |
-|-------------|---------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `method`    | `"wiener"` or `"shannon"` | Use Wiener for spectral flatness (classic bioacoustics metric); use Shannon for information-content style entropy |
-| `normalize` | `FALSE` or `TRUE`         | Use `FALSE` to keep the native scale; use `TRUE` for a 0–1 scale that is easier to compare across plots           |
+| Argument | Options | How to think about it |
+|----|----|----|
+| `method` | `"wiener"` or `"shannon"` | Use Wiener for spectral flatness (classic bioacoustics metric); use Shannon for information-content style entropy |
+| `normalize` | `FALSE` or `TRUE` | Use `FALSE` to keep the native scale; use `TRUE` for a 0–1 scale that is easier to compare across plots |
 
 All four combinations of `method` × `normalize` are valid; pick
 whichever suits your analysis question.
@@ -210,6 +215,7 @@ The two most important arguments for a single recording are:
 and works well for quick inspection of tonal syllables.
 
 ``` r
+
 pitch_cepstrum <- FF(
   wav_file,
   start_time = analysis_start,
@@ -229,6 +235,7 @@ pitch_cepstrum <- FF(
 dependencies through `reticulate`, including `librosa` and `numpy`.
 
 ``` r
+
 # ASAP attempts to auto-install librosa/numpy via reticulate when needed.
 # This chunk runs only when Python and its dependencies are available;
 # it skips gracefully otherwise (e.g. on CRAN or CI build servers).
@@ -257,11 +264,11 @@ if (has_yin) {
 
 ### Argument guide
 
-| Argument    | Options                   | How to think about it                                                                                            |
-|-------------|---------------------------|------------------------------------------------------------------------------------------------------------------|
-| `method`    | `"cepstrum"` or `"yin"`   | Start with `cepstrum`; try `yin` if you want an alternative pitch tracker and have Python dependencies installed |
-| `fmax`      | Numeric upper limit in Hz | Raise it if the contour clips too low; lower it to reduce implausibly high estimates                             |
-| `threshold` | Confidence filter (%)     | Higher values remove uncertain estimates but may introduce gaps                                                  |
+| Argument | Options | How to think about it |
+|----|----|----|
+| `method` | `"cepstrum"` or `"yin"` | Start with `cepstrum`; try `yin` if you want an alternative pitch tracker and have Python dependencies installed |
+| `fmax` | Numeric upper limit in Hz | Raise it if the contour clips too low; lower it to reduce implausibly high estimates |
+| `threshold` | Confidence filter (%) | Higher values remove uncertain estimates but may introduce gaps |
 
 ### The result contains
 
@@ -282,6 +289,7 @@ is a simple way to create that input.
 ### Step 1: Segment a small time window into syllables
 
 ``` r
+
 syllables <- segment(
   wav_file,
   start_time         = 1,
@@ -298,18 +306,19 @@ syllables <- segment(
 knitr::kable(head(syllables), digits = 3)
 ```
 
-| filename       | selec | threshold | .start |  .end | start_time | end_time | duration | silence_gap |
-|:---------------|------:|----------:|-------:|------:|-----------:|---------:|---------:|------------:|
-| zf_example.wav |     1 |        10 |  0.061 | 0.123 |      1.061 |    1.123 |    0.061 |          NA |
-| zf_example.wav |     2 |        10 |  0.151 | 0.199 |      1.151 |    1.199 |    0.047 |       0.028 |
-| zf_example.wav |     3 |        10 |  0.260 | 0.312 |      1.260 |    1.312 |    0.052 |       0.061 |
-| zf_example.wav |     4 |        10 |  0.359 | 0.411 |      1.359 |    1.411 |    0.052 |       0.047 |
-| zf_example.wav |     5 |        10 |  0.444 | 0.520 |      1.444 |    1.520 |    0.076 |       0.033 |
-| zf_example.wav |     6 |        10 |  0.548 | 0.610 |      1.548 |    1.610 |    0.061 |       0.028 |
+| filename | selec | threshold | .start | .end | start_time | end_time | duration | silence_gap |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| zf_example.wav | 1 | 10 | 0.061 | 0.123 | 1.061 | 1.123 | 0.061 | NA |
+| zf_example.wav | 2 | 10 | 0.151 | 0.199 | 1.151 | 1.199 | 0.047 | 0.028 |
+| zf_example.wav | 3 | 10 | 0.260 | 0.312 | 1.260 | 1.312 | 0.052 | 0.061 |
+| zf_example.wav | 4 | 10 | 0.359 | 0.411 | 1.359 | 1.411 | 0.052 | 0.047 |
+| zf_example.wav | 5 | 10 | 0.444 | 0.520 | 1.444 | 1.520 | 0.076 | 0.033 |
+| zf_example.wav | 6 | 10 | 0.548 | 0.610 | 1.548 | 1.610 | 0.061 | 0.028 |
 
 ### Step 2: Choose one syllable row
 
 ``` r
+
 example_syllable <- NULL
 if (!is.null(syllables) && nrow(syllables) >= 1) {
   example_syllable <- syllables[1, , drop = FALSE]
@@ -317,13 +326,14 @@ if (!is.null(syllables) && nrow(syllables) >= 1) {
 }
 ```
 
-| filename       | selec | threshold | .start |  .end | start_time | end_time | duration | silence_gap |
-|:---------------|------:|----------:|-------:|------:|-----------:|---------:|---------:|------------:|
-| zf_example.wav |     1 |        10 |  0.061 | 0.123 |      1.061 |    1.123 |    0.061 |          NA |
+| filename | selec | threshold | .start | .end | start_time | end_time | duration | silence_gap |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| zf_example.wav | 1 | 10 | 0.061 | 0.123 | 1.061 | 1.123 | 0.061 | NA |
 
 ### Step 3: Extract the envelope
 
 ``` r
+
 if (!is.null(example_syllable)) {
   env_syl <- amp_env(
     example_syllable,
@@ -348,12 +358,12 @@ if (!is.null(example_syllable)) {
 
 ### Argument guide
 
-| Argument        | Options                           | How to think about it                                             |
-|-----------------|-----------------------------------|-------------------------------------------------------------------|
-| `segment_row`   | Single-row data frame             | Must contain `filename`, `start_time`, `end_time`                 |
-| `wav_dir`       | Path string                       | Directory containing the WAV files                                |
-| `msmooth`       | Numeric vector c(window, overlap) | Larger window = smoother envelope; smaller = more temporal detail |
-| `amp_normalize` | `"none"`, `"peak"`, `"rms"`       | Use `"peak"` when comparing envelope shapes across segments       |
+| Argument | Options | How to think about it |
+|----|----|----|
+| `segment_row` | Single-row data frame | Must contain `filename`, `start_time`, `end_time` |
+| `wav_dir` | Path string | Directory containing the WAV files |
+| `msmooth` | Numeric vector c(window, overlap) | Larger window = smoother envelope; smaller = more temporal detail |
+| `amp_normalize` | `"none"`, `"peak"`, `"rms"` | Use `"peak"` when comparing envelope shapes across segments |
 
 ------------------------------------------------------------------------
 
@@ -369,6 +379,7 @@ instead of manually specifying `start_time` and `end_time` for each one.
 ### Step 1: Select a few syllable rows
 
 ``` r
+
 example_syllables <- NULL
 if (!is.null(syllables) && nrow(syllables) >= 3) {
   example_syllables <- syllables[1:3, ]
@@ -376,11 +387,11 @@ if (!is.null(syllables) && nrow(syllables) >= 3) {
 }
 ```
 
-| filename       | selec | threshold | .start |  .end | start_time | end_time | duration | silence_gap |
-|:---------------|------:|----------:|-------:|------:|-----------:|---------:|---------:|------------:|
-| zf_example.wav |     1 |        10 |  0.061 | 0.123 |      1.061 |    1.123 |    0.061 |          NA |
-| zf_example.wav |     2 |        10 |  0.151 | 0.199 |      1.151 |    1.199 |    0.047 |       0.028 |
-| zf_example.wav |     3 |        10 |  0.260 | 0.312 |      1.260 |    1.312 |    0.052 |       0.061 |
+| filename | selec | threshold | .start | .end | start_time | end_time | duration | silence_gap |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| zf_example.wav | 1 | 10 | 0.061 | 0.123 | 1.061 | 1.123 | 0.061 | NA |
+| zf_example.wav | 2 | 10 | 0.151 | 0.199 | 1.151 | 1.199 | 0.047 | 0.028 |
+| zf_example.wav | 3 | 10 | 0.260 | 0.312 | 1.260 | 1.312 | 0.052 | 0.061 |
 
 ### Step 2: Run spectral entropy on the data frame
 
@@ -390,6 +401,7 @@ examples apply here. Mix and match freely — for example, try
 information-content scale.
 
 ``` r
+
 if (!is.null(example_syllables)) {
   entropy_df <- spectral_entropy(
     example_syllables,
@@ -412,6 +424,7 @@ multi-segment result. The `method`, `fmax`, and `threshold` arguments
 work the same way as for a single WAV file.
 
 ``` r
+
 if (!is.null(example_syllables)) {
   pitch_df <- FF(
     example_syllables,
@@ -433,11 +446,11 @@ if (!is.null(example_syllables)) {
 These three functions provide a compact toolkit for exploring acoustic
 variation in a single recording:
 
-| Function                                                                                 | What it captures                    | Primary input types                                   |
-|------------------------------------------------------------------------------------------|-------------------------------------|-------------------------------------------------------|
-| [`spectral_entropy()`](https://lxiao06.github.io/ASAP/dev/reference/spectral_entropy.md) | Spectral structure or noisiness     | WAV path, data frame, SAP object, pre-computed matrix |
-| [`FF()`](https://lxiao06.github.io/ASAP/dev/reference/Fundamental_Frequency.md)          | Pitch contour over time             | WAV path, data frame, SAP object, pre-computed matrix |
-| [`amp_env()`](https://lxiao06.github.io/ASAP/dev/reference/amp_env.md)                   | Amplitude dynamics within a segment | Single-row data frame                                 |
+| Function | What it captures | Primary input types |
+|----|----|----|
+| [`spectral_entropy()`](https://lxiao06.github.io/ASAP/dev/reference/spectral_entropy.md) | Spectral structure or noisiness | WAV path, data frame, SAP object, pre-computed matrix |
+| [`FF()`](https://lxiao06.github.io/ASAP/dev/reference/Fundamental_Frequency.md) | Pitch contour over time | WAV path, data frame, SAP object, pre-computed matrix |
+| [`amp_env()`](https://lxiao06.github.io/ASAP/dev/reference/amp_env.md) | Amplitude dynamics within a segment | Single-row data frame |
 
 For motif-scale acoustic analysis across many recordings, continue to
 the SAP object workflow starting with [Constructing SAP
@@ -446,8 +459,9 @@ Object](https://lxiao06.github.io/ASAP/dev/articles/construct_sap_object.md).
 ## Session Info
 
 ``` r
+
 sessionInfo()
-#> R version 4.5.3 (2026-03-11)
+#> R version 4.6.0 (2026-04-24)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 24.04.4 LTS
 #> 
@@ -473,18 +487,18 @@ sessionInfo()
 #> loaded via a namespace (and not attached):
 #>  [1] rappdirs_0.3.4     sass_0.4.10        generics_0.1.4     tidyr_1.3.2       
 #>  [5] lattice_0.22-9     digest_0.6.39      magrittr_2.0.5     evaluate_1.0.5    
-#>  [9] grid_4.5.3         RColorBrewer_1.1-3 fastmap_1.2.0      rprojroot_2.1.1   
-#> [13] jsonlite_2.0.0     Matrix_1.7-4       tuneR_1.4.7        purrr_1.2.1       
+#>  [9] grid_4.6.0         RColorBrewer_1.1-3 fastmap_1.2.0      rprojroot_2.1.1   
+#> [13] jsonlite_2.0.0     Matrix_1.7-5       tuneR_1.4.7        purrr_1.2.2       
 #> [17] scales_1.4.0       pbapply_1.7-4      textshaping_1.0.5  jquerylib_0.1.4   
 #> [21] cli_3.6.6          rlang_1.2.0        pbmcapply_1.5.1    fftw_1.0-9        
 #> [25] withr_3.0.2        seewave_2.2.4      cachem_1.1.0       yaml_2.3.12       
-#> [29] av_0.9.6           tools_4.5.3        parallel_4.5.3     dplyr_1.2.1       
-#> [33] ggplot2_4.0.2      here_1.0.2         reticulate_1.46.0  vctrs_0.7.2       
-#> [37] R6_2.6.1           png_0.1-9          lifecycle_1.0.5    fs_2.0.1          
+#> [29] av_0.9.6           tools_4.6.0        parallel_4.6.0     dplyr_1.2.1       
+#> [33] ggplot2_4.0.3      here_1.0.2         reticulate_1.46.0  vctrs_0.7.3       
+#> [37] R6_2.6.1           png_0.1-9          lifecycle_1.0.5    fs_2.1.0          
 #> [41] MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3    desc_1.4.3        
-#> [45] pkgdown_2.2.0      pillar_1.11.1      bslib_0.10.0       gtable_0.3.6      
-#> [49] glue_1.8.0         Rcpp_1.1.1         systemfonts_1.3.2  xfun_0.57         
+#> [45] pkgdown_2.2.0      pillar_1.11.1      bslib_0.11.0       gtable_0.3.6      
+#> [49] glue_1.8.1         Rcpp_1.1.1-1.1     systemfonts_1.3.2  xfun_0.57         
 #> [53] tibble_3.3.1       tidyselect_1.2.1   knitr_1.51         farver_2.1.2      
 #> [57] htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31     signal_1.8-1      
-#> [61] compiler_4.5.3     S7_0.2.1
+#> [61] compiler_4.6.0     S7_0.2.2
 ```

@@ -46,6 +46,7 @@ The workflow has three steps:
 ## Setup
 
 ``` r
+
 library(ASAP)
 #> ASAP v0.3.5.9000 loaded.
 
@@ -64,6 +65,7 @@ vignette. Here we recap only the core lines needed to produce the
 `motifs` table that drives Phase 2.
 
 ``` r
+
 # 1. Extract a reference clip and build a template from syllable "d"
 clip_path <- create_audio_clip(wav_file, start_time = 1, end_time = 2.5)
 #> Song clip clip_zf_example.wav is generated.
@@ -123,6 +125,7 @@ We encode these offsets once so they are applied consistently across
 every motif row.
 
 ``` r
+
 # Offsets from each motif's start_time (seconds) — syllable "e"
 syl_pre <- 0.8 # syllable onset relative to motif start
 syl_post <- 0.85 # syllable offset relative to motif start
@@ -152,6 +155,7 @@ is correctly aligned before committing it to the feature-extraction
 loop.
 
 ``` r
+
 visualize_segments(syl_windows,
   wav_dir   = wav_dir,
   n_samples = nrow(syl_windows)
@@ -173,6 +177,7 @@ so the pattern is uniform for all three.
 ### 3a. Spectral Entropy
 
 ``` r
+
 entropy_results <- vector("list", nrow(syl_windows))
 
 for (i in seq_len(nrow(syl_windows))) {
@@ -209,6 +214,7 @@ knitr::kable(entropy_df, digits = 4)
 ### 3b. Fundamental Frequency
 
 ``` r
+
 ff_results <- vector("list", nrow(syl_windows))
 
 for (i in seq_len(nrow(syl_windows))) {
@@ -252,6 +258,7 @@ RMS, which together capture both the loudness ceiling and the mean
 energy.
 
 ``` r
+
 env_results <- vector("list", nrow(syl_windows))
 
 for (i in seq_len(nrow(syl_windows))) {
@@ -293,6 +300,7 @@ Merge all three feature tables and look at how each metric changes
 across consecutive motif renditions.
 
 ``` r
+
 feature_df <- Reduce(
   function(a, b) merge(a, b, by = c("motif_index", "start_time")),
   list(entropy_df, ff_df, env_df)
@@ -301,15 +309,16 @@ feature_df <- Reduce(
 knitr::kable(feature_df, digits = 4)
 ```
 
-| motif_index | start_time | mean_entropy | sem_entropy | mean_ff_kHz | sem_ff_kHz | mean_amp |  sem_amp |  rms_amp |
-|------------:|-----------:|-------------:|------------:|------------:|-----------:|---------:|---------:|---------:|
-|           1 |       1.86 |      -0.6019 |      0.1226 |      0.5737 |     0.0719 | 3853.205 | 667.5323 | 4640.170 |
-|           2 |       3.17 |      -0.6281 |      0.0431 |      0.6397 |     0.0844 | 4366.645 | 520.8094 | 4810.013 |
-|           3 |       4.76 |      -0.7398 |      0.0306 |      0.5374 |     0.0841 | 6192.217 | 483.9166 | 6469.635 |
+| motif_index | start_time | mean_entropy | sem_entropy | mean_ff_kHz | sem_ff_kHz | mean_amp | sem_amp | rms_amp |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 1.86 | -0.6019 | 0.1226 | 0.5737 | 0.0719 | 3853.205 | 667.5323 | 4640.170 |
+| 2 | 3.17 | -0.6281 | 0.0431 | 0.6397 | 0.0844 | 4366.645 | 520.8094 | 4810.013 |
+| 3 | 4.76 | -0.7398 | 0.0306 | 0.5374 | 0.0841 | 6192.217 | 483.9166 | 6469.635 |
 
 ### Average entropy across renditions
 
 ``` r
+
 plot(
   feature_df$motif_index,
   feature_df$mean_entropy,
@@ -342,6 +351,7 @@ arrows(
 ### Mean fundamental frequency across renditions
 
 ``` r
+
 plot(
   feature_df$motif_index,
   feature_df$mean_ff_kHz,
@@ -373,6 +383,7 @@ arrows(
 ### Envelope amplitude across renditions
 
 ``` r
+
 plot(
   feature_df$motif_index,
   feature_df$mean_amp,
@@ -409,6 +420,7 @@ The combined `feature_df` is a standard R data frame ready for any
 downstream analysis.
 
 ``` r
+
 # Save as CSV for use in other tools or scripts
 write.csv(feature_df,
   file      = "syllable_features.csv",
@@ -423,14 +435,14 @@ write.csv(feature_df,
 This vignette demonstrated a complete single-recording pipeline that
 bridges motif detection and acoustic feature analysis:
 
-| Phase           | Key steps                                                                                                                                                             | Output                             |
-|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| Motif detection | [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md) → [`find_motif()`](https://lxiao06.github.io/ASAP/dev/reference/find_motif.md) | `motifs` data frame                |
-| Syllable window | Fixed offset from `start_time`                                                                                                                                        | `syl_windows` data frame           |
-| Entropy         | [`spectral_entropy()`](https://lxiao06.github.io/ASAP/dev/reference/spectral_entropy.md) per row                                                                      | Mean ± SEM per motif               |
-| Pitch           | [`FF()`](https://lxiao06.github.io/ASAP/dev/reference/Fundamental_Frequency.md) per row, voiced frames only                                                           | Mean F0 ± SEM per motif            |
-| Envelope        | [`amp_env()`](https://lxiao06.github.io/ASAP/dev/reference/amp_env.md) per row                                                                                        | Mean ± SEM, RMS per motif          |
-| Visualization   | Base R [`plot()`](https://rdrr.io/r/graphics/plot.default.html)                                                                                                       | Trajectory plots across renditions |
+| Phase | Key steps | Output |
+|----|----|----|
+| Motif detection | [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md) → [`find_motif()`](https://lxiao06.github.io/ASAP/dev/reference/find_motif.md) | `motifs` data frame |
+| Syllable window | Fixed offset from `start_time` | `syl_windows` data frame |
+| Entropy | [`spectral_entropy()`](https://lxiao06.github.io/ASAP/dev/reference/spectral_entropy.md) per row | Mean ± SEM per motif |
+| Pitch | [`FF()`](https://lxiao06.github.io/ASAP/dev/reference/Fundamental_Frequency.md) per row, voiced frames only | Mean F0 ± SEM per motif |
+| Envelope | [`amp_env()`](https://lxiao06.github.io/ASAP/dev/reference/amp_env.md) per row | Mean ± SEM, RMS per motif |
+| Visualization | Base R [`plot()`](https://rdrr.io/r/graphics/plot.default.html) | Trajectory plots across renditions |
 
 The same pattern — iterate per row, collect scalar summaries, bind into
 a data frame — scales directly to larger datasets by replacing the `for`
@@ -446,8 +458,9 @@ or
 ## Session Info
 
 ``` r
+
 sessionInfo()
-#> R version 4.5.3 (2026-03-11)
+#> R version 4.6.0 (2026-04-24)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 24.04.4 LTS
 #> 
@@ -472,18 +485,18 @@ sessionInfo()
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    
-#>  [5] digest_0.6.39      magrittr_2.0.5     evaluate_1.0.5     grid_4.5.3        
-#>  [9] RColorBrewer_1.1-3 fastmap_1.2.0      jsonlite_2.0.0     Matrix_1.7-4      
-#> [13] monitoR_1.2        tuneR_1.4.7        purrr_1.2.1        scales_1.4.0      
+#>  [5] digest_0.6.39      magrittr_2.0.5     evaluate_1.0.5     grid_4.6.0        
+#>  [9] RColorBrewer_1.1-3 fastmap_1.2.0      jsonlite_2.0.0     Matrix_1.7-5      
+#> [13] monitoR_1.2        tuneR_1.4.7        purrr_1.2.2        scales_1.4.0      
 #> [17] pbapply_1.7-4      textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.6         
 #> [21] rlang_1.2.0        pbmcapply_1.5.1    fftw_1.0-9         withr_3.0.2       
 #> [25] seewave_2.2.4      cachem_1.1.0       yaml_2.3.12        av_0.9.6          
-#> [29] tools_4.5.3        parallel_4.5.3     dplyr_1.2.1        ggplot2_4.0.2     
-#> [33] reticulate_1.46.0  vctrs_0.7.2        R6_2.6.1           png_0.1-9         
-#> [37] lifecycle_1.0.5    fs_2.0.1           MASS_7.3-65        ragg_1.5.2        
+#> [29] tools_4.6.0        parallel_4.6.0     dplyr_1.2.1        ggplot2_4.0.3     
+#> [33] reticulate_1.46.0  vctrs_0.7.3        R6_2.6.1           png_0.1-9         
+#> [37] lifecycle_1.0.5    fs_2.1.0           MASS_7.3-65        ragg_1.5.2        
 #> [41] pkgconfig_2.0.3    desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1     
-#> [45] bslib_0.10.0       gtable_0.3.6       glue_1.8.0         Rcpp_1.1.1        
+#> [45] bslib_0.11.0       gtable_0.3.6       glue_1.8.1         Rcpp_1.1.1-1.1    
 #> [49] systemfonts_1.3.2  xfun_0.57          tibble_3.3.1       tidyselect_1.2.1  
 #> [53] knitr_1.51         farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2   
-#> [57] rmarkdown_2.31     signal_1.8-1       compiler_4.5.3     S7_0.2.1
+#> [57] rmarkdown_2.31     signal_1.8-1       compiler_4.6.0     S7_0.2.2
 ```

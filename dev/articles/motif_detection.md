@@ -46,6 +46,7 @@ small decisions that make a template robust before you scale up.
 ## Setup
 
 ``` r
+
 library(ASAP)
 #> ASAP v0.3.5.9000 loaded.
 
@@ -60,6 +61,7 @@ wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
 First, let’s look at the full recording to identify motif structure:
 
 ``` r
+
 visualize_song(wav_file)
 ```
 
@@ -71,6 +73,7 @@ We can see multiple motif renditions in this recording. Let’s zoom in on
 a clear section to identify a good reference motif:
 
 ``` r
+
 visualize_song(wav_file,
   start_time_in_second = 1,
   end_time_in_second = 2.5
@@ -93,6 +96,7 @@ motif. We’ll use the segment from 1-2.5 seconds which contains a
 complete motif.
 
 ``` r
+
 # Create an audio clip from the WAV file
 clip_path <- create_audio_clip(wav_file,
   start_time = 1,
@@ -136,6 +140,7 @@ around 0.72-0.84 seconds within our clip. Let’s visualize this specific
 region:
 
 ``` r
+
 # First, visualize the template region
 visualize_song(wav_file,
   start_time_in_second = 1 + 0.72,
@@ -150,6 +155,7 @@ visualize_song(wav_file,
 Now create the template with specified frequency bounds:
 
 ``` r
+
 # Create the template
 template <- create_template(clip_path,
   template_name = "d",
@@ -182,10 +188,10 @@ template <- create_template(clip_path,
 
 ### Key Template Parameters
 
-| Parameter             | Description           | Optimization Tips                                            |
-|-----------------------|-----------------------|--------------------------------------------------------------|
-| `start_time/end_time` | Syllable boundaries   | Adjust to capture complete syllable without gaps             |
-| `freq_min/freq_max`   | Frequency range (kHz) | Narrow range reduces noise; 1-10 kHz typical for zebra finch |
+| Parameter | Description | Optimization Tips |
+|----|----|----|
+| `start_time/end_time` | Syllable boundaries | Adjust to capture complete syllable without gaps |
+| `freq_min/freq_max` | Frequency range (kHz) | Narrow range reduces noise; 1-10 kHz typical for zebra finch |
 
 ### Tuning tips
 
@@ -204,6 +210,7 @@ Now we search for all occurrences of this template throughout the
 recording:
 
 ``` r
+
 # Run template detection on the original WAV file
 # proximity_window filters out multiple detections within the same motif
 template_matches <- detect_template(
@@ -225,10 +232,10 @@ knitr::kable(template_matches, digits = 2)
 
 ### Key Detection Parameters
 
-| Parameter          | Description                                       | Purpose                                                                                                                |
-|--------------------|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| Parameter | Description | Purpose |
+|----|----|----|
 | `proximity_window` | Time window (seconds) to filter nearby detections | Eliminates false positives within a motif duration. Only the highest-scoring detection within each window is retained. |
-| `threshold`        | Minimum correlation score (0-1)                   | Set during template creation; detections below this score are discarded(available for sap method)                      |
+| `threshold` | Minimum correlation score (0-1) | Set during template creation; detections below this score are discarded(available for sap method) |
 
 ### Evaluating Detection Quality
 
@@ -255,6 +262,7 @@ Once we have reliable template detections, we define motif boundaries by
 extending a fixed time window before and after each detection:
 
 ``` r
+
 # Define motif boundaries around each detection
 # pre_time: how much before the template to include
 # lag_time: how much after the template to include
@@ -278,10 +286,10 @@ knitr::kable(motifs, digits = 2)
 
 ### Adjusting Pre/Lag Times
 
-| Parameter  | Description                 | Adjustment Strategy                           |
-|------------|-----------------------------|-----------------------------------------------|
+| Parameter | Description | Adjustment Strategy |
+|----|----|----|
 | `pre_time` | Time before template anchor | Should capture syllables preceding the anchor |
-| `lag_time` | Time after template anchor  | Should capture syllables following the anchor |
+| `lag_time` | Time after template anchor | Should capture syllables following the anchor |
 
 ------------------------------------------------------------------------
 
@@ -291,6 +299,7 @@ Let’s visualize the detected motifs to verify our detection worked
 correctly:
 
 ``` r
+
 # Visualize all extracted motifs
 visualize_segments(motifs,
   wav_dir = dirname(wav_file),
@@ -325,6 +334,7 @@ envelopes across all detected motifs to visualize the temporal
 structure:
 
 ``` r
+
 # Plot amplitude envelope heatmap
 plot_heatmap(motifs, wav_dir = dirname(wav_file))
 ```
@@ -346,6 +356,7 @@ analysis.
 ### Step 1: Create a temporary export directory
 
 ``` r
+
 # Create a temporary directory for exported motif clips
 motif_export_dir <- file.path(tempdir(), "asap_motif_export")
 dir.create(motif_export_dir, recursive = TRUE, showWarnings = FALSE)
@@ -363,6 +374,7 @@ this example recording, the three detected motifs are small enough that
 we can export all of them.
 
 ``` r
+
 if (!is.null(motifs) && nrow(motifs) > 0) {
   motif_export_meta <- create_motif_clips(
     motifs,
@@ -381,6 +393,7 @@ The returned metadata table tracks the original motif boundaries and the
 output path of each generated file.
 
 ``` r
+
 if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
   exported_motif_files <- motif_export_meta$output_path
 
@@ -391,11 +404,11 @@ if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
 }
 ```
 
-| clip_id   | start_time | end_time | duration | output_path                                                                     |
-|:----------|-----------:|---------:|---------:|:--------------------------------------------------------------------------------|
-| motif_001 |       1.06 |     2.26 |      1.2 | /tmp/Rtmp8HSPun/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
-| motif_002 |       2.37 |     3.57 |      1.2 | /tmp/Rtmp8HSPun/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
-| motif_003 |       3.96 |     5.16 |      1.2 | /tmp/Rtmp8HSPun/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+| clip_id | start_time | end_time | duration | output_path |
+|:---|---:|---:|---:|:---|
+| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/RtmpRoFwLB/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/RtmpRoFwLB/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/RtmpRoFwLB/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
 
 ### Step 4: Visualize the exported motif files
 
@@ -403,6 +416,7 @@ Because this example only contains three motifs, we can inspect every
 exported clip directly.
 
 ``` r
+
 if (length(exported_motif_files) > 0) {
   for (i in seq_along(exported_motif_files)) {
     visualize_song(exported_motif_files[i])
@@ -424,25 +438,25 @@ a single recording. The key insight is that **template optimization is
 an iterative process** — Steps 3-6 should be repeated until detection
 results are satisfactory.
 
-| Step | Function                                                                                     | Description                                   |
-|------|----------------------------------------------------------------------------------------------|-----------------------------------------------|
-| 1    | [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md)         | View spectrogram to identify motifs           |
-| 2    | [`create_audio_clip()`](https://lxiao06.github.io/ASAP/dev/reference/create_audio_clip.md)   | Extract a reference motif segment             |
-| 3    | [`create_template()`](https://lxiao06.github.io/ASAP/dev/reference/create_template.md)       | Create a template from a distinctive syllable |
-| 4    | [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md)       | Find all template occurrences                 |
-| 5    | [`find_motif()`](https://lxiao06.github.io/ASAP/dev/reference/find_motif.md)                 | Define motif boundaries around detections     |
-| 6    | [`visualize_segments()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_segments.md) | View extracted motif spectrograms             |
-| 7    | [`plot_heatmap()`](https://lxiao06.github.io/ASAP/dev/reference/plot_heatmap.md)             | Visualize amplitude envelope patterns         |
-| 8    | [`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md) | Export detected motifs as WAV clips           |
+| Step | Function | Description |
+|----|----|----|
+| 1 | [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md) | View spectrogram to identify motifs |
+| 2 | [`create_audio_clip()`](https://lxiao06.github.io/ASAP/dev/reference/create_audio_clip.md) | Extract a reference motif segment |
+| 3 | [`create_template()`](https://lxiao06.github.io/ASAP/dev/reference/create_template.md) | Create a template from a distinctive syllable |
+| 4 | [`detect_template()`](https://lxiao06.github.io/ASAP/dev/reference/detect_template.md) | Find all template occurrences |
+| 5 | [`find_motif()`](https://lxiao06.github.io/ASAP/dev/reference/find_motif.md) | Define motif boundaries around detections |
+| 6 | [`visualize_segments()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_segments.md) | View extracted motif spectrograms |
+| 7 | [`plot_heatmap()`](https://lxiao06.github.io/ASAP/dev/reference/plot_heatmap.md) | Visualize amplitude envelope patterns |
+| 8 | [`create_motif_clips()`](https://lxiao06.github.io/ASAP/dev/reference/create_motif_clips.md) | Export detected motifs as WAV clips |
 
 ### Key Parameters Reference
 
-| Parameter             | Description                          | Typical Value            |
-|-----------------------|--------------------------------------|--------------------------|
-| `start_time/end_time` | Template time limits (seconds)       | 0.1-0.2s duration        |
-| `freq_min/freq_max`   | Frequency range (kHz)                | 1-10 kHz for zebra finch |
-| `pre_time`            | Time before template for motif start | 0.2-0.8s                 |
-| `lag_time`            | Time after template for motif end    | 0.2-0.8s                 |
+| Parameter | Description | Typical Value |
+|----|----|----|
+| `start_time/end_time` | Template time limits (seconds) | 0.1-0.2s duration |
+| `freq_min/freq_max` | Frequency range (kHz) | 1-10 kHz for zebra finch |
+| `pre_time` | Time before template for motif start | 0.2-0.8s |
+| `lag_time` | Time after template for motif end | 0.2-0.8s |
 
 ## Next Steps: Longitudinal Recording Analysis with SAP Object
 
@@ -464,8 +478,9 @@ The following vignettes cover the longitudinal analysis workflow:
 ## Session Info
 
 ``` r
+
 sessionInfo()
-#> R version 4.5.3 (2026-03-11)
+#> R version 4.6.0 (2026-04-24)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 24.04.4 LTS
 #> 
@@ -490,18 +505,18 @@ sessionInfo()
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    
-#>  [5] digest_0.6.39      magrittr_2.0.5     evaluate_1.0.5     grid_4.5.3        
-#>  [9] RColorBrewer_1.1-3 fastmap_1.2.0      jsonlite_2.0.0     Matrix_1.7-4      
-#> [13] monitoR_1.2        tuneR_1.4.7        purrr_1.2.1        scales_1.4.0      
+#>  [5] digest_0.6.39      magrittr_2.0.5     evaluate_1.0.5     grid_4.6.0        
+#>  [9] RColorBrewer_1.1-3 fastmap_1.2.0      jsonlite_2.0.0     Matrix_1.7-5      
+#> [13] monitoR_1.2        tuneR_1.4.7        purrr_1.2.2        scales_1.4.0      
 #> [17] pbapply_1.7-4      textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.6         
 #> [21] rlang_1.2.0        pbmcapply_1.5.1    withr_3.0.2        seewave_2.2.4     
-#> [25] cachem_1.1.0       yaml_2.3.12        av_0.9.6           tools_4.5.3       
-#> [29] parallel_4.5.3     dplyr_1.2.1        ggplot2_4.0.2      reticulate_1.46.0 
-#> [33] vctrs_0.7.2        R6_2.6.1           png_0.1-9          lifecycle_1.0.5   
-#> [37] fs_2.0.1           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
-#> [41] desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1      bslib_0.10.0      
-#> [45] gtable_0.3.6       glue_1.8.0         Rcpp_1.1.1         systemfonts_1.3.2 
+#> [25] cachem_1.1.0       yaml_2.3.12        av_0.9.6           tools_4.6.0       
+#> [29] parallel_4.6.0     dplyr_1.2.1        ggplot2_4.0.3      reticulate_1.46.0 
+#> [33] vctrs_0.7.3        R6_2.6.1           png_0.1-9          lifecycle_1.0.5   
+#> [37] fs_2.1.0           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
+#> [41] desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1      bslib_0.11.0      
+#> [45] gtable_0.3.6       glue_1.8.1         Rcpp_1.1.1-1.1     systemfonts_1.3.2 
 #> [49] xfun_0.57          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
 #> [53] farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31    
-#> [57] signal_1.8-1       compiler_4.5.3     S7_0.2.1
+#> [57] signal_1.8-1       compiler_4.6.0     S7_0.2.2
 ```

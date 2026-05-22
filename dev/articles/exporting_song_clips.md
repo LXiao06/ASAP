@@ -67,6 +67,7 @@ motif detection before exporting bouts or motifs, respectively.
 ## Setup
 
 ``` r
+
 library(ASAP)
 sap <- readRDS("longitudinal_motif_analysis.rds")
 ```
@@ -107,6 +108,7 @@ motif validation step.
   and non-song vocalizations.
 
 ``` r
+
 sap <- sap |>
     find_bout(
         segment_type = "raw", # scan all files; no motifs needed
@@ -145,6 +147,7 @@ recognized motif.
   template is too strict.
 
 ``` r
+
 sap <- sap |>
     find_motif(template_name = "syllable_d") |>
     find_bout(
@@ -177,6 +180,7 @@ directly.
   motifs).
 
 ``` r
+
 sap <- sap |>
     find_motif(template_name = "syllable_d") |>
     create_motif_clips(
@@ -222,6 +226,7 @@ After downloading and unzipping the dataset, the Scenario B pipeline
 runs as follows:
 
 ``` r
+
 library(ASAP)
 
 data_dir <- "/path/to/sil469_raw_wav"
@@ -358,6 +363,7 @@ exhaustion (inodes) when exporting tens of thousands of motifs on
 compute clusters.
 
 ``` r
+
 sap <- create_motif_clips(
     sap,
     output_format = "hdf5",
@@ -401,15 +407,15 @@ and
 share a rich set of arguments to give you precise control over exactly
 what gets exported.
 
-| Argument                | Purpose                           | Notes                                              |
-|-------------------------|-----------------------------------|----------------------------------------------------|
-| `output_format`         | Choose `"wav"` or `"hdf5"` output | WAV for manual inspection; HDF5 for large-scale ML |
-| `output_dir`            | Root export directory             | Required for both formats                          |
-| `amp_normalize`         | Normalize exported audio          | `"none"`, `"peak"`, or `"rms"`                     |
-| `n_bouts` / `n_motifs`  | Balanced sampling per day         | Sample up to N clips per `day_post_hatch`          |
-| `seed`                  | Reproducible sampling             | Use `222` for deterministic results                |
-| `hdf5_filename`         | HDF5 file name                    | Only used when `output_format = "hdf5"`            |
-| `keep_source_file_name` | Keep original file stems          | Useful for traceability in WAV export              |
+| Argument | Purpose | Notes |
+|----|----|----|
+| `output_format` | Choose `"wav"` or `"hdf5"` output | WAV for manual inspection; HDF5 for large-scale ML |
+| `output_dir` | Root export directory | Required for both formats |
+| `amp_normalize` | Normalize exported audio | `"none"`, `"peak"`, or `"rms"` |
+| `n_bouts` / `n_motifs` | Balanced sampling per day | Sample up to N clips per `day_post_hatch` |
+| `seed` | Reproducible sampling | Use `222` for deterministic results |
+| `hdf5_filename` | HDF5 file name | Only used when `output_format = "hdf5"` |
+| `keep_source_file_name` | Keep original file stems | Useful for traceability in WAV export |
 
 ### Amplitude Normalization (`amp_normalize`)
 
@@ -429,6 +435,7 @@ normalize the volume of exported clips on the fly.
   stages regardless of microphone placement.
 
 ``` r
+
 sap <- create_motif_clips(
     sap,
     output_format = "wav",
@@ -447,6 +454,7 @@ Using `n_motifs = N` or `n_bouts = N` instructs ASAP to randomly sample
 up to *N* clips **per day** (the `day_post_hatch` variable).
 
 ``` r
+
 # Get exactly 50 motif clips per day for balanced longitudinal models
 sap <- create_motif_clips(
     sap,
@@ -469,6 +477,7 @@ restarts for each bird/day combination:
 You can customize the prefix with `name_prefix`:
 
 ``` r
+
 # Custom prefix
 create_bout_clips(sap, name_prefix = "trial2", output_dir = "out", output_format = "wav")
 # → trial2_001.wav, trial2_002.wav, ...
@@ -482,6 +491,7 @@ the `selec` index (for bouts) or a per-file sequential index (for
 motifs):
 
 ``` r
+
 # Scenario A: keep the origin WAV name in every exported clip filename
 sap <- sap |>
     find_bout(segment_type = "raw", min_duration = 0.5) |>
@@ -499,8 +509,8 @@ sap <- sap |>
 > both are set, `keep_source_file_name` takes precedence and
 > `name_prefix` is ignored.
 
-| Scenario       | `name_prefix`                    | `keep_source_file_name` | Resulting filename      |
-|----------------|----------------------------------|-------------------------|-------------------------|
-| Default        | `NULL` (→ `"bout"` or `"motif"`) | `FALSE`                 | `bout_001.wav`          |
-| Custom prefix  | `"treatment_A"`                  | `FALSE`                 | `treatment_A_001.wav`   |
-| Source tracing | any or `NULL`                    | `TRUE`                  | `S237_42685.42_001.wav` |
+| Scenario | `name_prefix` | `keep_source_file_name` | Resulting filename |
+|----|----|----|----|
+| Default | `NULL` (→ `"bout"` or `"motif"`) | `FALSE` | `bout_001.wav` |
+| Custom prefix | `"treatment_A"` | `FALSE` | `treatment_A_001.wav` |
+| Source tracing | any or `NULL` | `TRUE` | `S237_42685.42_001.wav` |
