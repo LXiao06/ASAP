@@ -45,8 +45,9 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
   # crashing the parallel worker and producing an uncoercible list.
   process_row <- function(i) {
     row <- metadata[i, ]
-    if ("day_post_hatch" %in% names(row)) {
-      wav_path <- file.path(base_path, row$day_post_hatch, row$filename)
+    subdir <- if ("subfolder" %in% names(row)) row$subfolder else if ("day_post_hatch" %in% names(row)) row$day_post_hatch else NULL
+    if (!is.null(subdir) && !is.na(subdir)) {
+      wav_path <- file.path(base_path, subdir, row$filename)
     } else {
       wav_path <- file.path(base_path, row$filename)
     }

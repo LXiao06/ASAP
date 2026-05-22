@@ -568,9 +568,19 @@ visualize_song.Sap <- function(x,  # sap object
       title_text <- sprintf("Template clips: %s", clip_name)
     } else {
       # Construct path to original song file
-      song_path <- file.path(x$base_path,
-                             x$metadata$day_post_hatch[index],
-                             x$metadata$filename[index])
+      subdir <- if ("subfolder" %in% names(x$metadata)) {
+        x$metadata$subfolder[index]
+      } else if ("day_post_hatch" %in% names(x$metadata)) {
+        x$metadata$day_post_hatch[index]
+      } else {
+        NULL
+      }
+      
+      if (!is.null(subdir)) {
+        song_path <- file.path(x$base_path, subdir, x$metadata$filename[index])
+      } else {
+        song_path <- file.path(x$base_path, x$metadata$filename[index])
+      }
 
       # Set title text for original file
       title_text <- sprintf("Day %s%s",
@@ -732,10 +742,11 @@ visualize_segments.default  <- function(x,
   # Process each selected file
   for (i in 1:n_to_plot) {
     # Use the path constructor function
-    if (is.null(x$day_post_hatch)) {
+    subdir <- if ("subfolder" %in% names(x)) x$subfolder[i] else if ("day_post_hatch" %in% names(x)) x$day_post_hatch[i] else NULL
+    if (is.null(subdir) || is.na(subdir)) {
       full_path <- file.path(wav_dir, x$filename[i])
     } else {
-      full_path <- file.path(wav_dir, x$day_post_hatch[i], x$filename[i])
+      full_path <- file.path(wav_dir, subdir, x$filename[i])
     }
 
     visualize_song.default(
@@ -986,9 +997,12 @@ plot_group <- function(segments, base_path, n_samples,
                        fft_window_size, overlap, dark_mode, legend,
                        by_column, label, cluster = NULL) {
   for(i in seq_len(nrow(segments))) {
-    full_path <- file.path(base_path,
-                           segments$day_post_hatch[i],
-                           segments$filename[i])
+    subdir <- if ("subfolder" %in% names(segments)) segments$subfolder[i] else if ("day_post_hatch" %in% names(segments)) segments$day_post_hatch[i] else NULL
+    if (is.null(subdir) || is.na(subdir)) {
+      full_path <- file.path(base_path, segments$filename[i])
+    } else {
+      full_path <- file.path(base_path, subdir, segments$filename[i])
+    }
 
     visualize_song.default(
       x = full_path,

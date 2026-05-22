@@ -1,6 +1,9 @@
-# utilities
-
 #' Construct file path for audio file
+#'
+#' Uses the \code{subfolder} column (the original directory name) if present,
+#' otherwise falls back to \code{day_post_hatch}. This is important when
+#' \code{day_post_hatch} was supplied manually by the user and does not match
+#' the actual folder on disk.
 #'
 #' @param x A data frame row with file name
 #' @param wav_dir Path to WAV files directory (default: NULL)
@@ -20,19 +23,22 @@ construct_wav_path <- function(x,
     stop("wav_dir must be provided either as argument or attribute")
   }
 
+  # Determine the subdirectory component: prefer 'subfolder' over 'day_post_hatch'
+  subdir <- if ("subfolder" %in% names(x) && !is.na(x$subfolder)) {
+    x$subfolder
+  } else if ("day_post_hatch" %in% names(x) && !is.na(x$day_post_hatch)) {
+    x$day_post_hatch
+  } else {
+    NULL
+  }
+
   # Construct file path based on available information
-  if (!is.null(attr(x, "wav_dir"))) {
-    if ("day_post_hatch" %in% names(x)) {
-      sound_path <- file.path(attr(x, "wav_dir"), x$day_post_hatch, x$filename)
-    } else {
-      sound_path <- file.path(attr(x, "wav_dir"), x$filename)
-    }
-  } else if (!is.null(wav_dir)) {
-    if ("day_post_hatch" %in% names(x)) {
-      sound_path <- file.path(wav_dir, x$day_post_hatch, x$filename)
-    } else {
-      sound_path <- file.path(wav_dir, x$filename)
-    }
+  base <- if (!is.null(attr(x, "wav_dir"))) attr(x, "wav_dir") else wav_dir
+
+  if (!is.null(subdir)) {
+    sound_path <- file.path(base, subdir, x$filename)
+  } else {
+    sound_path <- file.path(base, x$filename)
   }
 
   # Verify file exists

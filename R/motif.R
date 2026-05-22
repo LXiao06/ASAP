@@ -13,6 +13,13 @@
 #' @param wav_dir For default method: Directory containing WAV files
 #' @param add_path_attr For default method: Add wav_dir as attribute (default: TRUE)
 #' @param template_name For SAP objects: Name of template to process
+#' @param day_post_hatch For SAP objects: Numeric value(s) to use for
+#'   \code{day_post_hatch} when it cannot be determined from subfolder names
+#'   (e.g. non-numeric folder names like \code{"FD_661_667"}).
+#'   Can be a single numeric value (applied to all folders) or a named numeric
+#'   vector mapping subfolder names to day-post-hatch values
+#'   (e.g. \code{c(FD_661_667 = 61, PD_661_667 = 65, UD = 90)}).
+#'   If \code{NULL} (default), the value is parsed from the subfolder name.
 #' @param verbose Whether to print processing information (default: TRUE)
 #' @param ... Additional arguments passed to specific methods
 #'
@@ -65,12 +72,21 @@
 #'                       pre_time = 0.7,
 #'                       lag_time = 0.5)
 #'
-#' # Process with custom timing
+#' # When subfolders have non-numeric names, supply a single value
 #' sap_obj <- find_motif(sap_object,
-#'                       template_name = "template2",
-#'                       pre_time = 0.5,
-#'                       lag_time = 0.3,
-#'                       verbose = TRUE)
+#'                       template_name = "b",
+#'                       pre_time = 0.1,
+#'                       lag_time = 0.4,
+#'                       day_post_hatch = 65)
+#'
+#' # Or supply a named vector for different folders
+#' sap_obj <- find_motif(sap_object,
+#'                       template_name = "b",
+#'                       pre_time = 0.1,
+#'                       lag_time = 0.4,
+#'                       day_post_hatch = c(FD_661_667 = 61,
+#'                                          PD_661_667 = 65,
+#'                                          UD = 90))
 #' }
 #'
 #' @seealso \code{\link{detect_template}} for template detection
@@ -192,6 +208,7 @@ find_motif.Sap <- function(x,
                            template_name,
                            pre_time = NULL,
                            lag_time = NULL,
+                           day_post_hatch = NULL,
                            verbose = TRUE,
                            ...) {
   if(verbose) message(sprintf("\n=== Starting Motif Extraction based on template '%s'===", template_name))
@@ -242,6 +259,8 @@ find_motif.Sap <- function(x,
       if (!"label" %in% names(day_motifs)) {
         day_motifs$label <- day_detections$label[1]
       }
+      # Always store the original subfolder name for file path construction
+      day_motifs$subfolder <- current_day
 
       all_motifs[[current_day]] <- day_motifs
 
@@ -262,6 +281,37 @@ find_motif.Sap <- function(x,
   if (length(all_motifs) > 0) {
     final_motifs <- do.call(rbind, all_motifs)
     rownames(final_motifs) <- NULL
+
+    # Fill NA day_post_hatch with user-supplied value(s)
+    # Store original subfolder names before numeric coercion
+    orig_day <- as.character(final_motifs$day_post_hatch)
+    dph_numeric <- suppressWarnings(as.numeric(orig_day))
+    if (any(is.na(dph_numeric))) {
+      if (!is.null(day_post_hatch)) {
+        na_idx <- which(is.na(dph_numeric))
+        if (!is.null(names(day_post_hatch))) {
+          # Named vector: map subfolder names to DPH values
+          for (i in na_idx) {
+            folder <- orig_day[i]
+            if (folder %in% names(day_post_hatch)) {
+              dph_numeric[i] <- day_post_hatch[[folder]]
+            } else {
+              warning(sprintf("No day_post_hatch mapping for subfolder '%s'", folder))
+            }
+          }
+        } else {
+          # Single value: apply to all NAs
+          dph_numeric[na_idx] <- day_post_hatch
+        }
+        n_filled <- sum(!is.na(dph_numeric[na_idx]))
+        message(sprintf("\nFilled %d day_post_hatch values from user-supplied argument",
+                        n_filled))
+      } else {
+        warning("day_post_hatch contains NA values (non-numeric subfolder names). ",
+                "Use the 'day_post_hatch' argument to supply numeric value(s).")
+      }
+    }
+    final_motifs$day_post_hatch <- dph_numeric
 
     # Convert to segment object
     final_motifs <- as_segment(final_motifs)

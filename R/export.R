@@ -650,17 +650,23 @@ apply_clip_margin <- function(clips, wav_dir, margin) {
     return(list(valid = clips, n_violated = 0L))
   }
 
-  # --- Check start_time < 0 (no file read needed) ----------------------------
+  # Check start_time < 0 (no file read needed)
   neg_start <- clips$start_time < 0
 
-  # --- Check end_time > wav_duration (WAV header read, per unique file) -------
-  has_day <- "day_post_hatch" %in% names(clips) &
-    !is.na(clips$day_post_hatch) &
-    clips$day_post_hatch != "unknown_day"
+  # Check end_time > wav_duration (WAV header read, per unique file) 
+  subdir <- if ("subfolder" %in% names(clips)) {
+    as.character(clips$subfolder)
+  } else if ("day_post_hatch" %in% names(clips)) {
+    as.character(clips$day_post_hatch)
+  } else {
+    rep(NA_character_, nrow(clips))
+  }
+  
+  has_subdir <- !is.na(subdir) & subdir != "unknown_day" & subdir != ""
 
   source_paths <- ifelse(
-    has_day,
-    file.path(wav_dir, as.character(clips$day_post_hatch), as.character(clips$filename)),
+    has_subdir,
+    file.path(wav_dir, subdir, as.character(clips$filename)),
     file.path(wav_dir, as.character(clips$filename))
   )
 
@@ -915,10 +921,19 @@ export_clip_rows <- function(clips,
     jobs$clip_id <- sprintf("%s_%03d", name_prefix, jobs$clip_seq)
   }
 
-  has_day <- !is.na(jobs$day_post_hatch) & jobs$day_post_hatch != "unknown_day"
+  subdir <- if ("subfolder" %in% names(jobs)) {
+    as.character(jobs$subfolder)
+  } else if ("day_post_hatch" %in% names(jobs)) {
+    as.character(jobs$day_post_hatch)
+  } else {
+    rep(NA_character_, nrow(jobs))
+  }
+  
+  has_subdir <- !is.na(subdir) & subdir != "unknown_day" & subdir != ""
+  
   jobs$source_path <- ifelse(
-    has_day,
-    file.path(wav_dir, as.character(jobs$day_post_hatch), as.character(jobs$filename)),
+    has_subdir,
+    file.path(wav_dir, subdir, as.character(jobs$filename)),
     file.path(wav_dir, as.character(jobs$filename))
   )
 
