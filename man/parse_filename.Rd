@@ -7,15 +7,18 @@
 parse_filename(filename)
 }
 \arguments{
-\item{filename}{Character string of the filename to parse}
+\item{filename}{Character string of the full file path to parse}
 }
 \value{
 A list containing parsed components:
 \item{bird_id}{Extracted bird identifier}
 \item{recording_date}{Parsed recording date}
 \item{recording_time}{Parsed recording time}
+\item{parse_method}{"standard" or "fallback"}
 }
 \description{
 Internal function to parse WAV filenames and extract metadata components.
+Supports the standard SAP2011 filename format and falls back to a generic
+parser for non-standard filenames, using file modification time for date/time.
 }
 \keyword{internal}

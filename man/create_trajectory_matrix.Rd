@@ -110,21 +110,24 @@ For SAP objects, additional features include:
 \dontrun{
 # Create trajectory matrix from segments
 matrix <- create_trajectory_matrix(segments,
-                                  wav_dir = "path/to/wavs",
-                                  window_size = 0.1,
-                                  step_size = 0.005)
+  wav_dir = "path/to/wavs",
+  window_size = 0.1,
+  step_size = 0.005
+)
 
 # Create trajectory matrix from SAP object
 sap_obj <- create_trajectory_matrix(sap_object,
-                                   segment_type = "motifs",
-                                   balanced = TRUE,
-                                   sample_percent = 80)
+  segment_type = "motifs",
+  balanced = TRUE,
+  sample_percent = 80
+)
 
 # Create matrix with specific clusters
 sap_obj <- create_trajectory_matrix(sap_object,
-                                   segment_type = "syllables",
-                                   clusters = c(1, 2),
-                                   labels = c("a", "b"))
+  segment_type = "syllables",
+  clusters = c(1, 2),
+  labels = c("a", "b")
+)
 }
 
 }

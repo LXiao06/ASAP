@@ -21,7 +21,7 @@ Creates a segment object with a predefined structure. If no data frame is provid
 it initializes an empty segment with the following columns:
 \itemize{
 \item filename: Name of the source audio file
-\item day_post_hatch: Numeric day post-hatch
+\item day_post_hatch: Numeric day post-hatch (optional; filled with NA if absent)
 \item label: Categorical label for the segment
 \item start_time: Numeric start time of the segment
 \item end_time: Numeric end time of the segment
@@ -30,7 +30,9 @@ it initializes an empty segment with the following columns:
 
 When a data frame is provided, the function:
 \itemize{
-\item Validates the presence of required columns
+\item Validates the presence of required columns (filename, label,
+start_time, end_time)
+\item If \code{day_post_hatch} is missing, adds it as \code{NA} with a warning
 \item Converts columns to appropriate data types
 \item Calculates segment duration if not provided
 }

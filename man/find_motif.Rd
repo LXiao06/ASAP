@@ -23,6 +23,7 @@ find_motif(x, ...)
   template_name,
   pre_time = NULL,
   lag_time = NULL,
+  day_post_hatch = NULL,
   verbose = TRUE,
   ...
 )
@@ -43,6 +44,14 @@ find_motif(x, ...)
 \item{verbose}{Whether to print processing information (default: TRUE)}
 
 \item{template_name}{For SAP objects: Name of template to process}
+
+\item{day_post_hatch}{For SAP objects: Numeric value(s) to use for
+\code{day_post_hatch} when it cannot be determined from subfolder names
+(e.g. non-numeric folder names like \code{"FD_661_667"}).
+Can be a single numeric value (applied to all folders) or a named numeric
+vector mapping subfolder names to day-post-hatch values
+(e.g. \code{c(FD_661_667 = 61, PD_661_667 = 65, UD = 90)}).
+If \code{NULL} (default), the value is parsed from the subfolder name.}
 }
 \value{
 For default method: Data frame containing:
@@ -96,12 +105,21 @@ sap_obj <- find_motif(sap_object,
                       pre_time = 0.7,
                       lag_time = 0.5)
 
-# Process with custom timing
+# When subfolders have non-numeric names, supply a single value
 sap_obj <- find_motif(sap_object,
-                      template_name = "template2",
-                      pre_time = 0.5,
-                      lag_time = 0.3,
-                      verbose = TRUE)
+                      template_name = "b",
+                      pre_time = 0.1,
+                      lag_time = 0.4,
+                      day_post_hatch = 65)
+
+# Or supply a named vector for different folders
+sap_obj <- find_motif(sap_object,
+                      template_name = "b",
+                      pre_time = 0.1,
+                      lag_time = 0.4,
+                      day_post_hatch = c(FD_661_667 = 61,
+                                         PD_661_667 = 65,
+                                         UD = 90))
 }
 
 }
