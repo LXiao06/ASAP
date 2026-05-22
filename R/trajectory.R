@@ -429,7 +429,7 @@ create_sliding_window <- function(
 #' @param dims Character vector of dimension columns to assess (default: c("PC1", "PC2"))
 #' @param iqr_multiplier Multiplier applied to IQR to define outlier bounds (default: 3)
 #' @param min_outlier_fraction Minimum fraction of time steps that must be outliers
-#'   before the entire rendition is removed (default: 0.1, i.e., 10\%)
+#'   before the entire rendition is removed (default: 0.1, i.e., 10%)
 #' @param labels Optional character vector to restrict filtering to specific labels
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
 #' @param verbose Whether to print a removal summary (default: TRUE)

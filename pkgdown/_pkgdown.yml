@@ -95,6 +95,7 @@ reference:
       - amp_env
       - refine_FF
       - refine_sh
+      - feature_stats
 
   - title: "Dimensionality Reduction"
     desc: "Functions dedicated to reducing acoustic parameter dimensionality"
@@ -102,6 +103,10 @@ reference:
       - run_pca
       - run_umap
       - create_trajectory_matrix
+      - filter_trajectory_outliers
+      - trajectory_umap_occupancy
+      - trajectory_variability
+      - trajectory_width_variability
 
   - title: "Plotting & Visualization"
     desc: "Plotting functionality for exploring ASAP objects"

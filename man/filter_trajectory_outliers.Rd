@@ -43,7 +43,7 @@ filter_trajectory_outliers(x, ...)
 \item{iqr_multiplier}{Multiplier applied to IQR to define outlier bounds (default: 3)}
 
 \item{min_outlier_fraction}{Minimum fraction of time steps that must be outliers
-before the entire rendition is removed (default: 0.1, i.e., 10\\%)}
+before the entire rendition is removed (default: 0.1, i.e., 10\%)}
 
 \item{labels}{Optional character vector to restrict filtering to specific labels}
 
