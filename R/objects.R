@@ -96,9 +96,9 @@ create_sap_metadata <- function(base_path,
     }
 
     # Create metadata for the current subfolder
-    subfolder_metadata <- do.call(rbind, lapply(FileList, function(x) {
+    parsed_results <- lapply(FileList, function(x) {
       parsed <- parse_filename(x)
-      data.frame(
+      row <- data.frame(
         filename = basename(x),
         bird_id = parsed$bird_id,
         day_post_hatch = basename(dirname(x)),
@@ -107,7 +107,22 @@ create_sap_metadata <- function(base_path,
         label = labels[i],
         stringsAsFactors = FALSE
       )
-    }))
+      list(row = row, parse_method = parsed$parse_method)
+    })
+
+    subfolder_metadata <- do.call(rbind, lapply(parsed_results, `[[`, "row"))
+    subfolder_methods <- vapply(parsed_results, function(r) r$parse_method, character(1))
+
+    n_fallback <- sum(subfolder_methods == "fallback")
+    if (n_fallback > 0) {
+      message(sprintf(
+        "Note: %d/%d files in '%s' used fallback filename parsing (date/time from file metadata).",
+        n_fallback, length(FileList), subfolders[i]
+      ))
+      # Show first example for clarity
+      first_fb <- basename(FileList[which(subfolder_methods == "fallback")[1]])
+      message("  Example: ", first_fb)
+    }
 
     # Append the subfolder's metadata to the metadata list
     metadata_list[[i]] <- subfolder_metadata
@@ -141,35 +156,66 @@ create_sap_metadata <- function(base_path,
 #'
 #' @description
 #' Internal function to parse WAV filenames and extract metadata components.
+#' Supports the standard SAP2011 filename format and falls back to a generic
+#' parser for non-standard filenames, using file modification time for date/time.
 #'
-#' @param filename Character string of the filename to parse
+#' @param filename Character string of the full file path to parse
 #' @return A list containing parsed components:
 #'   \item{bird_id}{Extracted bird identifier}
 #'   \item{recording_date}{Parsed recording date}
 #'   \item{recording_time}{Parsed recording time}
+#'   \item{parse_method}{"standard" or "fallback"}
 #'
 #' @keywords internal
 parse_filename <- function(filename) {
-  # Updated regular expression to match the actual filename pattern
+  # --- Primary pattern: SAP2011 format ---
+  # e.g., birdid_123.45_MM_DD_HH_MM_SS.wav
   pattern <- "([^/]+)_(\\d+\\.\\d+)_(.+)\\.wav$"
   match <- regmatches(filename, regexec(pattern, filename))
 
-  if (length(match[[1]]) == 0) {
-    stop(paste("Filename format is not correct:", filename))
+  if (length(match[[1]]) > 0) {
+    bird_id <- match[[1]][2]
+    date_time_str <- match[[1]][4]
+
+    recording_date <- format(as.Date(strptime(date_time_str, "%m_%d_%H_%M_%S")), "%m-%d")
+    recording_time <- strptime(date_time_str, "%m_%d_%H_%M_%S")
+
+    return(list(
+      bird_id = bird_id,
+      recording_date = recording_date,
+      recording_time = recording_time,
+      parse_method = "standard"
+    ))
   }
 
-  # Extract information
-  bird_id <- match[[1]][2]
-  date_time_str <- match[[1]][4]
+  # --- Fallback: generic filename parsing ---
+  base <- tools::file_path_sans_ext(basename(filename))
 
-  # Convert date and time
-  recording_date <- format(as.Date(strptime(date_time_str, "%m_%d_%H_%M_%S")),"%m-%d")
-  recording_time <- strptime(date_time_str, "%m_%d_%H_%M_%S")
+  # Try to extract bird_id as leading alphanumeric token (e.g., "b254" from "b254_BL_(1)")
+  alt_match <- regmatches(base, regexec("^([A-Za-z]?\\d+)", base))
+
+  if (length(alt_match[[1]]) > 0 && nchar(alt_match[[1]][2]) > 0) {
+    bird_id <- alt_match[[1]][2]
+  } else {
+    # Last resort: use full basename as bird_id
+    bird_id <- base
+  }
+
+  # Use file modification time for recording date/time
+  file_info <- file.info(filename)
+  if (!is.null(file_info) && !is.na(file_info$mtime)) {
+    recording_date <- format(file_info$mtime, "%m-%d")
+    recording_time <- file_info$mtime
+  } else {
+    recording_date <- NA_character_
+    recording_time <- as.POSIXct(NA)
+  }
 
   return(list(
     bird_id = bird_id,
     recording_date = recording_date,
-    recording_time = recording_time
+    recording_time = recording_time,
+    parse_method = "fallback"
   ))
 }
 
@@ -683,7 +729,7 @@ validate_template_collection <- function(x) {
 #' it initializes an empty segment with the following columns:
 #' \itemize{
 #'   \item filename: Name of the source audio file
-#'   \item day_post_hatch: Numeric day post-hatch
+#'   \item day_post_hatch: Numeric day post-hatch (optional; filled with NA if absent)
 #'   \item label: Categorical label for the segment
 #'   \item start_time: Numeric start time of the segment
 #'   \item end_time: Numeric end time of the segment
@@ -692,7 +738,9 @@ validate_template_collection <- function(x) {
 #'
 #' When a data frame is provided, the function:
 #' \itemize{
-#'   \item Validates the presence of required columns
+#'   \item Validates the presence of required columns (filename, label,
+#'         start_time, end_time)
+#'   \item If \code{day_post_hatch} is missing, adds it as \code{NA} with a warning
 #'   \item Converts columns to appropriate data types
 #'   \item Calculates segment duration if not provided
 #' }
@@ -706,8 +754,8 @@ validate_template_collection <- function(x) {
 #'
 #' @keywords internal
 new_segment <- function(x = data.frame()) {
-  # Define required columns
-  required_cols <- c("filename", "day_post_hatch", "label",
+  # Columns that are strictly required
+  required_cols <- c("filename", "label",
                      "start_time", "end_time")
 
   # Initialize empty data frame if x is empty
@@ -731,6 +779,12 @@ new_segment <- function(x = data.frame()) {
       missing_cols <- setdiff(required_cols, names(x))
       stop("Missing required columns: ",
            paste(missing_cols, collapse = ", "))
+    }
+
+    # Add day_post_hatch as NA if not present
+    if (!"day_post_hatch" %in% names(x)) {
+      warning("Column 'day_post_hatch' not found; filling with NA")
+      x$day_post_hatch <- NA_real_
     }
 
     # Ensure correct column types
@@ -827,12 +881,18 @@ as_segment <- function(x) {
   }
 
   # Check for NA values in required columns
-  required_cols <- c("filename", "day_post_hatch", "label",
-                     "start_time", "end_time", "duration")
-  for (col in required_cols) {
+  # day_post_hatch is soft-required: warn on NA instead of error
+  strict_cols <- c("filename", "label",
+                   "start_time", "end_time", "duration")
+  for (col in strict_cols) {
     if (any(is.na(x[[col]]))) {
       stop("Found NA values in column: ", col)
     }
+  }
+
+  # Warn (not error) for NA day_post_hatch
+  if ("day_post_hatch" %in% names(x) && any(is.na(x$day_post_hatch))) {
+    warning("Found NA values in column 'day_post_hatch'; proceeding anyway")
   }
 
   # Validate
@@ -841,12 +901,10 @@ as_segment <- function(x) {
   # Reorder columns
   standard_cols <- c("filename", "day_post_hatch", "label",
                      "start_time", "end_time", "duration")
+  # Only include standard cols that actually exist
+  present_standard <- intersect(standard_cols, names(x))
   extra_cols <- setdiff(names(x), standard_cols)
-  if (length(extra_cols) > 0) {
-    x <- x[, c(standard_cols, extra_cols)]
-  } else {
-    x <- x[, standard_cols]
-  }
+  x <- x[, c(present_standard, extra_cols)]
 
   return(x)
 }
@@ -862,11 +920,15 @@ print.segment <- function(x, ...) {
   cat("Segment object with", nrow(x), "rows\n")
   cat("Time range:", round(min(x$start_time), 3), "to",
       round(max(x$end_time), 3), "seconds\n")
-  cat("Days:", length(unique(x$day_post_hatch)),
-      "Labels:", length(unique(x$label)), "\n")
+  if ("day_post_hatch" %in% names(x)) {
+    dph_vals <- x$day_post_hatch[!is.na(x$day_post_hatch)]
+    cat("Days:", length(unique(dph_vals)))
+  }
+  cat("  Labels:", length(unique(x$label)), "\n")
+  display_cols <- intersect(c("filename", "day_post_hatch", "label",
+                              "start_time", "end_time", "duration"), names(x))
   cat("\nFirst few rows:\n")
-  print.data.frame(head(x[, c("filename", "day_post_hatch", "label",
-                              "start_time", "end_time", "duration")]))
+  print.data.frame(head(x[, display_cols]))
 }
 
 #' Summary method for segment objects
@@ -881,7 +943,10 @@ summary.segment <- function(object, ...) {
   cat("-----------------\n")
   cat("Total segments:", nrow(object), "\n")
   cat("Unique files:", length(unique(object$filename)), "\n")
-  cat("Days:", paste(unique(object$day_post_hatch), collapse = ", "), "\n")
+  if ("day_post_hatch" %in% names(object)) {
+    dph_vals <- object$day_post_hatch[!is.na(object$day_post_hatch)]
+    cat("Days:", paste(unique(dph_vals), collapse = ", "), "\n")
+  }
   cat("Labels:", paste(unique(object$label), collapse = ", "), "\n")
   cat("\nDuration statistics (seconds):\n")
   print(summary(object$duration))
