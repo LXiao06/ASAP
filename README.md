@@ -8,7 +8,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/LXiao06/ASAP/actions/workflows/R-CMD-check.yaml/badge.svg?label=R-CMD-check)](https://github.com/LXiao06/ASAP/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/LXiao06/ASAP/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/LXiao06/ASAP/actions/workflows/pkgdown.yaml)
+[![pkgdown](https://github.com/LXiao06/ASAP/actions/workflows/pkgdown.yaml/badge.svg?label=pkgdown)](https://github.com/LXiao06/ASAP/actions/workflows/pkgdown.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![GitHub release](https://badgen.net/github/release/LXiao06/ASAP)](https://github.com/LXiao06/ASAP/releases)
