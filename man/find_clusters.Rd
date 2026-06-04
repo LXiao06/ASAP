@@ -17,6 +17,7 @@ find_clusters(x, ...)
   resolution = 0.2,
   n.start = 10,
   verbose = TRUE,
+  qc_features = NULL,
   ...
 )
 
@@ -31,6 +32,7 @@ find_clusters(x, ...)
   resolution = NULL,
   n.start = 10,
   verbose = TRUE,
+  qc_features = NULL,
   ...
 )
 }
@@ -52,6 +54,8 @@ find_clusters(x, ...)
 \item{n.start}{Number of random starts (default: 10)}
 
 \item{verbose}{Whether to print progress messages (default: TRUE)}
+
+\item{qc_features}{Control for filtering out discretized and constant features. Default is NULL (no filtering). If TRUE, filters out features with standard deviation < 1e-4 or fewer than 20 unique values. Can also be a list of custom thresholds (min_std, min_unique, group_col).}
 
 \item{segment_type}{For SAP objects: Type of segments ('motifs', 'syllables', 'segments')}
 

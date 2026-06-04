@@ -1,5 +1,5 @@
 # Clustering
-# Update date : Feb. 7, 2025
+# Update date : June 4, 2026
 
 # Find Clusters -----------------------------------------------------------
 
@@ -20,6 +20,7 @@
 #' @param data_type For SAP objects: Type of feature data ('spectral_feature', "spectrogram")
 #' @param label For SAP objects: Specific label to filter data
 #' @param verbose Whether to print progress messages (default: TRUE)
+#' @param qc_features Control for filtering out discretized and constant features. Default is NULL (no filtering). If TRUE, filters out features with standard deviation < 1e-4 or fewer than 20 unique values. Can also be a list of custom thresholds (min_std, min_unique, group_col).
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
@@ -93,6 +94,7 @@ find_clusters.default <- function(x,
                                   resolution = 0.2,
                                   n.start = 10,
                                   verbose = TRUE,
+                                  qc_features = NULL,
                                   ...) {
 
   # Validate input
@@ -120,7 +122,84 @@ find_clusters.default <- function(x,
   }
 
   # Extract features
-  features <- x[,-metadata_cols]
+  features <- x[, -metadata_cols, drop = FALSE]
+  metadata <- x[, metadata_cols, drop = FALSE]
+
+  # 1. Default Safety Check: Remove globally constant/zero-variance columns to prevent PCA failure
+  numeric_cols <- colnames(features)[sapply(features, is.numeric)]
+  if (length(numeric_cols) > 0) {
+    feat_vars <- apply(features[, numeric_cols, drop = FALSE], 2, var, na.rm = TRUE)
+    zero_var_cols <- names(feat_vars[is.na(feat_vars) | feat_vars <= 1e-10])
+    if (length(zero_var_cols) > 0) {
+      if (verbose) {
+        message("Zero/near-zero variance columns removed globally to prevent PCA failure: ",
+                paste(zero_var_cols, collapse = ", "))
+      }
+      features <- features[, !colnames(features) %in% zero_var_cols, drop = FALSE]
+      numeric_cols <- setdiff(numeric_cols, zero_var_cols)
+    }
+  }
+
+  # 2. Quality Control filtering of discretized & low-variance features
+  if (!is.null(qc_features) && !isFALSE(qc_features)) {
+    min_std <- 1e-4
+    min_unique <- 20
+    group_col <- "bird_id"
+
+    if (is.list(qc_features)) {
+      if (!is.null(qc_features$min_std)) min_std <- qc_features$min_std
+      if (!is.null(qc_features$min_unique)) min_unique <- qc_features$min_unique
+      if (!is.null(qc_features$group_col)) group_col <- qc_features$group_col
+    }
+
+    # Identify group vector if present
+    groups <- NULL
+    if (group_col %in% colnames(metadata)) {
+      groups <- metadata[[group_col]]
+    } else if (group_col %in% colnames(features)) {
+      groups <- features[[group_col]]
+      numeric_cols <- setdiff(numeric_cols, group_col)
+    }
+
+    if (is.null(groups)) {
+      if (verbose) {
+        message("Grouping column '", group_col, "' not found; performing QC globally.")
+      }
+      groups <- rep(1, nrow(features))
+    }
+
+    keep_cols <- c()
+    excluded <- list()
+
+    for (col in numeric_cols) {
+      col_data <- features[[col]]
+      
+      per_group_std <- tapply(col_data, groups, sd, na.rm = TRUE)
+      per_group_nuniq <- tapply(col_data, groups, function(val) length(unique(val)))
+      
+      max_std <- max(per_group_std, na.rm = TRUE)
+      min_uniq <- min(per_group_nuniq, na.rm = TRUE)
+      
+      if (is.na(max_std) || max_std < min_std) {
+        excluded[[col]] <- sprintf("low_variance (max per-group std = %.2e)", max_std)
+      } else if (is.na(min_uniq) || min_uniq < min_unique) {
+        excluded[[col]] <- sprintf("discretized (min per-group unique = %d)", as.integer(min_uniq))
+      } else {
+        keep_cols <- c(keep_cols, col)
+      }
+    }
+
+    if (verbose && length(excluded) > 0) {
+      message("\nFeature Quality Control Exclusions:")
+      for (name in names(excluded)) {
+        message(sprintf("  - %s: %s", name, excluded[[name]]))
+      }
+      message(sprintf("Kept %d features, excluded %d features.", length(keep_cols), length(excluded)))
+    }
+
+    non_numeric_cols <- setdiff(colnames(features), numeric_cols)
+    features <- features[, c(non_numeric_cols, keep_cols), drop = FALSE]
+  }
 
   # Find neighbors
   message("\nFinding neighbors...")
@@ -170,6 +249,7 @@ find_clusters.Sap <- function(x,
                               resolution = NULL,
                               n.start = 10,
                               verbose = TRUE,
+                              qc_features = NULL,
                               ...) {
 
   if(verbose) message(sprintf("\n=== Starting cluster analysis for %s using %s ===\n",
@@ -229,8 +309,21 @@ find_clusters.Sap <- function(x,
     }
   }
 
+  # Map bird_id from x$metadata if group_col == "bird_id" is requested in qc_features and missing
+  if (!is.null(qc_features) && !isFALSE(qc_features)) {
+    group_col <- "bird_id"
+    if (is.list(qc_features) && !is.null(qc_features$group_col)) {
+      group_col <- qc_features$group_col
+    }
+    if (group_col == "bird_id" && !"bird_id" %in% names(feature_data) && !is.null(x$metadata) && "bird_id" %in% names(x$metadata)) {
+      mapping <- unique(x$metadata[, c("filename", "bird_id"), drop = FALSE])
+      bird_ids <- mapping$bird_id[match(feature_data$filename, mapping$filename)]
+      feature_data$bird_id <- bird_ids
+    }
+  }
+
   # Identify metadata columns
-  standard_meta <- c("filename", "day_post_hatch", "label", "start_time", "end_time")
+  standard_meta <- c("filename", "day_post_hatch", "label", "start_time", "end_time", "bird_id")
   if ("duration" %in% names(feature_data) && length(unique(feature_data$duration)) == 1) {
     metadata_cols <- which(names(feature_data) %in% c(standard_meta, "duration"))
   } else {
@@ -247,6 +340,7 @@ find_clusters.Sap <- function(x,
     resolution = resolution,
     n.start = n.start,
     verbose = verbose,
+    qc_features = qc_features,
     ...
   )
 

@@ -1,5 +1,5 @@
 # Analyze Spectral Features -------------------------------------------------------
-# Update date : Mar. 4, 2026
+# Update date : June 4, 2026
 
 #' Analyze Spectral Features of Audio Segments
 #'
@@ -441,6 +441,15 @@ spectral_analysis <- function(x,
   # Validate audio data
   if (length(wave@left) < 7) {
     warning("Too few samples in audio segment")
+    return(NULL)
+  }
+
+  # Row safety check: check for flatline/silent audio
+  if (var(wave@left, na.rm = TRUE) <= 1e-10) {
+    warning(sprintf(
+      "%d detection(s) skipped from '%s' at %.3f-%.3f s because of zero/near-zero amplitude variance (flatline).",
+      1, basename(sound_path), x$start_time, x$end_time
+    ))
     return(NULL)
   }
 
