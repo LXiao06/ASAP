@@ -640,6 +640,24 @@ detect_template.default <- function(x, # x is wav file path
   # Get detections
   detections <- monitoR::getDetections(pks, id = basename(x))
 
+  # Drop detections with NA time values. These arise from flatline (all-zero)
+  # regions in corrupted WAV files: the Pearson correlation denominator is 0
+  # there, producing NaN scores whose peak positions are recorded as time = NA.
+  # Real detections always have a well-defined time (frame_index / sample_rate)
+  # and are never affected by this filter.
+  n_na <- sum(is.na(detections$time))
+  if (n_na > 0) {
+    warning(sprintf(
+      paste0(
+        "%d detection(s) with NA time dropped from '%s'.\n",
+        "  This usually indicates a flatline (silent/corrupted) region in the audio.\n",
+        "  Check the file for stretches of zero-amplitude samples."
+      ),
+      n_na, basename(x)
+    ))
+    detections <- detections[!is.na(detections$time), ]
+  }
+
   # Early return if no detections
   if (is.null(detections) || nrow(detections) == 0) {
     return(NULL)
