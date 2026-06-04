@@ -1,6 +1,3 @@
----
-output: github_document
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -10,7 +7,11 @@ output: github_document
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/LXiao06/ASAP/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LXiao06/ASAP/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/LXiao06/ASAP/actions/workflows/R-CMD-check.yaml/badge.svg?label=R-CMD-check)](https://github.com/LXiao06/ASAP/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/LXiao06/ASAP/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/LXiao06/ASAP/actions/workflows/pkgdown.yaml)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/LXiao06/ASAP)](https://github.com/LXiao06/ASAP/releases)
 
 <!-- badges: end -->
 
