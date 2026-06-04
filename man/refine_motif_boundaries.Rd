@@ -10,7 +10,9 @@ refine_motif_boundaries(x, adjustments_by_label = NULL, verbose = TRUE)
 \item{x}{A SAP object containing 'segments' and 'motifs' data}
 
 \item{adjustments_by_label}{Optional named list of time adjustments (in seconds)
-to apply to motif end limits, where names correspond to labels}
+to apply to motif limits, where names correspond to labels. Each adjustment
+can be a single numeric value (adjusts only the end limit) or a numeric vector
+of length 2 (first adjusts the start limit, second adjusts the end limit).}
 
 \item{verbose}{Logical flag for printing progress messages (default: TRUE)}
 }
@@ -32,7 +34,7 @@ onsets/offsets.
 \details{
 Key operations:
 \enumerate{
-\item Applies label-specific time adjustments to motif end limits
+\item Applies label-specific time adjustments to motif start and end limits
 \item Identifies segments contained within adjusted motif boundaries
 \item Calculates precise motif timing based on contained segments
 \item Preserves original motif structure while adding new timing columns
@@ -40,10 +42,16 @@ Key operations:
 }
 \examples{
 \dontrun{
-# Apply 0.1s extension to "BL" motifs
+# Apply 0.1s extension to "BL" motif end limits
 sap <- refine_motif_boundaries(
   sap,
   adjustments_by_label = list(BL = 0.1)
+)
+
+# Adjust both start (-0.05s) and end (+0.1s) limits for "Rec" motifs
+sap <- refine_motif_boundaries(
+  sap,
+  adjustments_by_label = list(Rec = c(-0.05, 0.1))
 )
 }
 
