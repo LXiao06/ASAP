@@ -296,5 +296,22 @@ vignette: >
     </div>
   </a>
 
+  <!-- Card 9 -->
+  <a class="gs-card" href="longitudinal_motif_boundaries.html">
+    <div class="gs-card-img-wrap" style="background:#fff;">
+      <img src="figures/motif_boundaries_heatmap.png"
+           alt="Amplitude-envelope heatmap with onset (green) and offset (cyan) boundary markers">
+    </div>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Identifying Motif Boundaries</div>
+      <div class="gs-card-desc">
+        Refine coarse template windows into precise motif onset/offset times
+        using underlying syllable segments. Visualise boundaries with annotated
+        heatmaps and verify alignment across developmental stages.
+      </div>
+      <span class="gs-card-tag">Advanced &middot; ~20 min</span>
+    </div>
+  </a>
+
 </div>
 ```
