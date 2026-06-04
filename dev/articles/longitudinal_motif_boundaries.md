@@ -213,7 +213,13 @@ the boundaries land cleanly at the edges of acoustic energy.
 plot_motif_boundaries(sap, balanced = TRUE)
 ```
 
-`{r plot_boundaries_fig, echo = FALSE, eval = TRUE, out.width = "100%", fig.cap = "Amplitude-envelope heatmap with motif onset (green) and offset (cyan) markers. Each row is one motif; labels (BL, Post, Rec) are separated by white horizontal lines."} if (file.exists("figures/motif_boundaries_heatmap.png")) { knitr::include_graphics("figures/motif_boundaries_heatmap.png") } else { message("Image placeholder: figures/motif_boundaries_heatmap.png") }`
+![Amplitude-envelope heatmap with motif onset (green) and offset (cyan)
+markers. Each row is one motif; labels (BL, Post, Rec) are separated by
+white horizontal lines.](figures/motif_boundaries_heatmap.png)
+
+Amplitude-envelope heatmap with motif onset (green) and offset (cyan)
+markers. Each row is one motif; labels (BL, Post, Rec) are separated by
+white horizontal lines.
 
 ### Interpreting the heatmap
 
@@ -327,7 +333,12 @@ plot_motif_boundaries(
 )
 ```
 
-`{r plot_boundaries_ordered_fig, echo = FALSE, eval = TRUE, out.width = "100%", fig.cap = "UMAP-ordered boundary heatmap. Acoustically similar motifs are grouped together, making consistent boundary placement easier to verify."} if (file.exists("figures/motif_boundaries_heatmap_ordered.png")) { knitr::include_graphics("figures/motif_boundaries_heatmap_ordered.png") } else { message("Image placeholder: figures/motif_boundaries_heatmap_ordered.png") }`
+![UMAP-ordered boundary heatmap. Acoustically similar motifs are grouped
+together, making consistent boundary placement easier to
+verify.](figures/motif_boundaries_heatmap_ordered.png)
+
+UMAP-ordered boundary heatmap. Acoustically similar motifs are grouped
+together, making consistent boundary placement easier to verify.
 
 ### Cluster-specific boundary heatmap
 
@@ -345,7 +356,12 @@ plot_motif_boundaries(
 )
 ```
 
-`{r plot_boundaries_clusters_fig, echo = FALSE, eval = TRUE, out.width = "100%", fig.cap = "Cluster-specific boundary heatmap showing only motifs in clusters 0 and 1, ordered by UMAP coordinates."} if (file.exists("figures/motif_boundaries_heatmap_subset_clusters.png")) { knitr::include_graphics("figures/motif_boundaries_heatmap_subset_clusters.png") } else { message("Image placeholder: figures/motif_boundaries_heatmap_subset_clusters.png") }`
+![Cluster-specific boundary heatmap showing only motifs in clusters 0
+and 1, ordered by UMAP
+coordinates.](figures/motif_boundaries_heatmap_subset_clusters.png)
+
+Cluster-specific boundary heatmap showing only motifs in clusters 0 and
+1, ordered by UMAP coordinates.
 
 ------------------------------------------------------------------------
 

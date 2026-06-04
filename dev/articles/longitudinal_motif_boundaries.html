@@ -353,7 +353,13 @@ prior step)</td>
 </h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_motif_boundaries.html">plot_motif_boundaries</a></span><span class="op">(</span><span class="va">sap</span>, balanced <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><code>{r plot_boundaries_fig, echo = FALSE, eval = TRUE, out.width = "100%",     fig.cap = "Amplitude-envelope heatmap with motif onset (green) and offset (cyan) markers. Each row is one motif; labels (BL, Post, Rec) are separated by white horizontal lines."} if (file.exists("figures/motif_boundaries_heatmap.png")) {   knitr::include_graphics("figures/motif_boundaries_heatmap.png") } else {   message("Image placeholder: figures/motif_boundaries_heatmap.png") }</code></p>
+<div class="figure">
+<img src="figures/motif_boundaries_heatmap.png" class="r-plt" alt="Amplitude-envelope heatmap with motif onset (green) and offset (cyan) markers. Each row is one motif; labels (BL, Post, Rec) are separated by white horizontal lines." width="100%"><p class="caption">
+Amplitude-envelope heatmap with motif onset (green) and offset (cyan)
+markers. Each row is one motif; labels (BL, Post, Rec) are separated by
+white horizontal lines.
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="interpreting-the-heatmap">Interpreting the heatmap<a class="anchor" aria-label="anchor" href="#interpreting-the-heatmap"></a>
@@ -480,7 +486,12 @@ placement is consistent within each acoustic cluster:</p>
 <span>  ordered   <span class="op">=</span> <span class="cn">TRUE</span>,     <span class="co"># sort by UMAP coordinates</span></span>
 <span>  descending <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><code>{r plot_boundaries_ordered_fig, echo = FALSE, eval = TRUE, out.width = "100%",     fig.cap = "UMAP-ordered boundary heatmap. Acoustically similar motifs are grouped together, making consistent boundary placement easier to verify."} if (file.exists("figures/motif_boundaries_heatmap_ordered.png")) {   knitr::include_graphics("figures/motif_boundaries_heatmap_ordered.png") } else {   message("Image placeholder: figures/motif_boundaries_heatmap_ordered.png") }</code></p>
+<div class="figure">
+<img src="figures/motif_boundaries_heatmap_ordered.png" class="r-plt" alt="UMAP-ordered boundary heatmap. Acoustically similar motifs are grouped together, making consistent boundary placement easier to verify." width="100%"><p class="caption">
+UMAP-ordered boundary heatmap. Acoustically similar motifs are grouped
+together, making consistent boundary placement easier to verify.
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="cluster-specific-boundary-heatmap">Cluster-specific boundary heatmap<a class="anchor" aria-label="anchor" href="#cluster-specific-boundary-heatmap"></a>
@@ -495,7 +506,12 @@ analysis):</p>
 <span>  balanced <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  ordered  <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><code>{r plot_boundaries_clusters_fig, echo = FALSE, eval = TRUE, out.width = "100%",     fig.cap = "Cluster-specific boundary heatmap showing only motifs in clusters 0 and 1, ordered by UMAP coordinates."} if (file.exists("figures/motif_boundaries_heatmap_subset_clusters.png")) {   knitr::include_graphics("figures/motif_boundaries_heatmap_subset_clusters.png") } else {   message("Image placeholder: figures/motif_boundaries_heatmap_subset_clusters.png") }</code></p>
+<div class="figure">
+<img src="figures/motif_boundaries_heatmap_subset_clusters.png" class="r-plt" alt="Cluster-specific boundary heatmap showing only motifs in clusters 0 and 1, ordered by UMAP coordinates." width="100%"><p class="caption">
+Cluster-specific boundary heatmap showing only motifs in clusters 0 and
+1, ordered by UMAP coordinates.
+</p>
+</div>
 <hr>
 </div>
 </div>
