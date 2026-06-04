@@ -319,3 +319,16 @@ DBSCAN-based labeling and manual refinement. Verify the final syllable
 inventory across developmental stages.
 
 Advanced · ~20 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_boundaries.md)
+
+![Amplitude-envelope heatmap with onset (green) and offset (cyan)
+boundary markers](figures/motif_boundaries_heatmap.png)
+
+Identifying Motif Boundaries
+
+Refine coarse template windows into precise motif onset/offset times
+using underlying syllable segments. Visualise boundaries with annotated
+heatmaps and verify alignment across developmental stages.
+
+Advanced · ~20 min

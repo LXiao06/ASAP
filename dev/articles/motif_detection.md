@@ -48,7 +48,7 @@ small decisions that make a template robust before you scale up.
 ``` r
 
 library(ASAP)
-#> ASAP v0.3.5.9000 loaded.
+#> ASAP v0.3.5.9001 loaded.
 
 # Get path to example WAV file included with the package
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
@@ -406,9 +406,9 @@ if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/Rtmpiv2r7J/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
-| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/Rtmpiv2r7J/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
-| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/Rtmpiv2r7J/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/RtmplWyQFq/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/RtmplWyQFq/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/RtmplWyQFq/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
 
 ### Step 4: Visualize the exported motif files
 
@@ -501,7 +501,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.5.9000
+#> [1] ASAP_0.3.5.9001
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    
@@ -516,7 +516,7 @@ sessionInfo()
 #> [37] fs_2.1.0           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
 #> [41] desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1      bslib_0.11.0      
 #> [45] gtable_0.3.6       glue_1.8.1         Rcpp_1.1.1-1.1     systemfonts_1.3.2 
-#> [49] xfun_0.57          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
+#> [49] xfun_0.58          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
 #> [53] farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31    
 #> [57] signal_1.8-1       compiler_4.6.0     S7_0.2.2
 ```

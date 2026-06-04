@@ -19,7 +19,10 @@ refine_motif_boundaries(x, adjustments_by_label = NULL, verbose = TRUE)
 - adjustments_by_label:
 
   Optional named list of time adjustments (in seconds) to apply to motif
-  end limits, where names correspond to labels
+  limits, where names correspond to labels. Each adjustment can be a
+  single numeric value (adjusts only the end limit) or a numeric vector
+  of length 2 (first adjusts the start limit, second adjusts the end
+  limit).
 
 - verbose:
 
@@ -43,7 +46,8 @@ Returns a modified SAP object with updated motifs containing:
 
 Key operations:
 
-1.  Applies label-specific time adjustments to motif end limits
+1.  Applies label-specific time adjustments to motif start and end
+    limits
 
 2.  Identifies segments contained within adjusted motif boundaries
 
@@ -55,10 +59,16 @@ Key operations:
 
 ``` r
 if (FALSE) { # \dontrun{
-# Apply 0.1s extension to "BL" motifs
+# Apply 0.1s extension to "BL" motif end limits
 sap <- refine_motif_boundaries(
   sap,
   adjustments_by_label = list(BL = 0.1)
+)
+
+# Adjust both start (-0.05s) and end (+0.1s) limits for "Rec" motifs
+sap <- refine_motif_boundaries(
+  sap,
+  adjustments_by_label = list(Rec = c(-0.05, 0.1))
 )
 } # }
 ```

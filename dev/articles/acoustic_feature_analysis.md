@@ -87,7 +87,7 @@ WAV file directory is not embedded in the data frame as an attribute.
 ``` r
 
 library(ASAP)
-#> ASAP v0.3.5.9000 loaded.
+#> ASAP v0.3.5.9001 loaded.
 
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
 analysis_start <- 1.5
@@ -482,7 +482,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.5.9000
+#> [1] ASAP_0.3.5.9001
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] rappdirs_0.3.4     sass_0.4.10        generics_0.1.4     tidyr_1.3.2       
@@ -497,7 +497,7 @@ sessionInfo()
 #> [37] R6_2.6.1           png_0.1-9          lifecycle_1.0.5    fs_2.1.0          
 #> [41] MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3    desc_1.4.3        
 #> [45] pkgdown_2.2.0      pillar_1.11.1      bslib_0.11.0       gtable_0.3.6      
-#> [49] glue_1.8.1         Rcpp_1.1.1-1.1     systemfonts_1.3.2  xfun_0.57         
+#> [49] glue_1.8.1         Rcpp_1.1.1-1.1     systemfonts_1.3.2  xfun_0.58         
 #> [53] tibble_3.3.1       tidyselect_1.2.1   knitr_1.51         farver_2.1.2      
 #> [57] htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31     signal_1.8-1      
 #> [61] compiler_4.6.0     S7_0.2.2
