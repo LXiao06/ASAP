@@ -52,6 +52,7 @@
 <span>  resolution <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  n.start <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  qc_features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -67,6 +68,7 @@
 <span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n.start <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  qc_features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -109,6 +111,10 @@
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Whether to print progress messages (default: TRUE)</p></dd>
+
+
+<dt id="arg-qc-features">qc_features<a class="anchor" aria-label="anchor" href="#arg-qc-features"></a></dt>
+<dd><p>Control for filtering out discretized and constant features. Default is NULL (no filtering). If TRUE, filters out features with standard deviation &lt; 1e-4 or fewer than 20 unique values. Can also be a list of custom thresholds (min_std, min_unique, group_col).</p></dd>
 
 
 <dt id="arg-segment-type">segment_type<a class="anchor" aria-label="anchor" href="#arg-segment-type"></a></dt>
