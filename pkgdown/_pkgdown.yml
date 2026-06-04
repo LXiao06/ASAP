@@ -54,6 +54,7 @@ articles:
       - exporting_song_clips
       - longitudinal_syllable_segmentation
       - syllable_labeling
+      - longitudinal_motif_boundaries
 
 reference:
   - title: "Object Construction"
