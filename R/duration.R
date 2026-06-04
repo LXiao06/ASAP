@@ -27,6 +27,9 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
   if(verbose) message(sprintf("\n=== Starting compute WAV file durations ===\n"))
 
   # Validate SAP structure
+  if (!inherits(x, "Sap")) {
+    stop("Input must be a SAP object")
+  }
   if (is.null(x$base_path)) stop("sap$base_path must contain WAV directory path")
   if (is.null(x$metadata)) stop("sap$metadata is missing")
 
@@ -101,7 +104,9 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
 #'
 #' @param x A SAP object containing 'segments' and 'motifs' data
 #' @param adjustments_by_label Optional named list of time adjustments (in seconds)
-#'        to apply to motif end limits, where names correspond to labels
+#'        to apply to motif limits, where names correspond to labels. Each adjustment
+#'        can be a single numeric value (adjusts only the end limit) or a numeric vector
+#'        of length 2 (first adjusts the start limit, second adjusts the end limit).
 #' @param verbose Logical flag for printing progress messages (default: TRUE)
 #'
 #' @return Returns a modified SAP object with updated motifs containing:
@@ -115,17 +120,23 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
 #'
 #' @details
 #' Key operations:
-#' 1. Applies label-specific time adjustments to motif end limits
+#' 1. Applies label-specific time adjustments to motif start and end limits
 #' 2. Identifies segments contained within adjusted motif boundaries
 #' 3. Calculates precise motif timing based on contained segments
 #' 4. Preserves original motif structure while adding new timing columns
 #'
 #' @examples
 #' \dontrun{
-#' # Apply 0.1s extension to "BL" motifs
+#' # Apply 0.1s extension to "BL" motif end limits
 #' sap <- refine_motif_boundaries(
 #'   sap,
 #'   adjustments_by_label = list(BL = 0.1)
+#' )
+#'
+#' # Adjust both start (-0.05s) and end (+0.1s) limits for "Rec" motifs
+#' sap <- refine_motif_boundaries(
+#'   sap,
+#'   adjustments_by_label = list(Rec = c(-0.05, 0.1))
 #' )
 #' }
 #'
@@ -180,7 +191,7 @@ refine_motif_boundaries <- function(x,
   motifs_join <- motifs |>
     dplyr::rename(start_limit = start_time, end_limit = end_time)
 
-  # Add label-based end limit adjustments
+  # Add label-based limit adjustments
   if(!is.null(adjustments_by_label)) {
     # Validate adjustments
     if(!is.list(adjustments_by_label) ||
@@ -189,21 +200,46 @@ refine_motif_boundaries <- function(x,
       stop("Invalid labels in adjustments: ", paste(invalid_labels, collapse = ", "))
     }
 
+    # Parse and validate each adjustment value (numeric of length 1 or 2)
+    parsed_adjs <- lapply(adjustments_by_label, function(adj) {
+      if (!is.numeric(adj) || length(adj) < 1 || length(adj) > 2) {
+        stop("Adjustments must be numeric vectors of length 1 or 2")
+      }
+      if (length(adj) == 1) {
+        return(c(start = 0, end = adj))
+      } else {
+        if (!is.null(names(adj))) {
+          start_val <- if ("start" %in% names(adj)) adj[["start"]] else adj[1]
+          end_val <- if ("end" %in% names(adj)) adj[["end"]] else adj[2]
+          return(c(start = start_val, end = end_val))
+        }
+        return(c(start = adj[1], end = adj[2]))
+      }
+    })
+
     # Apply adjustments
     ensure_pkgs("purrr")
     motifs_join <- motifs_join |>
-      dplyr::mutate(end_limit = .data$end_limit + purrr::map_dbl(
-        label,
-        ~ purrr::pluck(adjustments_by_label, .x, .default = 0)
-      ))
+      dplyr::mutate(
+        start_limit = .data$start_limit + purrr::map_dbl(
+          label,
+          ~ if (.x %in% names(parsed_adjs)) parsed_adjs[[.x]]["start"] else 0
+        ),
+        end_limit = .data$end_limit + purrr::map_dbl(
+          label,
+          ~ if (.x %in% names(parsed_adjs)) parsed_adjs[[.x]]["end"] else 0
+        )
+      )
 
     if(verbose) {
-      message("Applied end limit adjustments:")
-      print(data.frame(
+      message("Applied limit adjustments by label:")
+      print_df <- data.frame(
         Label = names(adjustments_by_label),
-        Adjustment = unlist(adjustments_by_label),
+        Start_Adjustment = vapply(parsed_adjs, function(x) x["start"], numeric(1)),
+        End_Adjustment = vapply(parsed_adjs, function(x) x["end"], numeric(1)),
         stringsAsFactors = FALSE
-      ))
+      )
+      print(print_df, row.names = FALSE)
     }
   }
 
@@ -360,6 +396,11 @@ plot_motif_boundaries <- function(x,
                                   balanced = balanced,
                                   sample_percent = sample_percent,
                                   seed = seed)
+  # Ensure WAV durations are computed
+  if (!"duration" %in% names(x$metadata)) {
+    x <- compute_wav_durations(x, cores = cores, verbose = verbose)
+  }
+
   # add durations of WAV file
   segments_df <- segments_df |>
     dplyr::left_join(x$metadata |> dplyr::select(filename, wav_duration = duration),
