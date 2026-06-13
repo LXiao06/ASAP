@@ -406,9 +406,9 @@ if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/RtmpkdiAXF/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
-| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/RtmpkdiAXF/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
-| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/RtmpkdiAXF/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/RtmpxnN31l/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/RtmpxnN31l/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/RtmpxnN31l/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
 
 ### Step 4: Visualize the exported motif files
 
@@ -510,13 +510,13 @@ sessionInfo()
 #> [13] monitoR_1.2        tuneR_1.4.7        purrr_1.2.2        scales_1.4.0      
 #> [17] pbapply_1.7-4      textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.6         
 #> [21] rlang_1.2.0        pbmcapply_1.5.1    withr_3.0.2        seewave_2.2.4     
-#> [25] cachem_1.1.0       yaml_2.3.12        av_0.9.6           tools_4.6.0       
-#> [29] parallel_4.6.0     dplyr_1.2.1        ggplot2_4.0.3      reticulate_1.46.0 
-#> [33] vctrs_0.7.3        R6_2.6.1           png_0.1-9          lifecycle_1.0.5   
-#> [37] fs_2.1.0           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
-#> [41] desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1      bslib_0.11.0      
-#> [45] gtable_0.3.6       glue_1.8.1         Rcpp_1.1.1-1.1     systemfonts_1.3.2 
-#> [49] xfun_0.58          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
-#> [53] farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31    
-#> [57] signal_1.8-1       compiler_4.6.0     S7_0.2.2
+#> [25] cachem_1.1.0       yaml_2.3.12        otel_0.2.0         av_0.9.6          
+#> [29] tools_4.6.0        parallel_4.6.0     dplyr_1.2.1        ggplot2_4.0.3     
+#> [33] reticulate_1.46.0  png_0.1-9          vctrs_0.7.3        R6_2.6.1          
+#> [37] lifecycle_1.0.5    fs_2.1.0           MASS_7.3-65        ragg_1.5.2        
+#> [41] pkgconfig_2.0.3    desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1     
+#> [45] bslib_0.11.0       gtable_0.3.6       glue_1.8.1         Rcpp_1.1.1-1.1    
+#> [49] systemfonts_1.3.2  xfun_0.58          tibble_3.3.1       tidyselect_1.2.1  
+#> [53] knitr_1.51         farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2   
+#> [57] rmarkdown_2.31     signal_1.8-1       compiler_4.6.0     S7_0.2.2
 ```

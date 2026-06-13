@@ -274,8 +274,8 @@ if (!is.null(bout_export_meta) && nrow(bout_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| bout_001 | 1.057 | 3.553 | 2.496 | /tmp/Rtmp9FRjqm/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
-| bout_002 | 4.156 | 4.946 | 0.789 | /tmp/Rtmp9FRjqm/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
+| bout_001 | 1.057 | 3.553 | 2.496 | /tmp/Rtmpq8wgtu/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_002 | 4.156 | 4.946 | 0.789 | /tmp/Rtmpq8wgtu/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
 
 ### Step 4: Visualize the exported bout files
 
@@ -350,13 +350,13 @@ sessionInfo()
 #> [13] tuneR_1.4.7        purrr_1.2.2        scales_1.4.0       pbapply_1.7-4     
 #> [17] textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.6          rlang_1.2.0       
 #> [21] pbmcapply_1.5.1    fftw_1.0-9         seewave_2.2.4      cachem_1.1.0      
-#> [25] yaml_2.3.12        av_0.9.6           tools_4.6.0        parallel_4.6.0    
-#> [29] dplyr_1.2.1        ggplot2_4.0.3      reticulate_1.46.0  vctrs_0.7.3       
-#> [33] R6_2.6.1           png_0.1-9          lifecycle_1.0.5    fs_2.1.0          
-#> [37] MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3    desc_1.4.3        
-#> [41] pkgdown_2.2.0      pillar_1.11.1      bslib_0.11.0       gtable_0.3.6      
-#> [45] glue_1.8.1         Rcpp_1.1.1-1.1     systemfonts_1.3.2  xfun_0.58         
-#> [49] tibble_3.3.1       tidyselect_1.2.1   knitr_1.51         farver_2.1.2      
-#> [53] htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31     signal_1.8-1      
-#> [57] compiler_4.6.0     S7_0.2.2
+#> [25] yaml_2.3.12        otel_0.2.0         av_0.9.6           tools_4.6.0       
+#> [29] parallel_4.6.0     dplyr_1.2.1        ggplot2_4.0.3      reticulate_1.46.0 
+#> [33] png_0.1-9          vctrs_0.7.3        R6_2.6.1           lifecycle_1.0.5   
+#> [37] fs_2.1.0           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
+#> [41] desc_1.4.3         pkgdown_2.2.0      pillar_1.11.1      bslib_0.11.0      
+#> [45] gtable_0.3.6       glue_1.8.1         Rcpp_1.1.1-1.1     systemfonts_1.3.2 
+#> [49] xfun_0.58          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
+#> [53] farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31    
+#> [57] signal_1.8-1       compiler_4.6.0     S7_0.2.2
 ```

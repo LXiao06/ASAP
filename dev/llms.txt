@@ -332,3 +332,16 @@ using underlying syllable segments. Visualise boundaries with annotated
 heatmaps and verify alignment across developmental stages.
 
 Advanced · ~20 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_trajectory.md)
+
+![UMAP of motif trajectory embeddings coloured by developmental
+label](figures/longitudinal_umap.png)
+
+Longitudinal Motif Trajectory Analysis
+
+Build trajectory matrices from spectral embeddings, reduce with PCA and
+UMAP, and visualise how motif acoustic structure shifts across
+developmental stages.
+
+Advanced · ~25 min
