@@ -55,6 +55,7 @@ articles:
       - longitudinal_syllable_segmentation
       - syllable_labeling
       - longitudinal_motif_boundaries
+      - longitudinal_motif_trajectory
 
 reference:
   - title: "Object Construction"
