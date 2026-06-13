@@ -18,7 +18,7 @@ Description: A comprehensive toolkit for longitudinal analysis of birdsong
     longitudinal studies of song learning and development, offering researchers 
     powerful tools for quantifying vocal plasticity and investigating the 
     mechanisms of vocal learning in songbirds.
-License: GPL (>= 3)
+License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
