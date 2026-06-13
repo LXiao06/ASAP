@@ -128,7 +128,7 @@ find_clusters.default <- function(x,
   # 1. Default Safety Check: Remove globally constant/zero-variance columns to prevent PCA failure
   numeric_cols <- colnames(features)[sapply(features, is.numeric)]
   if (length(numeric_cols) > 0) {
-    feat_vars <- apply(features[, numeric_cols, drop = FALSE], 2, var, na.rm = TRUE)
+    feat_vars <- apply(features[, numeric_cols, drop = FALSE], 2, stats::var, na.rm = TRUE)
     zero_var_cols <- names(feat_vars[is.na(feat_vars) | feat_vars <= 1e-10])
     if (length(zero_var_cols) > 0) {
       if (verbose) {

@@ -445,7 +445,7 @@ spectral_analysis <- function(x,
   }
 
   # Row safety check: check for flatline/silent audio
-  if (var(wave@left, na.rm = TRUE) <= 1e-10) {
+  if (stats::var(wave@left, na.rm = TRUE) <= 1e-10) {
     warning(sprintf(
       "%d detection(s) skipped from '%s' at %.3f-%.3f s because of zero/near-zero amplitude variance (flatline).",
       1, basename(sound_path), x$start_time, x$end_time
