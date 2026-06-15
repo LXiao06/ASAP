@@ -37,24 +37,13 @@ completing:
 
 ## Overview
 
-**What is a trajectory matrix?**
-[`create_trajectory_matrix()`](https://lxiao06.github.io/ASAP/dev/reference/create_trajectory_matrix.md)
-reads each motif’s WAV file directly and computes spectrograms over a
-series of overlapping sliding windows that sweep across the motif’s full
-time window (`start_time` to `end_time`). Each window produces a
-flattened spectrogram vector; all windows from one motif are
-concatenated into a single row of the matrix. The result is a
-*trajectory matrix* that captures the **full temporal sequence** of
-acoustic structure within every motif rendition.
-
-**Why use a trajectory matrix?**
-
-- Captures not only the vocal elements and their order (e.g., syllable A
-  -\> B -\> C) but also the **silence gaps in between**.
-- Enables PCA / UMAP to separate motifs by their complete acoustic
-  trajectory, not just average spectral statistics.
-- Makes developmental changes in syllable sequence, timing, or gap
-  duration visible as shifts in UMAP space.
+A *trajectory matrix* is a time-resolved, spectrogram-based
+representation of each motif rendition. Because it sweeps sliding
+windows across the full motif duration, it encodes not only the
+individual vocal elements but also the **silence gaps in between** —
+information that single-feature summaries discard. Projecting this
+matrix through PCA and UMAP reveals how the complete acoustic trajectory
+of each motif shifts across developmental time points.
 
 ------------------------------------------------------------------------
 
@@ -344,51 +333,29 @@ plot_umap2(
 )
 ```
 
-![Overlay UMAP: post-deafening (Post) and recovery (Rec) motifs shown
-against the baseline (BL) distribution in grey. Shifts away from the
-baseline cloud indicate developmental
+![Overlay UMAP: each comparison label (Post, Rec) is shown individually
+against the baseline (BL) distribution. Shifts away from the baseline
+cloud indicate developmental
 change.](figures/motif_trajectory_umap_overlay.png)
 
-Overlay UMAP: post-deafening (Post) and recovery (Rec) motifs shown
-against the baseline (BL) distribution in grey. Shifts away from the
-baseline cloud indicate developmental change.
+Overlay UMAP: each comparison label (Post, Rec) is shown individually
+against the baseline (BL) distribution. Shifts away from the baseline
+cloud indicate developmental change.
 
 ### Interpreting the UMAP
 
-- **Labels form non-overlapping regions** → acoustic trajectories are
-  consistently different between developmental stages.
-- **Large overlap between BL and Rec** → recovery has restored
-  baseline-like motif structure.
-- **Post-deafening motifs scattered widely** → high variability in
-  acoustic trajectories following hearing loss, as expected.
-- **Compact, tight clusters per label** → low within-stage variability;
-  boundaries in
-  [`find_motif()`](https://lxiao06.github.io/ASAP/dev/reference/find_motif.md)
-  are capturing consistent windows.
-
-------------------------------------------------------------------------
-
-## Summary statistics
-
-After projecting to UMAP it is useful to quantify how developmental
-stages differ in their trajectory space:
-
-``` r
-
-trajectory_variability(sap)
-```
-
-    # A tibble: 3 × 4
-      label     n mean_dist sd_dist
-      <chr> <int>     <dbl>   <dbl>
-    1 BL      140     1.23    0.34
-    2 Post    140     3.87    1.12
-    3 Rec     140     1.61    0.45
-
-``` r
-
-trajectory_umap_occupancy(sap)
-```
+- **Large overlap between BL and Post** → acoustic trajectory structure
+  is largely preserved across these two stages; motifs occupy similar
+  UMAP regions.
+- **BL and Rec occupy different regions** → the recovery stage shows a
+  clear shift in overall acoustic trajectory, indicating meaningful
+  change in motif structure relative to baseline.
+- **Post and Rec diverge** → trajectory structure continues to change
+  through recovery, suggesting an ongoing developmental process rather
+  than a simple return to the pre-perturbation state.
+- **Spread within a label** → wide scatter for a given label reflects
+  within-stage variability in motif acoustic structure; tighter clouds
+  indicate more stereotyped renditions.
 
 ------------------------------------------------------------------------
 
