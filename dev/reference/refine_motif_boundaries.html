@@ -46,7 +46,17 @@ onsets/offsets.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">refine_motif_boundaries</span><span class="op">(</span><span class="va">x</span>, adjustments_by_label <span class="op">=</span> <span class="cn">NULL</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">refine_motif_boundaries</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  adjustments_by_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_percent <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  balanced <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  max_samples_per_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  clusters <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">222</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,6 +72,33 @@ onsets/offsets.</p>
 to apply to motif limits, where names correspond to labels. Each adjustment
 can be a single numeric value (adjusts only the end limit) or a numeric vector
 of length 2 (first adjusts the start limit, second adjusts the end limit).</p></dd>
+
+
+<dt id="arg-sample-percent">sample_percent<a class="anchor" aria-label="anchor" href="#arg-sample-percent"></a></dt>
+<dd><p>Percentage of motifs to refine from each label (0-100)</p></dd>
+
+
+<dt id="arg-balanced">balanced<a class="anchor" aria-label="anchor" href="#arg-balanced"></a></dt>
+<dd><p>Logical indicating whether to balance motif counts across labels</p></dd>
+
+
+<dt id="arg-max-samples-per-label">max_samples_per_label<a class="anchor" aria-label="anchor" href="#arg-max-samples-per-label"></a></dt>
+<dd><p>Optional integer. Maximum number of motifs to
+randomly refine from each label. If a label has fewer motifs, all available
+motifs are used. Unselected motifs are retained with missing boundary values.</p></dd>
+
+
+<dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
+<dd><p>Character vector of specific labels to refine</p></dd>
+
+
+<dt id="arg-clusters">clusters<a class="anchor" aria-label="anchor" href="#arg-clusters"></a></dt>
+<dd><p>Numeric vector of cluster IDs to refine. Requires motif feature
+embeddings from prior clustering.</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>Random seed for reproducible sampling (default: 222)</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

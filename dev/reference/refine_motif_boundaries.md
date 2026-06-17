@@ -7,7 +7,17 @@ determine precise motif onsets/offsets.
 ## Usage
 
 ``` r
-refine_motif_boundaries(x, adjustments_by_label = NULL, verbose = TRUE)
+refine_motif_boundaries(
+  x,
+  adjustments_by_label = NULL,
+  sample_percent = NULL,
+  balanced = FALSE,
+  max_samples_per_label = NULL,
+  labels = NULL,
+  clusters = NULL,
+  seed = 222,
+  verbose = TRUE
+)
 ```
 
 ## Arguments
@@ -23,6 +33,33 @@ refine_motif_boundaries(x, adjustments_by_label = NULL, verbose = TRUE)
   single numeric value (adjusts only the end limit) or a numeric vector
   of length 2 (first adjusts the start limit, second adjusts the end
   limit).
+
+- sample_percent:
+
+  Percentage of motifs to refine from each label (0-100)
+
+- balanced:
+
+  Logical indicating whether to balance motif counts across labels
+
+- max_samples_per_label:
+
+  Optional integer. Maximum number of motifs to randomly refine from
+  each label. If a label has fewer motifs, all available motifs are
+  used. Unselected motifs are retained with missing boundary values.
+
+- labels:
+
+  Character vector of specific labels to refine
+
+- clusters:
+
+  Numeric vector of cluster IDs to refine. Requires motif feature
+  embeddings from prior clustering.
+
+- seed:
+
+  Random seed for reproducible sampling (default: 222)
 
 - verbose:
 
