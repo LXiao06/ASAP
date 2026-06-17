@@ -107,6 +107,10 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
 #'        to apply to motif limits, where names correspond to labels. Each adjustment
 #'        can be a single numeric value (adjusts only the end limit) or a numeric vector
 #'        of length 2 (first adjusts the start limit, second adjusts the end limit).
+#' @param max_samples_per_label Optional integer. Maximum number of motifs to
+#'   randomly refine from each label. If a label has fewer motifs, all available
+#'   motifs are used. Unselected motifs are retained with missing boundary values.
+#' @param seed Random seed for reproducible sampling (default: 222)
 #' @param verbose Logical flag for printing progress messages (default: TRUE)
 #'
 #' @return Returns a modified SAP object with updated motifs containing:
@@ -143,6 +147,8 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
 #' @export
 refine_motif_boundaries <- function(x,
                                     adjustments_by_label = NULL,
+                                    max_samples_per_label = NULL,
+                                    seed = 222,
                                     verbose = TRUE) {
 
   # # Handle feature embeddings for clustering
@@ -187,8 +193,22 @@ refine_motif_boundaries <- function(x,
     dplyr::mutate(motif_index = dplyr::row_number()) |>
     dplyr::ungroup()
 
+  if (!is.null(max_samples_per_label)) {
+    motifs_join_keys <- motifs |>
+      select_segments(
+        max_samples_per_label = max_samples_per_label,
+        seed = seed
+      ) |>
+      dplyr::select(dplyr::all_of(c("filename", "motif_index")))
+
+    motifs_to_refine <- motifs |>
+      dplyr::inner_join(motifs_join_keys, by = c("filename", "motif_index"))
+  } else {
+    motifs_to_refine <- motifs
+  }
+
   # Create temporary motifs with limit columns
-  motifs_join <- motifs |>
+  motifs_join <- motifs_to_refine |>
     dplyr::rename(start_limit = start_time, end_limit = end_time)
 
   # Add label-based limit adjustments

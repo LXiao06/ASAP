@@ -4,7 +4,13 @@
 \alias{refine_motif_boundaries}
 \title{Refine Motif Boundaries Using Segment Alignment}
 \usage{
-refine_motif_boundaries(x, adjustments_by_label = NULL, verbose = TRUE)
+refine_motif_boundaries(
+  x,
+  adjustments_by_label = NULL,
+  max_samples_per_label = NULL,
+  seed = 222,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{x}{A SAP object containing 'segments' and 'motifs' data}
@@ -13,6 +19,12 @@ refine_motif_boundaries(x, adjustments_by_label = NULL, verbose = TRUE)
 to apply to motif limits, where names correspond to labels. Each adjustment
 can be a single numeric value (adjusts only the end limit) or a numeric vector
 of length 2 (first adjusts the start limit, second adjusts the end limit).}
+
+\item{max_samples_per_label}{Optional integer. Maximum number of motifs to
+randomly refine from each label. If a label has fewer motifs, all available
+motifs are used. Unselected motifs are retained with missing boundary values.}
+
+\item{seed}{Random seed for reproducible sampling (default: 222)}
 
 \item{verbose}{Logical flag for printing progress messages (default: TRUE)}
 }
