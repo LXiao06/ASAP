@@ -107,9 +107,14 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
 #'        to apply to motif limits, where names correspond to labels. Each adjustment
 #'        can be a single numeric value (adjusts only the end limit) or a numeric vector
 #'        of length 2 (first adjusts the start limit, second adjusts the end limit).
+#' @param sample_percent Percentage of motifs to refine from each label (0-100)
+#' @param balanced Logical indicating whether to balance motif counts across labels
 #' @param max_samples_per_label Optional integer. Maximum number of motifs to
 #'   randomly refine from each label. If a label has fewer motifs, all available
 #'   motifs are used. Unselected motifs are retained with missing boundary values.
+#' @param labels Character vector of specific labels to refine
+#' @param clusters Numeric vector of cluster IDs to refine. Requires motif feature
+#'   embeddings from prior clustering.
 #' @param seed Random seed for reproducible sampling (default: 222)
 #' @param verbose Logical flag for printing progress messages (default: TRUE)
 #'
@@ -147,37 +152,13 @@ compute_wav_durations <- function(x, cores = NULL, verbose = TRUE) {
 #' @export
 refine_motif_boundaries <- function(x,
                                     adjustments_by_label = NULL,
+                                    sample_percent = NULL,
+                                    balanced = FALSE,
                                     max_samples_per_label = NULL,
+                                    labels = NULL,
+                                    clusters = NULL,
                                     seed = 222,
                                     verbose = TRUE) {
-
-  # # Handle feature embeddings for clustering
-  # if (!is.null(clusters) ) {
-  #   if (is.null(x$features$motif$feat.embeds)) {
-  #     stop("Feature embeddings required for cluster filtering or ordering")
-  #   }
-  #
-  #   # Define natural composite key columns
-  #   key_cols <- c("filename", "start_time", "end_time", "label", "day_post_hatch")
-  #
-  #   # Merge using natural keys
-  #   segments_df <- x$motifs %>%
-  #     dplyr::inner_join(
-  #       x$features$motif$feat.embeds,
-  #       by = key_cols,
-  #       relationship = "one-to-one"
-  #     )
-  #
-  #   if ("cluster" %in% names(segments_df)) {
-  #     segments_df <- segments_df[segments_df$cluster %in% clusters, ]
-  #     message(sprintf("\nRefine motif boundaries for clusters: %s", paste(clusters, collapse = ", ")))
-  #   } else{
-  #     stop("No 'cluster' column found in the data")
-  #   }
-  #
-  # } else {
-  #   segments_df <- x$motifs
-  # }
 
   # Remove previous boundary calculations if they exist
   motifs <- x$motifs %>%
@@ -193,13 +174,48 @@ refine_motif_boundaries <- function(x,
     dplyr::mutate(motif_index = dplyr::row_number()) |>
     dplyr::ungroup()
 
-  if (!is.null(max_samples_per_label)) {
-    motifs_join_keys <- motifs |>
+  select_motifs <- balanced ||
+    !is.null(sample_percent) ||
+    !is.null(max_samples_per_label) ||
+    !is.null(labels) ||
+    !is.null(clusters)
+
+  if (select_motifs) {
+    motifs_for_selection <- motifs
+
+    if (!is.null(clusters)) {
+      feature_data <- x$features$motif$feat.embeds
+      if (is.null(feature_data)) {
+        stop("Feature embeddings required for cluster filtering")
+      }
+      if (!"cluster" %in% names(feature_data)) {
+        stop("No 'cluster' column found in motif feature embeddings")
+      }
+
+      key_cols <- c("filename", "start_time", "end_time", "label", "day_post_hatch")
+      key_cols <- intersect(key_cols, intersect(names(motifs), names(feature_data)))
+      embed_cols <- unique(c(key_cols, "cluster"))
+      embed_cols <- intersect(embed_cols, names(feature_data))
+
+      motifs_for_selection <- motifs |>
+        dplyr::inner_join(
+          feature_data[, embed_cols],
+          by = key_cols,
+          relationship = "many-to-many"
+        )
+    }
+
+    motifs_join_keys <- motifs_for_selection |>
       select_segments(
+        labels = labels,
+        clusters = clusters,
+        balanced = balanced,
+        sample_percent = sample_percent,
         max_samples_per_label = max_samples_per_label,
         seed = seed
       ) |>
-      dplyr::select(dplyr::all_of(c("filename", "motif_index")))
+      dplyr::select(dplyr::all_of(c("filename", "motif_index"))) |>
+      dplyr::distinct()
 
     motifs_to_refine <- motifs |>
       dplyr::inner_join(motifs_join_keys, by = c("filename", "motif_index"))

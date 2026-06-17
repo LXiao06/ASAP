@@ -7,7 +7,11 @@
 refine_motif_boundaries(
   x,
   adjustments_by_label = NULL,
+  sample_percent = NULL,
+  balanced = FALSE,
   max_samples_per_label = NULL,
+  labels = NULL,
+  clusters = NULL,
   seed = 222,
   verbose = TRUE
 )
@@ -20,9 +24,18 @@ to apply to motif limits, where names correspond to labels. Each adjustment
 can be a single numeric value (adjusts only the end limit) or a numeric vector
 of length 2 (first adjusts the start limit, second adjusts the end limit).}
 
+\item{sample_percent}{Percentage of motifs to refine from each label (0-100)}
+
+\item{balanced}{Logical indicating whether to balance motif counts across labels}
+
 \item{max_samples_per_label}{Optional integer. Maximum number of motifs to
 randomly refine from each label. If a label has fewer motifs, all available
 motifs are used. Unselected motifs are retained with missing boundary values.}
+
+\item{labels}{Character vector of specific labels to refine}
+
+\item{clusters}{Numeric vector of cluster IDs to refine. Requires motif feature
+embeddings from prior clustering.}
 
 \item{seed}{Random seed for reproducible sampling (default: 222)}
 
