@@ -200,6 +200,7 @@ the boundaries land cleanly at the edges of acoustic energy.
 |----|----|----|
 | `balanced` | Draw equal numbers of motifs from each label | `TRUE` / `FALSE` |
 | `sample_percent` | Percentage of motifs to plot per label | `10 – 100` |
+| `max_samples_per_label` | Maximum number of motifs to randomly select from each label when `balanced = FALSE` | `50 – 500` |
 | `ordered` | Sort rows by UMAP coordinates (requires [`run_umap()`](https://lxiao06.github.io/ASAP/dev/reference/run_umap.md) in prior step) | `TRUE` / `FALSE` |
 | `marginal_window` | Extra context (seconds) added to each side of the window | `0.05 – 0.15 s` |
 | `msmooth` | Smoothing parameters for the amplitude envelope `c(window, overlap)` | `c(256, 50)` |
@@ -389,6 +390,36 @@ sap$motifs |>
     1 BL      270         1.027       0.042           100
     2 Post    270         1.082       0.089            99.6
     3 Rec     270         1.041       0.061            99.6
+
+------------------------------------------------------------------------
+
+## Sampling controls
+
+For large longitudinal datasets, boundary refinement and boundary
+heatmaps can be run on a controlled subset of motifs. Use `labels` or
+`clusters` to focus on specific groups, `sample_percent` to refine or
+plot a percentage from each label, `balanced = TRUE` to draw equal
+counts across labels, or `max_samples_per_label` to cap the number of
+randomly selected motifs per label.
+
+For example, this refines at most 100 motifs from each label while
+leaving unselected motifs in `sap$motifs` with missing boundary values:
+
+``` r
+
+sap <- refine_motif_boundaries(
+  sap,
+  max_samples_per_label = 100
+)
+
+plot_motif_boundaries(
+  sap,
+  max_samples_per_label = 100
+)
+```
+
+When `balanced = TRUE`, `max_samples_per_label` is ignored because
+balanced sampling determines the per-label count automatically.
 
 ------------------------------------------------------------------------
 

@@ -315,6 +315,13 @@ at the edges of acoustic energy.</p>
 <td><code>10 – 100</code></td>
 </tr>
 <tr class="odd">
+<td><code>max_samples_per_label</code></td>
+<td>Maximum number of motifs to randomly select from each label when
+<code>balanced = FALSE</code>
+</td>
+<td><code>50 – 500</code></td>
+</tr>
+<tr class="even">
 <td><code>ordered</code></td>
 <td>Sort rows by UMAP coordinates (requires <code><a href="../reference/run_umap.html">run_umap()</a></code> in
 prior step)</td>
@@ -322,24 +329,24 @@ prior step)</td>
 <code>TRUE</code> / <code>FALSE</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>marginal_window</code></td>
 <td>Extra context (seconds) added to each side of the window</td>
 <td><code>0.05 – 0.15 s</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>msmooth</code></td>
 <td>Smoothing parameters for the amplitude envelope
 <code>c(window, overlap)</code>
 </td>
 <td><code>c(256, 50)</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>contrast</code></td>
 <td>Colour-scale contrast divisor</td>
 <td><code>2 – 5</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>clusters</code></td>
 <td>Integer vector — restrict to specific cluster IDs</td>
 <td>
@@ -539,12 +546,40 @@ biologically plausible:</p>
 <hr>
 </div>
 <div class="section level2">
+<h2 id="sampling-controls">Sampling controls<a class="anchor" aria-label="anchor" href="#sampling-controls"></a>
+</h2>
+<p>For large longitudinal datasets, boundary refinement and boundary
+heatmaps can be run on a controlled subset of motifs. Use
+<code>labels</code> or <code>clusters</code> to focus on specific
+groups, <code>sample_percent</code> to refine or plot a percentage from
+each label, <code>balanced = TRUE</code> to draw equal counts across
+labels, or <code>max_samples_per_label</code> to cap the number of
+randomly selected motifs per label.</p>
+<p>For example, this refines at most 100 motifs from each label while
+leaving unselected motifs in <code>sap$motifs</code> with missing
+boundary values:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refine_motif_boundaries.html">refine_motif_boundaries</a></span><span class="op">(</span></span>
+<span>  <span class="va">sap</span>,</span>
+<span>  max_samples_per_label <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plot_motif_boundaries.html">plot_motif_boundaries</a></span><span class="op">(</span></span>
+<span>  <span class="va">sap</span>,</span>
+<span>  max_samples_per_label <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>When <code>balanced = TRUE</code>, <code>max_samples_per_label</code>
+is ignored because balanced sampling determines the per-label count
+automatically.</p>
+<hr>
+</div>
+<div class="section level2">
 <h2 id="save-the-sap-object">Save the SAP object<a class="anchor" aria-label="anchor" href="#save-the-sap-object"></a>
 </h2>
 <p>After refining boundaries, save the updated SAP object so it can be
 used in downstream analyses (e.g. trajectory variability, UMAP
 occupancy):</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">sap</span>, <span class="st">"longitudinal_motif_boundaries.rds"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Reload later with:</span></span>
@@ -564,7 +599,7 @@ typically much smaller than the audio data</p>
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.0 (2026-04-24)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>

@@ -181,9 +181,50 @@ sap <- create_trajectory_matrix(
 | `clusters` | Integer vector of cluster IDs to include (requires `data_type = "feat.embeds"`) | `NULL` (all) or `c(0, 1)` |
 | `balanced` | Draw equal numbers of motifs from each label | `TRUE` / `FALSE` |
 | `sample_percent` | Percentage of motifs to sample per label when not balancing | `10 – 100` |
+| `max_samples_per_label` | Maximum number of motifs to randomly sample from each label when `balanced = FALSE` | `50 – 500` |
 | `window_size` | Duration of each sliding spectrogram window (seconds) | `0.05 – 0.2` |
 | `step_size` | Step between consecutive windows (seconds) | `0.005 – 0.02` |
 | `flim` | Frequency range for spectrograms (kHz) | `c(1, 12)` |
+
+### Control subsampling before trajectory analysis
+
+[`create_trajectory_matrix()`](https://lxiao06.github.io/ASAP/dev/reference/create_trajectory_matrix.md)
+is usually the most computationally expensive step in this workflow
+because it reads audio and computes many overlapping spectrogram windows
+for every selected motif. For a large longitudinal dataset, running the
+full motif table can take many hours or even days. In practice, it is
+often better to start with a controlled subset, confirm that the
+trajectory settings are appropriate, and then scale up only if needed.
+
+Use `sample_percent` when you want to keep a fixed percentage from each
+label:
+
+``` r
+
+sap <- create_trajectory_matrix(
+  sap,
+  data_type = "feat.embeds",
+  clusters = c(0, 1),
+  sample_percent = 20
+)
+```
+
+Use `max_samples_per_label` when you want a direct cap on the number of
+motifs processed from each label:
+
+``` r
+
+sap <- create_trajectory_matrix(
+  sap,
+  data_type = "feat.embeds",
+  clusters = c(0, 1),
+  max_samples_per_label = 100
+)
+```
+
+If `balanced = TRUE`, `max_samples_per_label` is ignored because
+balanced sampling automatically sets the per-label count from the
+smallest available group.
 
 ### Tuning tips
 

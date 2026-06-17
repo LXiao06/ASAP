@@ -261,22 +261,61 @@ to use <code>sap$motifs</code> directly</td>
 <td><code>10 – 100</code></td>
 </tr>
 <tr class="odd">
+<td><code>max_samples_per_label</code></td>
+<td>Maximum number of motifs to randomly sample from each label when
+<code>balanced = FALSE</code>
+</td>
+<td><code>50 – 500</code></td>
+</tr>
+<tr class="even">
 <td><code>window_size</code></td>
 <td>Duration of each sliding spectrogram window (seconds)</td>
 <td><code>0.05 – 0.2</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>step_size</code></td>
 <td>Step between consecutive windows (seconds)</td>
 <td><code>0.005 – 0.02</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>flim</code></td>
 <td>Frequency range for spectrograms (kHz)</td>
 <td><code>c(1, 12)</code></td>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section level3">
+<h3 id="control-subsampling-before-trajectory-analysis">Control subsampling before trajectory analysis<a class="anchor" aria-label="anchor" href="#control-subsampling-before-trajectory-analysis"></a>
+</h3>
+<p><code><a href="../reference/create_trajectory_matrix.html">create_trajectory_matrix()</a></code> is usually the most
+computationally expensive step in this workflow because it reads audio
+and computes many overlapping spectrogram windows for every selected
+motif. For a large longitudinal dataset, running the full motif table
+can take many hours or even days. In practice, it is often better to
+start with a controlled subset, confirm that the trajectory settings are
+appropriate, and then scale up only if needed.</p>
+<p>Use <code>sample_percent</code> when you want to keep a fixed
+percentage from each label:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_trajectory_matrix.html">create_trajectory_matrix</a></span><span class="op">(</span></span>
+<span>  <span class="va">sap</span>,</span>
+<span>  data_type <span class="op">=</span> <span class="st">"feat.embeds"</span>,</span>
+<span>  clusters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  sample_percent <span class="op">=</span> <span class="fl">20</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Use <code>max_samples_per_label</code> when you want a direct cap on
+the number of motifs processed from each label:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_trajectory_matrix.html">create_trajectory_matrix</a></span><span class="op">(</span></span>
+<span>  <span class="va">sap</span>,</span>
+<span>  data_type <span class="op">=</span> <span class="st">"feat.embeds"</span>,</span>
+<span>  clusters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  max_samples_per_label <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>If <code>balanced = TRUE</code>, <code>max_samples_per_label</code>
+is ignored because balanced sampling automatically sets the per-label
+count from the smallest available group.</p>
 </div>
 <div class="section level3">
 <h3 id="tuning-tips">Tuning tips<a class="anchor" aria-label="anchor" href="#tuning-tips"></a>
@@ -299,7 +338,7 @@ temporal details.</li>
 <div class="section level3">
 <h3 id="where-are-the-results-stored">Where are the results stored?<a class="anchor" aria-label="anchor" href="#where-are-the-results-stored"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Trajectory matrix is in sap$features$motif$traj_mat</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">traj_mat</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 420  50</code></pre>
@@ -313,7 +352,7 @@ temporal details.</li>
 <code>irlba</code> method, which is efficient for large matrices. The
 PCA scores replace the raw trajectory columns in <code>traj_mat</code>;
 the original PCA parameters are preserved as attributes.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_pca.html">run_pca</a></span><span class="op">(</span><span class="va">sap</span><span class="op">)</span></span></code></pre></div>
 <pre><code>=== Starting PCA analysis for motifs using traj_mat (method: irlba) ===
 Performing PCA using irlba method...
@@ -355,7 +394,7 @@ potentially less detail.</li>
 <p><code><a href="../reference/run_umap.html">run_umap()</a></code> takes the PCA scores in <code>traj_mat</code>
 and produces a 2-D embedding stored in
 <code>sap$features$motif$traj.embeds</code>.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_umap.html">run_umap</a></span><span class="op">(</span><span class="va">sap</span>, data_type <span class="op">=</span> <span class="st">"traj_mat"</span>, min_dist <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <pre><code>=== Starting Run UMAP for motifs using traj_mat ===
 No metadata columns specified. Using all columns as features:
@@ -431,7 +470,7 @@ trajectories shift across stages.</p>
 <div class="section level3">
 <h3 id="coloured-by-label">Coloured by label<a class="anchor" aria-label="anchor" href="#coloured-by-label"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_umap2.html">plot_umap2</a></span><span class="op">(</span><span class="va">sap</span>, data_type <span class="op">=</span> <span class="st">"traj.embeds"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="figures/motif_trajectory_umap.png" class="r-plt" alt="UMAP of motif trajectory embeddings coloured by developmental label (BL, Post, Rec). Each point is one motif; spatial proximity indicates acoustic similarity across the full motif trajectory." width="100%"><p class="caption">
@@ -447,7 +486,7 @@ acoustic similarity across the full motif trajectory.
 <p><code>overlay_mode = TRUE</code> highlights a target label against
 the baseline (<code>base_label</code>), making developmental shifts more
 salient:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">trajectory_embeds</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">traj.embeds</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_umap2.html">plot_umap2</a></span><span class="op">(</span></span>
@@ -491,7 +530,7 @@ tighter clouds indicate more stereotyped renditions.</li>
 <div class="section level2">
 <h2 id="save-the-sap-object">Save the SAP object<a class="anchor" aria-label="anchor" href="#save-the-sap-object"></a>
 </h2>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">sap</span>, <span class="st">"longitudinal_motif_trajectory.rds"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Reload later with:</span></span>
@@ -505,7 +544,7 @@ Trajectory UMAP embeddings:
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.0 (2026-04-24)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
