@@ -28,6 +28,7 @@ extract_spec(
   segment_type = c("segments", "syllables"),
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   seed = 222,
   cores = NULL,
@@ -94,6 +95,12 @@ extract_spec(
 - balanced:
 
   Whether to balance samples across labels (default: FALSE)
+
+- max_samples_per_label:
+
+  Optional integer. Maximum number of samples to randomly analyze from
+  each label when `balanced = FALSE`. If a label has fewer samples, all
+  available samples are used. Ignored when `balanced = TRUE`.
 
 - labels:
 

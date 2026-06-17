@@ -52,6 +52,7 @@ spectral_entropy(
   segment_type = c("motifs", "syllables", "segments"),
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   clusters = NULL,
   cores = NULL,
@@ -180,6 +181,13 @@ spectral_entropy(
 - balanced:
 
   For SAP objects: Whether to balance samples across labels
+
+- max_samples_per_label:
+
+  For SAP objects: Optional integer. Maximum number of samples to
+  randomly analyze from each label when `balanced = FALSE`. If a label
+  has fewer samples, all available samples are used. Ignored when
+  `balanced = TRUE`.
 
 - labels:
 

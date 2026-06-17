@@ -41,6 +41,7 @@ plot_heatmap(
   indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   clusters = NULL,
   cores = NULL,
@@ -140,6 +141,13 @@ plot_heatmap(
 - balanced:
 
   For SAP objects: Balance across labels
+
+- max_samples_per_label:
+
+  For SAP objects: Optional integer. Maximum number of samples to
+  randomly analyze from each label when `balanced = FALSE`. If a label
+  has fewer samples, all available samples are used. Ignored when
+  `balanced = TRUE`.
 
 - clusters:
 

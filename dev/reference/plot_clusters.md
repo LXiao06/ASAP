@@ -22,6 +22,7 @@ plot_clusters(
   cluster_colors = NULL,
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   motif_clusters = NULL,
   ordered = FALSE,
@@ -88,6 +89,12 @@ plot_clusters(
 - balanced:
 
   Whether to balance samples across labels
+
+- max_samples_per_label:
+
+  Optional integer. Maximum number of samples to randomly analyze from
+  each label when `balanced = FALSE`. If a label has fewer samples, all
+  available samples are used. Ignored when `balanced = TRUE`.
 
 - motif_clusters:
 

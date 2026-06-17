@@ -11,6 +11,7 @@ plot_motif_boundaries(
   x,
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   clusters = NULL,
   ordered = FALSE,
@@ -40,6 +41,12 @@ plot_motif_boundaries(
 - balanced:
 
   Logical indicating whether to balance group sizes
+
+- max_samples_per_label:
+
+  Optional integer. Maximum number of samples to randomly analyze from
+  each label when `balanced = FALSE`. If a label has fewer samples, all
+  available samples are used. Ignored when `balanced = TRUE`.
 
 - labels:
 

@@ -64,6 +64,7 @@
 <span>  clusters <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_percent <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  balanced <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  max_samples_per_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">222</span>,</span>
 <span>  window_size <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -142,6 +143,13 @@
 <dd><p>For SAP objects: Whether to balance across groups</p></dd>
 
 
+<dt id="arg-max-samples-per-label">max_samples_per_label<a class="anchor" aria-label="anchor" href="#arg-max-samples-per-label"></a></dt>
+<dd><p>For SAP objects: Optional integer. Maximum
+number of samples to randomly analyze from each label when
+<code>balanced = FALSE</code>. If a label has fewer samples, all available
+samples are used. Ignored when <code>balanced = TRUE</code>.</p></dd>
+
+
 <dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
 <dd><p>For SAP objects: Specific labels to include</p></dd>
 
@@ -186,6 +194,12 @@
 <span class="r-in"><span>  segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
 <span class="r-in"><span>  balanced <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  sample_percent <span class="op">=</span> <span class="fl">80</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Cap unbalanced analysis to at most 200 samples per label</span></span></span>
+<span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">create_trajectory_matrix</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
+<span class="r-in"><span>  segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
+<span class="r-in"><span>  max_samples_per_label <span class="op">=</span> <span class="fl">200</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create matrix with specific clusters</span></span></span>

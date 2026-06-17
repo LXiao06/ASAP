@@ -78,6 +78,7 @@ multiple data sources and visualization options.</p>
 <span>  indices <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_percent <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  balanced <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  max_samples_per_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  clusters <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cores <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -175,6 +176,13 @@ colors will be recycled.</p></dd>
 
 <dt id="arg-balanced">balanced<a class="anchor" aria-label="anchor" href="#arg-balanced"></a></dt>
 <dd><p>For SAP objects: Balance across labels</p></dd>
+
+
+<dt id="arg-max-samples-per-label">max_samples_per_label<a class="anchor" aria-label="anchor" href="#arg-max-samples-per-label"></a></dt>
+<dd><p>For SAP objects: Optional integer. Maximum
+number of samples to randomly analyze from each label when
+<code>balanced = FALSE</code>. If a label has fewer samples, all available
+samples are used. Ignored when <code>balanced = TRUE</code>.</p></dd>
 
 
 <dt id="arg-clusters">clusters<a class="anchor" aria-label="anchor" href="#arg-clusters"></a></dt>
