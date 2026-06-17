@@ -50,6 +50,7 @@ spectral_entropy(x, ...)
   segment_type = c("motifs", "syllables", "segments"),
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   clusters = NULL,
   cores = NULL,
@@ -130,6 +131,11 @@ spectral_entropy(x, ...)
 \item{sample_percent}{For SAP objects: Percentage of segments to sample}
 
 \item{balanced}{For SAP objects: Whether to balance samples across labels}
+
+\item{max_samples_per_label}{For SAP objects: Optional integer. Maximum
+number of samples to randomly analyze from each label when
+\code{balanced = FALSE}. If a label has fewer samples, all available
+samples are used. Ignored when \code{balanced = TRUE}.}
 
 \item{labels}{Optional vector of labels for subsetting or grouping}
 

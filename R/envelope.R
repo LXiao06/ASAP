@@ -215,6 +215,10 @@ amp_env <- function(segment_row,
 #' @param indices For SAP objects: Numeric vector indicating specific row indices of segments to plot
 #' @param sample_percent For SAP objects: Percentage to sample
 #' @param balanced For SAP objects: Balance across labels
+#' @param max_samples_per_label For SAP objects: Optional integer. Maximum
+#'   number of samples to randomly analyze from each label when
+#'   \code{balanced = FALSE}. If a label has fewer samples, all available
+#'   samples are used. Ignored when \code{balanced = TRUE}.
 #' @param clusters Numeric vector of cluster IDs to filter
 #' @param labels Optional vector of labels to include
 #' @param cores For SAP objects: Number of processing cores
@@ -578,6 +582,7 @@ plot_heatmap.Sap <- function(x,
                              indices = NULL,
                              sample_percent = NULL,
                              balanced = FALSE,
+                             max_samples_per_label = NULL,
                              labels = NULL,
                              clusters = NULL,
                              cores = NULL,
@@ -710,6 +715,7 @@ plot_heatmap.Sap <- function(x,
     clusters = clusters,
     balanced = balanced,
     sample_percent = sample_percent,
+    max_samples_per_label = max_samples_per_label,
     seed = seed
   )
 

@@ -400,6 +400,10 @@ plot_traces.Sap <- function(x,
 #' @param cluster_colors Optional named vector of colors for clusters
 #' @param sample_percent Optional percentage of data to sample
 #' @param balanced Whether to balance samples across labels
+#' @param max_samples_per_label Optional integer. Maximum number of samples to
+#'   randomly analyze from each label when \code{balanced = FALSE}. If a label
+#'   has fewer samples, all available samples are used. Ignored when
+#'   \code{balanced = TRUE}.
 #' @param labels Optional vector of experimental condition labels to subset (e.g., "BL", "Post", "Rec")
 #' @param motif_clusters Optional vector of specific clusters to include
 #' @param ordered Whether to order motifs by UMAP coordinates
@@ -604,6 +608,7 @@ plot_clusters.Sap <- function(x,
                              cluster_colors = NULL, # Optional custom color palette
                              sample_percent = NULL,
                              balanced = FALSE,
+                             max_samples_per_label = NULL,
                              labels = NULL,
                              motif_clusters = NULL,
                              ordered = FALSE,
@@ -690,6 +695,7 @@ plot_clusters.Sap <- function(x,
                                  clusters =  motif_clusters,
                                  balanced = balanced,
                                  sample_percent = sample_percent,
+                                 max_samples_per_label = max_samples_per_label,
                                  seed = seed)
 
   # Check if segments_df is empty after subsetting

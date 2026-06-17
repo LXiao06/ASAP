@@ -18,6 +18,7 @@ plot_clusters(x, ...)
   cluster_colors = NULL,
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   motif_clusters = NULL,
   ordered = FALSE,
@@ -60,6 +61,11 @@ plot_clusters(x, ...)
 \item{sample_percent}{Optional percentage of data to sample}
 
 \item{balanced}{Whether to balance samples across labels}
+
+\item{max_samples_per_label}{Optional integer. Maximum number of samples to
+randomly analyze from each label when \code{balanced = FALSE}. If a label
+has fewer samples, all available samples are used. Ignored when
+\code{balanced = TRUE}.}
 
 \item{motif_clusters}{Optional vector of specific clusters to include}
 

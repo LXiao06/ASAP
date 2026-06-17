@@ -17,6 +17,10 @@
 #' @param segment_type Type of segments to process: "segments" or "syllables" (default: "segments")
 #' @param sample_percent Percentage of segments to sample (default: NULL)
 #' @param balanced Whether to balance samples across labels (default: FALSE)
+#' @param max_samples_per_label Optional integer. Maximum number of samples to
+#'   randomly analyze from each label when \code{balanced = FALSE}. If a label
+#'   has fewer samples, all available samples are used. Ignored when
+#'   \code{balanced = TRUE}.
 #' @param labels Specific labels to include (default: NULL)
 #' @param seed Random seed for reproducible sampling (default: 222)
 #' @param verbose Whether to display progress messages (default: TRUE)
@@ -144,6 +148,7 @@ extract_spec.Sap <- function(x,
                              segment_type = c("segments", "syllables"),
                              sample_percent = NULL,
                              balanced = FALSE,
+                             max_samples_per_label = NULL,
                              labels = NULL,
                              seed = 222,
                              cores = NULL,
@@ -169,6 +174,7 @@ extract_spec.Sap <- function(x,
                                  labels = labels,
                                  balanced = balanced,
                                  sample_percent = sample_percent,
+                                 max_samples_per_label = max_samples_per_label,
                                  seed = seed)
 
   # Process segments using default method

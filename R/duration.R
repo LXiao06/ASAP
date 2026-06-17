@@ -281,6 +281,10 @@ refine_motif_boundaries <- function(x,
 #' @param x A SAP object containing motifs and metadata
 #' @param sample_percent Percentage of data to sample from each group (0-100)
 #' @param balanced Logical indicating whether to balance group sizes
+#' @param max_samples_per_label Optional integer. Maximum number of samples to
+#'   randomly analyze from each label when \code{balanced = FALSE}. If a label
+#'   has fewer samples, all available samples are used. Ignored when
+#'   \code{balanced = TRUE}.
 #' @param labels Character vector of specific labels to include
 #' @param clusters Numeric vector of cluster IDs to filter
 #' @param ordered Logical indicating UMAP-based ordering
@@ -323,6 +327,7 @@ refine_motif_boundaries <- function(x,
 plot_motif_boundaries <- function(x,
                                   sample_percent = NULL,
                                   balanced = FALSE,
+                                  max_samples_per_label = NULL,
                                   labels = NULL,
                                   clusters = NULL,
                                   ordered = FALSE,
@@ -395,6 +400,7 @@ plot_motif_boundaries <- function(x,
                                   clusters = clusters,
                                   balanced = balanced,
                                   sample_percent = sample_percent,
+                                  max_samples_per_label = max_samples_per_label,
                                   seed = seed)
   # Ensure WAV durations are computed
   if (!"duration" %in% names(x$metadata)) {

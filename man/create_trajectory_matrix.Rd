@@ -28,6 +28,7 @@ create_trajectory_matrix(x, ...)
   clusters = NULL,
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   seed = 222,
   window_size = 0.1,
@@ -71,6 +72,11 @@ create_trajectory_matrix(x, ...)
 \item{sample_percent}{For SAP objects: Percentage to sample}
 
 \item{balanced}{For SAP objects: Whether to balance across groups}
+
+\item{max_samples_per_label}{For SAP objects: Optional integer. Maximum
+number of samples to randomly analyze from each label when
+\code{balanced = FALSE}. If a label has fewer samples, all available
+samples are used. Ignored when \code{balanced = TRUE}.}
 
 \item{labels}{For SAP objects: Specific labels to include}
 
@@ -120,6 +126,12 @@ sap_obj <- create_trajectory_matrix(sap_object,
   segment_type = "motifs",
   balanced = TRUE,
   sample_percent = 80
+)
+
+# Cap unbalanced analysis to at most 200 samples per label
+sap_obj <- create_trajectory_matrix(sap_object,
+  segment_type = "motifs",
+  max_samples_per_label = 200
 )
 
 # Create matrix with specific clusters

@@ -39,6 +39,7 @@ plot_heatmap(x, ...)
   indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   clusters = NULL,
   cores = NULL,
@@ -99,6 +100,11 @@ colors will be recycled.}
 \item{sample_percent}{For SAP objects: Percentage to sample}
 
 \item{balanced}{For SAP objects: Balance across labels}
+
+\item{max_samples_per_label}{For SAP objects: Optional integer. Maximum
+number of samples to randomly analyze from each label when
+\code{balanced = FALSE}. If a label has fewer samples, all available
+samples are used. Ignored when \code{balanced = TRUE}.}
 
 \item{clusters}{Numeric vector of cluster IDs to filter}
 

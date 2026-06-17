@@ -24,6 +24,10 @@
 #' @param indices For SAP objects: Optional row indices of the selected segment_type to process.
 #' @param sample_percent For SAP objects: Percentage of segments to sample
 #' @param balanced For SAP objects: Whether to balance groups across labels
+#' @param max_samples_per_label For SAP objects: Optional integer. Maximum
+#'   number of samples to randomly analyze from each label when
+#'   \code{balanced = FALSE}. If a label has fewer samples, all available
+#'   samples are used. Ignored when \code{balanced = TRUE}.
 #' @param labels For SAP objects: Specific labels to include
 #' @param seed For SAP objects: Random seed for sampling (default: 222)
 #' @param export_csv If TRUE and \code{indices} exactly match the latest export
@@ -194,6 +198,7 @@ analyze_spectral.Sap <- function(x,
                                  indices = NULL,
                                  sample_percent = NULL,
                                  balanced = FALSE,
+                                 max_samples_per_label = NULL,
                                  labels = NULL,
                                  seed = 222,
                                  export_csv = FALSE,
@@ -243,6 +248,7 @@ analyze_spectral.Sap <- function(x,
     labels = labels,
     balanced = balanced,
     sample_percent = sample_percent,
+    max_samples_per_label = max_samples_per_label,
     seed = seed
   )
 
@@ -1270,4 +1276,3 @@ sspectro <- function(wave, f, wl = 512, ovlp = 0, wn = "hanning",
 
   merged
 }
-

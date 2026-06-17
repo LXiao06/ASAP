@@ -56,6 +56,8 @@ construct_wav_path <- function(x,
 #' @param labels Optional vector of labels to select
 #' @param balanced Logical. Whether to balance groups
 #' @param sample_percent Numeric. Percentage of segments to sample from each group
+#' @param max_samples_per_label Optional integer. Maximum number of segments to
+#'   randomly sample from each label when \code{balanced = FALSE}.
 #' @param seed Integer. Seed for random sampling (default: 222)
 #'
 #' @return List containing modified segments data frame and summary information
@@ -67,6 +69,7 @@ select_segments <- function(segments_df,
                             clusters = NULL,
                             balanced = FALSE,
                             sample_percent = NULL,
+                            max_samples_per_label = NULL,
                             seed = 222) {
   # Set seed
   set.seed(seed)
@@ -126,6 +129,10 @@ select_segments <- function(segments_df,
 
   # Handle balancing first if requested
   if (balanced) {
+    if (!is.null(max_samples_per_label)) {
+      message("\nIgnoring max_samples_per_label because balanced = TRUE")
+    }
+
     group_counts <- segments_df |>
       dplyr::count(label)
     n_sample <- floor(min(group_counts$n) / 10) * 10 # Round to nearest 10
@@ -160,13 +167,40 @@ select_segments <- function(segments_df,
     message(sprintf("\nSampling %.1f%% from each label", sample_percent))
   }
 
+  # Cap samples per label only for unbalanced workflows.
+  if (!balanced && !is.null(max_samples_per_label)) {
+    if (!is.numeric(max_samples_per_label) ||
+        length(max_samples_per_label) != 1 ||
+        is.na(max_samples_per_label) ||
+        max_samples_per_label <= 0 ||
+        max_samples_per_label != floor(max_samples_per_label)) {
+      stop("max_samples_per_label must be a positive integer")
+    }
+
+    segments_df <- segments_df |>
+      dplyr::group_by(label) |>
+      dplyr::group_modify(~ {
+        n_available <- nrow(.x)
+        n_to_sample <- min(as.integer(max_samples_per_label), n_available)
+        dplyr::slice_sample(.x, n = n_to_sample) |>
+          dplyr::arrange(.data$.original_order)
+      }) |>
+      dplyr::ungroup() |>
+      dplyr::arrange(day_post_hatch)
+
+    message(sprintf(
+      "\nSampling up to %d segments from each label",
+      as.integer(max_samples_per_label)
+    ))
+  }
+
   # Final cleanup and ordering
   segments_df <- segments_df |>
     dplyr::arrange(.data$.original_order) |> # Global order preservation
-    dplyr::select(-.data$.original_order)
+    dplyr::select(-dplyr::all_of(".original_order"))
 
   # Print final summary if data was modified
-  if (balanced || !is.null(sample_percent)) {
+  if (balanced || !is.null(sample_percent) || !is.null(max_samples_per_label)) {
     message("\nFinal data summary:")
     final_summary <- segments_df |>
       dplyr::group_by(label) |>

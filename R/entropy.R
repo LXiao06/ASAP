@@ -36,6 +36,10 @@
 #' @param segment_type For SAP objects: Type of segments (currently only 'motifs')
 #' @param sample_percent For SAP objects: Percentage of segments to sample
 #' @param balanced For SAP objects: Whether to balance samples across labels
+#' @param max_samples_per_label For SAP objects: Optional integer. Maximum
+#'   number of samples to randomly analyze from each label when
+#'   \code{balanced = FALSE}. If a label has fewer samples, all available
+#'   samples are used. Ignored when \code{balanced = TRUE}.
 #' @param clusters For SAP objects: Numeric vector of cluster IDs to include
 #' @param cores Number of cores for parallel processing
 #' @param seed Random seed for sampling (default: 222)
@@ -439,6 +443,7 @@ spectral_entropy.Sap <- function(x,
                                  segment_type = c("motifs", "syllables", "segments"),
                                  sample_percent = NULL,
                                  balanced = FALSE,
+                                 max_samples_per_label = NULL,
                                  labels = NULL,
                                  clusters = NULL,
                                  cores = NULL,
@@ -504,6 +509,7 @@ spectral_entropy.Sap <- function(x,
                                  clusters = clusters,
                                  balanced = balanced,
                                  sample_percent = sample_percent,
+                                 max_samples_per_label = max_samples_per_label,
                                  seed = seed)
 
   if (nrow(segments_df) == 0) {

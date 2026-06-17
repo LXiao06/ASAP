@@ -25,6 +25,7 @@ extract_spec(x, ...)
   segment_type = c("segments", "syllables"),
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   seed = 222,
   cores = NULL,
@@ -63,6 +64,11 @@ Frequency resolution: sampling rate/wl Hz per bin}
 \item{sample_percent}{Percentage of segments to sample (default: NULL)}
 
 \item{balanced}{Whether to balance samples across labels (default: FALSE)}
+
+\item{max_samples_per_label}{Optional integer. Maximum number of samples to
+randomly analyze from each label when \code{balanced = FALSE}. If a label
+has fewer samples, all available samples are used. Ignored when
+\code{balanced = TRUE}.}
 
 \item{labels}{Specific labels to include (default: NULL)}
 

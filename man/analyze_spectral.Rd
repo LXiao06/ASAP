@@ -30,6 +30,7 @@ analyze_spectral(x, ...)
   indices = NULL,
   sample_percent = NULL,
   balanced = FALSE,
+  max_samples_per_label = NULL,
   labels = NULL,
   seed = 222,
   export_csv = FALSE,
@@ -85,6 +86,11 @@ one of "none", "peak", or "rms" (default: "none")}
 \item{sample_percent}{For SAP objects: Percentage of segments to sample}
 
 \item{balanced}{For SAP objects: Whether to balance groups across labels}
+
+\item{max_samples_per_label}{For SAP objects: Optional integer. Maximum
+number of samples to randomly analyze from each label when
+\code{balanced = FALSE}. If a label has fewer samples, all available
+samples are used. Ignored when \code{balanced = TRUE}.}
 
 \item{labels}{For SAP objects: Specific labels to include}
 
