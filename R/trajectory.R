@@ -230,12 +230,49 @@ create_trajectory_matrix.default <- function(
   #   spc_list <- pbapply::pblapply(segments, process_segment)
   # }
 
-  # Combine results
+  # Combine results without building a second giant transposed copy.
   spc_list <- spc_list[!sapply(spc_list, is.null)]
   if (length(spc_list) == 0) {
     stop("No valid spectrograms were generated")
   }
-  spectrogram_matrix <- do.call(cbind, spc_list) |> t()
+
+  feature_counts <- vapply(spc_list, nrow, integer(1))
+  window_counts <- vapply(spc_list, ncol, integer(1))
+  if (length(unique(feature_counts)) != 1) {
+    stop("Generated spectrogram blocks have inconsistent feature counts")
+  }
+
+  n_windows <- sum(window_counts)
+  n_features <- feature_counts[1]
+  estimated_gb <- (as.numeric(n_windows) * as.numeric(n_features) * 8) / 1024^3
+  message(sprintf(
+    "Combining %d windows x %d features into trajectory matrix (~%.1f GB)...",
+    n_windows, n_features, estimated_gb
+  ))
+
+  gc(verbose = FALSE)
+  spectrogram_matrix <- tryCatch(
+    matrix(NA_real_, nrow = n_windows, ncol = n_features),
+    error = function(e) {
+      stop(sprintf(
+        paste(
+          "Cannot allocate trajectory matrix (~%.1f GB).",
+          "Reduce sample_percent/max_samples_per_label, increase step_size,",
+          "reduce window_size/ovlp/flim, or use an on-disk/chunked PCA workflow."
+        ),
+        estimated_gb
+      ), call. = FALSE)
+    }
+  )
+  row_start <- 1L
+  while (length(spc_list) > 0) {
+    block <- spc_list[[1]]
+    row_end <- row_start + ncol(block) - 1L
+    spectrogram_matrix[row_start:row_end, ] <- t(block)
+    row_start <- row_end + 1L
+    spc_list[[1]] <- NULL
+  }
+  gc(verbose = FALSE)
 
   cat("Spectrogram generation complete!\n")
   list(
