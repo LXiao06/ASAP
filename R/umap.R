@@ -140,7 +140,8 @@ run_umap.default <- function(x,
     n_components = n_components,
     min_dist = min_dist,
     n_threads = n_threads,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
 
   return(result)
