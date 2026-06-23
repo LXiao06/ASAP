@@ -6,14 +6,22 @@ A unified plotting function for results produced by
 or
 [`trajectory_umap_occupancy`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md).
 Dispatches to the appropriate panel layout based on the `type` field
-embedded in `result` and draws significance brackets when statistical
-tests are present.
+embedded in `result` or retrieved from the SAP object and draws
+significance brackets when statistical tests are present.
 
 ## Usage
 
 ``` r
+plot_trajectory_variability(x, ...)
+
+# Default S3 method
+plot_trajectory_variability(x, palette = "Set1", max_annotations = 10, ...)
+
+# S3 method for class 'Sap'
 plot_trajectory_variability(
-  result,
+  x,
+  segment_type = c("motifs", "syllables", "bouts", "segments"),
+  variability_type = c("variability", "width_variability", "umap_occupancy"),
   palette = "Set1",
   max_annotations = 10,
   ...
@@ -22,15 +30,18 @@ plot_trajectory_variability(
 
 ## Arguments
 
-- result:
+- x:
 
   A list returned by
   [`trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_variability.md),
   [`trajectory_width_variability()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_width_variability.md),
   or
-  [`trajectory_umap_occupancy()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md).
-  Must contain a `type` element (one of `"variability"`,
-  `"width_variability"`, `"umap_occupancy"`).
+  [`trajectory_umap_occupancy()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md)
+  (for the default method); or a SAP object (for the Sap method).
+
+- ...:
+
+  Additional arguments passed to specific methods.
 
 - palette:
 
@@ -44,9 +55,15 @@ plot_trajectory_variability(
   (default: `10`). When more comparisons exist, the most significant
   pairs are retained and a message is issued.
 
-- ...:
+- segment_type:
 
-  Currently unused; reserved for future extensions.
+  For SAP objects: Type of segments to visualize ('motifs', 'syllables',
+  'bouts', 'segments')
+
+- variability_type:
+
+  For SAP objects: Which computed variability type to plot
+  ('variability', 'width_variability', 'umap_occupancy')
 
 ## Value
 
@@ -71,7 +88,7 @@ Panel layouts by result type:
   · kNN Dispersion
 
 Each panel displays a violin + box plot coloured by label. When
-`result$tests` is not `NULL`, Kruskal-Wallis p-values are shown as
+statistical tests are not `NULL`, Kruskal-Wallis p-values are shown as
 subtitles and pairwise Wilcoxon p-values appear as significance brackets
 above the data.
 
@@ -79,13 +96,12 @@ above the data.
 
 ``` r
 if (FALSE) { # \dontrun{
-result <- trajectory_variability(sap)
+# Plotting directly from a result list
+result <- trajectory_variability(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
 plot_trajectory_variability(result)
 
-result2 <- trajectory_width_variability(sap)
-plot_trajectory_variability(result2, palette = "Dark2")
-
-result3 <- trajectory_umap_occupancy(sap)
-p <- plot_trajectory_variability(result3, max_annotations = 6)
+# Plotting from a SAP object with pre-computed results
+sap <- trajectory_variability(sap)
+plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "variability")
 } # }
 ```
