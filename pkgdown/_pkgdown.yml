@@ -107,8 +107,8 @@ reference:
       - create_trajectory_matrix
       - filter_trajectory_outliers
       - trajectory_umap_occupancy
-      - trajectory_variability
-      - trajectory_width_variability
+      - trajectory_dispersion
+      - trajectory_path_deviation
 
   - title: "Plotting & Visualization"
     desc: "Plotting functionality for exploring ASAP objects"

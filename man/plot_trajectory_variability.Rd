@@ -13,15 +13,15 @@ plot_trajectory_variability(x, ...)
 \method{plot_trajectory_variability}{Sap}(
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
-  variability_type = c("variability", "width_variability", "umap_occupancy"),
+  variability_type = c("dispersion", "path_deviation", "umap_occupancy"),
   palette = "Set1",
   max_annotations = 10,
   ...
 )
 }
 \arguments{
-\item{x}{A list returned by \code{trajectory_variability()},
-\code{trajectory_width_variability()}, or
+\item{x}{A list returned by \code{trajectory_dispersion()},
+\code{trajectory_path_deviation()}, or
 \code{trajectory_umap_occupancy()} (for the default method); or a SAP object
 (for the Sap method).}
 
@@ -37,7 +37,7 @@ most significant pairs are retained and a message is issued.}
 
 \item{segment_type}{For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')}
 
-\item{variability_type}{For SAP objects: Which computed variability type to plot ('variability', 'width_variability', 'umap_occupancy')}
+\item{variability_type}{For SAP objects: Which computed variability type to plot ('dispersion', 'path_deviation', 'umap_occupancy')}
 }
 \value{
 The assembled \pkg{patchwork} object, printed as a side-effect and
@@ -70,12 +70,12 @@ above the data.
 \examples{
 \dontrun{
 # Plotting directly from a result list
-result <- trajectory_variability(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
+result <- trajectory_dispersion(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
 plot_trajectory_variability(result)
 
 # Plotting from a SAP object with pre-computed results
-sap <- trajectory_variability(sap)
-plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "variability")
+sap <- trajectory_dispersion(sap)
+plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "dispersion")
 }
 
 }

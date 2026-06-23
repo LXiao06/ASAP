@@ -527,8 +527,8 @@ create_sliding_window <- function(
 #' # Stricter: remove renditions with > 5% outlier time points
 #' sap <- filter_trajectory_outliers(sap, min_outlier_fraction = 0.05)
 #'
-#' # Use filtered data directly with trajectory_variability
-#' result <- trajectory_variability(traj_clean, dims = c("PC1", "PC2"))
+#' # Use filtered data directly with trajectory_dispersion
+#' result <- trajectory_dispersion(traj_clean, dims = c("PC1", "PC2"))
 #' }
 #'
 #' @rdname filter_trajectory_outliers
@@ -768,13 +768,13 @@ filter_trajectory_outliers.Sap <- function(x,
 }
 
 
-# Trajectory Variability
-# Update date : May 1, 2026
+# # Trajectory Dispersion
+# Update date : Jun. 23, 2026
 
-#' Trajectory Variability Analysis
+#' Trajectory Dispersion Analysis
 #'
 #' @description
-#' Quantifies trajectory variability across experimental conditions using three
+#' Quantifies trajectory dispersion across experimental conditions using three
 #' complementary metrics computed in PCA or UMAP embedding space.
 #'
 #' @param x An object to analyze: a trajectory embeddings data frame or SAP object
@@ -809,29 +809,30 @@ filter_trajectory_outliers.Sap <- function(x,
 #'   \item Pairwise Wilcoxon rank-sum tests with Bonferroni correction
 #' }
 #'
-#' @return A list (returned invisibly) with the following elements:
+#' @return
+#' For default method: A list (returned invisibly) with the following elements:
 #' \itemize{
 #'   \item \code{pairwise}: Data frame of pairwise distances (label, pair_id, mean_dist)
 #'   \item \code{dispersion}: Data frame of centroid dispersion (label, rendition, dispersion)
 #'   \item \code{path_length}: Data frame of path lengths (label, rendition, path_length)
 #'   \item \code{summary}: Summary table with mean and SD for each metric per label
 #'   \item \code{tests}: List of statistical test results (\code{NULL} when \code{stats = FALSE})
-#'   \item \code{type}: Character string \code{"variability"}, used by
+#'   \item \code{type}: Character string \code{"dispersion"}, used by
 #'     \code{plot_trajectory_variability()} for dispatch
 #' }
-#'
-#' Use \code{\link{plot_trajectory_variability}(result)} to visualise the output.
+#' For SAP objects: The updated SAP object with results stored in
+#'   \code{x$features[[feature_type]][["trajectory_dispersion"]]} (returned invisibly).
 #'
 #' @examples
 #' \dontrun{
 #' # From SAP object using PC dimensions
-#' result <- trajectory_variability(sap)
+#' result <- trajectory_dispersion(sap)
 #'
 #' # Using UMAP dimensions
-#' result <- trajectory_variability(sap, dims = c("UMAP1", "UMAP2"))
+#' result <- trajectory_dispersion(sap, dims = c("UMAP1", "UMAP2"))
 #'
 #' # From trajectory embeddings data frame directly
-#' result <- trajectory_variability(sap$features$motif$traj.embeds,
+#' result <- trajectory_dispersion(sap$features$motif$traj.embeds,
 #'   dims = c("PC1", "PC2")
 #' )
 #'
@@ -841,23 +842,23 @@ filter_trajectory_outliers.Sap <- function(x,
 #' result$dispersion # per-rendition dispersion values
 #' }
 #'
-#' @rdname trajectory_variability
+#' @rdname trajectory_dispersion
 #' @export
-trajectory_variability <- function(x, ...) {
-  UseMethod("trajectory_variability")
+trajectory_dispersion <- function(x, ...) {
+  UseMethod("trajectory_dispersion")
 }
 
 
-#' @rdname trajectory_variability
+#' @rdname trajectory_dispersion
 #' @export
-trajectory_variability.default <- function(x,
-                                           dims = c("PC1", "PC2"),
-                                           labels = NULL,
-                                           max_pairs = 5000,
-                                           seed = 222,
-                                           stats = TRUE,
-                                           verbose = TRUE,
-                                           ...) {
+trajectory_dispersion.default <- function(x,
+                                          dims = c("PC1", "PC2"),
+                                          labels = NULL,
+                                          max_pairs = 5000,
+                                          seed = 222,
+                                          stats = TRUE,
+                                          verbose = TRUE,
+                                          ...) {
   # Input validation
   if (!is.data.frame(x)) stop("Input must be a data frame")
 
@@ -901,7 +902,7 @@ trajectory_variability.default <- function(x,
   }
 
   if (verbose) {
-    message("\n=== Trajectory Variability Analysis ===")
+    message("\n=== Trajectory Dispersion Analysis ===")
     message(sprintf("Dimensions: %s", paste(dims, collapse = ", ")))
     message(sprintf("Labels: %s", paste(all_labels, collapse = ", ")))
   }
@@ -938,7 +939,7 @@ trajectory_variability.default <- function(x,
       list(time = rd$.time, coords = as.matrix(rd[, dims, drop = FALSE]))
     })
 
-    # Compute mean distance for each pair
+    # Compute mean distance for each step
     pair_dists <- vapply(seq_len(ncol(pairs)), function(p) {
       r1 <- rend_matrices[[as.character(pairs[1, p])]]
       r2 <- rend_matrices[[as.character(pairs[2, p])]]
@@ -1106,7 +1107,7 @@ trajectory_variability.default <- function(x,
 
   # Return results
   invisible(list(
-    type       = "variability",
+    type       = "dispersion",
     dims       = dims,
     pairwise   = pairwise_results,
     dispersion = dispersion_results,
@@ -1117,20 +1118,20 @@ trajectory_variability.default <- function(x,
 }
 
 
-#' @rdname trajectory_variability
+#' @rdname trajectory_dispersion
 #' @export
-trajectory_variability.Sap <- function(x,
-                                       segment_type = c(
-                                         "motifs", "syllables",
-                                         "bouts", "segments"
-                                       ),
-                                       dims = c("PC1", "PC2"),
-                                       labels = NULL,
-                                       max_pairs = 5000,
-                                       seed = 222,
-                                       stats = TRUE,
-                                       verbose = TRUE,
-                                       ...) {
+trajectory_dispersion.Sap <- function(x,
+                                      segment_type = c(
+                                        "motifs", "syllables",
+                                        "bouts", "segments"
+                                      ),
+                                      dims = c("PC1", "PC2"),
+                                      labels = NULL,
+                                      max_pairs = 5000,
+                                      seed = 222,
+                                      stats = TRUE,
+                                      verbose = TRUE,
+                                      ...) {
   # Validate
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
 
@@ -1164,7 +1165,7 @@ trajectory_variability.Sap <- function(x,
     ))
   }
 
-  result <- trajectory_variability.default(
+  result <- trajectory_dispersion.default(
     x = traj_embeds,
     dims = dims,
     labels = labels,
@@ -1176,20 +1177,20 @@ trajectory_variability.Sap <- function(x,
   )
 
   # Write back to SAP object
-  x$features[[feature_type]][["trajectory_variability"]] <- result
+  x$features[[feature_type]][["trajectory_dispersion"]] <- result
 
   invisible(x)
 }
 
 
 
-# Trajectory Width Variability
-# Update date : May 1, 2026
+# # Trajectory Path Deviation
+# Update date : Jun. 23, 2026
 
-#' Trajectory Width Variability Analysis
+#' Trajectory Path Deviation Analysis
 #'
 #' @description
-#' Quantifies rendition-to-rendition trajectory "width" by measuring residual
+#' Quantifies rendition-to-rendition trajectory deviation by measuring residual
 #' spread around each label's mean trajectory and decomposing that spread into
 #' orthogonal and parallel components relative to the local trajectory tangent.
 #'
@@ -1220,9 +1221,10 @@ trajectory_variability.Sap <- function(x,
 #'     phase or advance-lag variability}
 #' }
 #'
-#' @return A list (returned invisibly) with the following elements:
+#' @return
+#' For default method: A list (returned invisibly) with the following elements:
 #' \itemize{
-#'   \item \code{type}: Character string \code{"width_variability"}, used by
+#'   \item \code{type}: Character string \code{"path_deviation"}, used by
 #'     \code{plot_trajectory_variability()} for dispatch
 #'   \item \code{width}: Per-rendition width metrics
 #'   \item \code{summary}: Summary table with mean and SD for each metric per label
@@ -1231,32 +1233,34 @@ trajectory_variability.Sap <- function(x,
 #'   \item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests (\code{NULL}
 #'     when \code{stats = FALSE} or only one label is present)
 #' }
+#' For SAP objects: The updated SAP object with results stored in
+#'   \code{x$features[[feature_type]][["trajectory_path_deviation"]]} (returned invisibly).
 #'
 #' Use \code{\link{plot_trajectory_variability}(result)} to visualise the output.
 #'
 #' @examples
 #' \dontrun{
-#' result <- trajectory_width_variability(sap, dims = c("PC1", "PC2"))
+#' result <- trajectory_path_deviation(sap, dims = c("PC1", "PC2"))
 #' result$summary
 #' result$width
 #' }
 #'
 #' @export
-trajectory_width_variability <- function(x, ...) {
-  UseMethod("trajectory_width_variability")
+trajectory_path_deviation <- function(x, ...) {
+  UseMethod("trajectory_path_deviation")
 }
 
 
-#' @rdname trajectory_width_variability
+#' @rdname trajectory_path_deviation
 #' @export
-trajectory_width_variability.default <- function(x,
-                                                 dims = c("PC1", "PC2"),
-                                                 trim_fraction = 0.1,
-                                                 min_coverage = 0.5,
-                                                 labels = NULL,
-                                                 stats = TRUE,
-                                                 verbose = TRUE,
-                                                 ...) {
+trajectory_path_deviation.default <- function(x,
+                                              dims = c("PC1", "PC2"),
+                                              trim_fraction = 0.1,
+                                              min_coverage = 0.5,
+                                              labels = NULL,
+                                              stats = TRUE,
+                                              verbose = TRUE,
+                                              ...) {
   if (!is.data.frame(x)) stop("Input must be a data frame")
   if (length(dims) < 2) {
     stop("Use at least two dimensions so orthogonal width is well-defined")
@@ -1294,7 +1298,7 @@ trajectory_width_variability.default <- function(x,
   }
 
   if (verbose) {
-    message("\n=== Trajectory Width Variability Analysis ===")
+    message("\n=== Trajectory Path Deviation Analysis ===")
     message(sprintf("Dimensions    : %s", paste(dims, collapse = ", ")))
     message(sprintf("Trim fraction : %.0f%% each tail", trim_fraction * 100))
     message(sprintf(
@@ -1451,16 +1455,8 @@ trajectory_width_variability.default <- function(x,
     )
 
     tests <- list(
-      kruskal = list(
-        total      = test_total,
-        orthogonal = test_orth,
-        parallel   = test_parallel
-      ),
-      posthoc = list(
-        total      = posthoc_total,
-        orthogonal = posthoc_orth,
-        parallel   = posthoc_parallel
-      )
+      kruskal = list(total = test_total, orthogonal = test_orth, parallel = test_parallel),
+      posthoc = list(total = posthoc_total, orthogonal = posthoc_orth, parallel = posthoc_parallel)
     )
 
     if (verbose) {
@@ -1493,8 +1489,7 @@ trajectory_width_variability.default <- function(x,
   }
 
   invisible(list(
-    type              = "width_variability",
-    dims              = dims,
+    type              = "path_deviation",
     width             = width_results,
     summary           = summary_df,
     mean_trajectories = mean_trajectories,
@@ -1504,20 +1499,20 @@ trajectory_width_variability.default <- function(x,
 }
 
 
-#' @rdname trajectory_width_variability
+#' @rdname trajectory_path_deviation
 #' @export
-trajectory_width_variability.Sap <- function(x,
-                                             segment_type = c(
-                                               "motifs", "syllables",
-                                               "bouts", "segments"
-                                             ),
-                                             dims = c("PC1", "PC2"),
-                                             trim_fraction = 0.1,
-                                             min_coverage = 0.5,
-                                             labels = NULL,
-                                             stats = TRUE,
-                                             verbose = TRUE,
-                                             ...) {
+trajectory_path_deviation.Sap <- function(x,
+                                          segment_type = c(
+                                            "motifs", "syllables",
+                                            "bouts", "segments"
+                                          ),
+                                          dims = c("PC1", "PC2"),
+                                          trim_fraction = 0.1,
+                                          min_coverage = 0.5,
+                                          labels = NULL,
+                                          stats = TRUE,
+                                          verbose = TRUE,
+                                          ...) {
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
 
   segment_type <- match.arg(segment_type)
@@ -1549,7 +1544,7 @@ trajectory_width_variability.Sap <- function(x,
     ))
   }
 
-  result <- trajectory_width_variability.default(
+  result <- trajectory_path_deviation.default(
     x = traj_embeds,
     dims = dims,
     trim_fraction = trim_fraction,
@@ -1561,7 +1556,7 @@ trajectory_width_variability.Sap <- function(x,
   )
 
   # Write back to SAP object
-  x$features[[feature_type]][["trajectory_width_variability"]] <- result
+  x$features[[feature_type]][["trajectory_path_deviation"]] <- result
 
   invisible(x)
 }
@@ -1975,8 +1970,8 @@ trajectory_umap_occupancy.Sap <- function(x,
 #' retrieved from the SAP object and draws significance brackets when statistical
 #' tests are present.
 #'
-#' @param x A list returned by \code{trajectory_variability()},
-#'   \code{trajectory_width_variability()}, or
+#' @param x A list returned by \code{trajectory_dispersion()},
+#'   \code{trajectory_path_deviation()}, or
 #'   \code{trajectory_umap_occupancy()} (for the default method); or a SAP object
 #'   (for the Sap method).
 #' @param palette RColorBrewer palette name (default: \code{"Set1"}). When the
@@ -1986,7 +1981,7 @@ trajectory_umap_occupancy.Sap <- function(x,
 #'   draw per panel (default: \code{10}). When more comparisons exist, the
 #'   most significant pairs are retained and a message is issued.
 #' @param segment_type For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')
-#' @param variability_type For SAP objects: Which computed variability type to plot ('variability', 'width_variability', 'umap_occupancy')
+#' @param variability_type For SAP objects: Which computed variability type to plot ('dispersion', 'path_deviation', 'umap_occupancy')
 #' @param ... Additional arguments passed to specific methods.
 #'
 #' @details
@@ -2011,12 +2006,12 @@ trajectory_umap_occupancy.Sap <- function(x,
 #' @examples
 #' \dontrun{
 #' # Plotting directly from a result list
-#' result <- trajectory_variability(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
+#' result <- trajectory_dispersion(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
 #' plot_trajectory_variability(result)
 #'
 #' # Plotting from a SAP object with pre-computed results
-#' sap <- trajectory_variability(sap)
-#' plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "variability")
+#' sap <- trajectory_dispersion(sap)
+#' plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "dispersion")
 #' }
 #'
 #' @export
@@ -2035,12 +2030,12 @@ plot_trajectory_variability.default <- function(x,
   # ---- Validate input ----
   if (!is.list(result) || is.null(result$type)) {
     stop(paste(
-      "'result' must be a list returned by trajectory_variability(),",
-      "trajectory_width_variability(), or trajectory_umap_occupancy().",
+      "'result' must be a list returned by trajectory_dispersion(),",
+      "trajectory_path_deviation(), or trajectory_umap_occupancy().",
       "It must contain a 'type' element."
     ))
   }
-  valid_types <- c("variability", "width_variability", "umap_occupancy")
+  valid_types <- c("dispersion", "path_deviation", "umap_occupancy")
   if (!result$type %in% valid_types) {
     stop(sprintf(
       "Unknown result type '%s'. Expected one of: %s",
@@ -2230,8 +2225,8 @@ plot_trajectory_variability.default <- function(x,
   many_labs <- FALSE
 
   # ---- Dispatch on type ----
-  if (result$type == "variability") {
-    # ---- trajectory_variability ----
+  if (result$type == "dispersion") {
+    # ---- trajectory_dispersion ----
     pw  <- result$pairwise
     dis <- result$dispersion
     pl  <- result$path_length
@@ -2262,12 +2257,12 @@ plot_trajectory_variability.default <- function(x,
 
     combined <- (p1 + p2 + p3) +
       patchwork::plot_annotation(
-        title    = "Trajectory Variability Comparison",
+        title    = "Trajectory Dispersion Comparison",
         subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
       )
 
-  } else if (result$type == "width_variability") {
-    # ---- trajectory_width_variability ----
+  } else if (result$type == "path_deviation") {
+    # ---- trajectory_path_deviation ----
     wd  <- result$width
     tst <- result$tests
 
@@ -2296,7 +2291,7 @@ plot_trajectory_variability.default <- function(x,
 
     combined <- (p1 + p2 + p3) +
       patchwork::plot_annotation(
-        title    = "Trajectory Width Variability Comparison",
+        title    = "Trajectory Path Deviation Comparison",
         subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
       )
 
@@ -2348,7 +2343,7 @@ plot_trajectory_variability.default <- function(x,
 #' @export
 plot_trajectory_variability.Sap <- function(x,
                                             segment_type = c("motifs", "syllables", "bouts", "segments"),
-                                            variability_type = c("variability", "width_variability", "umap_occupancy"),
+                                            variability_type = c("dispersion", "path_deviation", "umap_occupancy"),
                                             palette = "Set1",
                                             max_annotations = 10,
                                             ...) {
