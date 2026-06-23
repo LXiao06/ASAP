@@ -1,7 +1,9 @@
 # Plot Trajectory Variability Results
 
 A unified plotting function for results produced by
-`trajectory_variability`, `trajectory_width_variability`, or
+[`trajectory_dispersion`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.md),
+[`trajectory_path_deviation`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_path_deviation.md),
+or
 [`trajectory_umap_occupancy`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md).
 Dispatches to the appropriate panel layout based on the `type` field
 embedded in `result` or retrieved from the SAP object and draws
@@ -72,11 +74,11 @@ invisibly so the caller can save or further modify it.
 
 Panel layouts by result type:
 
-- `"variability"`:
+- `"dispersion"`:
 
   3 panels: Mean Pairwise Distance · Centroid Dispersion · Path Length
 
-- `"width_variability"`:
+- `"path_deviation"`:
 
   3 panels: Total RMS · Orthogonal RMS · Parallel RMS
 
