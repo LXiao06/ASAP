@@ -24,6 +24,10 @@ plot_PC(x, ...)
 \item{...}{Additional arguments passed to \code{\link{plot_umap}}.}
 
 \item{dims}{Character vector of length 2 specifying the PCA dimensions to plot. Default is \code{c("PC1", "PC2")}.}
+
+\item{segment_type}{For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')}
+
+\item{verbose}{For SAP objects: Whether to print progress messages}
 }
 \description{
 Wrapper for \code{\link{plot_umap}} to plot PCA coordinates (PC1 and PC2) instead of UMAP.

@@ -1314,6 +1314,8 @@ plot_umap2.Sap <- function(x,
 #'
 #' @param x A data frame or a SAP object.
 #' @param dims Character vector of length 2 specifying the PCA dimensions to plot. Default is \code{c("PC1", "PC2")}.
+#' @param segment_type For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')
+#' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to \code{\link{plot_umap}}.
 #'
 #' @export
@@ -1388,6 +1390,9 @@ plot_PC.Sap <- function(x,
 #'
 #' @param x A data frame or a SAP object.
 #' @param dims Character vector of length 2 specifying the PCA dimensions to plot. Default is \code{c("PC1", "PC2")}.
+#' @param segment_type For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')
+#' @param data_type For SAP objects: Type of embedding data ('feat.embeds', 'traj.embeds')
+#' @param verbose For SAP objects: Whether to print progress messages
 #' @param ... Additional arguments passed to \code{\link{plot_umap2}}.
 #'
 #' @export

@@ -118,6 +118,9 @@ reference:
       - plot_heatmap
       - plot_umap
       - plot_umap2
+      - plot_PC
+      - plot_PC2
+      - plot_trajectory_variability
       - plot_motif_boundaries
       - visualize_song
       - visualize_segments
