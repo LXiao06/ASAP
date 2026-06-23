@@ -14,7 +14,7 @@ trajectory_variability(x, ...)
   labels = NULL,
   max_pairs = 5000,
   seed = 222,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -26,7 +26,7 @@ trajectory_variability(x, ...)
   labels = NULL,
   max_pairs = 5000,
   seed = 222,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -44,7 +44,9 @@ trajectory_variability(x, ...)
 
 \item{seed}{Random seed for reproducible pair sampling (default: 222)}
 
-\item{palette}{Color palette name for plotting (default: "Set1")}
+\item{stats}{Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
+Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
+\code{NULL} for \code{tests}.}
 
 \item{verbose}{Whether to print progress messages (default: TRUE)}
 
@@ -57,10 +59,12 @@ A list (returned invisibly) with the following elements:
 \item \code{dispersion}: Data frame of centroid dispersion (label, rendition, dispersion)
 \item \code{path_length}: Data frame of path lengths (label, rendition, path_length)
 \item \code{summary}: Summary table with mean and SD for each metric per label
-\item \code{tests}: List of statistical test results
+\item \code{tests}: List of statistical test results (\code{NULL} when \code{stats = FALSE})
+\item \code{type}: Character string \code{"variability"}, used by
+\code{plot_trajectory_variability()} for dispatch
 }
 
-A summary plot is printed as a side effect.
+Use \code{\link{plot_trajectory_variability}(result)} to visualise the output.
 }
 \description{
 Quantifies trajectory variability across experimental conditions using three

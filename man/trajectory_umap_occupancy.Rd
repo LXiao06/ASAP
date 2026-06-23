@@ -15,7 +15,7 @@ trajectory_umap_occupancy(x, ...)
   k = 15,
   peripheral_quantile = 0.2,
   labels = NULL,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -28,7 +28,7 @@ trajectory_umap_occupancy(x, ...)
   k = 15,
   peripheral_quantile = 0.2,
   labels = NULL,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -51,7 +51,9 @@ define peripheral bins (default: 0.2)}
 
 \item{labels}{Optional character vector of labels to include}
 
-\item{palette}{Color palette name for plotting (default: "Set1")}
+\item{stats}{Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
+Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
+\code{NULL} for \code{tests}.}
 
 \item{verbose}{Whether to print progress messages (default: TRUE)}
 
@@ -61,13 +63,18 @@ define peripheral bins (default: 0.2)}
 \value{
 A list (returned invisibly) with the following elements:
 \itemize{
+\item \code{type}: Character string \code{"umap_occupancy"}, used by
+\code{plot_trajectory_variability()} for dispatch
 \item \code{occupancy}: Per-rendition occupancy metrics
 \item \code{summary}: Summary table with mean and SD for each metric per label
 \item \code{annotated_points}: Original data with occupancy annotations
 \item \code{bin_counts}: Shared-grid counts per label and bin
 \item \code{grid_info}: Grid settings and peripheral threshold metadata
-\item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests
+\item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests (\code{NULL}
+when \code{stats = FALSE} or only one label is present)
 }
+
+Use \code{\link{plot_trajectory_variability}(result)} to visualise the output.
 }
 \description{
 Quantifies rendition-to-rendition diversity in local UMAP occupancy using a

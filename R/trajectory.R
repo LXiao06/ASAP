@@ -782,7 +782,9 @@ filter_trajectory_outliers.Sap <- function(x,
 #' @param labels Optional character vector of labels to include
 #' @param max_pairs Maximum number of pairwise comparisons per label (default: 5000)
 #' @param seed Random seed for reproducible pair sampling (default: 222)
-#' @param palette Color palette name for plotting (default: "Set1")
+#' @param stats Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
+#'   Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
+#'   \code{NULL} for \code{tests}.
 #' @param verbose Whether to print progress messages (default: TRUE)
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
 #' @param ... Additional arguments
@@ -813,10 +815,12 @@ filter_trajectory_outliers.Sap <- function(x,
 #'   \item \code{dispersion}: Data frame of centroid dispersion (label, rendition, dispersion)
 #'   \item \code{path_length}: Data frame of path lengths (label, rendition, path_length)
 #'   \item \code{summary}: Summary table with mean and SD for each metric per label
-#'   \item \code{tests}: List of statistical test results
+#'   \item \code{tests}: List of statistical test results (\code{NULL} when \code{stats = FALSE})
+#'   \item \code{type}: Character string \code{"variability"}, used by
+#'     \code{plot_trajectory_variability()} for dispatch
 #' }
 #'
-#' A summary plot is printed as a side effect.
+#' Use \code{\link{plot_trajectory_variability}(result)} to visualise the output.
 #'
 #' @examples
 #' \dontrun{
@@ -851,7 +855,7 @@ trajectory_variability.default <- function(x,
                                            labels = NULL,
                                            max_pairs = 5000,
                                            seed = 222,
-                                           palette = "Set1",
+                                           stats = TRUE,
                                            verbose = TRUE,
                                            ...) {
   # Input validation
@@ -866,7 +870,7 @@ trajectory_variability.default <- function(x,
     ))
   }
 
-  ensure_pkgs("ggplot2", "dplyr", "patchwork")
+  ensure_pkgs("ggplot2", "dplyr")
 
   # Filter labels if specified
   if (!is.null(labels)) {
@@ -885,6 +889,15 @@ trajectory_variability.default <- function(x,
   all_labels <- unique(x$label)
   if (length(all_labels) < 2) {
     stop("At least two labels are required for variability comparison")
+  }
+
+  # Auto-disable stats when there are many groups
+  if (stats && length(all_labels) > 6) {
+    message(sprintf(
+      "Note: %d labels detected. Setting stats = FALSE (statistical tests are not meaningful for this many groups).",
+      length(all_labels)
+    ))
+    stats <- FALSE
   }
 
   if (verbose) {
@@ -1034,136 +1047,72 @@ trajectory_variability.default <- function(x,
     dplyr::left_join(summary_pl, by = "label")
 
   # ==== Statistical Tests ====
-  # Kruskal-Wallis omnibus tests
-  test_pw <- stats::kruskal.test(mean_dist ~ label, data = pairwise_results)
-  test_disp <- stats::kruskal.test(dispersion ~ label, data = dispersion_results)
-  test_pl <- stats::kruskal.test(path_length ~ label, data = path_length_results)
+  if (stats) {
+    # Kruskal-Wallis omnibus tests
+    test_pw   <- stats::kruskal.test(mean_dist   ~ label, data = pairwise_results)
+    test_disp <- stats::kruskal.test(dispersion  ~ label, data = dispersion_results)
+    test_pl   <- stats::kruskal.test(path_length ~ label, data = path_length_results)
 
-  # Pairwise Wilcoxon post-hoc tests
-  posthoc_pw <- stats::pairwise.wilcox.test(
-    pairwise_results$mean_dist, pairwise_results$label,
-    p.adjust.method = "bonferroni"
-  )
-  posthoc_disp <- stats::pairwise.wilcox.test(
-    dispersion_results$dispersion, dispersion_results$label,
-    p.adjust.method = "bonferroni"
-  )
-  posthoc_pl <- stats::pairwise.wilcox.test(
-    path_length_results$path_length, path_length_results$label,
-    p.adjust.method = "bonferroni"
-  )
+    # Pairwise Wilcoxon post-hoc tests
+    posthoc_pw <- stats::pairwise.wilcox.test(
+      pairwise_results$mean_dist, pairwise_results$label,
+      p.adjust.method = "bonferroni"
+    )
+    posthoc_disp <- stats::pairwise.wilcox.test(
+      dispersion_results$dispersion, dispersion_results$label,
+      p.adjust.method = "bonferroni"
+    )
+    posthoc_pl <- stats::pairwise.wilcox.test(
+      path_length_results$path_length, path_length_results$label,
+      p.adjust.method = "bonferroni"
+    )
 
-  tests <- list(
-    kruskal = list(pairwise = test_pw, dispersion = test_disp, path_length = test_pl),
-    posthoc = list(pairwise = posthoc_pw, dispersion = posthoc_disp, path_length = posthoc_pl)
-  )
+    tests <- list(
+      kruskal = list(pairwise = test_pw, dispersion = test_disp, path_length = test_pl),
+      posthoc = list(pairwise = posthoc_pw, dispersion = posthoc_disp, path_length = posthoc_pl)
+    )
 
-  if (verbose) {
-    message("\n--- Summary ---")
-    print(summary_table)
-    message(sprintf("\nKruskal-Wallis tests:"))
-    message(sprintf(
-      "  Pairwise distance:   chi-sq = %.2f, p = %.2e",
-      test_pw$statistic, test_pw$p.value
-    ))
-    message(sprintf(
-      "  Centroid dispersion: chi-sq = %.2f, p = %.2e",
-      test_disp$statistic, test_disp$p.value
-    ))
-    message(sprintf(
-      "  Path length:         chi-sq = %.2f, p = %.2e",
-      test_pl$statistic, test_pl$p.value
-    ))
-    message("\nPairwise Wilcoxon post-hoc (Bonferroni adjusted):")
-    message("  Pairwise distance:")
-    print(posthoc_pw$p.value)
-    message("  Centroid dispersion:")
-    print(posthoc_disp$p.value)
-    message("  Path length:")
-    print(posthoc_pl$p.value)
-  }
-
-  # ==== Plot ====
-  format_p <- function(p) {
-    if (p < 0.001) {
-      sprintf("p = %.1e", p)
-    } else {
-      sprintf("p = %.3f", p)
+    if (verbose) {
+      message("\n--- Summary ---")
+      print(summary_table)
+      message("\nKruskal-Wallis tests:")
+      message(sprintf(
+        "  Pairwise distance:   chi-sq = %.2f, p = %.2e",
+        test_pw$statistic, test_pw$p.value
+      ))
+      message(sprintf(
+        "  Centroid dispersion: chi-sq = %.2f, p = %.2e",
+        test_disp$statistic, test_disp$p.value
+      ))
+      message(sprintf(
+        "  Path length:         chi-sq = %.2f, p = %.2e",
+        test_pl$statistic, test_pl$p.value
+      ))
+      message("\nPairwise Wilcoxon post-hoc (Bonferroni adjusted):")
+      message("  Pairwise distance:")
+      print(posthoc_pw$p.value)
+      message("  Centroid dispersion:")
+      print(posthoc_disp$p.value)
+      message("  Path length:")
+      print(posthoc_pl$p.value)
+    }
+  } else {
+    tests <- NULL
+    if (verbose) {
+      message("\n--- Summary ---")
+      print(summary_table)
     }
   }
 
-  p1 <- ggplot2::ggplot(
-    pairwise_results,
-    ggplot2::aes(
-      x = .data$label, y = .data$mean_dist,
-      fill = .data$label
-    )
-  ) +
-    ggplot2::geom_violin(alpha = 0.6, draw_quantiles = c(0.25, 0.5, 0.75)) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::labs(
-      title = "Mean Pairwise Distance",
-      subtitle = format_p(test_pw$p.value),
-      y = "Distance", x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none")
-
-  p2 <- ggplot2::ggplot(
-    dispersion_results,
-    ggplot2::aes(
-      x = .data$label, y = .data$dispersion,
-      fill = .data$label
-    )
-  ) +
-    ggplot2::geom_violin(alpha = 0.6, draw_quantiles = c(0.25, 0.5, 0.75)) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::labs(
-      title = "Centroid Dispersion",
-      subtitle = format_p(test_disp$p.value),
-      y = "Mean Distance to Centroid", x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none")
-
-  p3 <- ggplot2::ggplot(
-    path_length_results,
-    ggplot2::aes(
-      x = .data$label, y = .data$path_length,
-      fill = .data$label
-    )
-  ) +
-    ggplot2::geom_violin(alpha = 0.6, draw_quantiles = c(0.25, 0.5, 0.75)) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::labs(
-      title = "Trajectory Path Length",
-      subtitle = format_p(test_pl$p.value),
-      y = "Path Length", x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(
-      legend.position = "none",
-      plot.title = ggplot2::element_text(size = 12, face = "bold")
-    )
-
-  combined_plot <- (p1 + p2 + p3) +
-    patchwork::plot_annotation(
-      title = "Trajectory Variability Comparison",
-      subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
-    )
-
-  print(combined_plot)
-
   # Return results
   invisible(list(
-    pairwise = pairwise_results,
+    type       = "variability",
+    dims       = dims,
+    pairwise   = pairwise_results,
     dispersion = dispersion_results,
     path_length = path_length_results,
-    summary = summary_table,
-    tests = tests
+    summary    = summary_table,
+    tests      = tests
   ))
 }
 
@@ -1179,7 +1128,7 @@ trajectory_variability.Sap <- function(x,
                                        labels = NULL,
                                        max_pairs = 5000,
                                        seed = 222,
-                                       palette = "Set1",
+                                       stats = TRUE,
                                        verbose = TRUE,
                                        ...) {
   # Validate
@@ -1221,13 +1170,14 @@ trajectory_variability.Sap <- function(x,
     labels = labels,
     max_pairs = max_pairs,
     seed = seed,
-    palette = palette,
+    stats = stats,
     verbose = verbose,
     ...
   )
 
   invisible(result)
 }
+
 
 
 # Trajectory Width Variability
@@ -1247,7 +1197,9 @@ trajectory_variability.Sap <- function(x,
 #' @param min_coverage Minimum fraction of renditions that must cover a time step
 #'   for it to contribute to the reference trajectory (default: 0.5)
 #' @param labels Optional character vector of labels to include
-#' @param palette Color palette name for plotting (default: "Set1")
+#' @param stats Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
+#'   Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
+#'   \code{NULL} for \code{tests}.
 #' @param verbose Whether to print progress messages (default: TRUE)
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables',
 #'   'bouts', 'segments')
@@ -1267,13 +1219,17 @@ trajectory_variability.Sap <- function(x,
 #'
 #' @return A list (returned invisibly) with the following elements:
 #' \itemize{
+#'   \item \code{type}: Character string \code{"width_variability"}, used by
+#'     \code{plot_trajectory_variability()} for dispatch
 #'   \item \code{width}: Per-rendition width metrics
 #'   \item \code{summary}: Summary table with mean and SD for each metric per label
 #'   \item \code{mean_trajectories}: Label-specific mean trajectories
 #'   \item \code{tangent_vectors}: Label-specific unit tangent vectors
-#'   \item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests when multiple
-#'     labels are present
+#'   \item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests (\code{NULL}
+#'     when \code{stats = FALSE} or only one label is present)
 #' }
+#'
+#' Use \code{\link{plot_trajectory_variability}(result)} to visualise the output.
 #'
 #' @examples
 #' \dontrun{
@@ -1295,7 +1251,7 @@ trajectory_width_variability.default <- function(x,
                                                  trim_fraction = 0.1,
                                                  min_coverage = 0.5,
                                                  labels = NULL,
-                                                 palette = "Set1",
+                                                 stats = TRUE,
                                                  verbose = TRUE,
                                                  ...) {
   if (!is.data.frame(x)) stop("Input must be a data frame")
@@ -1312,7 +1268,7 @@ trajectory_width_variability.default <- function(x,
     ))
   }
 
-  ensure_pkgs("ggplot2", "dplyr", "patchwork")
+  ensure_pkgs("ggplot2", "dplyr")
 
   if (!is.null(labels)) {
     missing_labels <- setdiff(labels, unique(x$label))
@@ -1324,6 +1280,15 @@ trajectory_width_variability.default <- function(x,
 
   all_labels <- unique(x$label)
   if (length(all_labels) == 0) stop("No labels available after filtering")
+
+  # Auto-disable stats when there are many groups
+  if (stats && length(all_labels) > 6) {
+    message(sprintf(
+      "Note: %d labels detected. Setting stats = FALSE (statistical tests are not meaningful for this many groups).",
+      length(all_labels)
+    ))
+    stats <- FALSE
+  }
 
   if (verbose) {
     message("\n=== Trajectory Width Variability Analysis ===")
@@ -1460,59 +1425,11 @@ trajectory_width_variability.default <- function(x,
     as.data.frame()
 
   tests <- NULL
-  format_p <- function(p) {
-    if (is.null(p) || is.na(p)) {
-      return("p = NA")
-    }
-    if (p < 0.001) sprintf("p = %.1e", p) else sprintf("p = %.3f", p)
-  }
 
-  get_pairwise_p <- function(pmat, g1, g2) {
-    if (is.null(pmat)) {
-      return(NA_real_)
-    }
-    rn <- rownames(pmat)
-    cn <- colnames(pmat)
-    if (g1 %in% rn && g2 %in% cn) {
-      return(pmat[g1, g2])
-    }
-    if (g2 %in% rn && g1 %in% cn) {
-      return(pmat[g2, g1])
-    }
-    NA_real_
-  }
-
-  build_pairwise_annotations <- function(values, posthoc_obj, labels_in_order) {
-    comps <- utils::combn(labels_in_order, 2, simplify = FALSE)
-    y_range <- range(values, na.rm = TRUE)
-    span <- diff(y_range)
-    if (!is.finite(span) || span == 0) span <- max(abs(y_range), na.rm = TRUE)
-    if (!is.finite(span) || span == 0) span <- 1
-    base_y <- y_range[2] + 0.08 * span
-    step_y <- 0.12 * span
-
-    ann <- do.call(rbind, lapply(seq_along(comps), function(i) {
-      comp <- comps[[i]]
-      p_val <- get_pairwise_p(posthoc_obj$p.value, comp[1], comp[2])
-      data.frame(
-        x1 = match(comp[1], labels_in_order),
-        x2 = match(comp[2], labels_in_order),
-        y = base_y + (i - 1) * step_y,
-        label = format_p(p_val),
-        stringsAsFactors = FALSE
-      )
-    }))
-
-    ann$y_text <- ann$y + 0.025 * span
-    ann$y_tip <- ann$y - 0.02 * span
-    ann$y_max <- max(ann$y_text) + 0.06 * span
-    ann
-  }
-
-  if (length(unique(width_results$label)) > 1) {
-    test_total <- stats::kruskal.test(total_rms ~ label, data = width_results)
-    test_orth <- stats::kruskal.test(orthogonal_rms ~ label, data = width_results)
-    test_parallel <- stats::kruskal.test(parallel_rms ~ label, data = width_results)
+  if (stats && length(unique(width_results$label)) > 1) {
+    test_total    <- stats::kruskal.test(total_rms     ~ label, data = width_results)
+    test_orth     <- stats::kruskal.test(orthogonal_rms ~ label, data = width_results)
+    test_parallel <- stats::kruskal.test(parallel_rms  ~ label, data = width_results)
 
     posthoc_total <- stats::pairwise.wilcox.test(
       width_results$total_rms,
@@ -1532,14 +1449,14 @@ trajectory_width_variability.default <- function(x,
 
     tests <- list(
       kruskal = list(
-        total = test_total,
+        total      = test_total,
         orthogonal = test_orth,
-        parallel = test_parallel
+        parallel   = test_parallel
       ),
       posthoc = list(
-        total = posthoc_total,
+        total      = posthoc_total,
         orthogonal = posthoc_orth,
-        parallel = posthoc_parallel
+        parallel   = posthoc_parallel
       )
     )
 
@@ -1572,71 +1489,14 @@ trajectory_width_variability.default <- function(x,
     print(summary_df)
   }
 
-  p_total <- ggplot2::ggplot(
-    width_results,
-    ggplot2::aes(x = .data$label, y = .data$total_rms, fill = .data$label)
-  ) +
-    ggplot2::geom_violin(alpha = 0.6) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::labs(
-      title = "Total RMS Residual",
-      subtitle = if (is.null(tests)) NULL else format_p(tests$kruskal$total$p.value),
-      y = "Distance to Mean Trajectory",
-      x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none")
-
-  p_orth <- ggplot2::ggplot(
-    width_results,
-    ggplot2::aes(x = .data$label, y = .data$orthogonal_rms, fill = .data$label)
-  ) +
-    ggplot2::geom_violin(alpha = 0.6) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::labs(
-      title = "Orthogonal RMS Residual",
-      subtitle = if (is.null(tests)) NULL else format_p(tests$kruskal$orthogonal$p.value),
-      y = "Width Around Trajectory Backbone",
-      x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none")
-
-  p_parallel <- ggplot2::ggplot(
-    width_results,
-    ggplot2::aes(x = .data$label, y = .data$parallel_rms, fill = .data$label)
-  ) +
-    ggplot2::geom_violin(alpha = 0.6) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::labs(
-      title = "Parallel RMS Residual",
-      subtitle = if (is.null(tests)) NULL else format_p(tests$kruskal$parallel$p.value),
-      y = "Along-Trajectory Variability",
-      x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(
-      legend.position = "none",
-      plot.title = ggplot2::element_text(size = 12, face = "bold")
-    )
-
-  combined_plot <- (p_total + p_orth + p_parallel) +
-    patchwork::plot_annotation(
-      title = "Trajectory Width Variability Comparison",
-      subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
-    )
-
-  print(combined_plot)
-
   invisible(list(
-    width = width_results,
-    summary = summary_df,
+    type              = "width_variability",
+    dims              = dims,
+    width             = width_results,
+    summary           = summary_df,
     mean_trajectories = mean_trajectories,
-    tangent_vectors = tangent_vectors,
-    tests = tests
+    tangent_vectors   = tangent_vectors,
+    tests             = tests
   ))
 }
 
@@ -1652,7 +1512,7 @@ trajectory_width_variability.Sap <- function(x,
                                              trim_fraction = 0.1,
                                              min_coverage = 0.5,
                                              labels = NULL,
-                                             palette = "Set1",
+                                             stats = TRUE,
                                              verbose = TRUE,
                                              ...) {
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
@@ -1692,13 +1552,14 @@ trajectory_width_variability.Sap <- function(x,
     trim_fraction = trim_fraction,
     min_coverage = min_coverage,
     labels = labels,
-    palette = palette,
+    stats = stats,
     verbose = verbose,
     ...
   )
 
   invisible(result)
 }
+
 
 
 # Trajectory UMAP Occupancy
@@ -1722,7 +1583,9 @@ trajectory_width_variability.Sap <- function(x,
 #' @param peripheral_quantile Quantile of global occupied-bin density used to
 #'   define peripheral bins (default: 0.2)
 #' @param labels Optional character vector of labels to include
-#' @param palette Color palette name for plotting (default: "Set1")
+#' @param stats Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
+#'   Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
+#'   \code{NULL} for \code{tests}.
 #' @param verbose Whether to print progress messages (default: TRUE)
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables',
 #'   'bouts', 'segments')
@@ -1742,13 +1605,18 @@ trajectory_width_variability.Sap <- function(x,
 #'
 #' @return A list (returned invisibly) with the following elements:
 #' \itemize{
+#'   \item \code{type}: Character string \code{"umap_occupancy"}, used by
+#'     \code{plot_trajectory_variability()} for dispatch
 #'   \item \code{occupancy}: Per-rendition occupancy metrics
 #'   \item \code{summary}: Summary table with mean and SD for each metric per label
 #'   \item \code{annotated_points}: Original data with occupancy annotations
 #'   \item \code{bin_counts}: Shared-grid counts per label and bin
 #'   \item \code{grid_info}: Grid settings and peripheral threshold metadata
-#'   \item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests
+#'   \item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests (\code{NULL}
+#'     when \code{stats = FALSE} or only one label is present)
 #' }
+#'
+#' Use \code{\link{plot_trajectory_variability}(result)} to visualise the output.
 #'
 #' @examples
 #' \dontrun{
@@ -1771,7 +1639,7 @@ trajectory_umap_occupancy.default <- function(x,
                                               k = 15,
                                               peripheral_quantile = 0.2,
                                               labels = NULL,
-                                              palette = "Set1",
+                                              stats = TRUE,
                                               verbose = TRUE,
                                               ...) {
   if (!is.data.frame(x)) stop("Input must be a data frame")
@@ -1788,7 +1656,7 @@ trajectory_umap_occupancy.default <- function(x,
     ))
   }
 
-  ensure_pkgs("ggplot2", "dplyr", "patchwork", "RANN")
+  ensure_pkgs("ggplot2", "dplyr", "RANN")
 
   if (!is.null(labels)) {
     missing_labels <- setdiff(labels, unique(x$label))
@@ -1801,6 +1669,15 @@ trajectory_umap_occupancy.default <- function(x,
   x <- x[stats::complete.cases(x[, dims, drop = FALSE]), , drop = FALSE]
   all_labels <- unique(x$label)
   if (length(all_labels) == 0) stop("No valid rows available after filtering")
+
+  # Auto-disable stats when there are many groups
+  if (stats && length(all_labels) > 6) {
+    message(sprintf(
+      "Note: %d labels detected. Setting stats = FALSE (statistical tests are not meaningful for this many groups).",
+      length(all_labels)
+    ))
+    stats <- FALSE
+  }
 
   if (verbose) {
     message("\n=== Trajectory UMAP Occupancy Analysis ===")
@@ -1909,61 +1786,12 @@ trajectory_umap_occupancy.default <- function(x,
     dplyr::summarise(n = dplyr::n(), .groups = "drop") |>
     as.data.frame()
 
-  format_p <- function(p) {
-    if (is.null(p) || is.na(p)) {
-      return("p = NA")
-    }
-    if (p < 0.001) sprintf("p = %.1e", p) else sprintf("p = %.3f", p)
-  }
-
-  get_pairwise_p <- function(pmat, g1, g2) {
-    if (is.null(pmat)) {
-      return(NA_real_)
-    }
-    rn <- rownames(pmat)
-    cn <- colnames(pmat)
-    if (g1 %in% rn && g2 %in% cn) {
-      return(pmat[g1, g2])
-    }
-    if (g2 %in% rn && g1 %in% cn) {
-      return(pmat[g2, g1])
-    }
-    NA_real_
-  }
-
-  build_pairwise_annotations <- function(values, posthoc_obj, labels_in_order) {
-    comps <- utils::combn(labels_in_order, 2, simplify = FALSE)
-    y_range <- range(values, na.rm = TRUE)
-    span <- diff(y_range)
-    if (!is.finite(span) || span == 0) span <- max(abs(y_range), na.rm = TRUE)
-    if (!is.finite(span) || span == 0) span <- 1
-    base_y <- y_range[2] + 0.08 * span
-    step_y <- 0.12 * span
-
-    ann <- do.call(rbind, lapply(seq_along(comps), function(i) {
-      comp <- comps[[i]]
-      p_val <- get_pairwise_p(posthoc_obj$p.value, comp[1], comp[2])
-      data.frame(
-        x1 = match(comp[1], labels_in_order),
-        x2 = match(comp[2], labels_in_order),
-        y = base_y + (i - 1) * step_y,
-        label = format_p(p_val),
-        stringsAsFactors = FALSE
-      )
-    }))
-
-    ann$y_text <- ann$y + 0.025 * span
-    ann$y_tip <- ann$y - 0.02 * span
-    ann$y_max <- max(ann$y_text) + 0.06 * span
-    ann
-  }
-
   tests <- NULL
-  if (length(unique(occupancy_results$label)) > 1) {
-    test_occ <- stats::kruskal.test(occupied_fraction ~ label, data = occupancy_results)
+  if (stats && length(unique(occupancy_results$label)) > 1) {
+    test_occ <- stats::kruskal.test(occupied_fraction     ~ label, data = occupancy_results)
     test_ent <- stats::kruskal.test(occupancy_entropy_norm ~ label, data = occupancy_results)
-    test_per <- stats::kruskal.test(peripheral_fraction ~ label, data = occupancy_results)
-    test_knn <- stats::kruskal.test(knn_dispersion ~ label, data = occupancy_results)
+    test_per <- stats::kruskal.test(peripheral_fraction   ~ label, data = occupancy_results)
+    test_knn <- stats::kruskal.test(knn_dispersion        ~ label, data = occupancy_results)
 
     posthoc_occ <- stats::pairwise.wilcox.test(
       occupancy_results$occupied_fraction,
@@ -1993,15 +1821,15 @@ trajectory_umap_occupancy.default <- function(x,
     tests <- list(
       kruskal = list(
         occupied_fraction = test_occ,
-        entropy = test_ent,
+        entropy           = test_ent,
         peripheral_fraction = test_per,
-        knn_dispersion = test_knn
+        knn_dispersion    = test_knn
       ),
       posthoc = list(
         occupied_fraction = posthoc_occ,
-        entropy = posthoc_ent,
+        entropy           = posthoc_ent,
         peripheral_fraction = posthoc_per,
-        knn_dispersion = posthoc_knn
+        knn_dispersion    = posthoc_knn
       )
     )
 
@@ -2040,171 +1868,23 @@ trajectory_umap_occupancy.default <- function(x,
     print(summary_df)
   }
 
-  label_order <- unique(as.character(occupancy_results$label))
-  pair_ann_occ <- if (is.null(tests)) {
-    NULL
-  } else {
-    build_pairwise_annotations(
-      occupancy_results$occupied_fraction,
-      tests$posthoc$occupied_fraction,
-      label_order
-    )
-  }
-  pair_ann_ent <- if (is.null(tests)) {
-    NULL
-  } else {
-    build_pairwise_annotations(
-      occupancy_results$occupancy_entropy_norm,
-      tests$posthoc$entropy,
-      label_order
-    )
-  }
-  pair_ann_per <- if (is.null(tests)) {
-    NULL
-  } else {
-    build_pairwise_annotations(
-      occupancy_results$peripheral_fraction,
-      tests$posthoc$peripheral_fraction,
-      label_order
-    )
-  }
-  pair_ann_knn <- if (is.null(tests)) {
-    NULL
-  } else {
-    build_pairwise_annotations(
-      occupancy_results$knn_dispersion,
-      tests$posthoc$knn_dispersion,
-      label_order
-    )
-  }
-
-  add_pairwise_layers <- function(plot_obj, ann_df) {
-    if (is.null(ann_df) || nrow(ann_df) == 0) {
-      return(plot_obj)
-    }
-    plot_obj +
-      ggplot2::geom_segment(
-        data = ann_df,
-        ggplot2::aes(x = .data$x1, xend = .data$x2, y = .data$y, yend = .data$y),
-        inherit.aes = FALSE
-      ) +
-      ggplot2::geom_segment(
-        data = ann_df,
-        ggplot2::aes(x = .data$x1, xend = .data$x1, y = .data$y_tip, yend = .data$y),
-        inherit.aes = FALSE
-      ) +
-      ggplot2::geom_segment(
-        data = ann_df,
-        ggplot2::aes(x = .data$x2, xend = .data$x2, y = .data$y_tip, yend = .data$y),
-        inherit.aes = FALSE
-      ) +
-      ggplot2::geom_text(
-        data = ann_df,
-        ggplot2::aes(x = (.data$x1 + .data$x2) / 2, y = .data$y_text, label = .data$label),
-        inherit.aes = FALSE,
-        size = 3
-      ) +
-      ggplot2::coord_cartesian(ylim = c(NA, ann_df$y_max[1]))
-  }
-
-  p_occ <- ggplot2::ggplot(
-    occupancy_results,
-    ggplot2::aes(x = .data$label, y = .data$occupied_fraction, fill = .data$label)
-  ) +
-    ggplot2::geom_violin(alpha = 0.6) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::geom_jitter(width = 0.12, alpha = 0.35, size = 0.9) +
-    ggplot2::labs(
-      title = "Occupied Fraction",
-      subtitle = if (is.null(tests)) NULL else format_p(tests$kruskal$occupied_fraction$p.value),
-      y = "Visited Grid Fraction",
-      x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none")
-  p_occ <- add_pairwise_layers(p_occ, pair_ann_occ)
-
-  p_ent <- ggplot2::ggplot(
-    occupancy_results,
-    ggplot2::aes(x = .data$label, y = .data$occupancy_entropy_norm, fill = .data$label)
-  ) +
-    ggplot2::geom_violin(alpha = 0.6) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::geom_jitter(width = 0.12, alpha = 0.35, size = 0.9) +
-    ggplot2::labs(
-      title = "Occupancy Entropy",
-      subtitle = if (is.null(tests)) NULL else format_p(tests$kruskal$entropy$p.value),
-      y = "Normalized Entropy",
-      x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none")
-  p_ent <- add_pairwise_layers(p_ent, pair_ann_ent)
-
-  p_per <- ggplot2::ggplot(
-    occupancy_results,
-    ggplot2::aes(x = .data$label, y = .data$peripheral_fraction, fill = .data$label)
-  ) +
-    ggplot2::geom_violin(alpha = 0.6) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::geom_jitter(width = 0.12, alpha = 0.35, size = 0.9) +
-    ggplot2::labs(
-      title = "Peripheral Fraction",
-      subtitle = if (is.null(tests)) NULL else format_p(tests$kruskal$peripheral_fraction$p.value),
-      y = "Fraction in Sparse UMAP Bins",
-      x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none")
-  p_per <- add_pairwise_layers(p_per, pair_ann_per)
-
-  p_knn <- ggplot2::ggplot(
-    occupancy_results,
-    ggplot2::aes(x = .data$label, y = .data$knn_dispersion, fill = .data$label)
-  ) +
-    ggplot2::geom_violin(alpha = 0.6) +
-    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-    ggplot2::geom_jitter(width = 0.12, alpha = 0.35, size = 0.9) +
-    ggplot2::labs(
-      title = "Same-Label kNN Dispersion",
-      subtitle = if (is.null(tests)) NULL else format_p(tests$kruskal$knn_dispersion$p.value),
-      y = "Mean kNN Distance",
-      x = NULL
-    ) +
-    ggplot2::scale_fill_brewer(palette = palette) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(
-      legend.position = "none",
-      plot.title = ggplot2::element_text(size = 12, face = "bold")
-    )
-  p_knn <- add_pairwise_layers(p_knn, pair_ann_knn)
-
-  combined_plot <- (p_occ + p_ent + p_per + p_knn) +
-    patchwork::plot_annotation(
-      title = "Trajectory UMAP Occupancy Comparison",
-      subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
-    )
-
-  print(combined_plot)
-
   invisible(list(
-    occupancy = occupancy_results,
-    summary = summary_df,
+    type             = "umap_occupancy",
+    dims             = dims,
+    occupancy        = occupancy_results,
+    summary          = summary_df,
     annotated_points = x,
-    bin_counts = bin_counts,
-    grid_info = list(
-      dims = dims,
-      grid_n = grid_n,
-      total_bins = total_bins,
-      x_breaks = x_breaks,
-      y_breaks = y_breaks,
-      bin_area = bin_area,
+    bin_counts       = bin_counts,
+    grid_info        = list(
+      dims                = dims,
+      grid_n              = grid_n,
+      total_bins          = total_bins,
+      x_breaks            = x_breaks,
+      y_breaks            = y_breaks,
+      bin_area            = bin_area,
       peripheral_quantile = peripheral_quantile,
-      peripheral_cut = peripheral_cut,
-      peripheral_bins = peripheral_bins
+      peripheral_cut      = peripheral_cut,
+      peripheral_bins     = peripheral_bins
     ),
     tests = tests
   ))
@@ -2223,7 +1903,7 @@ trajectory_umap_occupancy.Sap <- function(x,
                                           k = 15,
                                           peripheral_quantile = 0.2,
                                           labels = NULL,
-                                          palette = "Set1",
+                                          stats = TRUE,
                                           verbose = TRUE,
                                           ...) {
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
@@ -2264,10 +1944,383 @@ trajectory_umap_occupancy.Sap <- function(x,
     k = k,
     peripheral_quantile = peripheral_quantile,
     labels = labels,
-    palette = palette,
+    stats = stats,
     verbose = verbose,
     ...
   )
 
   invisible(result)
+}
+
+
+# Unified Trajectory Variability Plot
+# Update date : Jun. 22, 2026
+
+#' Plot Trajectory Variability Results
+#'
+#' @description
+#' A unified plotting function for results produced by
+#' \code{\link{trajectory_variability}}, \code{\link{trajectory_width_variability}},
+#' or \code{\link{trajectory_umap_occupancy}}.  Dispatches to the appropriate
+#' panel layout based on the \code{type} field embedded in \code{result} and
+#' draws significance brackets when statistical tests are present.
+#'
+#' @param result A list returned by \code{trajectory_variability()},
+#'   \code{trajectory_width_variability()}, or
+#'   \code{trajectory_umap_occupancy()}.  Must contain a \code{type} element
+#'   (one of \code{"variability"}, \code{"width_variability"},
+#'   \code{"umap_occupancy"}).
+#' @param palette RColorBrewer palette name (default: \code{"Set1"}).  When the
+#'   number of labels exceeds the palette's maximum, colours are interpolated
+#'   automatically via \code{colorRampPalette}.
+#' @param max_annotations Maximum number of pairwise significance brackets to
+#'   draw per panel (default: \code{10}).  When more comparisons exist, the
+#'   most significant pairs are retained and a message is issued.
+#' @param ... Currently unused; reserved for future extensions.
+#'
+#' @details
+#' Panel layouts by result type:
+#' \describe{
+#'   \item{\code{"variability"}}{3 panels: Mean Pairwise Distance · Centroid
+#'     Dispersion · Path Length}
+#'   \item{\code{"width_variability"}}{3 panels: Total RMS · Orthogonal RMS ·
+#'     Parallel RMS}
+#'   \item{\code{"umap_occupancy"}}{4 panels: Occupied Fraction · Occupancy
+#'     Entropy · Peripheral Fraction · kNN Dispersion}
+#' }
+#'
+#' Each panel displays a violin + box plot coloured by label.  When
+#' \code{result$tests} is not \code{NULL}, Kruskal-Wallis p-values are shown
+#' as subtitles and pairwise Wilcoxon p-values appear as significance brackets
+#' above the data.
+#'
+#' @return The assembled \pkg{patchwork} object, printed as a side-effect and
+#'   returned invisibly so the caller can save or further modify it.
+#'
+#' @examples
+#' \dontrun{
+#' result <- trajectory_variability(sap)
+#' plot_trajectory_variability(result)
+#'
+#' result2 <- trajectory_width_variability(sap)
+#' plot_trajectory_variability(result2, palette = "Dark2")
+#'
+#' result3 <- trajectory_umap_occupancy(sap)
+#' p <- plot_trajectory_variability(result3, max_annotations = 6)
+#' }
+#'
+#' @export
+plot_trajectory_variability <- function(result,
+                                        palette = "Set1",
+                                        max_annotations = 10,
+                                        ...) {
+  # ---- Validate input ----
+  if (!is.list(result) || is.null(result$type)) {
+    stop(paste(
+      "'result' must be a list returned by trajectory_variability(),",
+      "trajectory_width_variability(), or trajectory_umap_occupancy().",
+      "It must contain a 'type' element."
+    ))
+  }
+  valid_types <- c("variability", "width_variability", "umap_occupancy")
+  if (!result$type %in% valid_types) {
+    stop(sprintf(
+      "Unknown result type '%s'. Expected one of: %s",
+      result$type, paste(valid_types, collapse = ", ")
+    ))
+  }
+
+  ensure_pkgs("ggplot2", "patchwork")
+
+  # ---- Shared helpers ----
+
+  # Sort labels numerically when all parse as numbers, otherwise alphabetically
+  .sort_labels <- function(labels) {
+    nums <- suppressWarnings(as.numeric(labels))
+    if (!anyNA(nums)) labels[order(nums)] else sort(labels)
+  }
+
+  # Expand palette to any number of labels
+  .make_pal <- function(labels, palette) {
+    n <- length(labels)
+    pal_info <- RColorBrewer::brewer.pal.info
+    max_col <- if (palette %in% rownames(pal_info)) {
+      pal_info[palette, "maxcolors"]
+    } else {
+      8L
+    }
+    if (n <= max_col) {
+      cols <- RColorBrewer::brewer.pal(max(n, 3L), palette)[seq_len(n)]
+    } else {
+      cols <- grDevices::colorRampPalette(
+        RColorBrewer::brewer.pal(max_col, palette)
+      )(n)
+    }
+    stats::setNames(cols, labels)
+  }
+
+  # Format p-value for subtitle / brackets
+  .fmt_p <- function(p) {
+    if (is.null(p) || is.na(p)) return("p = NA")
+    if (p < 0.001) sprintf("p = %.1e", p) else sprintf("p = %.3f", p)
+  }
+
+  # Look up a p-value from a pairwise matrix (symmetric)
+  .get_p <- function(pmat, g1, g2) {
+    if (is.null(pmat)) return(NA_real_)
+    rn <- rownames(pmat); cn <- colnames(pmat)
+    if (g1 %in% rn && g2 %in% cn) return(pmat[g1, g2])
+    if (g2 %in% rn && g1 %in% cn) return(pmat[g2, g1])
+    NA_real_
+  }
+
+  # Build bracket annotation data frame, capped at max_annotations
+  .brackets <- function(values, posthoc_obj, labels_in_order, max_annotations) {
+    comps <- utils::combn(labels_in_order, 2, simplify = FALSE)
+
+    if (length(comps) > max_annotations) {
+      pvals <- vapply(comps, function(comp) {
+        .get_p(posthoc_obj$p.value, comp[1], comp[2])
+      }, numeric(1))
+      keep_idx <- order(pvals)[seq_len(max_annotations)]
+      message(sprintf(
+        "  %d pairwise comparisons available; showing %d most significant.",
+        length(comps), max_annotations
+      ))
+      comps <- comps[keep_idx]
+    }
+
+    y_range <- range(values, na.rm = TRUE)
+    span <- diff(y_range)
+    if (!is.finite(span) || span == 0) span <- max(abs(y_range), 1, na.rm = TRUE)
+    base_y <- y_range[2] + 0.08 * span
+    step_y <- 0.12 * span
+
+    ann <- do.call(rbind, lapply(seq_along(comps), function(i) {
+      comp <- comps[[i]]
+      p_val <- .get_p(posthoc_obj$p.value, comp[1], comp[2])
+      data.frame(
+        x1 = match(comp[1], labels_in_order),
+        x2 = match(comp[2], labels_in_order),
+        y  = base_y + (i - 1) * step_y,
+        lbl = .fmt_p(p_val),
+        stringsAsFactors = FALSE
+      )
+    }))
+    ann$y_text <- ann$y + 0.025 * span
+    ann$y_tip  <- ann$y - 0.020 * span
+    ann$y_max  <- max(ann$y_text) + 0.06 * span
+    ann
+  }
+
+  # Add bracket layers to a ggplot object
+  .add_brackets <- function(p, ann) {
+    if (is.null(ann) || nrow(ann) == 0) return(p)
+    p +
+      ggplot2::geom_segment(
+        data = ann,
+        ggplot2::aes(x = .data$x1, xend = .data$x2, y = .data$y, yend = .data$y),
+        inherit.aes = FALSE
+      ) +
+      ggplot2::geom_segment(
+        data = ann,
+        ggplot2::aes(x = .data$x1, xend = .data$x1, y = .data$y_tip, yend = .data$y),
+        inherit.aes = FALSE
+      ) +
+      ggplot2::geom_segment(
+        data = ann,
+        ggplot2::aes(x = .data$x2, xend = .data$x2, y = .data$y_tip, yend = .data$y),
+        inherit.aes = FALSE
+      ) +
+      ggplot2::geom_text(
+        data = ann,
+        ggplot2::aes(
+          x = (.data$x1 + .data$x2) / 2,
+          y = .data$y_text,
+          label = .data$lbl
+        ),
+        inherit.aes = FALSE, size = 3
+      ) +
+      ggplot2::coord_cartesian(ylim = c(NA, ann$y_max[1]))
+  }
+
+  # Violin + box panel (<=6 labels). Factor ordering enforced via labs_order.
+  .panel <- function(df, x_col, y_col, title, subtitle, pal_map,
+                     labs_order, jitter = FALSE) {
+    df[[x_col]] <- factor(df[[x_col]], levels = labs_order)
+    p <- ggplot2::ggplot(
+      df,
+      ggplot2::aes(
+        x    = .data[[x_col]],
+        y    = .data[[y_col]],
+        fill = .data[[x_col]]
+      )
+    ) +
+      ggplot2::geom_violin(alpha = 0.6) +
+      ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
+      ggplot2::labs(title = title, subtitle = subtitle, y = y_col, x = NULL) +
+      ggplot2::scale_fill_manual(values = pal_map) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(legend.position = "none")
+    if (jitter) {
+      p <- p + ggplot2::geom_jitter(width = 0.12, alpha = 0.35, size = 0.9)
+    }
+    p
+  }
+
+  # Mean ± SE trend-line panel (>6 labels). X treated as ordered factor.
+  .trend_panel <- function(df, x_col, y_col, title, subtitle, labs_order) {
+    agg <- do.call(rbind, lapply(labs_order, function(lbl) {
+      vals <- df[[y_col]][as.character(df[[x_col]]) == lbl]
+      n    <- sum(!is.na(vals))
+      data.frame(
+        label = lbl,
+        mean  = mean(vals, na.rm = TRUE),
+        se    = if (n > 1) sd(vals, na.rm = TRUE) / sqrt(n) else 0,
+        stringsAsFactors = FALSE
+      )
+    }))
+    agg$label <- factor(agg$label, levels = labs_order)
+
+    ggplot2::ggplot(
+      agg,
+      ggplot2::aes(x = .data$label, y = .data$mean, group = 1)
+    ) +
+      ggplot2::geom_ribbon(
+        ggplot2::aes(
+          ymin = .data$mean - .data$se,
+          ymax = .data$mean + .data$se
+        ),
+        alpha = 0.2, fill = "steelblue"
+      ) +
+      ggplot2::geom_line(color = "steelblue", linewidth = 0.9) +
+      ggplot2::geom_point(color = "steelblue", size = 2) +
+      ggplot2::labs(
+        title    = title,
+        subtitle = subtitle,
+        y        = y_col,
+        x        = NULL
+      ) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(
+        legend.position  = "none",
+        axis.text.x      = ggplot2::element_text(angle = 45, hjust = 1)
+      )
+  }
+
+  dims      <- result$dims
+  many_labs <- FALSE
+
+  # ---- Dispatch on type ----
+  if (result$type == "variability") {
+    # ---- trajectory_variability ----
+    pw  <- result$pairwise
+    dis <- result$dispersion
+    pl  <- result$path_length
+    tst <- result$tests
+
+    labs_order <- .sort_labels(unique(as.character(pw$label)))
+    many_labs  <- length(labs_order) > 6
+    pal_map    <- .make_pal(labs_order, palette)
+
+    kw_pw  <- if (!is.null(tst)) .fmt_p(tst$kruskal$pairwise$p.value)    else NULL
+    kw_dis <- if (!is.null(tst)) .fmt_p(tst$kruskal$dispersion$p.value)  else NULL
+    kw_pl  <- if (!is.null(tst)) .fmt_p(tst$kruskal$path_length$p.value) else NULL
+
+    if (many_labs) {
+      p1 <- .trend_panel(pw,  "label", "mean_dist",   "Mean Pairwise Distance", kw_pw,  labs_order)
+      p2 <- .trend_panel(dis, "label", "dispersion",  "Centroid Dispersion",    kw_dis, labs_order)
+      p3 <- .trend_panel(pl,  "label", "path_length", "Trajectory Path Length", kw_pl,  labs_order)
+    } else {
+      p1 <- .panel(pw,  "label", "mean_dist",   "Mean Pairwise Distance", kw_pw,  pal_map, labs_order)
+      p2 <- .panel(dis, "label", "dispersion",  "Centroid Dispersion",    kw_dis, pal_map, labs_order)
+      p3 <- .panel(pl,  "label", "path_length", "Trajectory Path Length", kw_pl,  pal_map, labs_order)
+      if (!is.null(tst)) {
+        p1 <- .add_brackets(p1, .brackets(pw$mean_dist,   tst$posthoc$pairwise,    labs_order, max_annotations))
+        p2 <- .add_brackets(p2, .brackets(dis$dispersion, tst$posthoc$dispersion,  labs_order, max_annotations))
+        p3 <- .add_brackets(p3, .brackets(pl$path_length, tst$posthoc$path_length, labs_order, max_annotations))
+      }
+    }
+
+    combined <- (p1 + p2 + p3) +
+      patchwork::plot_annotation(
+        title    = "Trajectory Variability Comparison",
+        subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
+      )
+
+  } else if (result$type == "width_variability") {
+    # ---- trajectory_width_variability ----
+    wd  <- result$width
+    tst <- result$tests
+
+    labs_order <- .sort_labels(unique(as.character(wd$label)))
+    many_labs  <- length(labs_order) > 6
+    pal_map    <- .make_pal(labs_order, palette)
+
+    kw_tot  <- if (!is.null(tst)) .fmt_p(tst$kruskal$total$p.value)      else NULL
+    kw_orth <- if (!is.null(tst)) .fmt_p(tst$kruskal$orthogonal$p.value) else NULL
+    kw_par  <- if (!is.null(tst)) .fmt_p(tst$kruskal$parallel$p.value)   else NULL
+
+    if (many_labs) {
+      p1 <- .trend_panel(wd, "label", "total_rms",      "Total RMS Residual",      kw_tot,  labs_order)
+      p2 <- .trend_panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, labs_order)
+      p3 <- .trend_panel(wd, "label", "parallel_rms",   "Parallel RMS Residual",   kw_par,  labs_order)
+    } else {
+      p1 <- .panel(wd, "label", "total_rms",      "Total RMS Residual",      kw_tot,  pal_map, labs_order)
+      p2 <- .panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, pal_map, labs_order)
+      p3 <- .panel(wd, "label", "parallel_rms",   "Parallel RMS Residual",   kw_par,  pal_map, labs_order)
+      if (!is.null(tst)) {
+        p1 <- .add_brackets(p1, .brackets(wd$total_rms,      tst$posthoc$total,      labs_order, max_annotations))
+        p2 <- .add_brackets(p2, .brackets(wd$orthogonal_rms, tst$posthoc$orthogonal, labs_order, max_annotations))
+        p3 <- .add_brackets(p3, .brackets(wd$parallel_rms,   tst$posthoc$parallel,   labs_order, max_annotations))
+      }
+    }
+
+    combined <- (p1 + p2 + p3) +
+      patchwork::plot_annotation(
+        title    = "Trajectory Width Variability Comparison",
+        subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
+      )
+
+  } else {
+    # ---- trajectory_umap_occupancy ----
+    occ <- result$occupancy
+    tst <- result$tests
+
+    labs_order <- .sort_labels(unique(as.character(occ$label)))
+    many_labs  <- length(labs_order) > 6
+    pal_map    <- .make_pal(labs_order, palette)
+
+    kw_occ <- if (!is.null(tst)) .fmt_p(tst$kruskal$occupied_fraction$p.value)  else NULL
+    kw_ent <- if (!is.null(tst)) .fmt_p(tst$kruskal$entropy$p.value)             else NULL
+    kw_per <- if (!is.null(tst)) .fmt_p(tst$kruskal$peripheral_fraction$p.value) else NULL
+    kw_knn <- if (!is.null(tst)) .fmt_p(tst$kruskal$knn_dispersion$p.value)      else NULL
+
+    if (many_labs) {
+      p1 <- .trend_panel(occ, "label", "occupied_fraction",      "Occupied Fraction",         kw_occ, labs_order)
+      p2 <- .trend_panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy",         kw_ent, labs_order)
+      p3 <- .trend_panel(occ, "label", "peripheral_fraction",    "Peripheral Fraction",       kw_per, labs_order)
+      p4 <- .trend_panel(occ, "label", "knn_dispersion",         "Same-Label kNN Dispersion", kw_knn, labs_order)
+    } else {
+      p1 <- .panel(occ, "label", "occupied_fraction",      "Occupied Fraction",         kw_occ, pal_map, labs_order, jitter = TRUE)
+      p2 <- .panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy",         kw_ent, pal_map, labs_order, jitter = TRUE)
+      p3 <- .panel(occ, "label", "peripheral_fraction",    "Peripheral Fraction",       kw_per, pal_map, labs_order, jitter = TRUE)
+      p4 <- .panel(occ, "label", "knn_dispersion",         "Same-Label kNN Dispersion", kw_knn, pal_map, labs_order, jitter = TRUE)
+      if (!is.null(tst)) {
+        p1 <- .add_brackets(p1, .brackets(occ$occupied_fraction,      tst$posthoc$occupied_fraction,   labs_order, max_annotations))
+        p2 <- .add_brackets(p2, .brackets(occ$occupancy_entropy_norm, tst$posthoc$entropy,             labs_order, max_annotations))
+        p3 <- .add_brackets(p3, .brackets(occ$peripheral_fraction,    tst$posthoc$peripheral_fraction, labs_order, max_annotations))
+        p4 <- .add_brackets(p4, .brackets(occ$knn_dispersion,         tst$posthoc$knn_dispersion,      labs_order, max_annotations))
+      }
+    }
+
+    combined <- (p1 + p2 + p3 + p4) +
+      patchwork::plot_annotation(
+        title    = "Trajectory UMAP Occupancy Comparison",
+        subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
+      )
+  }
+
+  print(combined)
+  invisible(combined)
 }

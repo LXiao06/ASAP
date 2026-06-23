@@ -14,7 +14,7 @@ trajectory_width_variability(x, ...)
   trim_fraction = 0.1,
   min_coverage = 0.5,
   labels = NULL,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -26,7 +26,7 @@ trajectory_width_variability(x, ...)
   trim_fraction = 0.1,
   min_coverage = 0.5,
   labels = NULL,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -46,7 +46,9 @@ for it to contribute to the reference trajectory (default: 0.5)}
 
 \item{labels}{Optional character vector of labels to include}
 
-\item{palette}{Color palette name for plotting (default: "Set1")}
+\item{stats}{Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
+Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
+\code{NULL} for \code{tests}.}
 
 \item{verbose}{Whether to print progress messages (default: TRUE)}
 
@@ -56,13 +58,17 @@ for it to contribute to the reference trajectory (default: 0.5)}
 \value{
 A list (returned invisibly) with the following elements:
 \itemize{
+\item \code{type}: Character string \code{"width_variability"}, used by
+\code{plot_trajectory_variability()} for dispatch
 \item \code{width}: Per-rendition width metrics
 \item \code{summary}: Summary table with mean and SD for each metric per label
 \item \code{mean_trajectories}: Label-specific mean trajectories
 \item \code{tangent_vectors}: Label-specific unit tangent vectors
-\item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests when multiple
-labels are present
+\item \code{tests}: Kruskal-Wallis and pairwise Wilcoxon tests (\code{NULL}
+when \code{stats = FALSE} or only one label is present)
 }
+
+Use \code{\link{plot_trajectory_variability}(result)} to visualise the output.
 }
 \description{
 Quantifies rendition-to-rendition trajectory "width" by measuring residual

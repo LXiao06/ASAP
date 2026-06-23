@@ -1304,3 +1304,151 @@ plot_umap2.Sap <- function(x,
 
   invisible(x)
 }
+
+
+#' Plot PCA coordinates of feature embeddings
+#'
+#' @description
+#' Wrapper for \code{\link{plot_umap}} to plot PCA coordinates (PC1 and PC2) instead of UMAP.
+#' Inherits all arguments from \code{\link{plot_umap}}.
+#'
+#' @param x A data frame or a SAP object.
+#' @param dims Character vector of length 2 specifying the PCA dimensions to plot. Default is \code{c("PC1", "PC2")}.
+#' @param ... Additional arguments passed to \code{\link{plot_umap}}.
+#'
+#' @export
+plot_PC <- function(x, ...) {
+  UseMethod("plot_PC")
+}
+
+#' @rdname plot_PC
+#' @export
+plot_PC.default <- function(x, dims = c("PC1", "PC2"), ...) {
+  plot_umap.default(x = x, dims = dims, ...)
+}
+
+#' @rdname plot_PC
+#' @export
+plot_PC.Sap <- function(x,
+                        segment_type = c("motifs", "syllables", "bouts", "segments"),
+                        dims = c("PC1", "PC2"),
+                        verbose = TRUE,
+                        ...) {
+  if (verbose) {
+    message(sprintf(
+      "\n=== Starting PC Plotting for %s ===\n",
+      segment_type[1]
+    ))
+  }
+
+  # Validate input
+  if (!inherits(x, "Sap")) {
+    stop("Input must be a SAP object")
+  }
+
+  # Match segment_type argument
+  segment_type <- match.arg(segment_type)
+
+  # Get feature type
+  feature_type <- sub("s$", "", segment_type)
+
+  # Check if feat.embeds exists
+  if (is.null(x$features[[feature_type]][["feat.embeds"]])) {
+    stop(sprintf("No embeddings found for %s. Run run_pca() or run_umap() first.", segment_type))
+  }
+
+  # Get the data
+  data <- x$features[[feature_type]][["feat.embeds"]]
+
+  # Check if PC coordinates exist
+  if (!all(dims %in% colnames(data))) {
+    stop(sprintf(
+      "PC coordinates (%s) not found. Run run_pca() first.",
+      paste(dims, collapse = ", ")
+    ))
+  }
+
+  p <- plot_PC.default(
+    x = data,
+    dims = dims,
+    ...
+  )
+
+  print(p)
+
+  invisible(x)
+}
+
+
+#' Plot PCA coordinates of trajectories over time
+#'
+#' @description
+#' Wrapper for \code{\link{plot_umap2}} to plot PCA coordinates (PC1 and PC2) instead of UMAP.
+#' Inherits all arguments from \code{\link{plot_umap2}}.
+#'
+#' @param x A data frame or a SAP object.
+#' @param dims Character vector of length 2 specifying the PCA dimensions to plot. Default is \code{c("PC1", "PC2")}.
+#' @param ... Additional arguments passed to \code{\link{plot_umap2}}.
+#'
+#' @export
+plot_PC2 <- function(x, ...) {
+  UseMethod("plot_PC2")
+}
+
+#' @rdname plot_PC2
+#' @export
+plot_PC2.default <- function(x, dims = c("PC1", "PC2"), ...) {
+  plot_umap2.default(x = x, dims = dims, ...)
+}
+
+#' @rdname plot_PC2
+#' @export
+plot_PC2.Sap <- function(x,
+                         segment_type = c("motifs", "syllables", "bouts", "segments"),
+                         data_type = c("feat.embeds", "traj.embeds"),
+                         dims = c("PC1", "PC2"),
+                         verbose = TRUE,
+                         ...) {
+  if (verbose) {
+    message(sprintf(
+      "\n=== Starting PC Plotting for %s using %s ===\n",
+      segment_type[1],
+      data_type[1]
+    ))
+  }
+
+  # Validate input
+  if (!inherits(x, "Sap")) stop("Input must be a SAP object")
+
+  # Match arguments
+  segment_type <- match.arg(segment_type)
+  data_type <- match.arg(data_type)
+
+  # Get feature type
+  feature_type <- sub("s$", "", segment_type)
+
+  # Get appropriate data frame
+  plot_data <- x$features[[feature_type]][[data_type]]
+  if (is.null(plot_data)) {
+    stop(sprintf("No %s data found in %s features", data_type, feature_type))
+  }
+
+  # Check if PC coordinates exist
+  if (!all(dims %in% colnames(plot_data))) {
+    stop(sprintf(
+      "PC coordinates (%s) not found. Run run_pca() first.",
+      paste(dims, collapse = ", ")
+    ))
+  }
+
+  p <- plot_PC2.default(
+    x = plot_data,
+    dims = dims,
+    ...
+  )
+
+  print(p)
+
+  invisible(x)
+}
+
