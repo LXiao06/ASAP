@@ -33,7 +33,7 @@ check the results.
 ``` r
 
 library(ASAP)
-#> ASAP v0.3.5.9001 loaded.
+#> ASAP v0.3.5.9002 loaded.
 
 # Get path to example WAV file included with the package
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
@@ -274,8 +274,8 @@ if (!is.null(bout_export_meta) && nrow(bout_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| bout_001 | 1.057 | 3.553 | 2.496 | /tmp/Rtmpw7ExWN/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
-| bout_002 | 4.156 | 4.946 | 0.789 | /tmp/Rtmpw7ExWN/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
+| bout_001 | 1.057 | 3.553 | 2.496 | /tmp/RtmpRkKsyF/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_002 | 4.156 | 4.946 | 0.789 | /tmp/RtmpRkKsyF/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
 
 ### Step 4: Visualize the exported bout files
 
@@ -341,7 +341,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.5.9001
+#> [1] ASAP_0.3.5.9002
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    
