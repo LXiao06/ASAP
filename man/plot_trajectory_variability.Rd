@@ -45,7 +45,7 @@ returned invisibly so the caller can save or further modify it.
 }
 \description{
 A unified plotting function for results produced by
-\code{\link{trajectory_variability}}, \code{\link{trajectory_width_variability}},
+\code{\link{trajectory_dispersion}}, \code{\link{trajectory_path_deviation}},
 or \code{\link{trajectory_umap_occupancy}}. Dispatches to the appropriate
 panel layout based on the \code{type} field embedded in \code{result} or
 retrieved from the SAP object and draws significance brackets when statistical
@@ -54,9 +54,9 @@ tests are present.
 \details{
 Panel layouts by result type:
 \describe{
-\item{\code{"variability"}}{3 panels: Mean Pairwise Distance · Centroid
+\item{\code{"dispersion"}}{3 panels: Mean Pairwise Distance · Centroid
 Dispersion · Path Length}
-\item{\code{"width_variability"}}{3 panels: Total RMS · Orthogonal RMS ·
+\item{\code{"path_deviation"}}{3 panels: Total RMS · Orthogonal RMS ·
 Parallel RMS}
 \item{\code{"umap_occupancy"}}{4 panels: Occupied Fraction · Occupancy
 Entropy · Peripheral Fraction · kNN Dispersion}
