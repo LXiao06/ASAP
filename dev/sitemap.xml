@@ -80,6 +80,8 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/parallel_pca.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/parse_filename.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/pitch_goodness.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_PC.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_PC2.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_bout_detection.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_clusters.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_group.html</loc></url>
@@ -88,6 +90,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_single_umap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_syllable_detection.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_traces.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_umap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_umap2.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/prepare_clip_export_rows.html</loc></url>

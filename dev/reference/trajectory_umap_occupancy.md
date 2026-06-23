@@ -19,7 +19,7 @@ trajectory_umap_occupancy(
   k = 15,
   peripheral_quantile = 0.2,
   labels = NULL,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -33,7 +33,7 @@ trajectory_umap_occupancy(
   k = 15,
   peripheral_quantile = 0.2,
   labels = NULL,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -71,9 +71,11 @@ trajectory_umap_occupancy(
 
   Optional character vector of labels to include
 
-- palette:
+- stats:
 
-  Color palette name for plotting (default: "Set1")
+  Logical. If `TRUE` (default), run Kruskal-Wallis and pairwise Wilcoxon
+  tests. Set to `FALSE` to skip statistical testing and return `NULL`
+  for `tests`.
 
 - verbose:
 
@@ -88,6 +90,10 @@ trajectory_umap_occupancy(
 
 A list (returned invisibly) with the following elements:
 
+- `type`: Character string `"umap_occupancy"`, used by
+  [`plot_trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.md)
+  for dispatch
+
 - `occupancy`: Per-rendition occupancy metrics
 
 - `summary`: Summary table with mean and SD for each metric per label
@@ -98,7 +104,12 @@ A list (returned invisibly) with the following elements:
 
 - `grid_info`: Grid settings and peripheral threshold metadata
 
-- `tests`: Kruskal-Wallis and pairwise Wilcoxon tests
+- `tests`: Kruskal-Wallis and pairwise Wilcoxon tests (`NULL` when
+  `stats = FALSE` or only one label is present)
+
+Use
+[`plot_trajectory_variability`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.md)`(result)`
+to visualise the output.
 
 ## Details
 

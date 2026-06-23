@@ -15,7 +15,7 @@ trajectory_variability(
   labels = NULL,
   max_pairs = 5000,
   seed = 222,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -28,7 +28,7 @@ trajectory_variability(
   labels = NULL,
   max_pairs = 5000,
   seed = 222,
-  palette = "Set1",
+  stats = TRUE,
   verbose = TRUE,
   ...
 )
@@ -61,9 +61,11 @@ trajectory_variability(
 
   Random seed for reproducible pair sampling (default: 222)
 
-- palette:
+- stats:
 
-  Color palette name for plotting (default: "Set1")
+  Logical. If `TRUE` (default), run Kruskal-Wallis and pairwise Wilcoxon
+  tests. Set to `FALSE` to skip statistical testing and return `NULL`
+  for `tests`.
 
 - verbose:
 
@@ -89,9 +91,16 @@ A list (returned invisibly) with the following elements:
 
 - `summary`: Summary table with mean and SD for each metric per label
 
-- `tests`: List of statistical test results
+- `tests`: List of statistical test results (`NULL` when
+  `stats = FALSE`)
 
-A summary plot is printed as a side effect.
+- `type`: Character string `"variability"`, used by
+  [`plot_trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.md)
+  for dispatch
+
+Use
+[`plot_trajectory_variability`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.md)`(result)`
+to visualise the output.
 
 ## Details
 

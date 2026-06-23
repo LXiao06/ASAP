@@ -102,6 +102,12 @@ Plotting functionality for exploring ASAP objects
   : Plot UMAP Visualization
 - [`plot_umap2()`](https://lxiao06.github.io/ASAP/dev/reference/plot_umap2.md)
   : Plot UMAP Visualization for Trajectory Analysis
+- [`plot_PC()`](https://lxiao06.github.io/ASAP/dev/reference/plot_PC.md)
+  : Plot PCA coordinates of feature embeddings
+- [`plot_PC2()`](https://lxiao06.github.io/ASAP/dev/reference/plot_PC2.md)
+  : Plot PCA coordinates of trajectories over time
+- [`plot_trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.md)
+  : Plot Trajectory Variability Results
 - [`plot_motif_boundaries()`](https://lxiao06.github.io/ASAP/dev/reference/plot_motif_boundaries.md)
   : Visualize Motif Boundaries in Audio Data
 - [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md)

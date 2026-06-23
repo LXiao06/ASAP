@@ -489,14 +489,14 @@ sessionInfo()
 #>  [9] RColorBrewer_1.1-3 fastmap_1.2.0      jsonlite_2.0.0     Matrix_1.7-5      
 #> [13] monitoR_1.2        tuneR_1.4.7        purrr_1.2.2        scales_1.4.0      
 #> [17] pbapply_1.7-4      textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.6         
-#> [21] rlang_1.2.0        pbmcapply_1.5.1    fftw_1.0-9         withr_3.0.2       
+#> [21] rlang_1.2.0        pbmcapply_1.5.1    fftw_1.0-9         withr_3.0.3       
 #> [25] seewave_2.2.4      cachem_1.1.0       yaml_2.3.12        otel_0.2.0        
 #> [29] av_0.9.6           tools_4.6.0        parallel_4.6.0     dplyr_1.2.1       
 #> [33] ggplot2_4.0.3      reticulate_1.46.0  png_0.1-9          vctrs_0.7.3       
 #> [37] R6_2.6.1           lifecycle_1.0.5    fs_2.1.0           MASS_7.3-65       
 #> [41] ragg_1.5.2         pkgconfig_2.0.3    desc_1.4.3         pkgdown_2.2.0     
 #> [45] pillar_1.11.1      bslib_0.11.0       gtable_0.3.6       glue_1.8.1        
-#> [49] Rcpp_1.1.1-1.1     systemfonts_1.3.2  xfun_0.58          tibble_3.3.1      
+#> [49] Rcpp_1.1.1-1.1     systemfonts_1.3.2  xfun_0.59          tibble_3.3.1      
 #> [53] tidyselect_1.2.1   knitr_1.51         farver_2.1.2       htmltools_0.5.9   
 #> [57] patchwork_1.3.2    rmarkdown_2.31     signal_1.8-1       compiler_4.6.0    
 #> [61] S7_0.2.2
