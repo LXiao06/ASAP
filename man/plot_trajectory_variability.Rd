@@ -2,31 +2,42 @@
 % Please edit documentation in R/trajectory.R
 \name{plot_trajectory_variability}
 \alias{plot_trajectory_variability}
+\alias{plot_trajectory_variability.default}
+\alias{plot_trajectory_variability.Sap}
 \title{Plot Trajectory Variability Results}
 \usage{
-plot_trajectory_variability(
-  result,
+plot_trajectory_variability(x, ...)
+
+\method{plot_trajectory_variability}{default}(x, palette = "Set1", max_annotations = 10, ...)
+
+\method{plot_trajectory_variability}{Sap}(
+  x,
+  segment_type = c("motifs", "syllables", "bouts", "segments"),
+  variability_type = c("variability", "width_variability", "umap_occupancy"),
   palette = "Set1",
   max_annotations = 10,
   ...
 )
 }
 \arguments{
-\item{result}{A list returned by \code{trajectory_variability()},
+\item{x}{A list returned by \code{trajectory_variability()},
 \code{trajectory_width_variability()}, or
-\code{trajectory_umap_occupancy()}.  Must contain a \code{type} element
-(one of \code{"variability"}, \code{"width_variability"},
-\code{"umap_occupancy"}).}
+\code{trajectory_umap_occupancy()} (for the default method); or a SAP object
+(for the Sap method).}
 
-\item{palette}{RColorBrewer palette name (default: \code{"Set1"}).  When the
+\item{...}{Additional arguments passed to specific methods.}
+
+\item{palette}{RColorBrewer palette name (default: \code{"Set1"}). When the
 number of labels exceeds the palette's maximum, colours are interpolated
 automatically via \code{colorRampPalette}.}
 
 \item{max_annotations}{Maximum number of pairwise significance brackets to
-draw per panel (default: \code{10}).  When more comparisons exist, the
+draw per panel (default: \code{10}). When more comparisons exist, the
 most significant pairs are retained and a message is issued.}
 
-\item{...}{Currently unused; reserved for future extensions.}
+\item{segment_type}{For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')}
+
+\item{variability_type}{For SAP objects: Which computed variability type to plot ('variability', 'width_variability', 'umap_occupancy')}
 }
 \value{
 The assembled \pkg{patchwork} object, printed as a side-effect and
@@ -35,9 +46,10 @@ returned invisibly so the caller can save or further modify it.
 \description{
 A unified plotting function for results produced by
 \code{\link{trajectory_variability}}, \code{\link{trajectory_width_variability}},
-or \code{\link{trajectory_umap_occupancy}}.  Dispatches to the appropriate
-panel layout based on the \code{type} field embedded in \code{result} and
-draws significance brackets when statistical tests are present.
+or \code{\link{trajectory_umap_occupancy}}. Dispatches to the appropriate
+panel layout based on the \code{type} field embedded in \code{result} or
+retrieved from the SAP object and draws significance brackets when statistical
+tests are present.
 }
 \details{
 Panel layouts by result type:
@@ -50,21 +62,20 @@ Parallel RMS}
 Entropy · Peripheral Fraction · kNN Dispersion}
 }
 
-Each panel displays a violin + box plot coloured by label.  When
-\code{result$tests} is not \code{NULL}, Kruskal-Wallis p-values are shown
+Each panel displays a violin + box plot coloured by label. When
+statistical tests are not \code{NULL}, Kruskal-Wallis p-values are shown
 as subtitles and pairwise Wilcoxon p-values appear as significance brackets
 above the data.
 }
 \examples{
 \dontrun{
-result <- trajectory_variability(sap)
+# Plotting directly from a result list
+result <- trajectory_variability(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
 plot_trajectory_variability(result)
 
-result2 <- trajectory_width_variability(sap)
-plot_trajectory_variability(result2, palette = "Dark2")
-
-result3 <- trajectory_umap_occupancy(sap)
-p <- plot_trajectory_variability(result3, max_annotations = 6)
+# Plotting from a SAP object with pre-computed results
+sap <- trajectory_variability(sap)
+plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "variability")
 }
 
 }

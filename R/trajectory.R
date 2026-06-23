@@ -1175,7 +1175,10 @@ trajectory_variability.Sap <- function(x,
     ...
   )
 
-  invisible(result)
+  # Write back to SAP object
+  x$features[[feature_type]][["trajectory_variability"]] <- result
+
+  invisible(x)
 }
 
 
@@ -1557,7 +1560,10 @@ trajectory_width_variability.Sap <- function(x,
     ...
   )
 
-  invisible(result)
+  # Write back to SAP object
+  x$features[[feature_type]][["trajectory_width_variability"]] <- result
+
+  invisible(x)
 }
 
 
@@ -1949,7 +1955,10 @@ trajectory_umap_occupancy.Sap <- function(x,
     ...
   )
 
-  invisible(result)
+  # Write back to SAP object
+  x$features[[feature_type]][["trajectory_umap_occupancy"]] <- result
+
+  invisible(x)
 }
 
 
@@ -1961,22 +1970,24 @@ trajectory_umap_occupancy.Sap <- function(x,
 #' @description
 #' A unified plotting function for results produced by
 #' \code{\link{trajectory_variability}}, \code{\link{trajectory_width_variability}},
-#' or \code{\link{trajectory_umap_occupancy}}.  Dispatches to the appropriate
-#' panel layout based on the \code{type} field embedded in \code{result} and
-#' draws significance brackets when statistical tests are present.
+#' or \code{\link{trajectory_umap_occupancy}}. Dispatches to the appropriate
+#' panel layout based on the \code{type} field embedded in \code{result} or
+#' retrieved from the SAP object and draws significance brackets when statistical
+#' tests are present.
 #'
-#' @param result A list returned by \code{trajectory_variability()},
+#' @param x A list returned by \code{trajectory_variability()},
 #'   \code{trajectory_width_variability()}, or
-#'   \code{trajectory_umap_occupancy()}.  Must contain a \code{type} element
-#'   (one of \code{"variability"}, \code{"width_variability"},
-#'   \code{"umap_occupancy"}).
-#' @param palette RColorBrewer palette name (default: \code{"Set1"}).  When the
+#'   \code{trajectory_umap_occupancy()} (for the default method); or a SAP object
+#'   (for the Sap method).
+#' @param palette RColorBrewer palette name (default: \code{"Set1"}). When the
 #'   number of labels exceeds the palette's maximum, colours are interpolated
 #'   automatically via \code{colorRampPalette}.
 #' @param max_annotations Maximum number of pairwise significance brackets to
-#'   draw per panel (default: \code{10}).  When more comparisons exist, the
+#'   draw per panel (default: \code{10}). When more comparisons exist, the
 #'   most significant pairs are retained and a message is issued.
-#' @param ... Currently unused; reserved for future extensions.
+#' @param segment_type For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')
+#' @param variability_type For SAP objects: Which computed variability type to plot ('variability', 'width_variability', 'umap_occupancy')
+#' @param ... Additional arguments passed to specific methods.
 #'
 #' @details
 #' Panel layouts by result type:
@@ -1989,8 +2000,8 @@ trajectory_umap_occupancy.Sap <- function(x,
 #'     Entropy · Peripheral Fraction · kNN Dispersion}
 #' }
 #'
-#' Each panel displays a violin + box plot coloured by label.  When
-#' \code{result$tests} is not \code{NULL}, Kruskal-Wallis p-values are shown
+#' Each panel displays a violin + box plot coloured by label. When
+#' statistical tests are not \code{NULL}, Kruskal-Wallis p-values are shown
 #' as subtitles and pairwise Wilcoxon p-values appear as significance brackets
 #' above the data.
 #'
@@ -1999,21 +2010,28 @@ trajectory_umap_occupancy.Sap <- function(x,
 #'
 #' @examples
 #' \dontrun{
-#' result <- trajectory_variability(sap)
+#' # Plotting directly from a result list
+#' result <- trajectory_variability(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
 #' plot_trajectory_variability(result)
 #'
-#' result2 <- trajectory_width_variability(sap)
-#' plot_trajectory_variability(result2, palette = "Dark2")
-#'
-#' result3 <- trajectory_umap_occupancy(sap)
-#' p <- plot_trajectory_variability(result3, max_annotations = 6)
+#' # Plotting from a SAP object with pre-computed results
+#' sap <- trajectory_variability(sap)
+#' plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "variability")
 #' }
 #'
 #' @export
-plot_trajectory_variability <- function(result,
-                                        palette = "Set1",
-                                        max_annotations = 10,
-                                        ...) {
+plot_trajectory_variability <- function(x, ...) {
+  UseMethod("plot_trajectory_variability")
+}
+
+
+#' @rdname plot_trajectory_variability
+#' @export
+plot_trajectory_variability.default <- function(x,
+                                                palette = "Set1",
+                                                max_annotations = 10,
+                                                ...) {
+  result <- x
   # ---- Validate input ----
   if (!is.list(result) || is.null(result$type)) {
     stop(paste(
@@ -2323,4 +2341,38 @@ plot_trajectory_variability <- function(result,
 
   print(combined)
   invisible(combined)
+}
+
+
+#' @rdname plot_trajectory_variability
+#' @export
+plot_trajectory_variability.Sap <- function(x,
+                                            segment_type = c("motifs", "syllables", "bouts", "segments"),
+                                            variability_type = c("variability", "width_variability", "umap_occupancy"),
+                                            palette = "Set1",
+                                            max_annotations = 10,
+                                            ...) {
+  if (!inherits(x, "Sap")) stop("Input must be a SAP object")
+  segment_type <- match.arg(segment_type)
+  variability_type <- match.arg(variability_type)
+
+  feature_type <- sub("s$", "", segment_type)
+  slot_name <- paste0("trajectory_", variability_type)
+
+  result <- x$features[[feature_type]][[slot_name]]
+  if (is.null(result)) {
+    stop(sprintf(
+      "No %s results found for %s. Run trajectory_%s() first.",
+      variability_type,
+      segment_type,
+      variability_type
+    ))
+  }
+
+  plot_trajectory_variability.default(
+    x = result,
+    palette = palette,
+    max_annotations = max_annotations,
+    ...
+  )
 }
