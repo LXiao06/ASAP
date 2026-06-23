@@ -2373,7 +2373,14 @@ plot_trajectory_variability.default <- function(x,
       )
   }
 
-  print(combined)
+  withCallingHandlers(
+    print(combined),
+    warning = function(w) {
+      if (grepl("annotation$theme is not a valid theme", w$message, fixed = TRUE)) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
   invisible(combined)
 }
 
