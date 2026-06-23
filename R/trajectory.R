@@ -1050,9 +1050,9 @@ trajectory_dispersion.default <- function(x,
   # ==== Statistical Tests ====
   if (stats) {
     # Kruskal-Wallis omnibus tests
-    test_pw   <- stats::kruskal.test(mean_dist   ~ label, data = pairwise_results)
-    test_disp <- stats::kruskal.test(dispersion  ~ label, data = dispersion_results)
-    test_pl   <- stats::kruskal.test(path_length ~ label, data = path_length_results)
+    test_pw <- stats::kruskal.test(mean_dist ~ label, data = pairwise_results)
+    test_disp <- stats::kruskal.test(dispersion ~ label, data = dispersion_results)
+    test_pl <- stats::kruskal.test(path_length ~ label, data = path_length_results)
 
     # Pairwise Wilcoxon post-hoc tests
     posthoc_pw <- stats::pairwise.wilcox.test(
@@ -1107,13 +1107,13 @@ trajectory_dispersion.default <- function(x,
 
   # Return results
   invisible(list(
-    type       = "dispersion",
-    dims       = dims,
-    pairwise   = pairwise_results,
+    type = "dispersion",
+    dims = dims,
+    pairwise = pairwise_results,
     dispersion = dispersion_results,
     path_length = path_length_results,
-    summary    = summary_table,
-    tests      = tests
+    summary = summary_table,
+    tests = tests
   ))
 }
 
@@ -1434,9 +1434,9 @@ trajectory_path_deviation.default <- function(x,
   tests <- NULL
 
   if (stats && length(unique(width_results$label)) > 1) {
-    test_total    <- stats::kruskal.test(total_rms     ~ label, data = width_results)
-    test_orth     <- stats::kruskal.test(orthogonal_rms ~ label, data = width_results)
-    test_parallel <- stats::kruskal.test(parallel_rms  ~ label, data = width_results)
+    test_total <- stats::kruskal.test(total_rms ~ label, data = width_results)
+    test_orth <- stats::kruskal.test(orthogonal_rms ~ label, data = width_results)
+    test_parallel <- stats::kruskal.test(parallel_rms ~ label, data = width_results)
 
     posthoc_total <- stats::pairwise.wilcox.test(
       width_results$total_rms,
@@ -1789,10 +1789,10 @@ trajectory_umap_occupancy.default <- function(x,
 
   tests <- NULL
   if (stats && length(unique(occupancy_results$label)) > 1) {
-    test_occ <- stats::kruskal.test(occupied_fraction     ~ label, data = occupancy_results)
+    test_occ <- stats::kruskal.test(occupied_fraction ~ label, data = occupancy_results)
     test_ent <- stats::kruskal.test(occupancy_entropy_norm ~ label, data = occupancy_results)
-    test_per <- stats::kruskal.test(peripheral_fraction   ~ label, data = occupancy_results)
-    test_knn <- stats::kruskal.test(knn_dispersion        ~ label, data = occupancy_results)
+    test_per <- stats::kruskal.test(peripheral_fraction ~ label, data = occupancy_results)
+    test_knn <- stats::kruskal.test(knn_dispersion ~ label, data = occupancy_results)
 
     posthoc_occ <- stats::pairwise.wilcox.test(
       occupancy_results$occupied_fraction,
@@ -1822,15 +1822,15 @@ trajectory_umap_occupancy.default <- function(x,
     tests <- list(
       kruskal = list(
         occupied_fraction = test_occ,
-        entropy           = test_ent,
+        entropy = test_ent,
         peripheral_fraction = test_per,
-        knn_dispersion    = test_knn
+        knn_dispersion = test_knn
       ),
       posthoc = list(
         occupied_fraction = posthoc_occ,
-        entropy           = posthoc_ent,
+        entropy = posthoc_ent,
         peripheral_fraction = posthoc_per,
-        knn_dispersion    = posthoc_knn
+        knn_dispersion = posthoc_knn
       )
     )
 
@@ -1870,13 +1870,13 @@ trajectory_umap_occupancy.default <- function(x,
   }
 
   invisible(list(
-    type             = "umap_occupancy",
-    dims             = dims,
-    occupancy        = occupancy_results,
-    summary          = summary_df,
+    type = "umap_occupancy",
+    dims = dims,
+    occupancy = occupancy_results,
+    summary = summary_df,
     annotated_points = x,
-    bin_counts       = bin_counts,
-    grid_info        = list(
+    bin_counts = bin_counts,
+    grid_info = list(
       dims                = dims,
       grid_n              = grid_n,
       total_bins          = total_bins,
@@ -2074,16 +2074,25 @@ plot_trajectory_variability.default <- function(x,
 
   # Format p-value for subtitle / brackets
   .fmt_p <- function(p) {
-    if (is.null(p) || is.na(p)) return("p = NA")
+    if (is.null(p) || is.na(p)) {
+      return("p = NA")
+    }
     if (p < 0.001) sprintf("p = %.1e", p) else sprintf("p = %.3f", p)
   }
 
   # Look up a p-value from a pairwise matrix (symmetric)
   .get_p <- function(pmat, g1, g2) {
-    if (is.null(pmat)) return(NA_real_)
-    rn <- rownames(pmat); cn <- colnames(pmat)
-    if (g1 %in% rn && g2 %in% cn) return(pmat[g1, g2])
-    if (g2 %in% rn && g1 %in% cn) return(pmat[g2, g1])
+    if (is.null(pmat)) {
+      return(NA_real_)
+    }
+    rn <- rownames(pmat)
+    cn <- colnames(pmat)
+    if (g1 %in% rn && g2 %in% cn) {
+      return(pmat[g1, g2])
+    }
+    if (g2 %in% rn && g1 %in% cn) {
+      return(pmat[g2, g1])
+    }
     NA_real_
   }
 
@@ -2115,20 +2124,22 @@ plot_trajectory_variability.default <- function(x,
       data.frame(
         x1 = match(comp[1], labels_in_order),
         x2 = match(comp[2], labels_in_order),
-        y  = base_y + (i - 1) * step_y,
+        y = base_y + (i - 1) * step_y,
         lbl = .fmt_p(p_val),
         stringsAsFactors = FALSE
       )
     }))
     ann$y_text <- ann$y + 0.025 * span
-    ann$y_tip  <- ann$y - 0.020 * span
-    ann$y_max  <- max(ann$y_text) + 0.06 * span
+    ann$y_tip <- ann$y - 0.020 * span
+    ann$y_max <- max(ann$y_text) + 0.06 * span
     ann
   }
 
   # Add bracket layers to a ggplot object
   .add_brackets <- function(p, ann) {
-    if (is.null(ann) || nrow(ann) == 0) return(p)
+    if (is.null(ann) || nrow(ann) == 0) {
+      return(p)
+    }
     p +
       ggplot2::geom_segment(
         data = ann,
@@ -2161,6 +2172,12 @@ plot_trajectory_variability.default <- function(x,
   .panel <- function(df, x_col, y_col, title, subtitle, pal_map,
                      labs_order, jitter = FALSE) {
     df[[x_col]] <- factor(df[[x_col]], levels = labs_order)
+    n_labs <- length(labs_order)
+    x_breaks <- if (n_labs >= 5) {
+      labs_order[round(seq(1, n_labs, length.out = 5))]
+    } else {
+      labs_order
+    }
     p <- ggplot2::ggplot(
       df,
       ggplot2::aes(
@@ -2173,8 +2190,13 @@ plot_trajectory_variability.default <- function(x,
       ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
       ggplot2::labs(title = title, subtitle = subtitle, y = y_col, x = NULL) +
       ggplot2::scale_fill_manual(values = pal_map) +
-      ggplot2::theme_minimal() +
-      ggplot2::theme(legend.position = "none")
+      ggplot2::scale_x_discrete(breaks = x_breaks) +
+      ggplot2::theme_classic() +
+      ggplot2::theme(
+        legend.position  = "none",
+        panel.background = ggplot2::element_rect(fill = "white", color = NA),
+        plot.background  = ggplot2::element_rect(fill = "white", color = NA)
+      )
     if (jitter) {
       p <- p + ggplot2::geom_jitter(width = 0.12, alpha = 0.35, size = 0.9)
     }
@@ -2185,15 +2207,22 @@ plot_trajectory_variability.default <- function(x,
   .trend_panel <- function(df, x_col, y_col, title, subtitle, labs_order) {
     agg <- do.call(rbind, lapply(labs_order, function(lbl) {
       vals <- df[[y_col]][as.character(df[[x_col]]) == lbl]
-      n    <- sum(!is.na(vals))
+      n <- sum(!is.na(vals))
       data.frame(
         label = lbl,
-        mean  = mean(vals, na.rm = TRUE),
-        se    = if (n > 1) sd(vals, na.rm = TRUE) / sqrt(n) else 0,
+        mean = mean(vals, na.rm = TRUE),
+        se = if (n > 1) sd(vals, na.rm = TRUE) / sqrt(n) else 0,
         stringsAsFactors = FALSE
       )
     }))
     agg$label <- factor(agg$label, levels = labs_order)
+
+    n_labs <- length(labs_order)
+    x_breaks <- if (n_labs >= 5) {
+      labs_order[round(seq(1, n_labs, length.out = 5))]
+    } else {
+      labs_order
+    }
 
     ggplot2::ggplot(
       agg,
@@ -2214,123 +2243,133 @@ plot_trajectory_variability.default <- function(x,
         y        = y_col,
         x        = NULL
       ) +
-      ggplot2::theme_minimal() +
+      ggplot2::scale_x_discrete(breaks = x_breaks) +
+      ggplot2::theme_classic() +
       ggplot2::theme(
         legend.position  = "none",
-        axis.text.x      = ggplot2::element_text(angle = 45, hjust = 1)
+        axis.text.x      = ggplot2::element_text(angle = 45, hjust = 1),
+        panel.background = ggplot2::element_rect(fill = "white", color = NA),
+        plot.background  = ggplot2::element_rect(fill = "white", color = NA)
       )
   }
 
-  dims      <- result$dims
+  dims <- result$dims
   many_labs <- FALSE
 
   # ---- Dispatch on type ----
   if (result$type == "dispersion") {
     # ---- trajectory_dispersion ----
-    pw  <- result$pairwise
+    pw <- result$pairwise
     dis <- result$dispersion
-    pl  <- result$path_length
+    pl <- result$path_length
     tst <- result$tests
 
     labs_order <- .sort_labels(unique(as.character(pw$label)))
-    many_labs  <- length(labs_order) > 6
-    pal_map    <- .make_pal(labs_order, palette)
+    many_labs <- length(labs_order) > 6
+    pal_map <- .make_pal(labs_order, palette)
 
-    kw_pw  <- if (!is.null(tst)) .fmt_p(tst$kruskal$pairwise$p.value)    else NULL
-    kw_dis <- if (!is.null(tst)) .fmt_p(tst$kruskal$dispersion$p.value)  else NULL
-    kw_pl  <- if (!is.null(tst)) .fmt_p(tst$kruskal$path_length$p.value) else NULL
+    kw_pw <- if (!is.null(tst)) .fmt_p(tst$kruskal$pairwise$p.value) else NULL
+    kw_dis <- if (!is.null(tst)) .fmt_p(tst$kruskal$dispersion$p.value) else NULL
+    kw_pl <- if (!is.null(tst)) .fmt_p(tst$kruskal$path_length$p.value) else NULL
 
     if (many_labs) {
-      p1 <- .trend_panel(pw,  "label", "mean_dist",   "Mean Pairwise Distance", kw_pw,  labs_order)
-      p2 <- .trend_panel(dis, "label", "dispersion",  "Centroid Dispersion",    kw_dis, labs_order)
-      p3 <- .trend_panel(pl,  "label", "path_length", "Trajectory Path Length", kw_pl,  labs_order)
+      p1 <- .trend_panel(pw, "label", "mean_dist", "Mean Pairwise Distance", kw_pw, labs_order)
+      p2 <- .trend_panel(dis, "label", "dispersion", "Centroid Dispersion", kw_dis, labs_order)
+      p3 <- .trend_panel(pl, "label", "path_length", "Trajectory Path Length", kw_pl, labs_order)
     } else {
-      p1 <- .panel(pw,  "label", "mean_dist",   "Mean Pairwise Distance", kw_pw,  pal_map, labs_order)
-      p2 <- .panel(dis, "label", "dispersion",  "Centroid Dispersion",    kw_dis, pal_map, labs_order)
-      p3 <- .panel(pl,  "label", "path_length", "Trajectory Path Length", kw_pl,  pal_map, labs_order)
+      p1 <- .panel(pw, "label", "mean_dist", "Mean Pairwise Distance", kw_pw, pal_map, labs_order)
+      p2 <- .panel(dis, "label", "dispersion", "Centroid Dispersion", kw_dis, pal_map, labs_order)
+      p3 <- .panel(pl, "label", "path_length", "Trajectory Path Length", kw_pl, pal_map, labs_order)
       if (!is.null(tst)) {
-        p1 <- .add_brackets(p1, .brackets(pw$mean_dist,   tst$posthoc$pairwise,    labs_order, max_annotations))
-        p2 <- .add_brackets(p2, .brackets(dis$dispersion, tst$posthoc$dispersion,  labs_order, max_annotations))
+        p1 <- .add_brackets(p1, .brackets(pw$mean_dist, tst$posthoc$pairwise, labs_order, max_annotations))
+        p2 <- .add_brackets(p2, .brackets(dis$dispersion, tst$posthoc$dispersion, labs_order, max_annotations))
         p3 <- .add_brackets(p3, .brackets(pl$path_length, tst$posthoc$path_length, labs_order, max_annotations))
       }
     }
 
     combined <- (p1 + p2 + p3) +
       patchwork::plot_annotation(
-        title    = "Trajectory Dispersion Comparison",
-        subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
+        title = "Trajectory Dispersion Comparison",
+        subtitle = paste("Dimensions:", paste(dims, collapse = " + ")),
+        theme = ggplot2::theme(
+          plot.background = ggplot2::element_rect(fill = "white", color = NA)
+        )
       )
-
   } else if (result$type == "path_deviation") {
     # ---- trajectory_path_deviation ----
-    wd  <- result$width
+    wd <- result$width
     tst <- result$tests
 
     labs_order <- .sort_labels(unique(as.character(wd$label)))
-    many_labs  <- length(labs_order) > 6
-    pal_map    <- .make_pal(labs_order, palette)
+    many_labs <- length(labs_order) > 6
+    pal_map <- .make_pal(labs_order, palette)
 
-    kw_tot  <- if (!is.null(tst)) .fmt_p(tst$kruskal$total$p.value)      else NULL
+    kw_tot <- if (!is.null(tst)) .fmt_p(tst$kruskal$total$p.value) else NULL
     kw_orth <- if (!is.null(tst)) .fmt_p(tst$kruskal$orthogonal$p.value) else NULL
-    kw_par  <- if (!is.null(tst)) .fmt_p(tst$kruskal$parallel$p.value)   else NULL
+    kw_par <- if (!is.null(tst)) .fmt_p(tst$kruskal$parallel$p.value) else NULL
 
     if (many_labs) {
-      p1 <- .trend_panel(wd, "label", "total_rms",      "Total RMS Residual",      kw_tot,  labs_order)
+      p1 <- .trend_panel(wd, "label", "total_rms", "Total RMS Residual", kw_tot, labs_order)
       p2 <- .trend_panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, labs_order)
-      p3 <- .trend_panel(wd, "label", "parallel_rms",   "Parallel RMS Residual",   kw_par,  labs_order)
+      p3 <- .trend_panel(wd, "label", "parallel_rms", "Parallel RMS Residual", kw_par, labs_order)
     } else {
-      p1 <- .panel(wd, "label", "total_rms",      "Total RMS Residual",      kw_tot,  pal_map, labs_order)
+      p1 <- .panel(wd, "label", "total_rms", "Total RMS Residual", kw_tot, pal_map, labs_order)
       p2 <- .panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, pal_map, labs_order)
-      p3 <- .panel(wd, "label", "parallel_rms",   "Parallel RMS Residual",   kw_par,  pal_map, labs_order)
+      p3 <- .panel(wd, "label", "parallel_rms", "Parallel RMS Residual", kw_par, pal_map, labs_order)
       if (!is.null(tst)) {
-        p1 <- .add_brackets(p1, .brackets(wd$total_rms,      tst$posthoc$total,      labs_order, max_annotations))
+        p1 <- .add_brackets(p1, .brackets(wd$total_rms, tst$posthoc$total, labs_order, max_annotations))
         p2 <- .add_brackets(p2, .brackets(wd$orthogonal_rms, tst$posthoc$orthogonal, labs_order, max_annotations))
-        p3 <- .add_brackets(p3, .brackets(wd$parallel_rms,   tst$posthoc$parallel,   labs_order, max_annotations))
+        p3 <- .add_brackets(p3, .brackets(wd$parallel_rms, tst$posthoc$parallel, labs_order, max_annotations))
       }
     }
 
     combined <- (p1 + p2 + p3) +
       patchwork::plot_annotation(
-        title    = "Trajectory Path Deviation Comparison",
-        subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
+        title = "Trajectory Path Deviation Comparison",
+        subtitle = paste("Dimensions:", paste(dims, collapse = " + ")),
+        theme = ggplot2::theme(
+          plot.background = ggplot2::element_rect(fill = "white", color = NA)
+        )
       )
-
   } else {
     # ---- trajectory_umap_occupancy ----
     occ <- result$occupancy
     tst <- result$tests
 
     labs_order <- .sort_labels(unique(as.character(occ$label)))
-    many_labs  <- length(labs_order) > 6
-    pal_map    <- .make_pal(labs_order, palette)
+    many_labs <- length(labs_order) > 6
+    pal_map <- .make_pal(labs_order, palette)
 
-    kw_occ <- if (!is.null(tst)) .fmt_p(tst$kruskal$occupied_fraction$p.value)  else NULL
-    kw_ent <- if (!is.null(tst)) .fmt_p(tst$kruskal$entropy$p.value)             else NULL
+    kw_occ <- if (!is.null(tst)) .fmt_p(tst$kruskal$occupied_fraction$p.value) else NULL
+    kw_ent <- if (!is.null(tst)) .fmt_p(tst$kruskal$entropy$p.value) else NULL
     kw_per <- if (!is.null(tst)) .fmt_p(tst$kruskal$peripheral_fraction$p.value) else NULL
-    kw_knn <- if (!is.null(tst)) .fmt_p(tst$kruskal$knn_dispersion$p.value)      else NULL
+    kw_knn <- if (!is.null(tst)) .fmt_p(tst$kruskal$knn_dispersion$p.value) else NULL
 
     if (many_labs) {
-      p1 <- .trend_panel(occ, "label", "occupied_fraction",      "Occupied Fraction",         kw_occ, labs_order)
-      p2 <- .trend_panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy",         kw_ent, labs_order)
-      p3 <- .trend_panel(occ, "label", "peripheral_fraction",    "Peripheral Fraction",       kw_per, labs_order)
-      p4 <- .trend_panel(occ, "label", "knn_dispersion",         "Same-Label kNN Dispersion", kw_knn, labs_order)
+      p1 <- .trend_panel(occ, "label", "occupied_fraction", "Occupied Fraction", kw_occ, labs_order)
+      p2 <- .trend_panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy", kw_ent, labs_order)
+      p3 <- .trend_panel(occ, "label", "peripheral_fraction", "Peripheral Fraction", kw_per, labs_order)
+      p4 <- .trend_panel(occ, "label", "knn_dispersion", "Same-Label kNN Dispersion", kw_knn, labs_order)
     } else {
-      p1 <- .panel(occ, "label", "occupied_fraction",      "Occupied Fraction",         kw_occ, pal_map, labs_order, jitter = TRUE)
-      p2 <- .panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy",         kw_ent, pal_map, labs_order, jitter = TRUE)
-      p3 <- .panel(occ, "label", "peripheral_fraction",    "Peripheral Fraction",       kw_per, pal_map, labs_order, jitter = TRUE)
-      p4 <- .panel(occ, "label", "knn_dispersion",         "Same-Label kNN Dispersion", kw_knn, pal_map, labs_order, jitter = TRUE)
+      p1 <- .panel(occ, "label", "occupied_fraction", "Occupied Fraction", kw_occ, pal_map, labs_order, jitter = TRUE)
+      p2 <- .panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy", kw_ent, pal_map, labs_order, jitter = TRUE)
+      p3 <- .panel(occ, "label", "peripheral_fraction", "Peripheral Fraction", kw_per, pal_map, labs_order, jitter = TRUE)
+      p4 <- .panel(occ, "label", "knn_dispersion", "Same-Label kNN Dispersion", kw_knn, pal_map, labs_order, jitter = TRUE)
       if (!is.null(tst)) {
-        p1 <- .add_brackets(p1, .brackets(occ$occupied_fraction,      tst$posthoc$occupied_fraction,   labs_order, max_annotations))
-        p2 <- .add_brackets(p2, .brackets(occ$occupancy_entropy_norm, tst$posthoc$entropy,             labs_order, max_annotations))
-        p3 <- .add_brackets(p3, .brackets(occ$peripheral_fraction,    tst$posthoc$peripheral_fraction, labs_order, max_annotations))
-        p4 <- .add_brackets(p4, .brackets(occ$knn_dispersion,         tst$posthoc$knn_dispersion,      labs_order, max_annotations))
+        p1 <- .add_brackets(p1, .brackets(occ$occupied_fraction, tst$posthoc$occupied_fraction, labs_order, max_annotations))
+        p2 <- .add_brackets(p2, .brackets(occ$occupancy_entropy_norm, tst$posthoc$entropy, labs_order, max_annotations))
+        p3 <- .add_brackets(p3, .brackets(occ$peripheral_fraction, tst$posthoc$peripheral_fraction, labs_order, max_annotations))
+        p4 <- .add_brackets(p4, .brackets(occ$knn_dispersion, tst$posthoc$knn_dispersion, labs_order, max_annotations))
       }
     }
 
     combined <- (p1 + p2 + p3 + p4) +
       patchwork::plot_annotation(
-        title    = "Trajectory UMAP Occupancy Comparison",
-        subtitle = paste("Dimensions:", paste(dims, collapse = " + "))
+        title = "Trajectory UMAP Occupancy Comparison",
+        subtitle = paste("Dimensions:", paste(dims, collapse = " + ")),
+        theme = ggplot2::theme(
+          plot.background = ggplot2::element_rect(fill = "white", color = NA)
+        )
       )
   }
 
