@@ -135,10 +135,10 @@ Functions dedicated to reducing acoustic parameter dimensionality
   : Filter Outlier Renditions from Trajectory Embeddings
 - [`trajectory_umap_occupancy()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md)
   : Trajectory UMAP Occupancy Analysis
-- [`trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_variability.md)
-  : Trajectory Variability Analysis
-- [`trajectory_width_variability()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_width_variability.md)
-  : Trajectory Width Variability Analysis
+- [`trajectory_dispersion()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.md)
+  : Trajectory Dispersion Analysis
+- [`trajectory_path_deviation()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_path_deviation.md)
+  : Trajectory Path Deviation Analysis
 
 ## Plotting & Visualization
 

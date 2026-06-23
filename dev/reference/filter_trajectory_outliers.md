@@ -138,7 +138,7 @@ sap <- filter_trajectory_outliers(sap)
 # Stricter: remove renditions with > 5% outlier time points
 sap <- filter_trajectory_outliers(sap, min_outlier_fraction = 0.05)
 
-# Use filtered data directly with trajectory_variability
-result <- trajectory_variability(traj_clean, dims = c("PC1", "PC2"))
+# Use filtered data directly with trajectory_dispersion
+result <- trajectory_dispersion(traj_clean, dims = c("PC1", "PC2"))
 } # }
 ```

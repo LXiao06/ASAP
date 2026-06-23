@@ -1,9 +1,7 @@
 # Plot Trajectory Variability Results
 
 A unified plotting function for results produced by
-[`trajectory_variability`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_variability.md),
-[`trajectory_width_variability`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_width_variability.md),
-or
+`trajectory_variability`, `trajectory_width_variability`, or
 [`trajectory_umap_occupancy`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md).
 Dispatches to the appropriate panel layout based on the `type` field
 embedded in `result` or retrieved from the SAP object and draws
@@ -21,7 +19,7 @@ plot_trajectory_variability(x, palette = "Set1", max_annotations = 10, ...)
 plot_trajectory_variability(
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
-  variability_type = c("variability", "width_variability", "umap_occupancy"),
+  variability_type = c("dispersion", "path_deviation", "umap_occupancy"),
   palette = "Set1",
   max_annotations = 10,
   ...
@@ -33,8 +31,8 @@ plot_trajectory_variability(
 - x:
 
   A list returned by
-  [`trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_variability.md),
-  [`trajectory_width_variability()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_width_variability.md),
+  [`trajectory_dispersion()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.md),
+  [`trajectory_path_deviation()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_path_deviation.md),
   or
   [`trajectory_umap_occupancy()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md)
   (for the default method); or a SAP object (for the Sap method).
@@ -63,7 +61,7 @@ plot_trajectory_variability(
 - variability_type:
 
   For SAP objects: Which computed variability type to plot
-  ('variability', 'width_variability', 'umap_occupancy')
+  ('dispersion', 'path_deviation', 'umap_occupancy')
 
 ## Value
 
@@ -97,11 +95,11 @@ above the data.
 ``` r
 if (FALSE) { # \dontrun{
 # Plotting directly from a result list
-result <- trajectory_variability(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
+result <- trajectory_dispersion(sap$features$motif$traj.embeds, dims = c("PC1", "PC2"))
 plot_trajectory_variability(result)
 
 # Plotting from a SAP object with pre-computed results
-sap <- trajectory_variability(sap)
-plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "variability")
+sap <- trajectory_dispersion(sap)
+plot_trajectory_variability(sap, segment_type = "motifs", variability_type = "dispersion")
 } # }
 ```

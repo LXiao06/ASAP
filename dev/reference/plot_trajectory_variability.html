@@ -46,7 +46,7 @@ tests are present."><meta property="og:image" content="https://lxiao06.github.io
 
     <div class="ref-description section level2">
     <p>A unified plotting function for results produced by
-<code><a href="trajectory_variability.html">trajectory_variability</a></code>, <code><a href="trajectory_width_variability.html">trajectory_width_variability</a></code>,
+<code>trajectory_variability</code>, <code>trajectory_width_variability</code>,
 or <code><a href="trajectory_umap_occupancy.html">trajectory_umap_occupancy</a></code>. Dispatches to the appropriate
 panel layout based on the <code>type</code> field embedded in <code>result</code> or
 retrieved from the SAP object and draws significance brackets when statistical
@@ -64,7 +64,7 @@ tests are present.</p>
 <span><span class="fu">plot_trajectory_variability</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  segment_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"motifs"</span>, <span class="st">"syllables"</span>, <span class="st">"bouts"</span>, <span class="st">"segments"</span><span class="op">)</span>,</span>
-<span>  variability_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"variability"</span>, <span class="st">"width_variability"</span>, <span class="st">"umap_occupancy"</span><span class="op">)</span>,</span>
+<span>  variability_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dispersion"</span>, <span class="st">"path_deviation"</span>, <span class="st">"umap_occupancy"</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Set1"</span>,</span>
 <span>  max_annotations <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -76,8 +76,8 @@ tests are present.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A list returned by <code><a href="trajectory_variability.html">trajectory_variability()</a></code>,
-<code><a href="trajectory_width_variability.html">trajectory_width_variability()</a></code>, or
+<dd><p>A list returned by <code><a href="trajectory_dispersion.html">trajectory_dispersion()</a></code>,
+<code><a href="trajectory_path_deviation.html">trajectory_path_deviation()</a></code>, or
 <code><a href="trajectory_umap_occupancy.html">trajectory_umap_occupancy()</a></code> (for the default method); or a SAP object
 (for the Sap method).</p></dd>
 
@@ -103,7 +103,7 @@ most significant pairs are retained and a message is issued.</p></dd>
 
 
 <dt id="arg-variability-type">variability_type<a class="anchor" aria-label="anchor" href="#arg-variability-type"></a></dt>
-<dd><p>For SAP objects: Which computed variability type to plot ('variability', 'width_variability', 'umap_occupancy')</p></dd>
+<dd><p>For SAP objects: Which computed variability type to plot ('dispersion', 'path_deviation', 'umap_occupancy')</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -136,12 +136,12 @@ above the data.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Plotting directly from a result list</span></span></span>
-<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="trajectory_variability.html">trajectory_variability</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">traj.embeds</span>, dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PC1"</span>, <span class="st">"PC2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="trajectory_dispersion.html">trajectory_dispersion</a></span><span class="op">(</span><span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">traj.embeds</span>, dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PC1"</span>, <span class="st">"PC2"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">plot_trajectory_variability</span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Plotting from a SAP object with pre-computed results</span></span></span>
-<span class="r-in"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="trajectory_variability.html">trajectory_variability</a></span><span class="op">(</span><span class="va">sap</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">plot_trajectory_variability</span><span class="op">(</span><span class="va">sap</span>, segment_type <span class="op">=</span> <span class="st">"motifs"</span>, variability_type <span class="op">=</span> <span class="st">"variability"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="trajectory_dispersion.html">trajectory_dispersion</a></span><span class="op">(</span><span class="va">sap</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">plot_trajectory_variability</span><span class="op">(</span><span class="va">sap</span>, segment_type <span class="op">=</span> <span class="st">"motifs"</span>, variability_type <span class="op">=</span> <span class="st">"dispersion"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

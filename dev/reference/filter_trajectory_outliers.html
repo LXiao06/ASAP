@@ -169,8 +169,8 @@ with naturally different mean trajectories.</p>
 <span class="r-in"><span><span class="co"># Stricter: remove renditions with &gt; 5% outlier time points</span></span></span>
 <span class="r-in"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu">filter_trajectory_outliers</span><span class="op">(</span><span class="va">sap</span>, min_outlier_fraction <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Use filtered data directly with trajectory_variability</span></span></span>
-<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="trajectory_variability.html">trajectory_variability</a></span><span class="op">(</span><span class="va">traj_clean</span>, dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PC1"</span>, <span class="st">"PC2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Use filtered data directly with trajectory_dispersion</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="trajectory_dispersion.html">trajectory_dispersion</a></span><span class="op">(</span><span class="va">traj_clean</span>, dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PC1"</span>, <span class="st">"PC2"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
