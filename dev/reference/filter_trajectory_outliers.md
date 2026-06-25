@@ -15,7 +15,7 @@ filter_trajectory_outliers(x, ...)
 filter_trajectory_outliers(
   x,
   dims = c("PC1", "PC2"),
-  iqr_multiplier = 3,
+  iqr_multiplier = 4,
   min_outlier_fraction = 0.1,
   labels = NULL,
   verbose = TRUE,
@@ -27,7 +27,7 @@ filter_trajectory_outliers(
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
   dims = c("PC1", "PC2"),
-  iqr_multiplier = 3,
+  iqr_multiplier = 4,
   min_outlier_fraction = 0.1,
   labels = NULL,
   plot = FALSE,
@@ -56,7 +56,7 @@ filter_trajectory_outliers(
 
 - iqr_multiplier:
 
-  Multiplier applied to IQR to define outlier bounds (default: 3)
+  Multiplier applied to IQR to define outlier bounds (default: 4)
 
 - min_outlier_fraction:
 
@@ -128,7 +128,7 @@ if (FALSE) { # \dontrun{
 traj_clean <- filter_trajectory_outliers(
   sap$features$motif$traj.embeds,
   dims = c("PC1", "PC2"),
-  iqr_multiplier = 3,
+  iqr_multiplier = 4,
   min_outlier_fraction = 0.1
 )
 

@@ -40,7 +40,7 @@ tests are present."><meta property="og:image" content="https://lxiao06.github.io
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Plot Trajectory Variability Results</h1>
-      <small class="dont-index">Source: <a href="https://github.com/LXiao06/ASAP/blob/HEAD/R/trajectory.R" class="external-link"><code>R/trajectory.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/LXiao06/ASAP/blob/HEAD/R/trajectory-variability.R" class="external-link"><code>R/trajectory-variability.R</code></a></small>
       <div class="d-none name"><code>plot_trajectory_variability.Rd</code></div>
     </div>
 
@@ -127,16 +127,16 @@ returned invisibly so the caller can save or further modify it.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Panel layouts by result type:</p><dl><dt><code>"dispersion"</code></dt>
-<dd><p>3 panels: Mean Pairwise Distance · Centroid
-Dispersion · Path Length</p></dd>
+<dd><p>3 panels: Mean Pairwise Distance \(\cdot\) Centroid
+Dispersion \(\cdot\) Path Length</p></dd>
 
 <dt><code>"path_deviation"</code></dt>
-<dd><p>3 panels: Total RMS · Orthogonal RMS ·
+<dd><p>3 panels: Total RMS \(\cdot\) Orthogonal RMS \(\cdot\)
 Parallel RMS</p></dd>
 
 <dt><code>"umap_occupancy"</code></dt>
-<dd><p>4 panels: Occupied Fraction · Occupancy
-Entropy · Peripheral Fraction · kNN Dispersion</p></dd>
+<dd><p>4 panels: Occupied Fraction \(\cdot\) Occupancy
+Entropy \(\cdot\) Peripheral Fraction \(\cdot\) kNN Dispersion</p></dd>
 
 
 </dl><p>When <code>show_cv = TRUE</code> for <code>"dispersion"</code> results, two additional

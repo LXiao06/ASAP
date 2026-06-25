@@ -90,16 +90,17 @@ Panel layouts by result type:
 
 - `"dispersion"`:
 
-  3 panels: Mean Pairwise Distance · Centroid Dispersion · Path Length
+  3 panels: Mean Pairwise Distance \\\cdot\\ Centroid Dispersion
+  \\\cdot\\ Path Length
 
 - `"path_deviation"`:
 
-  3 panels: Total RMS · Orthogonal RMS · Parallel RMS
+  3 panels: Total RMS \\\cdot\\ Orthogonal RMS \\\cdot\\ Parallel RMS
 
 - `"umap_occupancy"`:
 
-  4 panels: Occupied Fraction · Occupancy Entropy · Peripheral Fraction
-  · kNN Dispersion
+  4 panels: Occupied Fraction \\\cdot\\ Occupancy Entropy \\\cdot\\
+  Peripheral Fraction \\\cdot\\ kNN Dispersion
 
 When `show_cv = TRUE` for `"dispersion"` results, two additional panels
 show SD divided by mean for centroid dispersion and path length.

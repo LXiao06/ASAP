@@ -90,7 +90,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_single_umap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_syllable_detection.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_traces.html</loc></url>
-<url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_convergence.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_similarity.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_umap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/plot_umap2.html</loc></url>
@@ -111,9 +111,10 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/subset_clip_rows.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/summary.segment.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/suppress_stderr.html</loc></url>
-<url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_convergence.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_cv_summary.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_path_deviation.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_similarity.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_sap.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/validate_segment.html</loc></url>

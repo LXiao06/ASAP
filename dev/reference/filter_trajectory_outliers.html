@@ -55,7 +55,7 @@ per time step, and per embedding dimension using the IQR method.</p>
 <span><span class="fu">filter_trajectory_outliers</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PC1"</span>, <span class="st">"PC2"</span><span class="op">)</span>,</span>
-<span>  iqr_multiplier <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  iqr_multiplier <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  min_outlier_fraction <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -67,7 +67,7 @@ per time step, and per embedding dimension using the IQR method.</p>
 <span>  <span class="va">x</span>,</span>
 <span>  segment_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"motifs"</span>, <span class="st">"syllables"</span>, <span class="st">"bouts"</span>, <span class="st">"segments"</span><span class="op">)</span>,</span>
 <span>  dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PC1"</span>, <span class="st">"PC2"</span><span class="op">)</span>,</span>
-<span>  iqr_multiplier <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  iqr_multiplier <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  min_outlier_fraction <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  plot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -96,7 +96,7 @@ per time step, and per embedding dimension using the IQR method.</p>
 
 
 <dt id="arg-iqr-multiplier">iqr_multiplier<a class="anchor" aria-label="anchor" href="#arg-iqr-multiplier"></a></dt>
-<dd><p>Multiplier applied to IQR to define outlier bounds (default: 3)</p></dd>
+<dd><p>Multiplier applied to IQR to define outlier bounds (default: 4)</p></dd>
 
 
 <dt id="arg-min-outlier-fraction">min_outlier_fraction<a class="anchor" aria-label="anchor" href="#arg-min-outlier-fraction"></a></dt>
@@ -159,7 +159,7 @@ with naturally different mean trajectories.</p>
 <span class="r-in"><span><span class="va">traj_clean</span> <span class="op">&lt;-</span> <span class="fu">filter_trajectory_outliers</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">traj.embeds</span>,</span></span>
 <span class="r-in"><span>  dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PC1"</span>, <span class="st">"PC2"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  iqr_multiplier <span class="op">=</span> <span class="fl">3</span>,</span></span>
+<span class="r-in"><span>  iqr_multiplier <span class="op">=</span> <span class="fl">4</span>,</span></span>
 <span class="r-in"><span>  min_outlier_fraction <span class="op">=</span> <span class="fl">0.1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

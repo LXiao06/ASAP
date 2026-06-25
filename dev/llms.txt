@@ -152,8 +152,8 @@ Plotting functionality for exploring ASAP objects
   : Plot PCA coordinates of trajectories over time
 - [`plot_trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.md)
   : Plot Trajectory Variability Results
-- [`plot_trajectory_convergence()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_convergence.md)
-  : Plot Trajectory Convergence Results
+- [`plot_trajectory_similarity()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_similarity.md)
+  : Plot Trajectory Similarity Results
 - [`plot_motif_boundaries()`](https://lxiao06.github.io/ASAP/dev/reference/plot_motif_boundaries.md)
   : Visualize Motif Boundaries in Audio Data
 - [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md)
@@ -163,11 +163,11 @@ Plotting functionality for exploring ASAP objects
 
 ## Trajectory Analysis
 
-Functions for analyzing song trajectories, developmental convergence,
-and variability
+Functions for analyzing song trajectories, similarity to reference, and
+variability
 
-- [`trajectory_convergence()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_convergence.md)
-  : Trajectory Convergence to Reference Path
+- [`trajectory_similarity()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_similarity.md)
+  : Trajectory Similarity to Reference Path
 - [`trajectory_dispersion()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.md)
   : Trajectory Dispersion Analysis
 - [`trajectory_path_deviation()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_path_deviation.md)
