@@ -118,6 +118,7 @@ reference:
       - plot_PC2
       - plot_trajectory_variability
       - plot_trajectory_similarity
+      - plot_trajectory_maturation
       - plot_motif_boundaries
       - visualize_song
       - visualize_segments
@@ -128,6 +129,7 @@ reference:
       - trajectory_similarity
       - trajectory_dispersion
       - trajectory_path_deviation
+      - trajectory_maturation
       - trajectory_umap_occupancy
       - filter_trajectory_outliers
       
