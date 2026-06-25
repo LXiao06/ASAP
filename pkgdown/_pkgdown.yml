@@ -105,10 +105,6 @@ reference:
       - run_pca
       - run_umap
       - create_trajectory_matrix
-      - filter_trajectory_outliers
-      - trajectory_umap_occupancy
-      - trajectory_dispersion
-      - trajectory_path_deviation
 
   - title: "Plotting & Visualization"
     desc: "Plotting functionality for exploring ASAP objects"
@@ -121,9 +117,19 @@ reference:
       - plot_PC
       - plot_PC2
       - plot_trajectory_variability
+      - plot_trajectory_convergence
       - plot_motif_boundaries
       - visualize_song
       - visualize_segments
+      
+  - title: "Trajectory Analysis"
+    desc: "Functions for analyzing song trajectories, developmental convergence, and variability"
+    contents:
+      - trajectory_convergence
+      - trajectory_dispersion
+      - trajectory_path_deviation
+      - trajectory_umap_occupancy
+      - filter_trajectory_outliers
       
   - title: "Labeling"
     desc: "Functions for annotating clustered syllables"

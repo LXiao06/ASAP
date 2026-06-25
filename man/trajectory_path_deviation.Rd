@@ -13,6 +13,7 @@ trajectory_path_deviation(x, ...)
   dims = c("PC1", "PC2"),
   trim_fraction = 0.1,
   min_coverage = 0.5,
+  time_digits = 6,
   labels = NULL,
   stats = TRUE,
   verbose = TRUE,
@@ -25,6 +26,7 @@ trajectory_path_deviation(x, ...)
   dims = c("PC1", "PC2"),
   trim_fraction = 0.1,
   min_coverage = 0.5,
+  time_digits = 6,
   labels = NULL,
   stats = TRUE,
   verbose = TRUE,
@@ -43,6 +45,9 @@ trajectory_path_deviation(x, ...)
 
 \item{min_coverage}{Minimum fraction of renditions that must cover a time step
 for it to contribute to the reference trajectory (default: 0.5)}
+
+\item{time_digits}{Number of decimal places used to bin \code{.time} before
+grouping and matching trajectories (default: \code{6}).}
 
 \item{labels}{Optional character vector of labels to include}
 
@@ -79,8 +84,9 @@ orthogonal and parallel components relative to the local trajectory tangent.
 }
 \details{
 For each label, the function builds a robust mean trajectory in the requested
-dimensions, estimates a local tangent vector at each time step, and decomposes
-each rendition's residual into:
+dimensions after binning \code{.time} to \code{time_digits}, estimates a
+local tangent vector at each retained time step, and decomposes each
+rendition's residual into:
 \describe{
 \item{Total RMS Residual}{Overall deviation from the label-specific mean trajectory}
 \item{Orthogonal RMS Residual}{Deviation perpendicular to the local tangent;

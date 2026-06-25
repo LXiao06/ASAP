@@ -8,7 +8,13 @@
 \usage{
 plot_trajectory_variability(x, ...)
 
-\method{plot_trajectory_variability}{default}(x, palette = "Set1", max_annotations = 10, ...)
+\method{plot_trajectory_variability}{default}(
+  x,
+  palette = "Set1",
+  max_annotations = 10,
+  show_cv = FALSE,
+  ...
+)
 
 \method{plot_trajectory_variability}{Sap}(
   x,
@@ -16,6 +22,7 @@ plot_trajectory_variability(x, ...)
   variability_type = c("dispersion", "path_deviation", "umap_occupancy"),
   palette = "Set1",
   max_annotations = 10,
+  show_cv = FALSE,
   ...
 )
 }
@@ -34,6 +41,10 @@ automatically via \code{colorRampPalette}.}
 \item{max_annotations}{Maximum number of pairwise significance brackets to
 draw per panel (default: \code{10}). When more comparisons exist, the
 most significant pairs are retained and a message is issued.}
+
+\item{show_cv}{Logical. If \code{TRUE}, add coefficient-of-variation panels
+for centroid dispersion and trajectory path length when plotting
+\code{trajectory_dispersion()} results (default: \code{FALSE}).}
 
 \item{segment_type}{For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')}
 
@@ -61,6 +72,8 @@ Parallel RMS}
 \item{\code{"umap_occupancy"}}{4 panels: Occupied Fraction · Occupancy
 Entropy · Peripheral Fraction · kNN Dispersion}
 }
+When \code{show_cv = TRUE} for \code{"dispersion"} results, two additional
+panels show SD divided by mean for centroid dispersion and path length.
 
 Each panel displays a violin + box plot coloured by label. When
 statistical tests are not \code{NULL}, Kruskal-Wallis p-values are shown

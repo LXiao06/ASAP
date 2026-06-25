@@ -1,6 +1,11 @@
 # Song Trajectory Analysis
 # Update date : Feb. 7, 2026
 
+# Suppress R CMD check notes about internal functions used by trajectory analysis functions
+if (getRversion() >= "2.15.1") {
+  utils::globalVariables(c("across", "ends_with", "cor"))
+}
+
 #' Create Spectrogram Matrices for Song Trajectory Analysis
 #'
 #' @description
@@ -446,7 +451,8 @@ create_sliding_window <- function(
 
   # Calculate max windows that fit in the segment
   max_windows <- floor((end - start - window_size) / step_size) + 1
-  window_start_time <- start + (0:(max_windows - 1)) * step_size
+  relative_time <- round((0:(max_windows - 1)) * step_size, digits = 6)
+  window_start_time <- start + relative_time
 
   # Create sliding window data frame
   sliding_windows <- data.frame(
@@ -457,7 +463,7 @@ create_sliding_window <- function(
     selec = seq_along(window_start_time),
     start_time = window_start_time,
     end_time = window_start_time + window_size,
-    .time = window_start_time - start
+    .time = relative_time
   )
 
   return(sliding_windows)
@@ -1200,6 +1206,8 @@ trajectory_dispersion.Sap <- function(x,
 #'   (default: 0.1)
 #' @param min_coverage Minimum fraction of renditions that must cover a time step
 #'   for it to contribute to the reference trajectory (default: 0.5)
+#' @param time_digits Number of decimal places used to bin \code{.time} before
+#'   grouping and matching trajectories (default: \code{6}).
 #' @param labels Optional character vector of labels to include
 #' @param stats Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
 #'   Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
@@ -1211,8 +1219,9 @@ trajectory_dispersion.Sap <- function(x,
 #'
 #' @details
 #' For each label, the function builds a robust mean trajectory in the requested
-#' dimensions, estimates a local tangent vector at each time step, and decomposes
-#' each rendition's residual into:
+#' dimensions after binning \code{.time} to \code{time_digits}, estimates a
+#' local tangent vector at each retained time step, and decomposes each
+#' rendition's residual into:
 #' \describe{
 #'   \item{Total RMS Residual}{Overall deviation from the label-specific mean trajectory}
 #'   \item{Orthogonal RMS Residual}{Deviation perpendicular to the local tangent;
@@ -1257,6 +1266,7 @@ trajectory_path_deviation.default <- function(x,
                                               dims = c("PC1", "PC2"),
                                               trim_fraction = 0.1,
                                               min_coverage = 0.5,
+                                              time_digits = 6,
                                               labels = NULL,
                                               stats = TRUE,
                                               verbose = TRUE,
@@ -1285,6 +1295,8 @@ trajectory_path_deviation.default <- function(x,
     x <- x[x$label %in% labels, ]
   }
 
+  x <- bin_trajectory_time_data(x, dims, time_digits)
+
   all_labels <- unique(x$label)
   if (length(all_labels) == 0) stop("No labels available after filtering")
 
@@ -1305,6 +1317,7 @@ trajectory_path_deviation.default <- function(x,
       "Min coverage  : %.0f%% of renditions per time step",
       min_coverage * 100
     ))
+    message(sprintf("Time binning  : %d decimal places", time_digits))
     message(sprintf("Labels        : %s\n", paste(all_labels, collapse = ", ")))
   }
 
@@ -1490,6 +1503,9 @@ trajectory_path_deviation.default <- function(x,
 
   invisible(list(
     type              = "path_deviation",
+    dims              = dims,
+    min_coverage      = min_coverage,
+    time_digits       = time_digits,
     width             = width_results,
     summary           = summary_df,
     mean_trajectories = mean_trajectories,
@@ -1509,6 +1525,7 @@ trajectory_path_deviation.Sap <- function(x,
                                           dims = c("PC1", "PC2"),
                                           trim_fraction = 0.1,
                                           min_coverage = 0.5,
+                                          time_digits = 6,
                                           labels = NULL,
                                           stats = TRUE,
                                           verbose = TRUE,
@@ -1549,6 +1566,7 @@ trajectory_path_deviation.Sap <- function(x,
     dims = dims,
     trim_fraction = trim_fraction,
     min_coverage = min_coverage,
+    time_digits = time_digits,
     labels = labels,
     stats = stats,
     verbose = verbose,
@@ -1980,6 +1998,9 @@ trajectory_umap_occupancy.Sap <- function(x,
 #' @param max_annotations Maximum number of pairwise significance brackets to
 #'   draw per panel (default: \code{10}). When more comparisons exist, the
 #'   most significant pairs are retained and a message is issued.
+#' @param show_cv Logical. If \code{TRUE}, add coefficient-of-variation panels
+#'   for centroid dispersion and trajectory path length when plotting
+#'   \code{trajectory_dispersion()} results (default: \code{FALSE}).
 #' @param segment_type For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')
 #' @param variability_type For SAP objects: Which computed variability type to plot ('dispersion', 'path_deviation', 'umap_occupancy')
 #' @param ... Additional arguments passed to specific methods.
@@ -1987,13 +2008,15 @@ trajectory_umap_occupancy.Sap <- function(x,
 #' @details
 #' Panel layouts by result type:
 #' \describe{
-#'   \item{\code{"dispersion"}}{3 panels: Mean Pairwise Distance · Centroid
-#'     Dispersion · Path Length}
-#'   \item{\code{"path_deviation"}}{3 panels: Total RMS · Orthogonal RMS ·
+#'   \item{\code{"dispersion"}}{3 panels: Mean Pairwise Distance \u00b7 Centroid
+#'     Dispersion \u00b7 Path Length}
+#'   \item{\code{"path_deviation"}}{3 panels: Total RMS \u00b7 Orthogonal RMS \u00b7
 #'     Parallel RMS}
-#'   \item{\code{"umap_occupancy"}}{4 panels: Occupied Fraction · Occupancy
-#'     Entropy · Peripheral Fraction · kNN Dispersion}
+#'   \item{\code{"umap_occupancy"}}{4 panels: Occupied Fraction \u00b7 Occupancy
+#'     Entropy \u00b7 Peripheral Fraction \u00b7 kNN Dispersion}
 #' }
+#' When \code{show_cv = TRUE} for \code{"dispersion"} results, two additional
+#' panels show SD divided by mean for centroid dispersion and path length.
 #'
 #' Each panel displays a violin + box plot coloured by label. When
 #' statistical tests are not \code{NULL}, Kruskal-Wallis p-values are shown
@@ -2025,6 +2048,7 @@ plot_trajectory_variability <- function(x, ...) {
 plot_trajectory_variability.default <- function(x,
                                                 palette = "Set1",
                                                 max_annotations = 10,
+                                                show_cv = FALSE,
                                                 ...) {
   result <- x
   # ---- Validate input ----
@@ -2045,214 +2069,6 @@ plot_trajectory_variability.default <- function(x,
 
   ensure_pkgs("ggplot2", "patchwork")
 
-  # ---- Shared helpers ----
-
-  # Sort labels numerically when all parse as numbers, otherwise alphabetically
-  .sort_labels <- function(labels) {
-    nums <- suppressWarnings(as.numeric(labels))
-    if (!anyNA(nums)) labels[order(nums)] else sort(labels)
-  }
-
-  # Expand palette to any number of labels
-  .make_pal <- function(labels, palette) {
-    n <- length(labels)
-    pal_info <- RColorBrewer::brewer.pal.info
-    max_col <- if (palette %in% rownames(pal_info)) {
-      pal_info[palette, "maxcolors"]
-    } else {
-      8L
-    }
-    if (n <= max_col) {
-      cols <- RColorBrewer::brewer.pal(max(n, 3L), palette)[seq_len(n)]
-    } else {
-      cols <- grDevices::colorRampPalette(
-        RColorBrewer::brewer.pal(max_col, palette)
-      )(n)
-    }
-    stats::setNames(cols, labels)
-  }
-
-  # Format p-value for subtitle / brackets
-  .fmt_p <- function(p) {
-    if (is.null(p) || is.na(p)) {
-      return("p = NA")
-    }
-    if (p < 0.001) sprintf("p = %.1e", p) else sprintf("p = %.3f", p)
-  }
-
-  # Look up a p-value from a pairwise matrix (symmetric)
-  .get_p <- function(pmat, g1, g2) {
-    if (is.null(pmat)) {
-      return(NA_real_)
-    }
-    rn <- rownames(pmat)
-    cn <- colnames(pmat)
-    if (g1 %in% rn && g2 %in% cn) {
-      return(pmat[g1, g2])
-    }
-    if (g2 %in% rn && g1 %in% cn) {
-      return(pmat[g2, g1])
-    }
-    NA_real_
-  }
-
-  # Build bracket annotation data frame, capped at max_annotations
-  .brackets <- function(values, posthoc_obj, labels_in_order, max_annotations) {
-    comps <- utils::combn(labels_in_order, 2, simplify = FALSE)
-
-    if (length(comps) > max_annotations) {
-      pvals <- vapply(comps, function(comp) {
-        .get_p(posthoc_obj$p.value, comp[1], comp[2])
-      }, numeric(1))
-      keep_idx <- order(pvals)[seq_len(max_annotations)]
-      message(sprintf(
-        "  %d pairwise comparisons available; showing %d most significant.",
-        length(comps), max_annotations
-      ))
-      comps <- comps[keep_idx]
-    }
-
-    y_range <- range(values, na.rm = TRUE)
-    span <- diff(y_range)
-    if (!is.finite(span) || span == 0) span <- max(abs(y_range), 1, na.rm = TRUE)
-    base_y <- y_range[2] + 0.08 * span
-    step_y <- 0.12 * span
-
-    ann <- do.call(rbind, lapply(seq_along(comps), function(i) {
-      comp <- comps[[i]]
-      p_val <- .get_p(posthoc_obj$p.value, comp[1], comp[2])
-      data.frame(
-        x1 = match(comp[1], labels_in_order),
-        x2 = match(comp[2], labels_in_order),
-        y = base_y + (i - 1) * step_y,
-        lbl = .fmt_p(p_val),
-        stringsAsFactors = FALSE
-      )
-    }))
-    ann$y_text <- ann$y + 0.025 * span
-    ann$y_tip <- ann$y - 0.020 * span
-    ann$y_max <- max(ann$y_text) + 0.06 * span
-    ann
-  }
-
-  # Add bracket layers to a ggplot object
-  .add_brackets <- function(p, ann) {
-    if (is.null(ann) || nrow(ann) == 0) {
-      return(p)
-    }
-    p +
-      ggplot2::geom_segment(
-        data = ann,
-        ggplot2::aes(x = .data$x1, xend = .data$x2, y = .data$y, yend = .data$y),
-        inherit.aes = FALSE
-      ) +
-      ggplot2::geom_segment(
-        data = ann,
-        ggplot2::aes(x = .data$x1, xend = .data$x1, y = .data$y_tip, yend = .data$y),
-        inherit.aes = FALSE
-      ) +
-      ggplot2::geom_segment(
-        data = ann,
-        ggplot2::aes(x = .data$x2, xend = .data$x2, y = .data$y_tip, yend = .data$y),
-        inherit.aes = FALSE
-      ) +
-      ggplot2::geom_text(
-        data = ann,
-        ggplot2::aes(
-          x = (.data$x1 + .data$x2) / 2,
-          y = .data$y_text,
-          label = .data$lbl
-        ),
-        inherit.aes = FALSE, size = 3
-      ) +
-      ggplot2::coord_cartesian(ylim = c(NA, ann$y_max[1]))
-  }
-
-  # Violin + box panel (<=6 labels). Factor ordering enforced via labs_order.
-  .panel <- function(df, x_col, y_col, title, subtitle, pal_map,
-                     labs_order, jitter = FALSE) {
-    df[[x_col]] <- factor(df[[x_col]], levels = labs_order)
-    n_labs <- length(labs_order)
-    x_breaks <- if (n_labs >= 5) {
-      labs_order[round(seq(1, n_labs, length.out = 5))]
-    } else {
-      labs_order
-    }
-    p <- ggplot2::ggplot(
-      df,
-      ggplot2::aes(
-        x    = .data[[x_col]],
-        y    = .data[[y_col]],
-        fill = .data[[x_col]]
-      )
-    ) +
-      ggplot2::geom_violin(alpha = 0.6) +
-      ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
-      ggplot2::labs(title = title, subtitle = subtitle, y = y_col, x = NULL) +
-      ggplot2::scale_fill_manual(values = pal_map) +
-      ggplot2::scale_x_discrete(breaks = x_breaks) +
-      ggplot2::theme_classic() +
-      ggplot2::theme(
-        legend.position  = "none",
-        panel.background = ggplot2::element_rect(fill = "white", color = NA),
-        plot.background  = ggplot2::element_rect(fill = "white", color = NA)
-      )
-    if (jitter) {
-      p <- p + ggplot2::geom_jitter(width = 0.12, alpha = 0.35, size = 0.9)
-    }
-    p
-  }
-
-  # Mean ± SE trend-line panel (>6 labels). X treated as ordered factor.
-  .trend_panel <- function(df, x_col, y_col, title, subtitle, labs_order) {
-    agg <- do.call(rbind, lapply(labs_order, function(lbl) {
-      vals <- df[[y_col]][as.character(df[[x_col]]) == lbl]
-      n <- sum(!is.na(vals))
-      data.frame(
-        label = lbl,
-        mean = mean(vals, na.rm = TRUE),
-        se = if (n > 1) sd(vals, na.rm = TRUE) / sqrt(n) else 0,
-        stringsAsFactors = FALSE
-      )
-    }))
-    agg$label <- factor(agg$label, levels = labs_order)
-
-    n_labs <- length(labs_order)
-    x_breaks <- if (n_labs >= 5) {
-      labs_order[round(seq(1, n_labs, length.out = 5))]
-    } else {
-      labs_order
-    }
-
-    ggplot2::ggplot(
-      agg,
-      ggplot2::aes(x = .data$label, y = .data$mean, group = 1)
-    ) +
-      ggplot2::geom_ribbon(
-        ggplot2::aes(
-          ymin = .data$mean - .data$se,
-          ymax = .data$mean + .data$se
-        ),
-        alpha = 0.2, fill = "steelblue"
-      ) +
-      ggplot2::geom_line(color = "steelblue", linewidth = 0.9) +
-      ggplot2::geom_point(color = "steelblue", size = 2) +
-      ggplot2::labs(
-        title    = title,
-        subtitle = subtitle,
-        y        = y_col,
-        x        = NULL
-      ) +
-      ggplot2::scale_x_discrete(breaks = x_breaks) +
-      ggplot2::theme_classic() +
-      ggplot2::theme(
-        legend.position  = "none",
-        axis.text.x      = ggplot2::element_text(angle = 45, hjust = 1),
-        panel.background = ggplot2::element_rect(fill = "white", color = NA),
-        plot.background  = ggplot2::element_rect(fill = "white", color = NA)
-      )
-  }
-
   dims <- result$dims
   many_labs <- FALSE
 
@@ -2264,30 +2080,49 @@ plot_trajectory_variability.default <- function(x,
     pl <- result$path_length
     tst <- result$tests
 
-    labs_order <- .sort_labels(unique(as.character(pw$label)))
+    labs_order <- sort_labels(unique(as.character(pw$label)))
     many_labs <- length(labs_order) > 6
-    pal_map <- .make_pal(labs_order, palette)
+    pal_map <- make_pal(labs_order, palette)
 
-    kw_pw <- if (!is.null(tst)) .fmt_p(tst$kruskal$pairwise$p.value) else NULL
-    kw_dis <- if (!is.null(tst)) .fmt_p(tst$kruskal$dispersion$p.value) else NULL
-    kw_pl <- if (!is.null(tst)) .fmt_p(tst$kruskal$path_length$p.value) else NULL
+    kw_pw <- if (!is.null(tst)) fmt_p(tst$kruskal$pairwise$p.value) else NULL
+    kw_dis <- if (!is.null(tst)) fmt_p(tst$kruskal$dispersion$p.value) else NULL
+    kw_pl <- if (!is.null(tst)) fmt_p(tst$kruskal$path_length$p.value) else NULL
 
     if (many_labs) {
-      p1 <- .trend_panel(pw, "label", "mean_dist", "Mean Pairwise Distance", kw_pw, labs_order)
-      p2 <- .trend_panel(dis, "label", "dispersion", "Centroid Dispersion", kw_dis, labs_order)
-      p3 <- .trend_panel(pl, "label", "path_length", "Trajectory Path Length", kw_pl, labs_order)
+      p1 <- trend_panel(pw, "label", "mean_dist", "Mean Pairwise Distance", kw_pw, labs_order)
+      p2 <- trend_panel(dis, "label", "dispersion", "Centroid Dispersion", kw_dis, labs_order)
+      p3 <- trend_panel(pl, "label", "path_length", "Trajectory Path Length", kw_pl, labs_order)
     } else {
-      p1 <- .panel(pw, "label", "mean_dist", "Mean Pairwise Distance", kw_pw, pal_map, labs_order)
-      p2 <- .panel(dis, "label", "dispersion", "Centroid Dispersion", kw_dis, pal_map, labs_order)
-      p3 <- .panel(pl, "label", "path_length", "Trajectory Path Length", kw_pl, pal_map, labs_order)
+      p1 <- panel(pw, "label", "mean_dist", "Mean Pairwise Distance", kw_pw, pal_map, labs_order)
+      p2 <- panel(dis, "label", "dispersion", "Centroid Dispersion", kw_dis, pal_map, labs_order)
+      p3 <- panel(pl, "label", "path_length", "Trajectory Path Length", kw_pl, pal_map, labs_order)
       if (!is.null(tst)) {
-        p1 <- .add_brackets(p1, .brackets(pw$mean_dist, tst$posthoc$pairwise, labs_order, max_annotations))
-        p2 <- .add_brackets(p2, .brackets(dis$dispersion, tst$posthoc$dispersion, labs_order, max_annotations))
-        p3 <- .add_brackets(p3, .brackets(pl$path_length, tst$posthoc$path_length, labs_order, max_annotations))
+        p1 <- add_brackets(p1, brackets(pw$mean_dist, tst$posthoc$pairwise, labs_order, max_annotations))
+        p2 <- add_brackets(p2, brackets(dis$dispersion, tst$posthoc$dispersion, labs_order, max_annotations))
+        p3 <- add_brackets(p3, brackets(pl$path_length, tst$posthoc$path_length, labs_order, max_annotations))
       }
     }
 
-    combined <- (p1 + p2 + p3) +
+    if (show_cv) {
+      cv <- trajectory_cv_summary(result$summary, labs_order)
+      # Create CV panels with black line connections and extra y-axis padding
+      p4 <- panel(cv, "label", "dispersion_cv", NULL, NULL, pal_map, labs_order, 
+                  y_label = "Dispersion CV") +
+        ggplot2::geom_line(ggplot2::aes(group = 1), color = "black", linewidth = 0.5) +
+        ggplot2::geom_point(color = "black", size = 2) +
+        ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.1, 0.1)))
+      p5 <- panel(cv, "label", "path_length_cv", NULL, NULL, pal_map, labs_order,
+                  y_label = "Path Length CV") +
+        ggplot2::geom_line(ggplot2::aes(group = 1), color = "black", linewidth = 0.5) +
+        ggplot2::geom_point(color = "black", size = 2) +
+        ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.1, 0.1)))
+      # Layout: Row 1 = all three main panels, Row 2 = empty + two CV panels
+      panels <- (p1 + p2 + p3) / (patchwork::plot_spacer() + p4 + p5)
+    } else {
+      panels <- p1 + p2 + p3
+    }
+
+    combined <- panels +
       patchwork::plot_annotation(
         title = "Trajectory Dispersion Comparison",
         subtitle = paste("Dimensions:", paste(dims, collapse = " + ")),
@@ -2300,26 +2135,26 @@ plot_trajectory_variability.default <- function(x,
     wd <- result$width
     tst <- result$tests
 
-    labs_order <- .sort_labels(unique(as.character(wd$label)))
+    labs_order <- sort_labels(unique(as.character(wd$label)))
     many_labs <- length(labs_order) > 6
-    pal_map <- .make_pal(labs_order, palette)
+    pal_map <- make_pal(labs_order, palette)
 
-    kw_tot <- if (!is.null(tst)) .fmt_p(tst$kruskal$total$p.value) else NULL
-    kw_orth <- if (!is.null(tst)) .fmt_p(tst$kruskal$orthogonal$p.value) else NULL
-    kw_par <- if (!is.null(tst)) .fmt_p(tst$kruskal$parallel$p.value) else NULL
+    kw_tot <- if (!is.null(tst)) fmt_p(tst$kruskal$total$p.value) else NULL
+    kw_orth <- if (!is.null(tst)) fmt_p(tst$kruskal$orthogonal$p.value) else NULL
+    kw_par <- if (!is.null(tst)) fmt_p(tst$kruskal$parallel$p.value) else NULL
 
     if (many_labs) {
-      p1 <- .trend_panel(wd, "label", "total_rms", "Total RMS Residual", kw_tot, labs_order)
-      p2 <- .trend_panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, labs_order)
-      p3 <- .trend_panel(wd, "label", "parallel_rms", "Parallel RMS Residual", kw_par, labs_order)
+      p1 <- trend_panel(wd, "label", "total_rms", "Total RMS Residual", kw_tot, labs_order)
+      p2 <- trend_panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, labs_order)
+      p3 <- trend_panel(wd, "label", "parallel_rms", "Parallel RMS Residual", kw_par, labs_order)
     } else {
-      p1 <- .panel(wd, "label", "total_rms", "Total RMS Residual", kw_tot, pal_map, labs_order)
-      p2 <- .panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, pal_map, labs_order)
-      p3 <- .panel(wd, "label", "parallel_rms", "Parallel RMS Residual", kw_par, pal_map, labs_order)
+      p1 <- panel(wd, "label", "total_rms", "Total RMS Residual", kw_tot, pal_map, labs_order)
+      p2 <- panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, pal_map, labs_order)
+      p3 <- panel(wd, "label", "parallel_rms", "Parallel RMS Residual", kw_par, pal_map, labs_order)
       if (!is.null(tst)) {
-        p1 <- .add_brackets(p1, .brackets(wd$total_rms, tst$posthoc$total, labs_order, max_annotations))
-        p2 <- .add_brackets(p2, .brackets(wd$orthogonal_rms, tst$posthoc$orthogonal, labs_order, max_annotations))
-        p3 <- .add_brackets(p3, .brackets(wd$parallel_rms, tst$posthoc$parallel, labs_order, max_annotations))
+        p1 <- add_brackets(p1, brackets(wd$total_rms, tst$posthoc$total, labs_order, max_annotations))
+        p2 <- add_brackets(p2, brackets(wd$orthogonal_rms, tst$posthoc$orthogonal, labs_order, max_annotations))
+        p3 <- add_brackets(p3, brackets(wd$parallel_rms, tst$posthoc$parallel, labs_order, max_annotations))
       }
     }
 
@@ -2336,30 +2171,30 @@ plot_trajectory_variability.default <- function(x,
     occ <- result$occupancy
     tst <- result$tests
 
-    labs_order <- .sort_labels(unique(as.character(occ$label)))
+    labs_order <- sort_labels(unique(as.character(occ$label)))
     many_labs <- length(labs_order) > 6
-    pal_map <- .make_pal(labs_order, palette)
+    pal_map <- make_pal(labs_order, palette)
 
-    kw_occ <- if (!is.null(tst)) .fmt_p(tst$kruskal$occupied_fraction$p.value) else NULL
-    kw_ent <- if (!is.null(tst)) .fmt_p(tst$kruskal$entropy$p.value) else NULL
-    kw_per <- if (!is.null(tst)) .fmt_p(tst$kruskal$peripheral_fraction$p.value) else NULL
-    kw_knn <- if (!is.null(tst)) .fmt_p(tst$kruskal$knn_dispersion$p.value) else NULL
+    kw_occ <- if (!is.null(tst)) fmt_p(tst$kruskal$occupied_fraction$p.value) else NULL
+    kw_ent <- if (!is.null(tst)) fmt_p(tst$kruskal$entropy$p.value) else NULL
+    kw_per <- if (!is.null(tst)) fmt_p(tst$kruskal$peripheral_fraction$p.value) else NULL
+    kw_knn <- if (!is.null(tst)) fmt_p(tst$kruskal$knn_dispersion$p.value) else NULL
 
     if (many_labs) {
-      p1 <- .trend_panel(occ, "label", "occupied_fraction", "Occupied Fraction", kw_occ, labs_order)
-      p2 <- .trend_panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy", kw_ent, labs_order)
-      p3 <- .trend_panel(occ, "label", "peripheral_fraction", "Peripheral Fraction", kw_per, labs_order)
-      p4 <- .trend_panel(occ, "label", "knn_dispersion", "Same-Label kNN Dispersion", kw_knn, labs_order)
+      p1 <- trend_panel(occ, "label", "occupied_fraction", "Occupied Fraction", kw_occ, labs_order)
+      p2 <- trend_panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy", kw_ent, labs_order)
+      p3 <- trend_panel(occ, "label", "peripheral_fraction", "Peripheral Fraction", kw_per, labs_order)
+      p4 <- trend_panel(occ, "label", "knn_dispersion", "Same-Label kNN Dispersion", kw_knn, labs_order)
     } else {
-      p1 <- .panel(occ, "label", "occupied_fraction", "Occupied Fraction", kw_occ, pal_map, labs_order, jitter = TRUE)
-      p2 <- .panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy", kw_ent, pal_map, labs_order, jitter = TRUE)
-      p3 <- .panel(occ, "label", "peripheral_fraction", "Peripheral Fraction", kw_per, pal_map, labs_order, jitter = TRUE)
-      p4 <- .panel(occ, "label", "knn_dispersion", "Same-Label kNN Dispersion", kw_knn, pal_map, labs_order, jitter = TRUE)
+      p1 <- panel(occ, "label", "occupied_fraction", "Occupied Fraction", kw_occ, pal_map, labs_order, jitter = TRUE)
+      p2 <- panel(occ, "label", "occupancy_entropy_norm", "Occupancy Entropy", kw_ent, pal_map, labs_order, jitter = TRUE)
+      p3 <- panel(occ, "label", "peripheral_fraction", "Peripheral Fraction", kw_per, pal_map, labs_order, jitter = TRUE)
+      p4 <- panel(occ, "label", "knn_dispersion", "Same-Label kNN Dispersion", kw_knn, pal_map, labs_order, jitter = TRUE)
       if (!is.null(tst)) {
-        p1 <- .add_brackets(p1, .brackets(occ$occupied_fraction, tst$posthoc$occupied_fraction, labs_order, max_annotations))
-        p2 <- .add_brackets(p2, .brackets(occ$occupancy_entropy_norm, tst$posthoc$entropy, labs_order, max_annotations))
-        p3 <- .add_brackets(p3, .brackets(occ$peripheral_fraction, tst$posthoc$peripheral_fraction, labs_order, max_annotations))
-        p4 <- .add_brackets(p4, .brackets(occ$knn_dispersion, tst$posthoc$knn_dispersion, labs_order, max_annotations))
+        p1 <- add_brackets(p1, brackets(occ$occupied_fraction, tst$posthoc$occupied_fraction, labs_order, max_annotations))
+        p2 <- add_brackets(p2, brackets(occ$occupancy_entropy_norm, tst$posthoc$entropy, labs_order, max_annotations))
+        p3 <- add_brackets(p3, brackets(occ$peripheral_fraction, tst$posthoc$peripheral_fraction, labs_order, max_annotations))
+        p4 <- add_brackets(p4, brackets(occ$knn_dispersion, tst$posthoc$knn_dispersion, labs_order, max_annotations))
       }
     }
 
@@ -2392,6 +2227,7 @@ plot_trajectory_variability.Sap <- function(x,
                                             variability_type = c("dispersion", "path_deviation", "umap_occupancy"),
                                             palette = "Set1",
                                             max_annotations = 10,
+                                            show_cv = FALSE,
                                             ...) {
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
   segment_type <- match.arg(segment_type)
@@ -2414,6 +2250,1370 @@ plot_trajectory_variability.Sap <- function(x,
     x = result,
     palette = palette,
     max_annotations = max_annotations,
+    show_cv = show_cv,
+    ...
+  )
+}
+
+
+#' Bin Trajectory Time Values
+#'
+#' @description
+#' Internal helper used by trajectory analyses to make nominally identical
+#' sliding-window time points match exactly across renditions.
+#'
+#' @keywords internal
+#' @noRd
+bin_trajectory_time_data <- function(x, dims, time_digits = 6) {
+  if (!is.numeric(time_digits) || length(time_digits) != 1 || is.na(time_digits) ||
+      time_digits < 0 || time_digits != floor(time_digits)) {
+    stop("time_digits must be a non-negative whole number")
+  }
+
+  x$.time <- round(as.numeric(x$.time), digits = time_digits)
+
+  x |>
+    dplyr::group_by(.data$label, .data$rendition, .data$.time) |>
+    dplyr::summarise(
+      dplyr::across(dplyr::all_of(dims), ~ mean(.x, na.rm = TRUE)),
+      .groups = "drop"
+    ) |>
+    dplyr::arrange(.data$label, .data$rendition, .data$.time) |>
+    as.data.frame()
+}
+
+
+#' Sort Trajectory Labels
+#'
+#' @description
+#' Internal helper used by trajectory plotting and convergence functions to
+#' sort labels numerically when possible and alphabetically otherwise.
+#'
+#' @keywords internal
+#' @noRd
+sort_labels <- function(labels) {
+  nums <- suppressWarnings(as.numeric(labels))
+  if (!anyNA(nums)) labels[order(nums)] else sort(labels)
+}
+
+
+#' Make Trajectory Plot Palette
+#'
+#' @description
+#' Internal helper used by trajectory plotting functions to expand a
+#' RColorBrewer palette to any number of labels.
+#'
+#' @keywords internal
+#' @noRd
+make_pal <- function(labels, palette) {
+  n <- length(labels)
+  pal_info <- RColorBrewer::brewer.pal.info
+  max_col <- if (palette %in% rownames(pal_info)) {
+    pal_info[palette, "maxcolors"]
+  } else {
+    8L
+  }
+  if (n <= max_col) {
+    cols <- RColorBrewer::brewer.pal(max(n, 3L), palette)[seq_len(n)]
+  } else {
+    cols <- grDevices::colorRampPalette(
+      RColorBrewer::brewer.pal(max_col, palette)
+    )(n)
+  }
+  stats::setNames(cols, labels)
+}
+
+
+#' Format Trajectory Plot P Values
+#'
+#' @description
+#' Internal helper used by trajectory plotting functions to format p-values for
+#' subtitles and pairwise brackets.
+#'
+#' @keywords internal
+#' @noRd
+fmt_p <- function(p) {
+  if (is.null(p) || is.na(p)) {
+    return("p = NA")
+  }
+  if (p < 0.001) sprintf("p = %.1e", p) else sprintf("p = %.3f", p)
+}
+
+
+#' Get Pairwise P Value
+#'
+#' @description
+#' Internal helper used by trajectory plotting functions to look up a p-value
+#' from a symmetric pairwise matrix.
+#'
+#' @keywords internal
+#' @noRd
+get_p <- function(pmat, g1, g2) {
+  if (is.null(pmat)) {
+    return(NA_real_)
+  }
+  rn <- rownames(pmat)
+  cn <- colnames(pmat)
+  if (g1 %in% rn && g2 %in% cn) {
+    return(pmat[g1, g2])
+  }
+  if (g2 %in% rn && g1 %in% cn) {
+    return(pmat[g2, g1])
+  }
+  NA_real_
+}
+
+
+#' Build Trajectory Significance Brackets
+#'
+#' @description
+#' Internal helper used by trajectory plotting functions to build pairwise
+#' significance bracket annotations.
+#'
+#' @keywords internal
+#' @noRd
+brackets <- function(values, posthoc_obj, labels_in_order, max_annotations) {
+  comps <- utils::combn(labels_in_order, 2, simplify = FALSE)
+
+  if (length(comps) > max_annotations) {
+    pvals <- vapply(comps, function(comp) {
+      get_p(posthoc_obj$p.value, comp[1], comp[2])
+    }, numeric(1))
+    keep_idx <- order(pvals)[seq_len(max_annotations)]
+    message(sprintf(
+      "  %d pairwise comparisons available; showing %d most significant.",
+      length(comps), max_annotations
+    ))
+    comps <- comps[keep_idx]
+  }
+
+  y_range <- range(values, na.rm = TRUE)
+  span <- diff(y_range)
+  if (!is.finite(span) || span == 0) span <- max(abs(y_range), 1, na.rm = TRUE)
+  base_y <- y_range[2] + 0.08 * span
+  step_y <- 0.12 * span
+
+  ann <- do.call(rbind, lapply(seq_along(comps), function(i) {
+    comp <- comps[[i]]
+    p_val <- get_p(posthoc_obj$p.value, comp[1], comp[2])
+    data.frame(
+      x1 = match(comp[1], labels_in_order),
+      x2 = match(comp[2], labels_in_order),
+      y = base_y + (i - 1) * step_y,
+      lbl = fmt_p(p_val),
+      stringsAsFactors = FALSE
+    )
+  }))
+  ann$y_text <- ann$y + 0.025 * span
+  ann$y_tip <- ann$y - 0.020 * span
+  ann$y_max <- max(ann$y_text) + 0.06 * span
+  ann
+}
+
+
+#' Add Trajectory Significance Brackets
+#'
+#' @description
+#' Internal helper used by trajectory plotting functions to add bracket layers
+#' to a ggplot object.
+#'
+#' @keywords internal
+#' @noRd
+add_brackets <- function(p, ann) {
+  if (is.null(ann) || nrow(ann) == 0) {
+    return(p)
+  }
+  p +
+    ggplot2::geom_segment(
+      data = ann,
+      ggplot2::aes(x = .data$x1, xend = .data$x2, y = .data$y, yend = .data$y),
+      inherit.aes = FALSE
+    ) +
+    ggplot2::geom_segment(
+      data = ann,
+      ggplot2::aes(x = .data$x1, xend = .data$x1, y = .data$y_tip, yend = .data$y),
+      inherit.aes = FALSE
+    ) +
+    ggplot2::geom_segment(
+      data = ann,
+      ggplot2::aes(x = .data$x2, xend = .data$x2, y = .data$y_tip, yend = .data$y),
+      inherit.aes = FALSE
+    ) +
+    ggplot2::geom_text(
+      data = ann,
+      ggplot2::aes(
+        x = (.data$x1 + .data$x2) / 2,
+        y = .data$y_text,
+        label = .data$lbl
+      ),
+      inherit.aes = FALSE, size = 3
+    ) +
+    ggplot2::coord_cartesian(ylim = c(NA, ann$y_max[1]))
+}
+
+
+#' Build Trajectory Distribution Panel
+#'
+#' @description
+#' Internal helper used by trajectory plotting functions to create a violin and
+#' box plot panel.
+#'
+#' @keywords internal
+#' @noRd
+panel <- function(df, x_col, y_col, title, subtitle, pal_map,
+                  labs_order, jitter = FALSE, y_label = y_col) {
+  df[[x_col]] <- factor(df[[x_col]], levels = labs_order)
+  n_labs <- length(labs_order)
+  x_breaks <- if (n_labs >= 5) {
+    labs_order[round(seq(1, n_labs, length.out = 5))]
+  } else {
+    labs_order
+  }
+  p <- ggplot2::ggplot(
+    df,
+    ggplot2::aes(
+      x    = .data[[x_col]],
+      y    = .data[[y_col]],
+      fill = .data[[x_col]]
+    )
+  ) +
+    ggplot2::geom_violin(alpha = 0.6) +
+    ggplot2::geom_boxplot(width = 0.15, alpha = 0.8, outlier.size = 0.5) +
+    ggplot2::labs(title = title, subtitle = subtitle, y = y_label, x = NULL) +
+    ggplot2::scale_fill_manual(values = pal_map) +
+    ggplot2::scale_x_discrete(breaks = x_breaks) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      legend.position  = "none",
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background  = ggplot2::element_rect(fill = "white", color = NA)
+    )
+  if (jitter) {
+    p <- p + ggplot2::geom_jitter(width = 0.12, alpha = 0.35, size = 0.9)
+  }
+  p
+}
+
+
+#' Build Trajectory Trend Panel
+#'
+#' @description
+#' Internal helper used by trajectory plotting functions to create a mean and
+#' standard-error trend panel.
+#'
+#' @keywords internal
+#' @noRd
+trend_panel <- function(df, x_col, y_col, title, subtitle, labs_order,
+                        y_label = y_col) {
+  agg <- do.call(rbind, lapply(labs_order, function(lbl) {
+    vals <- df[[y_col]][as.character(df[[x_col]]) == lbl]
+    n <- sum(!is.na(vals))
+    data.frame(
+      label = lbl,
+      mean = mean(vals, na.rm = TRUE),
+      se = if (n > 1) sd(vals, na.rm = TRUE) / sqrt(n) else 0,
+      stringsAsFactors = FALSE
+    )
+  }))
+  agg$label <- factor(agg$label, levels = labs_order)
+
+  n_labs <- length(labs_order)
+  x_breaks <- if (n_labs >= 5) {
+    labs_order[round(seq(1, n_labs, length.out = 5))]
+  } else {
+    labs_order
+  }
+
+  ggplot2::ggplot(
+    agg,
+    ggplot2::aes(x = .data$label, y = .data$mean, group = 1)
+  ) +
+    ggplot2::geom_ribbon(
+      ggplot2::aes(
+        ymin = .data$mean - .data$se,
+        ymax = .data$mean + .data$se
+      ),
+      alpha = 0.2, fill = "steelblue"
+    ) +
+    ggplot2::geom_line(color = "steelblue", linewidth = 0.9) +
+    ggplot2::geom_point(color = "steelblue", size = 2) +
+    ggplot2::labs(
+      title    = title,
+      subtitle = subtitle,
+      y        = y_label,
+      x        = NULL
+    ) +
+    ggplot2::scale_x_discrete(breaks = x_breaks) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      legend.position  = "none",
+      axis.text.x      = ggplot2::element_text(angle = 45, hjust = 1),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background  = ggplot2::element_rect(fill = "white", color = NA)
+    )
+}
+
+
+#' Build Trajectory CV Summary
+#'
+#' @description
+#' Internal helper used by trajectory dispersion plotting to calculate
+#' coefficient-of-variation values from the stored summary table.
+#'
+#' @keywords internal
+#' @noRd
+trajectory_cv_summary <- function(summary_df, labs_order) {
+  required <- c(
+    "label",
+    "dispersion_mean",
+    "dispersion_sd",
+    "path_length_mean",
+    "path_length_sd"
+  )
+  missing_cols <- setdiff(required, names(summary_df))
+  if (length(missing_cols) > 0) {
+    stop(sprintf(
+      "Cannot plot CV panels; missing summary columns: %s",
+      paste(missing_cols, collapse = ", ")
+    ))
+  }
+
+  summary_df <- summary_df[match(labs_order, as.character(summary_df$label)), ]
+  data.frame(
+    label = labs_order,
+    dispersion_cv = ifelse(
+      is.na(summary_df$dispersion_mean) | summary_df$dispersion_mean == 0,
+      NA_real_,
+      summary_df$dispersion_sd / summary_df$dispersion_mean
+    ),
+    path_length_cv = ifelse(
+      is.na(summary_df$path_length_mean) | summary_df$path_length_mean == 0,
+      NA_real_,
+      summary_df$path_length_sd / summary_df$path_length_mean
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+
+#' Build Trajectory CV Panel
+#'
+#' @description
+#' Internal helper used by trajectory dispersion plotting to create compact
+#' coefficient-of-variation panels.
+#'
+#' @keywords internal
+#' @noRd
+cv_panel <- function(df, x_col, y_col, title, pal_map, labs_order) {
+  df[[x_col]] <- factor(df[[x_col]], levels = labs_order)
+  n_labs <- length(labs_order)
+  x_breaks <- if (n_labs >= 5) {
+    labs_order[round(seq(1, n_labs, length.out = 5))]
+  } else {
+    labs_order
+  }
+
+  ggplot2::ggplot(
+    df,
+    ggplot2::aes(
+      x = .data[[x_col]],
+      y = .data[[y_col]],
+      fill = .data[[x_col]]
+    )
+  ) +
+    ggplot2::geom_col(alpha = 0.75, width = 0.7, na.rm = TRUE) +
+    ggplot2::geom_point(size = 1.8, na.rm = TRUE) +
+    ggplot2::labs(title = title, y = "CV (SD / mean)", x = NULL) +
+    ggplot2::scale_fill_manual(values = pal_map) +
+    ggplot2::scale_x_discrete(breaks = x_breaks) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      legend.position = "none",
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA)
+    )
+}
+
+
+# Trajectory Convergence Analysis
+# Update date : Jun. 23, 2026
+
+#' Trajectory Convergence to Reference Path
+#'
+#' @description
+#' Measures song maturity and developmental convergence by quantifying how
+#' individual trial PC trajectories approach a reference path (e.g.,
+#' adult/crystallized song). Uses complementary distance metrics (RMS,
+#' Fr\'echet, DTW) with unified variability scaling and correlation analysis.
+#'
+#' @param x An object to analyze: a trajectory embeddings data frame or SAP object
+#' @param dims Character vector of dimension columns to use (default: c("PC1", "PC2"))
+#' @param reference_label Character. Label to use as reference trajectory
+#'   (default: NULL, uses last sorted label)
+#' @param labels Optional character vector of labels to include
+#' @param metrics Character vector of metrics to compute
+#'   (default: c("rms", "frechet", "dtw", "correlation"))
+#' @param interpolate_n Optional integer. If NULL (default), use matched time
+#'   points. If integer, resample paths to interpolate_n equally spaced points
+#' @param trim_fraction Numeric. Trim fraction for robust reference path
+#'   building (default: 0.1, removes 10% from each tail)
+#' @param min_coverage Minimum fraction of reference-label renditions that must
+#'   cover a binned time step for it to contribute to the reference trajectory
+#'   (default: 0.5).
+#' @param time_digits Number of decimal places used to bin \code{.time} before
+#'   grouping and matching trajectories (default: \code{6}).
+#' @param similarity_baseline How distance similarities are transformed.
+#'   \code{"reference"} (default) treats distances within the metric-specific
+#'   reference-label median as converged before applying the exponential
+#'   transform. \code{"zero"} uses the raw normalized distance.
+#' @param similarity_scale_multiplier Multiplier applied to metric-specific
+#'   reference scales before transforming distance similarities (default:
+#'   \code{1}).
+#' @param stats Logical. If \code{TRUE} (default), run Kruskal-Wallis and
+#'   pairwise Wilcoxon tests on non-reference labels. Set to \code{FALSE} to
+#'   skip statistical testing
+#' @param verbose Whether to print progress messages (default: TRUE)
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables',
+#'   'bouts', 'segments')
+#' @param ... Additional arguments
+#'
+#' @details
+#' **Convergence Metrics:**
+#' \itemize{
+#'   \item RMS distance: Pointwise Euclidean distance, emphasizes persistent
+#'     deviations across the full trajectory
+#'   \item Fr\'echet distance: Curve shape distance; handles variable-length paths
+#'   \item DTW distance: Dynamic time warping; captures shape similarity under
+#'     timing shifts
+#'   \item Correlation: Per-dimension Pearson r, averaged; intrinsically
+#'     normalized (scale-free, range \eqn{[-1, 1]})
+#' }
+#'
+#' **Reference Building:**
+#' The reference trajectory is the robust trimmed-mean path of the reference
+#' label. Trim fraction (default 0.1) removes outlier reference renditions at
+#' each time point to avoid distortion. Time values are first rounded to
+#' \code{time_digits}, and only binned time points covered by at least
+#' \code{min_coverage} of reference renditions are retained.
+#'
+#' **Variability Scaling:**
+#' Metric-specific reference scales are computed as the median reference-label
+#' rendition distance to the reference path for RMS, Fr\'echet, and DTW. These
+#' scales are used to normalize distance metrics (not correlation, which is
+#' already scale-free).
+#'
+#' **Similarity Scores:**
+#' Distance metrics are normalized by their metric-specific reference scale. By
+#' default, the reference scale is multiplied by
+#' \code{similarity_scale_multiplier = 1} before transformation. By
+#' default, \code{similarity_baseline = "reference"} transforms excess distance
+#' beyond the scaled reference threshold:
+#' \code{similarity = exp(-pmax(normalized_distance - 1, 0))}.
+#' With \code{similarity_baseline = "zero"}, the transform is:
+#' \code{similarity = exp(-normalized_distance)}.
+#'
+#' Interpretation with the default reference baseline: similarity approximately
+#' equals 1 means within the scaled reference threshold, similarity
+#' approximately equals 0.37 means one additional scaled reference unit beyond
+#' that threshold, and similarity less than 0.1 means far from the reference
+#' path.
+#'
+#' **Statistical Testing:**
+#' Reference label is included in results and plots but excluded from
+#' Kruskal-Wallis and pairwise Wilcoxon tests (it defines the target, not a
+#' convergence point).
+#'
+#' @return
+#' For default method: A list (returned invisibly) with:
+#' \itemize{
+#'   \item \code{type}: Character string \code{"convergence"}
+#'   \item \code{dims}: Requested dimensions
+#'   \item \code{reference_label}: Reference label used
+#'   \item \code{trim_fraction}: Trim fraction applied
+#'   \item \code{min_coverage}: Minimum coverage threshold applied to the reference path
+#'   \item \code{time_digits}: Decimal places used to bin \code{.time}
+#'   \item \code{reference_scale}: Scalar variability scale
+#'   \item \code{reference_scales}: Metric-specific variability scales
+#'   \item \code{similarity_baseline}: Similarity transform baseline
+#'   \item \code{similarity_scale_multiplier}: Similarity scale multiplier
+#'   \item \code{reference_path}: Data frame of reference trajectory
+#'   \item \code{metrics}: Metrics computed
+#'   \item \code{interpolate_n}: Interpolation info
+#'   \item \code{similarity}: Per-rendition results with all metric columns
+#'   \item \code{summary}: Per-label summary statistics
+#'   \item \code{tests}: Statistical test results (\code{NULL} if stats=FALSE
+#'     or only one non-reference label)
+#' }
+#' For SAP objects: Updated object with results stored in
+#'   \code{x$features[[feature_type]][["trajectory_convergence"]]}
+#'
+#' @examples
+#' \dontrun{
+#' # Compute convergence from trajectory embeddings
+#' result <- trajectory_convergence(sap$features$motif$traj.embeds,
+#'   dims = c("PC1", "PC2")
+#' )
+#'
+#' # From SAP object
+#' sap <- trajectory_convergence(sap)
+#'
+#' # Custom reference and metrics
+#' result <- trajectory_convergence(sap,
+#'   reference_label = "Adult",
+#'   metrics = c("rms", "correlation")
+#' )
+#'
+#' # Access results
+#' result$summary # per-label statistics
+#' result$tests # statistical tests
+#' }
+#'
+#' @seealso \code{\link{plot_trajectory_convergence}} for visualization,
+#'   \code{\link{trajectory_path_deviation}} for width-based trajectory analysis
+#'
+#' @rdname trajectory_convergence
+#' @keywords internal
+#' @export
+trajectory_convergence <- function(x, ...) {
+  UseMethod("trajectory_convergence")
+}
+
+
+#' @rdname trajectory_convergence
+#' @export
+trajectory_convergence.default <- function(x,
+                                           dims = c("PC1", "PC2"),
+                                           reference_label = NULL,
+                                           labels = NULL,
+                                           metrics = c("rms", "frechet", "dtw", "correlation"),
+                                           interpolate_n = NULL,
+                                           trim_fraction = 0.1,
+                                           min_coverage = 0.5,
+                                           time_digits = 6,
+                                           similarity_baseline = c("reference", "zero"),
+                                           similarity_scale_multiplier = 1,
+                                           stats = TRUE,
+                                           verbose = TRUE,
+                                           ...) {
+  # Input validation
+  if (!is.data.frame(x)) stop("Input must be a data frame")
+
+  required_cols <- c("label", "rendition", ".time")
+  missing_cols <- setdiff(c(required_cols, dims), names(x))
+  if (length(missing_cols) > 0) {
+    stop(sprintf(
+      "Missing required columns: %s",
+      paste(missing_cols, collapse = ", ")
+    ))
+  }
+
+  # Validate metrics
+  valid_metrics <- c("rms", "frechet", "dtw", "correlation")
+  invalid_metrics <- setdiff(metrics, valid_metrics)
+  if (length(invalid_metrics) > 0) {
+    stop(sprintf(
+      "Invalid metrics: %s. Choose from: %s",
+      paste(invalid_metrics, collapse = ", "),
+      paste(valid_metrics, collapse = ", ")
+    ))
+  }
+  similarity_baseline <- match.arg(similarity_baseline)
+  if (!is.numeric(similarity_scale_multiplier) ||
+      length(similarity_scale_multiplier) != 1 ||
+      is.na(similarity_scale_multiplier) ||
+      similarity_scale_multiplier <= 0) {
+    stop("similarity_scale_multiplier must be a positive number")
+  }
+
+  ensure_pkgs("ggplot2", "dplyr")
+  if ("dtw" %in% metrics) ensure_pkgs("dtw")
+
+  # Filter labels if specified
+  if (!is.null(labels)) {
+    available <- unique(x$label)
+    missing_labels <- setdiff(labels, available)
+    if (length(missing_labels) > 0) {
+      stop(sprintf(
+        "Labels not found: %s\nAvailable: %s",
+        paste(missing_labels, collapse = ", "),
+        paste(available, collapse = ", ")
+      ))
+    }
+    x <- x[x$label %in% labels, ]
+  }
+
+  x <- bin_trajectory_time_data(x, dims, time_digits)
+
+  all_labels <- unique(x$label)
+  if (length(all_labels) == 0) stop("No labels available after filtering")
+
+  # Resolve reference label
+  if (is.null(reference_label)) {
+    sorted_labels <- sort_labels(all_labels)
+    reference_label <- sorted_labels[length(sorted_labels)]
+  } else {
+    if (!reference_label %in% all_labels) {
+      stop(sprintf("Reference label '%s' not found in data", reference_label))
+    }
+  }
+
+  # Auto-disable stats when there are many groups
+  if (stats && length(all_labels) > 6) {
+    message(sprintf(
+      "Note: %d labels detected. Setting stats = FALSE (statistical tests not meaningful for this many groups).",
+      length(all_labels)
+    ))
+    stats <- FALSE
+  }
+
+  if (verbose) {
+    message("\n=== Trajectory Convergence Analysis ===")
+    message(sprintf("Dimensions       : %s", paste(dims, collapse = ", ")))
+    message(sprintf("Reference label  : %s", reference_label))
+    message(sprintf("Trim fraction    : %.0f%% each tail", trim_fraction * 100))
+    message(sprintf(
+      "Min coverage     : %.0f%% of reference renditions per time step",
+      min_coverage * 100
+    ))
+    message(sprintf("Time binning     : %d decimal places", time_digits))
+    message(sprintf("Similarity base  : %s", similarity_baseline))
+    message(sprintf("Similarity scale : %.3g", similarity_scale_multiplier))
+    message(sprintf("Metrics          : %s", paste(metrics, collapse = ", ")))
+    if (!is.null(interpolate_n)) {
+      message(sprintf("Interpolation    : %d points", interpolate_n))
+    } else {
+      message("Interpolation    : matched time points")
+    }
+    message(sprintf("Labels           : %s\n", paste(all_labels, collapse = ", ")))
+  }
+
+  # ---- Build reference trajectory ----
+  ref_data <- x[x$label == reference_label, ]
+  ref_renditions <- unique(ref_data$rendition)
+  n_ref_rend <- length(ref_renditions)
+  ref_all_times <- sort(unique(ref_data$.time))
+
+  ref_coverage <- vapply(ref_all_times, function(t) {
+    sum(ref_data$.time == t) / n_ref_rend
+  }, numeric(1))
+  ref_times <- ref_all_times[ref_coverage >= min_coverage]
+
+  if (length(ref_times) < 2) {
+    stop(sprintf(
+      "Reference label '%s' has fewer than 2 binned time steps with %.0f%% coverage",
+      reference_label,
+      min_coverage * 100
+    ))
+  }
+
+  reference_path_list <- lapply(ref_times, function(t) {
+    t_vals <- ref_data[ref_data$.time == t, dims, drop = FALSE]
+    means <- vapply(dims, function(d) mean(t_vals[[d]], trim = trim_fraction, na.rm = TRUE), numeric(1))
+    data.frame(.time = t, as.list(means), check.names = FALSE)
+  })
+
+  reference_path <- as.data.frame(do.call(rbind, reference_path_list))
+  colnames(reference_path) <- c(".time", dims)
+
+  if (verbose) {
+    message(sprintf(
+      "Reference trajectory: %d time steps (%d raw binned time steps)",
+      nrow(reference_path),
+      length(ref_all_times)
+    ))
+  }
+
+  # ---- Interpolate paths if needed ----
+  interpolate_path <- function(path_data, dims, n_interp) {
+    if (is.null(n_interp)) {
+      return(as.matrix(path_data[, dims, drop = FALSE]))
+    }
+
+    # Normalize time to [0, 1]
+    times <- path_data$.time
+    if (length(times) < 2) return(NULL)
+
+    min_t <- min(times)
+    max_t <- max(times)
+    if (min_t == max_t) return(NULL)
+
+    norm_times <- (times - min_t) / (max_t - min_t)
+    grid <- seq(0, 1, length.out = n_interp)
+
+    # Interpolate each dimension
+    coords <- as.matrix(path_data[, dims, drop = FALSE])
+    interp_coords <- matrix(NA, nrow = n_interp, ncol = length(dims))
+    colnames(interp_coords) <- dims
+
+    for (i in seq_along(dims)) {
+      interp_coords[, i] <- stats::approx(norm_times, coords[, i],
+        xout = grid, rule = 2
+      )$y
+    }
+
+    interp_coords
+  }
+
+  # ---- Helper functions for distance metrics ----
+  frechet_dist <- function(P, Q) {
+    n <- nrow(P)
+    m <- nrow(Q)
+    ca <- matrix(NA_real_, n, m)
+
+    d <- function(i, j) sqrt(sum((P[i, ] - Q[j, ])^2))
+
+    ca[1, 1] <- d(1, 1)
+    for (i in 2:n) ca[i, 1] <- max(ca[i - 1, 1], d(i, 1))
+    for (j in 2:m) ca[1, j] <- max(ca[1, j - 1], d(1, j))
+    for (i in 2:n) {
+      for (j in 2:m) {
+        ca[i, j] <- max(min(ca[i - 1, j], ca[i - 1, j - 1], ca[i, j - 1]), d(i, j))
+      }
+    }
+
+    ca[n, m]
+  }
+
+  rms_distance <- function(trial, ref) {
+    if (is.null(trial) || is.null(ref) || nrow(trial) < 1 || nrow(ref) < 1) {
+      return(list(rms = NA_real_, mean_dist = NA_real_, max_dist = NA_real_))
+    }
+
+    if (!is.null(interpolate_n)) {
+      # Already interpolated, same length
+      pointwise <- sqrt(rowSums((trial - ref)^2))
+    } else {
+      # Inner join on time
+      trial_times <- trial[, ".time"]
+      ref_times <- ref[, ".time"]
+      common_times <- intersect(trial_times, ref_times)
+
+      if (length(common_times) == 0) {
+        return(list(rms = NA_real_, mean_dist = NA_real_, max_dist = NA_real_))
+      }
+
+      trial_aligned <- trial[trial[, ".time"] %in% common_times, dims, drop = FALSE]
+      ref_aligned <- ref[ref[, ".time"] %in% common_times, dims, drop = FALSE]
+
+      if (nrow(trial_aligned) < 1) {
+        return(list(rms = NA_real_, mean_dist = NA_real_, max_dist = NA_real_))
+      }
+
+      pointwise <- sqrt(rowSums((as.matrix(trial_aligned) - as.matrix(ref_aligned))^2))
+    }
+
+    list(
+      rms = sqrt(mean(pointwise^2, na.rm = TRUE)),
+      mean_dist = mean(pointwise, na.rm = TRUE),
+      max_dist = max(pointwise, na.rm = TRUE)
+    )
+  }
+
+  align_to_reference <- function(rend_data) {
+    if (!is.null(interpolate_n)) {
+      rend_matrix <- interpolate_path(rend_data, dims, interpolate_n)
+      ref_matrix <- interpolate_path(reference_path, dims, interpolate_n)
+      if (is.null(rend_matrix) || is.null(ref_matrix)) {
+        return(NULL)
+      }
+      return(list(rend = rend_matrix, ref = ref_matrix, n_time = nrow(rend_matrix)))
+    }
+
+    common_times <- sort(intersect(rend_data$.time, reference_path$.time))
+    if (length(common_times) == 0) {
+      return(NULL)
+    }
+
+    rend_aligned <- as.matrix(rend_data[rend_data$.time %in% common_times, dims, drop = FALSE])
+    ref_aligned <- as.matrix(reference_path[reference_path$.time %in% common_times, dims, drop = FALSE])
+    if (nrow(rend_aligned) < 1 || nrow(ref_aligned) < 1) {
+      return(NULL)
+    }
+
+    list(rend = rend_aligned, ref = ref_aligned, n_time = nrow(rend_aligned))
+  }
+
+  metric_distances <- function(rend_data) {
+    aligned <- align_to_reference(rend_data)
+    empty_result <- list(
+      n_time = 0L,
+      rms_dist = NA_real_,
+      rms_mean_dist = NA_real_,
+      rms_max_dist = NA_real_,
+      frechet_dist = NA_real_,
+      dtw_dist = NA_real_,
+      correlation = NA_real_
+    )
+    if (is.null(aligned)) {
+      return(empty_result)
+    }
+
+    pointwise <- sqrt(rowSums((aligned$rend - aligned$ref)^2))
+    result <- empty_result
+    result$n_time <- aligned$n_time
+    result$rms_dist <- sqrt(mean(pointwise^2, na.rm = TRUE))
+    result$rms_mean_dist <- mean(pointwise, na.rm = TRUE)
+    result$rms_max_dist <- max(pointwise, na.rm = TRUE)
+
+    if ("frechet" %in% metrics) {
+      result$frechet_dist <- frechet_dist(aligned$rend, aligned$ref)
+    }
+
+    if ("dtw" %in% metrics) {
+      result$dtw_dist <- tryCatch(
+        dtw::dtw(aligned$rend, aligned$ref)$normalizedDistance,
+        error = function(e) NA_real_
+      )
+    }
+
+    if ("correlation" %in% metrics) {
+      cors <- vapply(seq_along(dims), function(i) {
+        stats::cor(aligned$rend[, i], aligned$ref[, i], use = "complete.obs")
+      }, numeric(1))
+      result$correlation <- mean(cors, na.rm = TRUE)
+    }
+
+    result
+  }
+
+  transform_distance <- function(distance, scale) {
+    if (!is.finite(distance) || !is.finite(scale) || scale <= 0) {
+      return(list(normalized = NA_real_, excess_normalized = NA_real_, similarity = NA_real_))
+    }
+    normalized <- distance / (scale * similarity_scale_multiplier)
+    excess_normalized <- if (similarity_baseline == "reference") {
+      max(normalized - 1, 0)
+    } else {
+      normalized
+    }
+    list(
+      normalized = normalized,
+      excess_normalized = excess_normalized,
+      similarity = exp(-excess_normalized)
+    )
+  }
+
+  # ---- Compute reference scale ----
+  ref_scales <- vapply(ref_renditions, function(r) {
+    rend_data <- ref_data[ref_data$rendition == r, ]
+    metric_distances(rend_data)$rms_dist
+  }, numeric(1))
+
+  reference_metric_results <- do.call(rbind, lapply(ref_renditions, function(r) {
+    rend_data <- ref_data[ref_data$rendition == r, ]
+    distances <- metric_distances(rend_data)
+    data.frame(
+      rendition = r,
+      rms = distances$rms_dist,
+      frechet = distances$frechet_dist,
+      dtw = distances$dtw_dist,
+      stringsAsFactors = FALSE
+    )
+  }))
+
+  reference_scales <- c(
+    rms = stats::median(reference_metric_results$rms, na.rm = TRUE),
+    frechet = stats::median(reference_metric_results$frechet, na.rm = TRUE),
+    dtw = stats::median(reference_metric_results$dtw, na.rm = TRUE)
+  )
+
+  reference_scale <- reference_scales[["rms"]]
+  if (!is.finite(reference_scale) || reference_scale == 0) {
+    reference_scale <- stats::median(ref_scales[ref_scales > 0], na.rm = TRUE)
+  }
+  if (!is.finite(reference_scale) || reference_scale == 0) {
+    reference_scale <- 1.0
+    if (verbose) warning("Reference scale could not be computed; using default scale = 1.0")
+  }
+  reference_scales[["rms"]] <- reference_scale
+
+  for (metric in names(reference_scales)) {
+    if (!is.finite(reference_scales[[metric]]) || reference_scales[[metric]] <= 0) {
+      reference_scales[[metric]] <- reference_scale
+    }
+  }
+
+  if (verbose) {
+    message("Reference scales  :")
+    message(sprintf("  RMS     : %.4f", reference_scales[["rms"]]))
+    message(sprintf("  Fr\u00e9chet : %.4f", reference_scales[["frechet"]]))
+    message(sprintf("  DTW     : %.4f\n", reference_scales[["dtw"]]))
+  }
+
+  # ---- Compute convergence metrics for all trials ----
+  convergence_results <- do.call(rbind, lapply(all_labels, function(lbl) {
+    lbl_data <- x[x$label == lbl, ]
+    renditions <- unique(lbl_data$rendition)
+
+    do.call(rbind, lapply(renditions, function(r) {
+      rend_data <- lbl_data[lbl_data$rendition == r, ]
+      rend_data <- rend_data[order(rend_data$.time), ]
+      distances <- metric_distances(rend_data)
+
+      row_result <- data.frame(
+        label = lbl,
+        rendition = r,
+        n_matched_time = distances$n_time,
+        stringsAsFactors = FALSE
+      )
+
+      # RMS distance
+      if ("rms" %in% metrics) {
+        transformed <- transform_distance(distances$rms_dist, reference_scales[["rms"]])
+        row_result$rms_dist <- distances$rms_dist
+        row_result$rms_mean_dist <- distances$rms_mean_dist
+        row_result$rms_max_dist <- distances$rms_max_dist
+        row_result$rms_normalized <- transformed$normalized
+        row_result$rms_excess_normalized <- transformed$excess_normalized
+        row_result$rms_similarity <- transformed$similarity
+      }
+
+      # Fr\u00e9chet distance
+      if ("frechet" %in% metrics) {
+        transformed <- transform_distance(distances$frechet_dist, reference_scales[["frechet"]])
+        row_result$frechet_dist <- distances$frechet_dist
+        row_result$frechet_normalized <- transformed$normalized
+        row_result$frechet_excess_normalized <- transformed$excess_normalized
+        row_result$frechet_similarity <- transformed$similarity
+      }
+
+      # DTW distance
+      if ("dtw" %in% metrics) {
+        transformed <- transform_distance(distances$dtw_dist, reference_scales[["dtw"]])
+        row_result$dtw_dist <- distances$dtw_dist
+        row_result$dtw_normalized <- transformed$normalized
+        row_result$dtw_excess_normalized <- transformed$excess_normalized
+        row_result$dtw_similarity <- transformed$similarity
+      }
+
+      # Correlation
+      if ("correlation" %in% metrics) {
+        row_result$correlation <- distances$correlation
+      }
+
+      row_result
+    }))
+  }))
+
+  # ---- Summary table ----
+  # Simplified: Keep only similarity metrics (mean + sd) for clean output
+  # Per-rendition data retains all details for power users
+  summary_df <- convergence_results |>
+    dplyr::group_by(.data$label) |>
+    dplyr::summarise(
+      n = dplyr::n(),
+      dplyr::across(c(
+        dplyr::ends_with("_similarity"),
+        dplyr::any_of("correlation")
+      ),
+        list(mean = ~ mean(., na.rm = TRUE), sd = ~ sd(., na.rm = TRUE)),
+        .names = "{.col}_{.fn}"
+      ),
+      .groups = "drop"
+    ) |>
+    as.data.frame()
+
+  # ---- Statistical tests (exclude reference label) ----
+  tests <- NULL
+  n_non_ref <- nrow(convergence_results[convergence_results$label != reference_label, ])
+
+  if (stats && length(all_labels) > 1 && n_non_ref > 0) {
+    test_data <- convergence_results[convergence_results$label != reference_label, ]
+
+    tests <- list(kruskal = list(), posthoc = list())
+
+    for (metric in c("rms", "frechet", "dtw", "correlation")) {
+      metric_col <- if (metric == "correlation") "correlation" else paste0(metric, "_dist")
+
+      if (metric_col %in% names(test_data) && !all(is.na(test_data[[metric_col]]))) {
+        kw_test <- stats::kruskal.test(test_data[[metric_col]] ~ test_data$label)
+        tests$kruskal[[metric]] <- kw_test
+
+        pw_test <- stats::pairwise.wilcox.test(
+          test_data[[metric_col]],
+          test_data$label,
+          p.adjust.method = "bonferroni",
+          exact = FALSE
+        )
+        tests$posthoc[[metric]] <- pw_test
+      }
+    }
+
+    if (verbose) {
+      message("--- Summary (Reference label excluded from tests) ---")
+      print(summary_df)
+      message("\nKruskal-Wallis tests:")
+      for (metric in names(tests$kruskal)) {
+        message(sprintf(
+          "  %s: chi-sq = %.2f, p = %.2e",
+          metric, tests$kruskal[[metric]]$statistic, tests$kruskal[[metric]]$p.value
+        ))
+      }
+    }
+  } else if (verbose) {
+    message("--- Summary ---")
+    print(summary_df)
+  }
+
+  invisible(list(
+    type = "convergence",
+    dims = dims,
+    reference_label = reference_label,
+    trim_fraction = trim_fraction,
+    min_coverage = min_coverage,
+    time_digits = time_digits,
+    reference_scale = reference_scale,
+    reference_scales = reference_scales,
+    similarity_baseline = similarity_baseline,
+    similarity_scale_multiplier = similarity_scale_multiplier,
+    reference_path = reference_path,
+    metrics = metrics,
+    interpolate_n = interpolate_n,
+    similarity = convergence_results,
+    summary = summary_df,
+    tests = tests
+  ))
+}
+
+
+#' @rdname trajectory_convergence
+#' @export
+trajectory_convergence.Sap <- function(x,
+                                       segment_type = c("motifs", "syllables", "bouts", "segments"),
+                                       dims = c("PC1", "PC2"),
+                                       reference_label = NULL,
+                                       labels = NULL,
+                                       metrics = c("rms", "frechet", "dtw", "correlation"),
+                                       interpolate_n = NULL,
+                                       trim_fraction = 0.1,
+                                       min_coverage = 0.5,
+                                       time_digits = 6,
+                                       similarity_baseline = c("reference", "zero"),
+                                       similarity_scale_multiplier = 1,
+                                       stats = TRUE,
+                                       verbose = TRUE,
+                                       ...) {
+  if (!inherits(x, "Sap")) stop("Input must be a SAP object")
+
+  segment_type <- match.arg(segment_type)
+  feature_type <- sub("s$", "", segment_type)
+
+  traj_embeds <- x$features[[feature_type]][["traj.embeds"]]
+  if (is.null(traj_embeds)) {
+    stop(sprintf(
+      "Trajectory embeddings not found for %s. Run create_trajectory_matrix() first.",
+      segment_type
+    ))
+  }
+
+  missing_dims <- setdiff(dims, names(traj_embeds))
+  if (length(missing_dims) > 0) {
+    stop(sprintf("Dimensions not found: %s", paste(missing_dims, collapse = ", ")))
+  }
+
+  result <- trajectory_convergence.default(
+    x = traj_embeds,
+    dims = dims,
+    reference_label = reference_label,
+    labels = labels,
+    metrics = metrics,
+    interpolate_n = interpolate_n,
+    trim_fraction = trim_fraction,
+    min_coverage = min_coverage,
+    time_digits = time_digits,
+    similarity_baseline = similarity_baseline,
+    similarity_scale_multiplier = similarity_scale_multiplier,
+    stats = stats,
+    verbose = verbose,
+    ...
+  )
+
+  x$features[[feature_type]][["trajectory_convergence"]] <- result
+
+  invisible(x)
+}
+#' Plot Trajectory Convergence Results
+#'
+#' @description
+#' Creates multi-panel visualization of trajectory convergence metrics showing
+#' how individual trial trajectories compare to a reference path across labels.
+#'
+#' @param x A list returned by \code{trajectory_convergence()} or a SAP object
+#'   with trajectory convergence results
+#' @param palette Character. Color palette name for ggplot2 (default: "Set1")
+#' @param max_annotations Integer. Maximum number of pairwise significance
+#'   annotations to display per panel (default: 10)
+#' @param similarity_baseline Similarity transform to use for plotted distance
+#'   metrics. \code{"result"} uses the baseline stored in \code{x};
+#'   \code{"reference"} treats distances within reference-label variability as
+#'   converged; \code{"zero"} uses \code{exp(-normalized_distance)}.
+#' @param similarity_scale_multiplier Optional multiplier for metric-specific
+#'   reference scales when plotting distance similarities. Defaults to the
+#'   multiplier stored in \code{x}, or \code{1} when unavailable.
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables',
+#'   'bouts', 'segments')
+#' @param ... Additional arguments passed to specific methods
+#'
+#' @details
+#' Creates one panel for each computed metric. Panels are ordered as Pointwise
+#' Convergence, Shape Correlation, Path-Shape Convergence, and Timing-Adjusted
+#' Convergence when those metrics are present. For small label sets (\u22646 labels),
+#' uses violin + box plots. For larger label sets, uses mean \u00b1 SE trend lines.
+#' Distance similarities are recalculated from raw distances using
+#' metric-specific reference scales when available.
+#'
+#' Reference label is included in results and plots for context but excluded
+#' from statistical test annotations (reference defines target, not convergence).
+#'
+#' @return
+#' A patchwork object combining all metric panels (returned invisibly)
+#'
+#' @examples
+#' \dontrun{
+#' # Plot trajectory convergence
+#' result <- trajectory_convergence(sap)
+#' plot_trajectory_convergence(result)
+#'
+#' # From SAP object directly
+#' plot_trajectory_convergence(sap,
+#'   segment_type = "motifs"
+#' )
+#' }
+#'
+#' @seealso \code{\link{trajectory_convergence}} for analysis computation
+#'
+#' @rdname plot_trajectory_convergence
+#' @export
+plot_trajectory_convergence <- function(x, ...) {
+  UseMethod("plot_trajectory_convergence")
+}
+
+
+#' @rdname plot_trajectory_convergence
+#' @export
+plot_trajectory_convergence.default <- function(x,
+                                                palette = "Set1",
+                                                max_annotations = 10,
+                                                similarity_baseline = c("result", "reference", "zero"),
+                                                similarity_scale_multiplier = NULL,
+                                                ...) {
+  result <- x
+
+  # Validate input
+  if (!is.list(result) || is.null(result$type) || result$type != "convergence") {
+    stop("'x' must be a list returned by trajectory_convergence().")
+  }
+
+  ensure_pkgs("ggplot2", "patchwork")
+
+  sim <- result$similarity
+  tst <- result$tests
+  dims <- result$dims
+  metrics <- result$metrics
+  ref_label <- result$reference_label
+  similarity_baseline <- match.arg(similarity_baseline)
+  plot_baseline <- if (similarity_baseline == "result") {
+    result$similarity_baseline %||% "reference"
+  } else {
+    similarity_baseline
+  }
+  plot_scale_multiplier <- if (is.null(similarity_scale_multiplier)) {
+    result$similarity_scale_multiplier %||% 1
+  } else {
+    similarity_scale_multiplier
+  }
+  if (!is.numeric(plot_scale_multiplier) ||
+      length(plot_scale_multiplier) != 1 ||
+      is.na(plot_scale_multiplier) ||
+      plot_scale_multiplier <= 0) {
+    stop("similarity_scale_multiplier must be NULL or a positive number")
+  }
+
+  metric_scale <- function(metric) {
+    if (!is.null(result$reference_scales) && metric %in% names(result$reference_scales)) {
+      scale <- result$reference_scales[[metric]]
+      if (is.finite(scale) && scale > 0) {
+        return(scale)
+      }
+    }
+
+    dist_col <- paste0(metric, "_dist")
+    if (dist_col %in% names(sim) && !is.null(ref_label)) {
+      ref_dist <- sim[[dist_col]][as.character(sim$label) == as.character(ref_label)]
+      scale <- stats::median(ref_dist, na.rm = TRUE)
+      if (is.finite(scale) && scale > 0) {
+        return(scale)
+      }
+    }
+
+    NA_real_
+  }
+
+  similarity_col <- function(metric) {
+    dist_col <- paste0(metric, "_dist")
+    norm_col <- paste0(metric, "_normalized")
+    plot_col <- paste0(metric, "_plot_similarity")
+    scale <- metric_scale(metric)
+
+    if (dist_col %in% names(sim) && is.finite(scale) && scale > 0) {
+      normalized <- sim[[dist_col]] / (scale * plot_scale_multiplier)
+      sim[[plot_col]] <<- if (plot_baseline == "reference") {
+        exp(-pmax(normalized - 1, 0))
+      } else {
+        exp(-normalized)
+      }
+      plot_col
+    } else if (norm_col %in% names(sim)) {
+      sim[[plot_col]] <<- if (plot_baseline == "reference") {
+        exp(-pmax(sim[[norm_col]] - 1, 0))
+      } else {
+        exp(-sim[[norm_col]])
+      }
+      plot_col
+    } else {
+      stored_col <- paste0(metric, "_similarity")
+      if (stored_col %in% names(sim)) stored_col else plot_col
+    }
+  }
+
+  labs_order <- sort_labels(unique(as.character(sim$label)))
+  many_labs <- length(labs_order) > 6
+  pal_map <- make_pal(labs_order, palette)
+
+  panels <- list()
+
+  # Helper to create individual metric panels
+  plot_metric <- function(metric_name, y_col, title, y_label = title) {
+    if (!metric_name %in% metrics || !y_col %in% names(sim)) {
+      return(NULL)
+    }
+
+    if (all(is.na(sim[[y_col]]))) {
+      return(NULL)
+    }
+
+    kw <- if (!is.null(tst) && metric_name %in% names(tst$kruskal)) {
+      fmt_p(tst$kruskal[[metric_name]]$p.value)
+    } else {
+      NULL
+    }
+
+    if (many_labs) {
+      trend_panel(sim, "label", y_col, title, kw, labs_order, y_label = y_label)
+    } else {
+      p <- panel(sim, "label", y_col, title, kw, pal_map, labs_order, y_label = y_label)
+
+      if (!is.null(tst) && metric_name %in% names(tst$posthoc)) {
+        p <- add_brackets(p,
+          brackets(sim[[y_col]], tst$posthoc[[metric_name]], labs_order, max_annotations)
+        )
+      }
+
+      p
+    }
+  }
+
+  # ---- Panel: RMS Similarity ----
+  rms_col <- similarity_col("rms")
+  if (!is.null(plot_metric("rms", rms_col, "Pointwise Convergence"))) {
+    panels$p_rms <- plot_metric(
+      "rms",
+      rms_col,
+      "Pointwise Convergence",
+      "RMS similarity"
+    )
+  }
+
+  # ---- Panel: Correlation ----
+  if (!is.null(plot_metric("correlation", "correlation", "Shape Correlation"))) {
+    panels$p_cor <- plot_metric(
+      "correlation",
+      "correlation",
+      "Shape Correlation",
+      "Correlation similarity"
+    )
+  }
+
+  # ---- Panel: Fr\u00e9chet Similarity ----
+  frechet_col <- similarity_col("frechet")
+  if (!is.null(plot_metric("frechet", frechet_col, "Path-Shape Convergence"))) {
+    panels$p_frechet <- plot_metric(
+      "frechet",
+      frechet_col,
+      "Path-Shape Convergence",
+      "Fr\u00e9chet similarity"
+    )
+  }
+
+  # ---- Panel: DTW Similarity ----
+  dtw_col <- similarity_col("dtw")
+  if (!is.null(plot_metric("dtw", dtw_col, "Timing-Adjusted Convergence"))) {
+    panels$p_dtw <- plot_metric(
+      "dtw",
+      dtw_col,
+      "Timing-Adjusted Convergence",
+      "DTW similarity"
+    )
+  }
+
+  if (length(panels) == 0) {
+    stop("No valid metrics to plot.")
+  }
+
+  # Combine panels
+  combined <- Reduce("+", panels) +
+    patchwork::plot_annotation(
+      title = sprintf("Trajectory Convergence to Reference: %s", ref_label),
+      subtitle = paste(
+        "Dimensions:", paste(dims, collapse = " + "),
+        "| Similarity baseline:", plot_baseline
+      ),
+      theme = ggplot2::theme(
+        plot.background = ggplot2::element_rect(fill = "white", color = NA)
+      )
+    )
+
+  withCallingHandlers(
+    print(combined),
+    warning = function(w) {
+      if (grepl("annotation$theme is not a valid theme", w$message, fixed = TRUE)) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+
+  invisible(combined)
+}
+
+
+#' @rdname plot_trajectory_convergence
+#' @export
+plot_trajectory_convergence.Sap <- function(x,
+                                            segment_type = c("motifs", "syllables", "bouts", "segments"),
+                                            palette = "Set1",
+                                            max_annotations = 10,
+                                            similarity_baseline = c("result", "reference", "zero"),
+                                            similarity_scale_multiplier = NULL,
+                                            ...) {
+  if (!inherits(x, "Sap")) stop("Input must be a SAP object")
+
+  segment_type <- match.arg(segment_type)
+  feature_type <- sub("s$", "", segment_type)
+
+  result <- x$features[[feature_type]][["trajectory_convergence"]]
+  if (is.null(result)) {
+    stop(sprintf(
+      "No trajectory convergence results found for %s. Run trajectory_convergence() first.",
+      segment_type
+    ))
+  }
+
+  plot_trajectory_convergence.default(
+    x = result,
+    palette = palette,
+    max_annotations = max_annotations,
+    similarity_baseline = similarity_baseline,
+    similarity_scale_multiplier = similarity_scale_multiplier,
     ...
   )
 }
