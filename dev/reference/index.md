@@ -79,14 +79,6 @@ Functions dedicated to reducing acoustic parameter dimensionality
   : Run UMAP Dimensionality Reduction
 - [`create_trajectory_matrix()`](https://lxiao06.github.io/ASAP/dev/reference/create_trajectory_matrix.md)
   : Create Spectrogram Matrices for Song Trajectory Analysis
-- [`filter_trajectory_outliers()`](https://lxiao06.github.io/ASAP/dev/reference/filter_trajectory_outliers.md)
-  : Filter Outlier Renditions from Trajectory Embeddings
-- [`trajectory_umap_occupancy()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md)
-  : Trajectory UMAP Occupancy Analysis
-- [`trajectory_dispersion()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.md)
-  : Trajectory Dispersion Analysis
-- [`trajectory_path_deviation()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_path_deviation.md)
-  : Trajectory Path Deviation Analysis
 
 ## Plotting & Visualization
 
@@ -108,12 +100,30 @@ Plotting functionality for exploring ASAP objects
   : Plot PCA coordinates of trajectories over time
 - [`plot_trajectory_variability()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_variability.md)
   : Plot Trajectory Variability Results
+- [`plot_trajectory_convergence()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_convergence.md)
+  : Plot Trajectory Convergence Results
 - [`plot_motif_boundaries()`](https://lxiao06.github.io/ASAP/dev/reference/plot_motif_boundaries.md)
   : Visualize Motif Boundaries in Audio Data
 - [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md)
   : Visualize Song Data
 - [`visualize_segments()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_segments.md)
   : Visualize Song Segments
+
+## Trajectory Analysis
+
+Functions for analyzing song trajectories, developmental convergence,
+and variability
+
+- [`trajectory_convergence()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_convergence.md)
+  : Trajectory Convergence to Reference Path
+- [`trajectory_dispersion()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.md)
+  : Trajectory Dispersion Analysis
+- [`trajectory_path_deviation()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_path_deviation.md)
+  : Trajectory Path Deviation Analysis
+- [`trajectory_umap_occupancy()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md)
+  : Trajectory UMAP Occupancy Analysis
+- [`filter_trajectory_outliers()`](https://lxiao06.github.io/ASAP/dev/reference/filter_trajectory_outliers.md)
+  : Filter Outlier Renditions from Trajectory Embeddings
 
 ## Labeling
 

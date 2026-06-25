@@ -15,7 +15,13 @@ significance brackets when statistical tests are present.
 plot_trajectory_variability(x, ...)
 
 # Default S3 method
-plot_trajectory_variability(x, palette = "Set1", max_annotations = 10, ...)
+plot_trajectory_variability(
+  x,
+  palette = "Set1",
+  max_annotations = 10,
+  show_cv = FALSE,
+  ...
+)
 
 # S3 method for class 'Sap'
 plot_trajectory_variability(
@@ -24,6 +30,7 @@ plot_trajectory_variability(
   variability_type = c("dispersion", "path_deviation", "umap_occupancy"),
   palette = "Set1",
   max_annotations = 10,
+  show_cv = FALSE,
   ...
 )
 ```
@@ -54,6 +61,13 @@ plot_trajectory_variability(
   Maximum number of pairwise significance brackets to draw per panel
   (default: `10`). When more comparisons exist, the most significant
   pairs are retained and a message is issued.
+
+- show_cv:
+
+  Logical. If `TRUE`, add coefficient-of-variation panels for centroid
+  dispersion and trajectory path length when plotting
+  [`trajectory_dispersion()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.md)
+  results (default: `FALSE`).
 
 - segment_type:
 
@@ -86,6 +100,9 @@ Panel layouts by result type:
 
   4 panels: Occupied Fraction · Occupancy Entropy · Peripheral Fraction
   · kNN Dispersion
+
+When `show_cv = TRUE` for `"dispersion"` results, two additional panels
+show SD divided by mean for centroid dispersion and path length.
 
 Each panel displays a violin + box plot coloured by label. When
 statistical tests are not `NULL`, Kruskal-Wallis p-values are shown as

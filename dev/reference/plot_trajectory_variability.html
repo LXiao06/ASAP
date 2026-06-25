@@ -58,7 +58,13 @@ tests are present.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_trajectory_variability</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Default S3 method</span></span>
-<span><span class="fu">plot_trajectory_variability</span><span class="op">(</span><span class="va">x</span>, palette <span class="op">=</span> <span class="st">"Set1"</span>, max_annotations <span class="op">=</span> <span class="fl">10</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">plot_trajectory_variability</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  palette <span class="op">=</span> <span class="st">"Set1"</span>,</span>
+<span>  max_annotations <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  show_cv <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'Sap'</span></span>
 <span><span class="fu">plot_trajectory_variability</span><span class="op">(</span></span>
@@ -67,6 +73,7 @@ tests are present.</p>
 <span>  variability_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dispersion"</span>, <span class="st">"path_deviation"</span>, <span class="st">"umap_occupancy"</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Set1"</span>,</span>
 <span>  max_annotations <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  show_cv <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -98,6 +105,12 @@ draw per panel (default: <code>10</code>). When more comparisons exist, the
 most significant pairs are retained and a message is issued.</p></dd>
 
 
+<dt id="arg-show-cv">show_cv<a class="anchor" aria-label="anchor" href="#arg-show-cv"></a></dt>
+<dd><p>Logical. If <code>TRUE</code>, add coefficient-of-variation panels
+for centroid dispersion and trajectory path length when plotting
+<code><a href="trajectory_dispersion.html">trajectory_dispersion()</a></code> results (default: <code>FALSE</code>).</p></dd>
+
+
 <dt id="arg-segment-type">segment_type<a class="anchor" aria-label="anchor" href="#arg-segment-type"></a></dt>
 <dd><p>For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')</p></dd>
 
@@ -126,7 +139,9 @@ Parallel RMS</p></dd>
 Entropy · Peripheral Fraction · kNN Dispersion</p></dd>
 
 
-</dl><p>Each panel displays a violin + box plot coloured by label. When
+</dl><p>When <code>show_cv = TRUE</code> for <code>"dispersion"</code> results, two additional
+panels show SD divided by mean for centroid dispersion and path length.</p>
+<p>Each panel displays a violin + box plot coloured by label. When
 statistical tests are not <code>NULL</code>, Kruskal-Wallis p-values are shown
 as subtitles and pairwise Wilcoxon p-values appear as significance brackets
 above the data.</p>

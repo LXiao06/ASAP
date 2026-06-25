@@ -16,6 +16,7 @@ trajectory_path_deviation(
   dims = c("PC1", "PC2"),
   trim_fraction = 0.1,
   min_coverage = 0.5,
+  time_digits = 6,
   labels = NULL,
   stats = TRUE,
   verbose = TRUE,
@@ -29,6 +30,7 @@ trajectory_path_deviation(
   dims = c("PC1", "PC2"),
   trim_fraction = 0.1,
   min_coverage = 0.5,
+  time_digits = 6,
   labels = NULL,
   stats = TRUE,
   verbose = TRUE,
@@ -59,6 +61,11 @@ trajectory_path_deviation(
 
   Minimum fraction of renditions that must cover a time step for it to
   contribute to the reference trajectory (default: 0.5)
+
+- time_digits:
+
+  Number of decimal places used to bin `.time` before grouping and
+  matching trajectories (default: `6`).
 
 - labels:
 
@@ -110,8 +117,9 @@ to visualise the output.
 ## Details
 
 For each label, the function builds a robust mean trajectory in the
-requested dimensions, estimates a local tangent vector at each time
-step, and decomposes each rendition's residual into:
+requested dimensions after binning `.time` to `time_digits`, estimates a
+local tangent vector at each retained time step, and decomposes each
+rendition's residual into:
 
 - Total RMS Residual:
 
