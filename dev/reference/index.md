@@ -102,6 +102,8 @@ Plotting functionality for exploring ASAP objects
   : Plot Trajectory Variability Results
 - [`plot_trajectory_similarity()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_similarity.md)
   : Plot Trajectory Similarity Results
+- [`plot_trajectory_maturation()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_maturation.md)
+  : Plot Trajectory Maturation Scores
 - [`plot_motif_boundaries()`](https://lxiao06.github.io/ASAP/dev/reference/plot_motif_boundaries.md)
   : Visualize Motif Boundaries in Audio Data
 - [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md)
@@ -120,6 +122,8 @@ variability
   : Trajectory Dispersion Analysis
 - [`trajectory_path_deviation()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_path_deviation.md)
   : Trajectory Path Deviation Analysis
+- [`trajectory_maturation()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_maturation.md)
+  : Compute Trajectory Maturation Scores
 - [`trajectory_umap_occupancy()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_umap_occupancy.md)
   : Trajectory UMAP Occupancy Analysis
 - [`filter_trajectory_outliers()`](https://lxiao06.github.io/ASAP/dev/reference/filter_trajectory_outliers.md)
