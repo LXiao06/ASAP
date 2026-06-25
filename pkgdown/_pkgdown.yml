@@ -117,15 +117,15 @@ reference:
       - plot_PC
       - plot_PC2
       - plot_trajectory_variability
-      - plot_trajectory_convergence
+      - plot_trajectory_similarity
       - plot_motif_boundaries
       - visualize_song
       - visualize_segments
       
   - title: "Trajectory Analysis"
-    desc: "Functions for analyzing song trajectories, developmental convergence, and variability"
+    desc: "Functions for analyzing song trajectories, similarity to reference, and variability"
     contents:
-      - trajectory_convergence
+      - trajectory_similarity
       - trajectory_dispersion
       - trajectory_path_deviation
       - trajectory_umap_occupancy

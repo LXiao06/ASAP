@@ -11,7 +11,7 @@ filter_trajectory_outliers(x, ...)
 \method{filter_trajectory_outliers}{default}(
   x,
   dims = c("PC1", "PC2"),
-  iqr_multiplier = 3,
+  iqr_multiplier = 4,
   min_outlier_fraction = 0.1,
   labels = NULL,
   verbose = TRUE,
@@ -22,7 +22,7 @@ filter_trajectory_outliers(x, ...)
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
   dims = c("PC1", "PC2"),
-  iqr_multiplier = 3,
+  iqr_multiplier = 4,
   min_outlier_fraction = 0.1,
   labels = NULL,
   plot = FALSE,
@@ -40,7 +40,7 @@ filter_trajectory_outliers(x, ...)
 
 \item{dims}{Character vector of dimension columns to assess (default: c("PC1", "PC2"))}
 
-\item{iqr_multiplier}{Multiplier applied to IQR to define outlier bounds (default: 3)}
+\item{iqr_multiplier}{Multiplier applied to IQR to define outlier bounds (default: 4)}
 
 \item{min_outlier_fraction}{Minimum fraction of time steps that must be outliers
 before the entire rendition is removed (default: 0.1, i.e., 10\%)}
@@ -93,7 +93,7 @@ with naturally different mean trajectories.
 traj_clean <- filter_trajectory_outliers(
   sap$features$motif$traj.embeds,
   dims = c("PC1", "PC2"),
-  iqr_multiplier = 3,
+  iqr_multiplier = 4,
   min_outlier_fraction = 0.1
 )
 
