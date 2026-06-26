@@ -68,6 +68,12 @@
 <span>  overlap <span class="op">=</span> <span class="fl">0.75</span>,</span>
 <span>  dark_mode <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  legend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  show_maturation <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  label_metrics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"correlation"</span>, <span class="st">"maturation_score"</span><span class="op">)</span>,</span>
+<span>  maturation_label_cex <span class="op">=</span> <span class="fl">0.9</span>,</span>
+<span>  maturation_label_font <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  maturation_label_family <span class="op">=</span> <span class="st">"mono"</span>,</span>
+<span>  maturation_label_location <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"overlay"</span>, <span class="st">"margin"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -126,6 +132,38 @@
 
 <dt id="arg-by-column">by_column<a class="anchor" aria-label="anchor" href="#arg-by-column"></a></dt>
 <dd><p>For SAP objects: Arrange by columns (default: TRUE)</p></dd>
+
+
+<dt id="arg-show-maturation">show_maturation<a class="anchor" aria-label="anchor" href="#arg-show-maturation"></a></dt>
+<dd><p>Logical. If TRUE and segment_type == "motifs", only show
+segments that have maturation scores (default: FALSE)</p></dd>
+
+
+<dt id="arg-label-metrics">label_metrics<a class="anchor" aria-label="anchor" href="#arg-label-metrics"></a></dt>
+<dd><p>Character vector of metric column names from the maturation
+scores to display at the top-right of each spectrogram panel
+(default: c("correlation", "maturation_score"))</p></dd>
+
+
+<dt id="arg-maturation-label-cex">maturation_label_cex<a class="anchor" aria-label="anchor" href="#arg-maturation-label-cex"></a></dt>
+<dd><p>Numeric character expansion for maturation metric
+labels (default: 0.9)</p></dd>
+
+
+<dt id="arg-maturation-label-font">maturation_label_font<a class="anchor" aria-label="anchor" href="#arg-maturation-label-font"></a></dt>
+<dd><p>Font face for maturation metric labels, passed to
+base R text functions (default: 2, bold)</p></dd>
+
+
+<dt id="arg-maturation-label-family">maturation_label_family<a class="anchor" aria-label="anchor" href="#arg-maturation-label-family"></a></dt>
+<dd><p>Font family for maturation metric labels
+(default: "mono")</p></dd>
+
+
+<dt id="arg-maturation-label-location">maturation_label_location<a class="anchor" aria-label="anchor" href="#arg-maturation-label-location"></a></dt>
+<dd><p>Location for maturation metric labels. Use
+"overlay" to place labels inside each spectrogram with a contrast box, or
+"margin" to place labels above each panel (default: "overlay")</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -16,7 +16,8 @@ plot_group(
   legend,
   by_column,
   label,
-  cluster = NULL
+  cluster = NULL,
+  metrics_labels = NULL
 )
 ```
 
@@ -61,6 +62,11 @@ plot_group(
 - cluster:
 
   Optional cluster identifier
+
+- metrics_labels:
+
+  Named character vector of formatted metric labels keyed by segment row
+  name, or NULL (default) to omit
 
 ## Value
 
