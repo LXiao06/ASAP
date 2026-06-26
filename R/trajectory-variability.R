@@ -229,6 +229,15 @@ trajectory_dispersion.default <- function(x,
     ) |>
     as.data.frame()
 
+  # Attach .source_row from original data
+  if (".source_row" %in% names(x)) {
+    source_lookup <- unique(x[, c("label", "rendition", ".source_row")])
+    dispersion_results <- merge(dispersion_results, source_lookup,
+      by = c("label", "rendition"), all.x = TRUE)
+  } else {
+    dispersion_results$.source_row <- NA_integer_
+  }
+
   # ==== Metric 3: Path Length ====
   if (verbose) message("Computing trajectory path lengths...")
 
@@ -243,7 +252,9 @@ trajectory_dispersion.default <- function(x,
       diffs <- diff(coords)
       path_len <- sum(sqrt(rowSums(diffs^2)))
       data.frame(
-        label = lbl, rendition = r, path_length = path_len,
+        label = lbl, rendition = r,
+        .source_row = if (".source_row" %in% names(x) && nrow(rend_data) > 0) unique(rend_data$.source_row)[1] else NA_integer_,
+        path_length = path_len,
         stringsAsFactors = FALSE
       )
     }))
@@ -620,7 +631,10 @@ trajectory_path_deviation.default <- function(x,
 
     do.call(rbind, lapply(renditions, function(r) {
       rend_data <- lbl_data[lbl_data$rendition == r, ]
-      rend_data <- rend_data[order(rend_data$.time), c("label", "rendition", ".time", dims)]
+      rend_data <- rend_data[order(rend_data$.time), ]
+      keep_cols <- c("label", "rendition", ".time", dims)
+      if (".source_row" %in% names(rend_data)) keep_cols <- c(keep_cols, ".source_row")
+      rend_data <- rend_data[, keep_cols]
       aligned <- merge(rend_data, reference_df, by = ".time")
 
       if (nrow(aligned) < 2) {
@@ -640,6 +654,7 @@ trajectory_path_deviation.default <- function(x,
       data.frame(
         label = lbl,
         rendition = r,
+        .source_row = if (".source_row" %in% names(x) && nrow(rend_data) > 0) unique(rend_data$.source_row)[1] else NA_integer_,
         n_time = nrow(aligned),
         coverage = nrow(aligned) / nrow(reference_df),
         total_rms = sqrt(mean(total_sq, na.rm = TRUE)),
@@ -996,6 +1011,7 @@ trajectory_umap_occupancy.default <- function(x,
       data.frame(
         label = lbl,
         rendition = r,
+        .source_row = if (".source_row" %in% names(x) && nrow(rend_data) > 0) unique(rend_data$.source_row)[1] else NA_integer_,
         n_points = nrow(rend_data),
         occupied_bins = length(counts),
         occupied_fraction = length(counts) / total_bins,

@@ -14,7 +14,8 @@ plot_group(
   legend,
   by_column,
   label,
-  cluster = NULL
+  cluster = NULL,
+  metrics_labels = NULL
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ plot_group(
 \item{label}{Label for the group of segments}
 
 \item{cluster}{Optional cluster identifier}
+
+\item{metrics_labels}{Named character vector of formatted metric labels
+keyed by segment row name, or NULL (default) to omit}
 }
 \value{
 Generates a plot of segment spectrograms as a side effect

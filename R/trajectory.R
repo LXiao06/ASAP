@@ -371,6 +371,10 @@ create_trajectory_matrix.Sap <- function(
     }
   }
 
+  # Preserve original row index for downstream traceability
+  # (done before select_segments so .source_row persists through filtering)
+  segments_df$.source_row <- seq_len(nrow(segments_df))
+
   # Apply segment selection
   segments_df <- select_segments(segments_df,
     clusters = clusters,
@@ -463,7 +467,9 @@ create_sliding_window <- function(
     selec = seq_along(window_start_time),
     start_time = window_start_time,
     end_time = window_start_time + window_size,
-    .time = relative_time
+    .time = relative_time,
+    .source_row = if (".source_row" %in% names(x)) x$.source_row[i] else NA_integer_,
+    stringsAsFactors = FALSE
   )
 
   return(sliding_windows)

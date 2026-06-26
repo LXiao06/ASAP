@@ -32,6 +32,12 @@ visualize_segments(x, ...)
   overlap = 0.75,
   dark_mode = TRUE,
   legend = FALSE,
+  show_maturation = FALSE,
+  label_metrics = c("correlation", "maturation_score"),
+  maturation_label_cex = 0.9,
+  maturation_label_font = 2,
+  maturation_label_family = "mono",
+  maturation_label_location = c("overlay", "margin"),
   ...
 )
 }
@@ -61,6 +67,26 @@ visualize_segments(x, ...)
 \item{clusters}{For SAP objects: Specific clusters to visualize}
 
 \item{by_column}{For SAP objects: Arrange by columns (default: TRUE)}
+
+\item{show_maturation}{Logical. If TRUE and segment_type == "motifs", only show
+segments that have maturation scores (default: FALSE)}
+
+\item{label_metrics}{Character vector of metric column names from the maturation
+scores to display at the top-right of each spectrogram panel
+(default: c("correlation", "maturation_score"))}
+
+\item{maturation_label_cex}{Numeric character expansion for maturation metric
+labels (default: 0.9)}
+
+\item{maturation_label_font}{Font face for maturation metric labels, passed to
+base R text functions (default: 2, bold)}
+
+\item{maturation_label_family}{Font family for maturation metric labels
+(default: "mono")}
+
+\item{maturation_label_location}{Location for maturation metric labels. Use
+"overlay" to place labels inside each spectrogram with a contrast box, or
+"margin" to place labels above each panel (default: "overlay")}
 }
 \value{
 Generates a multi-panel spectrogram plot and returns the input object invisibly.

@@ -462,6 +462,7 @@ trajectory_similarity.default <- function(x,
       row_result <- data.frame(
         label = lbl,
         rendition = r,
+        .source_row = if (".source_row" %in% names(x) && nrow(rend_data) > 0) unique(rend_data$.source_row)[1] else NA_integer_,
         n_matched_time = distances$n_time,
         stringsAsFactors = FALSE
       )

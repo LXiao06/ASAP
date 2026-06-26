@@ -17,7 +17,13 @@ bin_trajectory_time_data <- function(x, dims, time_digits = 6) {
 
   x$.time <- round(as.numeric(x$.time), digits = time_digits)
 
-  x |>
+  # Preserve .source_row mapping before summarise drops it
+  source_map <- NULL
+  if (".source_row" %in% names(x)) {
+    source_map <- unique(x[, c("label", "rendition", ".source_row")])
+  }
+
+  result <- x |>
     dplyr::group_by(.data$label, .data$rendition, .data$.time) |>
     dplyr::summarise(
       dplyr::across(dplyr::all_of(dims), ~ mean(.x, na.rm = TRUE)),
@@ -25,6 +31,13 @@ bin_trajectory_time_data <- function(x, dims, time_digits = 6) {
     ) |>
     dplyr::arrange(.data$label, .data$rendition, .data$.time) |>
     as.data.frame()
+
+  # Re-attach .source_row if it was present
+  if (!is.null(source_map)) {
+    result <- merge(result, source_map, by = c("label", "rendition"), all.x = TRUE)
+  }
+
+  result
 }
 
 

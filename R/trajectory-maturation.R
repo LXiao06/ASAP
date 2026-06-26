@@ -246,7 +246,12 @@ trajectory_maturation.Sap <- function(
 
   # Extract dispersion metrics if available
   if (!is.null(var_result) && var_result$type == "dispersion") {
-    disp_data <- var_result$dispersion[, c("label", "rendition", "dispersion")]
+    disp_cols <- c("label", "rendition", "dispersion")
+    if (".source_row" %in% names(var_result$dispersion)) {
+      disp_cols <- c(disp_cols, ".source_row")
+    }
+    disp_data <- var_result$dispersion[, disp_cols]
+    names(disp_data)[names(disp_data) == "dispersion"] <- "variability_dispersion"
     names(disp_data)[names(disp_data) == "dispersion"] <- "variability_dispersion"
 
     if (nrow(var_sim) == 0) {
@@ -258,7 +263,11 @@ trajectory_maturation.Sap <- function(
 
   # Extract path deviation metrics if available
   if (!is.null(var_result_path_dev) && var_result_path_dev$type == "path_deviation") {
-    width_data <- var_result_path_dev$width[, c("label", "rendition", "orthogonal_rms", "parallel_rms")]
+    width_cols <- c("label", "rendition", "orthogonal_rms", "parallel_rms")
+    if (".source_row" %in% names(var_result_path_dev$width)) {
+      width_cols <- c(width_cols, ".source_row")
+    }
+    width_data <- var_result_path_dev$width[, width_cols]
     names(width_data)[names(width_data) == "orthogonal_rms"] <- "variability_orthogonal_rms"
     names(width_data)[names(width_data) == "parallel_rms"] <- "variability_parallel_rms"
 
@@ -273,8 +282,14 @@ trajectory_maturation.Sap <- function(
     stop("Could not extract variability metrics from results")
   }
 
+  # Determine merge keys — use .source_row only if present in both
+  merge_keys <- c("label", "rendition")
+  if (".source_row" %in% names(sim_sim) && ".source_row" %in% names(var_sim)) {
+    merge_keys <- c(merge_keys, ".source_row")
+  }
+
   merged_data <- merge(sim_sim, var_sim,
-                       by = c("label", "rendition"),
+                       by = merge_keys,
                        suffixes = c("_sim", "_var"))
 
   if (nrow(merged_data) == 0) {

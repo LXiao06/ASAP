@@ -642,6 +642,20 @@ visualize_song.Sap <- function(x,  # sap object
 #' @param labels For SAP objects: Labels to include
 #' @param clusters For SAP objects: Specific clusters to visualize
 #' @param by_column For SAP objects: Arrange by columns (default: TRUE)
+#' @param show_maturation Logical. If TRUE and segment_type == "motifs", only show
+#'   segments that have maturation scores (default: FALSE)
+#' @param label_metrics Character vector of metric column names from the maturation
+#'   scores to display at the top-right of each spectrogram panel
+#'   (default: c("correlation", "maturation_score"))
+#' @param maturation_label_cex Numeric character expansion for maturation metric
+#'   labels (default: 0.9)
+#' @param maturation_label_font Font face for maturation metric labels, passed to
+#'   base R text functions (default: 2, bold)
+#' @param maturation_label_family Font family for maturation metric labels
+#'   (default: "mono")
+#' @param maturation_label_location Location for maturation metric labels. Use
+#'   "overlay" to place labels inside each spectrogram with a contrast box, or
+#'   "margin" to place labels above each panel (default: "overlay")
 #' @param ... Additional arguments passed to specific methods
 #'
 #' @details
@@ -782,9 +796,16 @@ visualize_segments.Sap <- function(x,
                                    overlap = 0.75,
                                    dark_mode = TRUE,
                                    legend = FALSE,
+                                   show_maturation = FALSE,
+                                   label_metrics = c("correlation", "maturation_score"),
+                                   maturation_label_cex = 0.9,
+                                   maturation_label_font = 2,
+                                   maturation_label_family = "mono",
+                                   maturation_label_location = c("overlay", "margin"),
                                    ...) {
   # Input validation
   segment_type <- match.arg(segment_type)
+  maturation_label_location <- match.arg(maturation_label_location)
 
   # Get appropriate data frame
   if(segment_type == "segments") {
@@ -805,6 +826,25 @@ visualize_segments.Sap <- function(x,
   if (!inherits(segments_df, "data.frame") || nrow(segments_df) == 0) {
     stop(sprintf("No %s found in SAP object",
                  ifelse(segment_type == "segments", "segment features", segment_type)))
+  }
+
+  # Filter to segments with maturation scores if requested
+  if (show_maturation) {
+    if (segment_type != "motifs") {
+      warning("show_maturation = TRUE is only supported for segment_type = 'motifs'. Ignoring.")
+    } else {
+      maturation_scores <- x$features[["motif"]][["maturation_scores"]]
+      if (is.null(maturation_scores) || !".source_row" %in% names(maturation_scores)) {
+        warning("No maturation scores found for motifs. Run trajectory_maturation() first.")
+      } else {
+        valid_rows <- unique(maturation_scores$.source_row)
+        segments_df <- segments_df[seq_len(nrow(segments_df)) %in% valid_rows, , drop = FALSE]
+        if (nrow(segments_df) == 0) {
+          stop("No segments remaining after maturation filter")
+        }
+        message(sprintf("Filtered to %d segments with maturation scores", nrow(segments_df)))
+      }
+    }
   }
 
   # Handle cluster filtering
@@ -933,6 +973,24 @@ visualize_segments.Sap <- function(x,
   }
   layout(layout_matrix)
 
+  # Build metrics labels from maturation scores if applicable
+  metrics_labels <- NULL
+  if (show_maturation && segment_type == "motifs") {
+    maturation_scores <- x$features[["motif"]][["maturation_scores"]]
+    if (!is.null(maturation_scores) && ".source_row" %in% names(maturation_scores)) {
+      valid_metrics <- intersect(label_metrics, names(maturation_scores))
+      if (length(valid_metrics) > 0) {
+        score_subset <- maturation_scores[, c(".source_row", valid_metrics), drop = FALSE]
+        metrics_labels <- stats::setNames(
+          apply(score_subset[, valid_metrics, drop = FALSE], 1, function(vals) {
+            paste(sprintf("%s: %.3f", names(vals), as.numeric(vals)), collapse = " | ")
+          }),
+          score_subset$.source_row
+        )
+      }
+    }
+  }
+
   # Main plotting loop
   if(!is.null(clusters)) {
     # Plot with cluster grouping
@@ -943,7 +1001,12 @@ visualize_segments.Sap <- function(x,
         if(nrow(cluster_segments) > 0) {
           plot_group(cluster_segments, x$base_path, n_samples,
                      fft_window_size, overlap, dark_mode, legend,
-                     by_column, lbl, cl)
+                     by_column, lbl, cl,
+                     metrics_labels = metrics_labels,
+                     metrics_label_cex = maturation_label_cex,
+                     metrics_label_font = maturation_label_font,
+                     metrics_label_family = maturation_label_family,
+                     metrics_label_location = maturation_label_location)
         }
       }
     }
@@ -954,7 +1017,12 @@ visualize_segments.Sap <- function(x,
       if(nrow(label_segments) > 0) {
         plot_group(label_segments, x$base_path, n_samples,
                    fft_window_size, overlap, dark_mode, legend,
-                   by_column, lbl)
+                   by_column, lbl,
+                   metrics_labels = metrics_labels,
+                   metrics_label_cex = maturation_label_cex,
+                   metrics_label_font = maturation_label_font,
+                   metrics_label_family = maturation_label_family,
+                   metrics_label_location = maturation_label_location)
       }
     }
   }
@@ -994,6 +1062,12 @@ sample_rows <- function(rows, n) {
 #' @param by_column Arrange plots by columns
 #' @param label Label for the group of segments
 #' @param cluster Optional cluster identifier
+#' @param metrics_labels Named character vector of formatted metric labels
+#'   keyed by segment row name, or NULL (default) to omit
+#' @param metrics_label_cex Numeric character expansion for metric labels
+#' @param metrics_label_font Font face for metric labels
+#' @param metrics_label_family Font family for metric labels
+#' @param metrics_label_location Location for metric labels ("overlay" or "margin")
 #'
 #' @return
 #' Generates a plot of segment spectrograms as a side effect
@@ -1001,7 +1075,14 @@ sample_rows <- function(rows, n) {
 #' @keywords internal
 plot_group <- function(segments, base_path, n_samples,
                        fft_window_size, overlap, dark_mode, legend,
-                       by_column, label, cluster = NULL) {
+                       by_column, label, cluster = NULL,
+                       metrics_labels = NULL,
+                       metrics_label_cex = 0.9,
+                       metrics_label_font = 2,
+                       metrics_label_family = "mono",
+                       metrics_label_location = c("overlay", "margin")) {
+  metrics_label_location <- match.arg(metrics_label_location)
+
   for(i in seq_len(nrow(segments))) {
     subdir <- if ("subfolder" %in% names(segments)) segments$subfolder[i] else if ("day_post_hatch" %in% names(segments)) segments$day_post_hatch[i] else NULL
     if (is.null(subdir) || is.na(subdir)) {
@@ -1030,9 +1111,61 @@ plot_group <- function(segments, base_path, n_samples,
       }
 
       if(by_column) {
-        title(title_text, cex.main = 0.8)
+        title(title_text, cex.main = 1.5)
       } else {
         mtext(title_text, side = 2, line = 4, cex = 0.7)
+      }
+    }
+
+    # Add metrics text at top-right of each panel
+    if (!is.null(metrics_labels)) {
+      row_idx <- as.character(rownames(segments)[i])
+      if (row_idx %in% names(metrics_labels)) {
+        metrics_text <- metrics_labels[row_idx]
+        metrics_col <- if (dark_mode) "white" else "black"
+
+        if (metrics_label_location == "overlay") {
+          usr <- par("usr")
+          x_pad <- diff(usr[1:2]) * 0.012
+          y_pad <- diff(usr[3:4]) * 0.018
+          x_right <- usr[2] - x_pad
+          y_top <- usr[4] - y_pad
+          label_width <- strwidth(metrics_text,
+                                  cex = metrics_label_cex,
+                                  font = metrics_label_font,
+                                  family = metrics_label_family)
+          label_height <- strheight(metrics_text,
+                                    cex = metrics_label_cex,
+                                    font = metrics_label_font,
+                                    family = metrics_label_family)
+          box_pad_x <- diff(usr[1:2]) * 0.01
+          box_pad_y <- diff(usr[3:4]) * 0.015
+          box_col <- if (dark_mode) {
+            grDevices::rgb(0, 0, 0, alpha = 0.58)
+          } else {
+            grDevices::rgb(1, 1, 1, alpha = 0.72)
+          }
+
+          rect(x_right - label_width - box_pad_x,
+               y_top - label_height - box_pad_y,
+               x_right + box_pad_x,
+               y_top + box_pad_y,
+               col = box_col,
+               border = NA)
+          text(x_right, y_top, metrics_text,
+               adj = c(1, 1),
+               cex = metrics_label_cex,
+               font = metrics_label_font,
+               family = metrics_label_family,
+               col = metrics_col)
+        } else {
+          mtext(metrics_text, side = 3, line = 0.2,
+                adj = 1,
+                cex = metrics_label_cex,
+                font = metrics_label_font,
+                family = metrics_label_family,
+                col = metrics_col)
+        }
       }
     }
   }
