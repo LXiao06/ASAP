@@ -119,6 +119,7 @@ reference:
       - plot_trajectory_variability
       - plot_trajectory_similarity
       - plot_trajectory_maturation
+      - plot_trajectory_trials
       - plot_motif_boundaries
       - visualize_song
       - visualize_segments
