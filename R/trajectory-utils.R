@@ -135,7 +135,7 @@ brackets <- function(values, posthoc_obj, labels_in_order, max_annotations) {
 
   if (length(comps) > max_annotations) {
     pvals <- vapply(comps, function(comp) {
-      get_p(posthoc_obj$p.value, comp[1], comp[2])
+      get_p(posthoc_obj, comp[1], comp[2])
     }, numeric(1))
     keep_idx <- order(pvals)[seq_len(max_annotations)]
     message(sprintf(
@@ -153,7 +153,7 @@ brackets <- function(values, posthoc_obj, labels_in_order, max_annotations) {
 
   ann <- do.call(rbind, lapply(seq_along(comps), function(i) {
     comp <- comps[[i]]
-    p_val <- get_p(posthoc_obj$p.value, comp[1], comp[2])
+    p_val <- get_p(posthoc_obj, comp[1], comp[2])
     data.frame(
       x1 = match(comp[1], labels_in_order),
       x2 = match(comp[2], labels_in_order),
