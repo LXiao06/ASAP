@@ -84,7 +84,7 @@ trajectory_maturation <- function(x, ...) {
 #' @rdname trajectory_maturation
 #' @export
 trajectory_maturation.default <- function(
-    x,                      # x is data.frame
+    x, # x is data.frame
     similarity_metric = c("rms", "frechet", "dtw", "correlation"),
     variability_metric = c("dispersion", "orthogonal_rms", "parallel_rms"),
     score_type = c("maturation", "stability", "both"),
@@ -93,7 +93,6 @@ trajectory_maturation.default <- function(
     scale_method = c("minmax", "zscore", "none"),
     verbose = TRUE,
     ...) {
-
   # Validate inputs
   if (!is.data.frame(x)) stop("Input must be a data.frame")
 
@@ -111,8 +110,10 @@ trajectory_maturation.default <- function(
   required_cols <- c("label", "rendition")
   missing_cols <- setdiff(required_cols, names(x))
   if (length(missing_cols) > 0) {
-    stop(sprintf("Missing required columns: %s",
-                 paste(missing_cols, collapse = ", ")))
+    stop(sprintf(
+      "Missing required columns: %s",
+      paste(missing_cols, collapse = ", ")
+    ))
   }
 
   # Map metric names to column names
@@ -171,9 +172,11 @@ trajectory_maturation.default <- function(
     }
     result$maturation_score <- similarity * variability_inverted
     if (verbose) {
-      message(sprintf("Maturation score: mean = %.3f, sd = %.3f",
-                      mean(result$maturation_score, na.rm = TRUE),
-                      sd(result$maturation_score, na.rm = TRUE)))
+      message(sprintf(
+        "Maturation score: mean = %.3f, sd = %.3f",
+        mean(result$maturation_score, na.rm = TRUE),
+        sd(result$maturation_score, na.rm = TRUE)
+      ))
     }
   }
 
@@ -181,9 +184,11 @@ trajectory_maturation.default <- function(
     # Stability uses raw scaled variability (not inverted)
     result$stability_index <- similarity / (variability_scaled + epsilon)
     if (verbose) {
-      message(sprintf("Stability index: mean = %.3f, sd = %.3f",
-                      mean(result$stability_index, na.rm = TRUE),
-                      sd(result$stability_index, na.rm = TRUE)))
+      message(sprintf(
+        "Stability index: mean = %.3f, sd = %.3f",
+        mean(result$stability_index, na.rm = TRUE),
+        sd(result$stability_index, na.rm = TRUE)
+      ))
     }
   }
 
@@ -202,7 +207,7 @@ trajectory_maturation.default <- function(
 #' @rdname trajectory_maturation
 #' @export
 trajectory_maturation.Sap <- function(
-    x,                      # x is SAP object
+    x, # x is SAP object
     segment_type = c("motifs", "syllables", "bouts", "segments"),
     similarity_metric = c("rms", "frechet", "dtw", "correlation"),
     variability_metric = c("dispersion", "orthogonal_rms", "parallel_rms"),
@@ -212,7 +217,6 @@ trajectory_maturation.Sap <- function(
     scale_method = c("minmax", "zscore", "none"),
     verbose = TRUE,
     ...) {
-
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
 
   segment_type <- match.arg(segment_type)
@@ -233,16 +237,20 @@ trajectory_maturation.Sap <- function(
 
   if (is.null(var_result) && is.null(var_result_path_dev)) {
     stop(sprintf(
-      paste("No trajectory variability results found for %s.",
-            "Run trajectory_dispersion() or trajectory_path_deviation() first."),
+      paste(
+        "No trajectory variability results found for %s.",
+        "Run trajectory_dispersion() or trajectory_path_deviation() first."
+      ),
       segment_type
     ))
   }
 
   # Merge similarity and variability data
   sim_sim <- sim_result$similarity
-  var_sim <- data.frame(label = character(), rendition = character(),
-                        stringsAsFactors = FALSE)
+  var_sim <- data.frame(
+    label = character(), rendition = character(),
+    stringsAsFactors = FALSE
+  )
 
   # Extract dispersion metrics if available
   if (!is.null(var_result) && var_result$type == "dispersion") {
@@ -289,8 +297,9 @@ trajectory_maturation.Sap <- function(
   }
 
   merged_data <- merge(sim_sim, var_sim,
-                       by = merge_keys,
-                       suffixes = c("_sim", "_var"))
+    by = merge_keys,
+    suffixes = c("_sim", "_var")
+  )
 
   if (nrow(merged_data) == 0) {
     stop("No matching renditions found between similarity and variability results")
@@ -405,23 +414,24 @@ plot_trajectory_maturation <- function(x, ...) {
 #' @rdname plot_trajectory_maturation
 #' @export
 plot_trajectory_maturation.default <- function(
-    x,                      # x is data.frame
+    x, # x is data.frame
     score_cols = NULL,
     palette = "Set1",
     max_annotations = 10,
     ...) {
-
   if (!is.data.frame(x)) stop("Input must be a data.frame")
 
   if (!requireNamespace("ggplot2", quietly = TRUE) ||
-      !requireNamespace("patchwork", quietly = TRUE)) {
+    !requireNamespace("patchwork", quietly = TRUE)) {
     stop("Packages 'ggplot2' and 'patchwork' are required for plotting")
   }
 
   # Auto-detect score columns if not specified
   if (is.null(score_cols)) {
     score_cols <- grep("^(maturation_score|stability_index)$",
-                       names(x), value = TRUE)
+      names(x),
+      value = TRUE
+    )
   }
 
   if (length(score_cols) == 0) {
@@ -480,8 +490,10 @@ plot_trajectory_maturation.default <- function(
 
       # Add significance brackets
       if (!is.null(tests) && !is.null(tests[[score_col]]$posthoc)) {
-        brackets_data <- brackets(x[[score_col]], tests[[score_col]]$posthoc,
-                                  labs_order, max_annotations)
+        brackets_data <- brackets(
+          x[[score_col]], tests[[score_col]]$posthoc,
+          labs_order, max_annotations
+        )
         p <- add_brackets(p, brackets_data)
       }
     }
@@ -524,13 +536,12 @@ plot_trajectory_maturation.default <- function(
 #' @rdname plot_trajectory_maturation
 #' @export
 plot_trajectory_maturation.Sap <- function(
-    x,                      # x is SAP object
+    x, # x is SAP object
     segment_type = c("motifs", "syllables", "bouts", "segments"),
     score_cols = NULL,
     palette = "Set1",
     max_annotations = 10,
     ...) {
-
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
 
   segment_type <- match.arg(segment_type)
@@ -567,4 +578,274 @@ plot_trajectory_maturation.Sap <- function(
 format_score_title <- function(col_name) {
   title <- gsub("_", " ", col_name)
   tools::toTitleCase(title)
+}
+
+# Trajectory Trial Score Plot
+# Update date : Jun. 26, 2026
+
+#' Plot Individual Trial Scores
+#'
+#' @description
+#' Creates a dot plot of per-trial similarity or maturation scores, ordered by
+#' \code{.source_row} within each label/day. Helps visualise the sequential
+#' progression of scores across individual renditions within and across days.
+#' An optional running-mean trace (default window: 50 trials) highlights the
+#' local trend.
+#'
+#' @param x An object to plot: a data frame with per-trial scores, or a SAP
+#'   object with pre-computed trajectory results.
+#' @param score_col Character. Column name of the score to plot
+#'   (default: "rms_similarity").
+#' @param labels Character vector of labels (days) to include. Default NULL
+#'   shows the first and last label when labels are sorted numerically.
+#' @param running_mean Logical. If TRUE (default), overlay a running-mean trace.
+#' @param window_size Integer. Number of trials for the running-mean window
+#'   (default: 50).
+#' @param palette Character. RColorBrewer palette name (default: "Set1").
+#' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables',
+#'   'bouts', 'segments').
+#' @param data_type For SAP objects: Which results to plot ('similarity' or
+#'   'maturation').
+#' @param ... Additional arguments passed to specific methods.
+#'
+#' @details
+#' **Data source for SAP objects:**
+#' \itemize{
+#'   \item \code{data_type = "similarity"}: Uses \code{x$features[[feature_type]]$trajectory_similarity$similarity}.
+#'     Common score columns: "rms_similarity", "correlation", "frechet_similarity",
+#'     "dtw_similarity".
+#'   \item \code{data_type = "maturation"}: Uses \code{x$features[[feature_type]]$maturation_scores}.
+#'     Common score columns: "maturation_score", "stability_index".
+#' }
+#'
+#' **Label selection:**
+#' When \code{labels = NULL}, the function selects the first and last labels
+#' from the sorted unique labels in the data (numeric-aware sorting). This
+#' typically corresponds to the earliest and latest days in a developmental
+#' series. Pass an explicit vector to customise.
+#'
+#' **Running mean:**
+#' The running mean is computed with \code{stats::filter()} using a centred
+#' window of \code{window_size} trials. It is only drawn when
+#' \code{running_mean = TRUE} and there are at least \code{window_size}
+#' trials in a label.
+#'
+#' @return
+#' A ggplot2 object, printed as a side-effect and returned invisibly.
+#'
+#' @examples
+#' \dontrun{
+#' # Plot RMS similarity for first and last labels
+#' plot_trajectory_trials(sap,
+#'   data_type = "similarity",
+#'   score_col = "rms_similarity"
+#' )
+#'
+#' # Plot maturation scores for specific days without running mean
+#' plot_trajectory_trials(sap,
+#'   data_type = "maturation",
+#'   score_col = "maturation_score",
+#'   labels = c("60", "80", "100"),
+#'   running_mean = FALSE
+#' )
+#' }
+#'
+#' @seealso \code{\link{trajectory_similarity}} for similarity computation,
+#'   \code{\link{trajectory_maturation}} for maturation score computation
+#'
+#' @rdname plot_trajectory_trials
+#' @export
+plot_trajectory_trials <- function(x, ...) {
+  UseMethod("plot_trajectory_trials")
+}
+
+
+#' @rdname plot_trajectory_trials
+#' @export
+plot_trajectory_trials.default <- function(
+    x, # x is data.frame with label, .source_row, score_col
+    score_col = "rms_similarity",
+    labels = NULL,
+    running_mean = TRUE,
+    window_size = 50,
+    palette = "Set1",
+    ...) {
+  if (!is.data.frame(x)) stop("Input must be a data.frame")
+
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' is required for plotting")
+  }
+
+  # Validate score column
+  if (!score_col %in% names(x)) {
+    stop(sprintf(
+      "Score column '%s' not found. Available columns: %s",
+      score_col, paste(names(x), collapse = ", ")
+    ))
+  }
+
+  # Sort labels numerically if possible
+  labs <- sort_labels(unique(as.character(x$label)))
+
+  # Default: first and last label
+  if (is.null(labels)) {
+    labels <- labs[c(1, length(labs))]
+  } else {
+    invalid <- setdiff(labels, labs)
+    if (length(invalid) > 0) {
+      stop(sprintf("Labels not found: %s", paste(invalid, collapse = ", ")))
+    }
+  }
+
+  # Filter to requested labels and sort by .source_row within each label
+  plot_data <- x[as.character(x$label) %in% labels, , drop = FALSE]
+  plot_data <- plot_data[order(plot_data$label, plot_data$.source_row), , drop = FALSE]
+
+  # Add trial index within each label
+  plot_data$trial_idx <- stats::ave(seq_len(nrow(plot_data)),
+    plot_data$label,
+    FUN = seq_along
+  )
+
+  # Build colour palette
+  labs_order <- sort_labels(unique(as.character(plot_data$label)))
+  pal_map <- make_pal(labs_order, palette)
+
+  # Running mean
+  if (running_mean && window_size > 1) {
+    running_list <- by(plot_data, plot_data$label, function(sub) {
+      vals <- sub[[score_col]]
+      if (length(vals) >= window_size) {
+        rm <- as.numeric(stats::filter(vals, rep(1 / window_size, window_size),
+          sides = 2
+        ))
+        data.frame(
+          label = sub$label[1],
+          trial_idx = sub$trial_idx,
+          running_mean = rm,
+          stringsAsFactors = FALSE
+        )
+      } else {
+        NULL
+      }
+    })
+    running_df <- do.call(rbind, running_list)
+  }
+
+  # Build plot
+  p <- ggplot2::ggplot(plot_data, ggplot2::aes(
+    x = .data$trial_idx,
+    y = .data[[score_col]],
+    colour = .data$label
+  )) +
+    ggplot2::geom_point(size = 1, alpha = 0.5) +
+    ggplot2::facet_wrap(~label, scales = "free_x", ncol = 1) +
+    ggplot2::labs(
+      title = sprintf("Trial-level %s", score_col),
+      x = "Trial index (ordered by .source_row)",
+      y = score_col,
+      colour = "Label"
+    ) +
+    ggplot2::scale_colour_manual(values = pal_map) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      strip.background = ggplot2::element_rect(fill = "grey90", color = NA),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "right"
+    )
+
+  # Add running mean trace
+  if (running_mean && window_size > 1 && exists("running_df") &&
+    !is.null(running_df) && nrow(running_df) > 0) {
+    p <- p + ggplot2::geom_line(
+      data = running_df,
+      ggplot2::aes(x = .data$trial_idx, y = .data$running_mean),
+      colour = "black", linewidth = 0.8, na.rm = TRUE
+    )
+  }
+
+  print(p)
+  invisible(p)
+}
+
+
+#' @rdname plot_trajectory_trials
+#' @export
+plot_trajectory_trials.Sap <- function(
+    x, # x is SAP object
+    segment_type = c("motifs", "syllables", "bouts", "segments"),
+    data_type = c("similarity", "maturation"),
+    score_col = "rms_similarity",
+    labels = NULL,
+    running_mean = TRUE,
+    window_size = 50,
+    palette = "Set1",
+    ...) {
+  if (!inherits(x, "Sap")) stop("Input must be a SAP object")
+
+  segment_type <- match.arg(segment_type)
+  data_type <- match.arg(data_type)
+  feature_type <- sub("s$", "", segment_type)
+
+  # Extract the appropriate results
+  if (data_type == "similarity") {
+    sim_result <- x$features[[feature_type]][["trajectory_similarity"]]
+    if (is.null(sim_result)) {
+      stop(sprintf(
+        "No trajectory similarity results found for %s. Run trajectory_similarity() first.",
+        segment_type
+      ))
+    }
+    plot_data <- sim_result$similarity
+
+    # Default score column for similarity
+    if (missing(score_col) || score_col == "rms_similarity") {
+      score_col <- if ("rms_similarity" %in% names(plot_data)) {
+        "rms_similarity"
+      } else if ("correlation" %in% names(plot_data)) {
+        "correlation"
+      } else {
+        score_col
+      }
+    }
+  } else { # maturation
+    scores <- x$features[[feature_type]][["maturation_scores"]]
+    if (is.null(scores)) {
+      stop(sprintf(
+        "No maturation scores found for %s. Run trajectory_maturation() first.",
+        segment_type
+      ))
+    }
+    plot_data <- scores
+
+    # Default score column for maturation
+    if (missing(score_col) || score_col == "rms_similarity") {
+      score_col <- if ("maturation_score" %in% names(plot_data)) {
+        "maturation_score"
+      } else if ("stability_index" %in% names(plot_data)) {
+        "stability_index"
+      } else {
+        score_col
+      }
+    }
+  }
+
+  # Check that score_col actually exists
+  if (!score_col %in% names(plot_data)) {
+    stop(sprintf(
+      "Score column '%s' not found in %s results. Available: %s",
+      score_col, data_type, paste(names(plot_data), collapse = ", ")
+    ))
+  }
+
+  plot_trajectory_trials.default(
+    x = plot_data,
+    score_col = score_col,
+    labels = labels,
+    running_mean = running_mean,
+    window_size = window_size,
+    palette = palette,
+    ...
+  )
 }
