@@ -51,7 +51,11 @@
 <span>  <span class="va">by_column</span>,</span>
 <span>  <span class="va">label</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  metrics_labels <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  metrics_labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  metrics_label_cex <span class="op">=</span> <span class="fl">0.9</span>,</span>
+<span>  metrics_label_font <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  metrics_label_family <span class="op">=</span> <span class="st">"mono"</span>,</span>
+<span>  metrics_label_location <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"overlay"</span>, <span class="st">"margin"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -102,6 +106,22 @@
 <dt id="arg-metrics-labels">metrics_labels<a class="anchor" aria-label="anchor" href="#arg-metrics-labels"></a></dt>
 <dd><p>Named character vector of formatted metric labels
 keyed by segment row name, or NULL (default) to omit</p></dd>
+
+
+<dt id="arg-metrics-label-cex">metrics_label_cex<a class="anchor" aria-label="anchor" href="#arg-metrics-label-cex"></a></dt>
+<dd><p>Numeric character expansion for metric labels</p></dd>
+
+
+<dt id="arg-metrics-label-font">metrics_label_font<a class="anchor" aria-label="anchor" href="#arg-metrics-label-font"></a></dt>
+<dd><p>Font face for metric labels</p></dd>
+
+
+<dt id="arg-metrics-label-family">metrics_label_family<a class="anchor" aria-label="anchor" href="#arg-metrics-label-family"></a></dt>
+<dd><p>Font family for metric labels</p></dd>
+
+
+<dt id="arg-metrics-label-location">metrics_label_location<a class="anchor" aria-label="anchor" href="#arg-metrics-label-location"></a></dt>
+<dd><p>Location for metric labels ("overlay" or "margin")</p></dd>
 
 </dl></div>
     <div class="section level2">

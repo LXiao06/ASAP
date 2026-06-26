@@ -156,6 +156,8 @@ Plotting functionality for exploring ASAP objects
   : Plot Trajectory Similarity Results
 - [`plot_trajectory_maturation()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_maturation.md)
   : Plot Trajectory Maturation Scores
+- [`plot_trajectory_trials()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_trials.md)
+  : Plot Individual Trial Scores
 - [`plot_motif_boundaries()`](https://lxiao06.github.io/ASAP/dev/reference/plot_motif_boundaries.md)
   : Visualize Motif Boundaries in Audio Data
 - [`visualize_song()`](https://lxiao06.github.io/ASAP/dev/reference/visualize_song.md)
