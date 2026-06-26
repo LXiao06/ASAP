@@ -11,7 +11,7 @@
 #' @importFrom grDevices colorRampPalette dev.cur dev.off png rgb
 #' @importFrom utils head tail
 #' @importFrom graphics abline axis box image layout legend lines mtext par
-#'             plot.new plot.window points rect text title
+#'             plot.new plot.window points rect strheight strwidth text title
 #' @importFrom dplyr mutate select filter arrange left_join bind_rows %>%
 #'             group_by n_distinct group_split case_when all_of
 #' @importFrom stats TukeyHSD aggregate aov approx as.formula dist gaussian

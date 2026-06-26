@@ -15,7 +15,11 @@ plot_group(
   by_column,
   label,
   cluster = NULL,
-  metrics_labels = NULL
+  metrics_labels = NULL,
+  metrics_label_cex = 0.9,
+  metrics_label_font = 2,
+  metrics_label_family = "mono",
+  metrics_label_location = c("overlay", "margin")
 )
 }
 \arguments{
@@ -41,6 +45,14 @@ plot_group(
 
 \item{metrics_labels}{Named character vector of formatted metric labels
 keyed by segment row name, or NULL (default) to omit}
+
+\item{metrics_label_cex}{Numeric character expansion for metric labels}
+
+\item{metrics_label_font}{Font face for metric labels}
+
+\item{metrics_label_family}{Font family for metric labels}
+
+\item{metrics_label_location}{Location for metric labels ("overlay" or "margin")}
 }
 \value{
 Generates a plot of segment spectrograms as a side effect
