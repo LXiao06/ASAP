@@ -586,11 +586,11 @@ format_score_title <- function(col_name) {
 #' Plot Individual Trial Scores
 #'
 #' @description
-#' Creates a dot plot of per-trial similarity or maturation scores, ordered by
-#' \code{.source_row} within each label/day. Helps visualise the sequential
-#' progression of scores across individual renditions within and across days.
-#' An optional running-mean trace (default window: 50 trials) highlights the
-#' local trend.
+#' Creates a dot plot of per-trial similarity, maturation, or variability scores,
+#' ordered by \code{.source_row} within each label/day. Helps visualise the
+#' sequential progression of scores across individual renditions within and
+#' across days. An optional running-mean trace (default window: 50 trials)
+#' highlights the local trend.
 #'
 #' @param x An object to plot: a data frame with per-trial scores, or a SAP
 #'   object with pre-computed trajectory results.
@@ -604,8 +604,8 @@ format_score_title <- function(col_name) {
 #' @param palette Character. RColorBrewer palette name (default: "Set1").
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables',
 #'   'bouts', 'segments').
-#' @param data_type For SAP objects: Which results to plot ('similarity' or
-#'   'maturation').
+#' @param data_type For SAP objects: Which results to plot ('similarity',
+#'   'maturation', 'dispersion', or 'path_deviation').
 #' @param ... Additional arguments passed to specific methods.
 #'
 #' @details
@@ -616,6 +616,10 @@ format_score_title <- function(col_name) {
 #'     "dtw_similarity".
 #'   \item \code{data_type = "maturation"}: Uses \code{x$features[[feature_type]]$maturation_scores}.
 #'     Common score columns: "maturation_score", "stability_index".
+#'   \item \code{data_type = "dispersion"}: Uses \code{x$features[[feature_type]]$trajectory_dispersion$dispersion}.
+#'     Score column: "dispersion".
+#'   \item \code{data_type = "path_deviation"}: Uses \code{x$features[[feature_type]]$trajectory_path_deviation$width}.
+#'     Score columns: "orthogonal_rms", "parallel_rms".
 #' }
 #'
 #' **Label selection:**
@@ -647,6 +651,25 @@ format_score_title <- function(col_name) {
 #'   score_col = "maturation_score",
 #'   labels = c("60", "80", "100"),
 #'   running_mean = FALSE
+#' )
+#'
+#' # Plot dispersion variability
+#' plot_trajectory_trials(sap,
+#'   data_type = "dispersion",
+#'   score_col = "dispersion"
+#' )
+#'
+#' # Plot orthogonal RMS from path deviation
+#' plot_trajectory_trials(sap,
+#'   data_type = "path_deviation",
+#'   score_col = "orthogonal_rms"
+#' )
+#'
+#' # Plot parallel RMS from path deviation
+#' plot_trajectory_trials(sap,
+#'   data_type = "path_deviation",
+#'   score_col = "parallel_rms",
+#'   labels = c("60", "90")
 #' )
 #' }
 #'
@@ -707,8 +730,17 @@ plot_trajectory_trials.default <- function(
     FUN = seq_along
   )
 
-  # Build colour palette
-  labs_order <- sort_labels(unique(as.character(plot_data$label)))
+  # Build colour palette and set factor order for facets
+  # Preserve the input order if labels were specified, otherwise use numeric sort
+  if (!is.null(labels)) {
+    labs_order <- labels
+  } else {
+    labs_order <- sort_labels(unique(as.character(plot_data$label)))
+  }
+  
+  # Set label as factor with correct order for faceting
+  plot_data$label <- factor(plot_data$label, levels = labs_order)
+  
   pal_map <- make_pal(labs_order, palette)
 
   # Running mean
@@ -742,7 +774,7 @@ plot_trajectory_trials.default <- function(
     ggplot2::facet_wrap(~label, scales = "free_x", ncol = 1) +
     ggplot2::labs(
       title = sprintf("Trial-level %s", score_col),
-      x = "Trial index (ordered by .source_row)",
+      x = "Trial index (ordered by time sequence)",
       y = score_col,
       colour = "Label"
     ) +
@@ -775,8 +807,8 @@ plot_trajectory_trials.default <- function(
 plot_trajectory_trials.Sap <- function(
     x, # x is SAP object
     segment_type = c("motifs", "syllables", "bouts", "segments"),
-    data_type = c("similarity", "maturation"),
-    score_col = "rms_similarity",
+    data_type = c("similarity", "maturation", "dispersion", "path_deviation"),
+    score_col = NULL,
     labels = NULL,
     running_mean = TRUE,
     window_size = 50,
@@ -800,16 +832,16 @@ plot_trajectory_trials.Sap <- function(
     plot_data <- sim_result$similarity
 
     # Default score column for similarity
-    if (missing(score_col) || score_col == "rms_similarity") {
+    if (is.null(score_col)) {
       score_col <- if ("rms_similarity" %in% names(plot_data)) {
         "rms_similarity"
       } else if ("correlation" %in% names(plot_data)) {
         "correlation"
       } else {
-        score_col
+        names(plot_data)[!names(plot_data) %in% c("label", "rendition", ".source_row")][1]
       }
     }
-  } else { # maturation
+  } else if (data_type == "maturation") {
     scores <- x$features[[feature_type]][["maturation_scores"]]
     if (is.null(scores)) {
       stop(sprintf(
@@ -820,14 +852,42 @@ plot_trajectory_trials.Sap <- function(
     plot_data <- scores
 
     # Default score column for maturation
-    if (missing(score_col) || score_col == "rms_similarity") {
+    if (is.null(score_col)) {
       score_col <- if ("maturation_score" %in% names(plot_data)) {
         "maturation_score"
       } else if ("stability_index" %in% names(plot_data)) {
         "stability_index"
       } else {
-        score_col
+        names(plot_data)[!names(plot_data) %in% c("label", "rendition", ".source_row")][1]
       }
+    }
+  } else if (data_type == "dispersion") {
+    disp_result <- x$features[[feature_type]][["trajectory_dispersion"]]
+    if (is.null(disp_result)) {
+      stop(sprintf(
+        "No trajectory dispersion results found for %s. Run trajectory_dispersion() first.",
+        segment_type
+      ))
+    }
+    plot_data <- disp_result$dispersion
+
+    # Default score column for dispersion
+    if (is.null(score_col)) {
+      score_col <- "dispersion"
+    }
+  } else if (data_type == "path_deviation") {
+    path_result <- x$features[[feature_type]][["trajectory_path_deviation"]]
+    if (is.null(path_result)) {
+      stop(sprintf(
+        "No trajectory path deviation results found for %s. Run trajectory_path_deviation() first.",
+        segment_type
+      ))
+    }
+    plot_data <- path_result$width
+
+    # Default score column for path_deviation
+    if (is.null(score_col)) {
+      score_col <- "orthogonal_rms"
     }
   }
 
