@@ -1,5 +1,5 @@
 # Trajectory Maturation Analysis
-# Update date : Jun. 25, 2026
+# Update date : Jun. 29, 2026
 
 #' Compute Trajectory Maturation Scores
 #'
@@ -20,6 +20,16 @@
 #'   reduces the score
 #' @param epsilon Numeric. Small constant to avoid division by zero in
 #'   stability_index (default: 0.01)
+#' @param normalize_variability Character. How to normalize variability for
+#'   cross-animal comparison: "none" (default), or "reference" (normalize to
+#'   reference label). When "reference", variability is divided by the mean
+#'   variability at the reference label, making values interpretable as
+#'   "X times more variable than reference"
+#' @param reference_label Character. Label to use as normalization reference.
+#'   If NULL (default), uses the last label (typically adult). Only used when
+#'   normalize_variability = "reference"
+#' @param norm_epsilon Numeric. Small constant added to reference variability
+#'   to avoid division by zero (default: 1e-6)
 #' @param scale_method Character. How to scale variability: "minmax" (default),
 #'   "zscore", or "none"
 #' @param verbose Logical. Print progress messages (default: TRUE)
@@ -52,7 +62,18 @@
 #' }
 #'
 #' @return
-#' For data.frame: A data.frame with original data plus score columns.
+#' For data.frame: A data.frame with original data plus score columns:
+#' \itemize{
+#'   \item \code{variability_raw}: Original variability metric value (renamed from input)
+#'   \item \code{variability_scaled}: Scaled variability (for ML)
+#'   \item \code{variability_normalized}: Normalized to reference label (if normalize_variability = "reference").
+#'     Values represent "X times the reference variability". For example, 2.0 means
+#'     twice as variable as the reference label (typically adult)
+#'   \item \code{maturation_score}: Computed maturation score (if requested)
+#'   \item \code{stability_index}: Computed stability index (if requested)
+#' }
+#' Metadata attributes include: variability_metric, scale_method, similarity_metric,
+#' score_type, invert_variability, normalize_variability, reference_label
 #'
 #' For SAP objects: Updated object with scores stored in
 #'   \code{sap$features[[feature_type]]$maturation_scores}
@@ -66,8 +87,16 @@
 #'   score_type = "both"
 #' )
 #'
+#' # With reference-based normalization (for cross-animal ML)
+#' sap <- trajectory_maturation(sap,
+#'   segment_type = "motifs",
+#'   normalize_variability = "reference",
+#'   reference_label = "90"  # Adult as reference
+#' )
+#'
 #' # Access results
 #' scores <- sap$features$motif$maturation_scores
+#' # variability_normalized = 2.0 means "2x adult variability"
 #' }
 #'
 #' @seealso \code{\link{plot_trajectory_maturation}} for visualization,
@@ -90,6 +119,9 @@ trajectory_maturation.default <- function(
     score_type = c("maturation", "stability", "both"),
     invert_variability = TRUE,
     epsilon = 0.01,
+    normalize_variability = c("none", "reference"),
+    reference_label = NULL,
+    norm_epsilon = 1e-6,
     scale_method = c("minmax", "zscore", "none"),
     verbose = TRUE,
     ...) {
@@ -99,6 +131,7 @@ trajectory_maturation.default <- function(
   similarity_metric <- match.arg(similarity_metric)
   variability_metric <- match.arg(variability_metric)
   scale_method <- match.arg(scale_method)
+  normalize_variability <- match.arg(normalize_variability)
 
   if ("both" %in% score_type) {
     score_type <- c("maturation", "stability")
@@ -147,7 +180,12 @@ trajectory_maturation.default <- function(
     message(sprintf("Similarity metric  : %s", similarity_metric))
     message(sprintf("Variability metric : %s", variability_metric))
     message(sprintf("Score types        : %s", paste(score_type, collapse = ", ")))
-    message(sprintf("Scaling method     : %s\n", scale_method))
+    message(sprintf("Scaling method     : %s", scale_method))
+    if (normalize_variability == "reference") {
+      ref_label_display <- if (is.null(reference_label)) "last label (auto)" else reference_label
+      message(sprintf("Normalize to       : %s", ref_label_display))
+    }
+    message("")
   }
 
   # Extract metrics
@@ -162,6 +200,92 @@ trajectory_maturation.default <- function(
 
   result <- x
 
+  # Store raw and scaled variability for ML/analysis
+  result$variability_raw <- variability
+  result$variability_scaled <- variability_scaled
+
+  # Normalize variability to reference label (for cross-animal comparison)
+  if (normalize_variability == "reference") {
+    # Determine reference label
+    if (is.null(reference_label)) {
+      # Use last label (typically adult)
+      all_labels <- unique(x$label)
+      reference_label <- sort_labels(all_labels)[length(all_labels)]
+      if (verbose) {
+        message(sprintf("Using last label as reference: %s", reference_label))
+      }
+    }
+    
+    # Check reference label exists
+    if (!reference_label %in% x$label) {
+      stop(sprintf(
+        "Reference label '%s' not found in data. Available labels: %s",
+        reference_label,
+        paste(unique(x$label), collapse = ", ")
+      ))
+    }
+    
+    # Identify all variability columns to normalize
+    # Look for columns with "variability_" prefix (from Sap merge)
+    # Or raw metric names like "dispersion", "orthogonal_rms", "parallel_rms"
+    variability_cols <- grep("^variability_", names(x), value = TRUE)
+    
+    # Also check for raw metric columns
+    raw_metrics <- c("dispersion", "orthogonal_rms", "parallel_rms", "total_rms")
+    raw_metrics_present <- raw_metrics[raw_metrics %in% names(x)]
+    
+    # Combine all variability columns to normalize
+    all_var_cols <- unique(c(variability_cols, raw_metrics_present))
+    
+    if (verbose && length(all_var_cols) > 0) {
+      message(sprintf("Normalizing %d variability metric(s):", length(all_var_cols)))
+      for (col in all_var_cols) {
+        message(sprintf("  - %s", col))
+      }
+    }
+    
+    # Normalize each variability metric
+    ref_mask <- x$label == reference_label
+    
+    for (col in all_var_cols) {
+      # Extract values
+      values <- x[[col]]
+      
+      # Scale first (if not already scaled)
+      values_scaled <- scale_variability(values, method = scale_method)
+      
+      # Compute reference mean
+      ref_mean <- mean(values_scaled[ref_mask], na.rm = TRUE)
+      
+      # Normalize
+      normalized_col_name <- paste0(col, "_normalized")
+      result[[normalized_col_name]] <- values_scaled / (ref_mean + norm_epsilon)
+      
+      if (verbose) {
+        message(sprintf(
+          "  %s -> %s (ref: %.4f)",
+          col, normalized_col_name, ref_mean
+        ))
+      }
+    }
+    
+    # Also store the primary normalized variability
+    # (the one selected for maturation scoring)
+    result$variability_normalized <- variability_scaled / 
+      (mean(variability_scaled[ref_mask], na.rm = TRUE) + norm_epsilon)
+    
+    if (verbose) {
+      message(sprintf(
+        "Primary variability_normalized range: [%.2f, %.2f]",
+        min(result$variability_normalized, na.rm = TRUE),
+        max(result$variability_normalized, na.rm = TRUE)
+      ))
+    }
+  } else {
+    # No normalization - just copy scaled values
+    result$variability_normalized <- variability_scaled
+  }
+
   # Compute requested scores
   if ("maturation" %in% score_type) {
     # Maturation uses inverted variability (high variability = bad)
@@ -170,6 +294,7 @@ trajectory_maturation.default <- function(
     } else {
       variability_scaled
     }
+    
     result$maturation_score <- similarity * variability_inverted
     if (verbose) {
       message(sprintf(
@@ -197,10 +322,57 @@ trajectory_maturation.default <- function(
   attr(result, "variability_metric") <- variability_metric
   attr(result, "score_type") <- score_type
   attr(result, "scale_method") <- scale_method
+  attr(result, "invert_variability") <- invert_variability
+  attr(result, "normalize_variability") <- normalize_variability
+  if (normalize_variability == "reference") {
+    attr(result, "reference_label") <- reference_label
+  }
 
   if (verbose) message("Done.\n")
 
   return(result)
+}
+
+
+#' Clean Duplicate .source_row Columns
+#'
+#' @description
+#' Internal helper to clean up duplicate .source_row columns that can occur
+#' during merge operations (e.g., .source_row.x, .source_row.y).
+#'
+#' @param df Data frame to clean
+#'
+#' @return Data frame with single .source_row column
+#'
+#' @keywords internal
+#' @noRd
+clean_source_row_columns <- function(df) {
+  # If we already have a clean .source_row, we're good
+  if (".source_row" %in% names(df)) {
+    # Check if there are also .source_row.x or .source_row.y
+    dup_cols <- grep("^\\.source_row\\.[xy]", names(df), value = TRUE)
+    if (length(dup_cols) > 0) {
+      # Remove the duplicates, keep the original
+      df <- df[, !names(df) %in% dup_cols, drop = FALSE]
+    }
+    return(df)
+  }
+  
+  # Look for .source_row.x, .source_row.y, etc.
+  dup_cols <- grep("^\\.source_row\\.", names(df), value = TRUE)
+  
+  if (length(dup_cols) > 0) {
+    # Create .source_row by taking first non-NA value for each row
+    df$.source_row <- apply(df[, dup_cols, drop = FALSE], 1, function(row) {
+      non_na <- row[!is.na(row)]
+      if (length(non_na) > 0) non_na[1] else NA_integer_
+    })
+    
+    # Drop the duplicate columns
+    df <- df[, !names(df) %in% dup_cols, drop = FALSE]
+  }
+  
+  return(df)
 }
 
 
@@ -214,6 +386,9 @@ trajectory_maturation.Sap <- function(
     score_type = c("maturation", "stability", "both"),
     invert_variability = TRUE,
     epsilon = 0.01,
+    normalize_variability = c("none", "reference"),
+    reference_label = NULL,
+    norm_epsilon = 1e-6,
     scale_method = c("minmax", "zscore", "none"),
     verbose = TRUE,
     ...) {
@@ -305,6 +480,9 @@ trajectory_maturation.Sap <- function(
     stop("No matching renditions found between similarity and variability results")
   }
 
+  # Clean up duplicate .source_row columns (from merge operations)
+  merged_data <- clean_source_row_columns(merged_data)
+
   # Compute scores
   scores <- trajectory_maturation.default(
     x = merged_data,
@@ -313,6 +491,9 @@ trajectory_maturation.Sap <- function(
     score_type = score_type,
     invert_variability = invert_variability,
     epsilon = epsilon,
+    normalize_variability = normalize_variability,
+    reference_label = reference_label,
+    norm_epsilon = norm_epsilon,
     scale_method = scale_method,
     verbose = verbose,
     ...

@@ -15,6 +15,10 @@ trajectory_dispersion(x, ...)
   max_pairs = 5000,
   seed = 222,
   stats = TRUE,
+  scale_method = c("minmax", "zscore", "none"),
+  normalize_variability = c("none", "reference"),
+  reference_label = NULL,
+  norm_epsilon = 1e-06,
   verbose = TRUE,
   ...
 )
@@ -27,6 +31,10 @@ trajectory_dispersion(x, ...)
   max_pairs = 5000,
   seed = 222,
   stats = TRUE,
+  scale_method = c("minmax", "zscore", "none"),
+  normalize_variability = c("none", "reference"),
+  reference_label = NULL,
+  norm_epsilon = 1e-06,
   verbose = TRUE,
   ...
 )
@@ -47,6 +55,21 @@ trajectory_dispersion(x, ...)
 \item{stats}{Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
 Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
 \code{NULL} for \code{tests}.}
+
+\item{scale_method}{Character. How to scale variability: "minmax" (default),
+"zscore", or "none". Scaled values are stored with "_scaled" suffix}
+
+\item{normalize_variability}{Character. How to normalize variability for
+cross-animal comparison: "none" (default), or "reference" (normalize to
+reference label). When "reference", variability is divided by the mean
+variability at the reference label}
+
+\item{reference_label}{Character. Label to use as normalization reference.
+If NULL (default), uses the last label. Only used when
+normalize_variability = "reference"}
+
+\item{norm_epsilon}{Numeric. Small constant added to reference variability
+to avoid division by zero (default: 1e-6)}
 
 \item{verbose}{Whether to print progress messages (default: TRUE)}
 

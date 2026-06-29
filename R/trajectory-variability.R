@@ -15,6 +15,17 @@
 #' @param stats Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
 #'   Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
 #'   \code{NULL} for \code{tests}.
+#' @param scale_method Character. How to scale variability: "minmax" (default),
+#'   "zscore", or "none". Scaled values are stored with "_scaled" suffix
+#' @param normalize_variability Character. How to normalize variability for
+#'   cross-animal comparison: "none" (default), or "reference" (normalize to
+#'   reference label). When "reference", variability is divided by the mean
+#'   variability at the reference label
+#' @param reference_label Character. Label to use as normalization reference.
+#'   If NULL (default), uses the last label. Only used when
+#'   normalize_variability = "reference"
+#' @param norm_epsilon Numeric. Small constant added to reference variability
+#'   to avoid division by zero (default: 1e-6)
 #' @param verbose Whether to print progress messages (default: TRUE)
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables', 'bouts', 'segments')
 #' @param ... Additional arguments
@@ -88,10 +99,17 @@ trajectory_dispersion.default <- function(x,
                                           max_pairs = 5000,
                                           seed = 222,
                                           stats = TRUE,
+                                          scale_method = c("minmax", "zscore", "none"),
+                                          normalize_variability = c("none", "reference"),
+                                          reference_label = NULL,
+                                          norm_epsilon = 1e-6,
                                           verbose = TRUE,
                                           ...) {
   # Input validation
   if (!is.data.frame(x)) stop("Input must be a data frame")
+
+  scale_method <- match.arg(scale_method)
+  normalize_variability <- match.arg(normalize_variability)
 
   required_cols <- c("label", "rendition", ".time")
   missing_cols <- setdiff(c(required_cols, dims), names(x))
@@ -136,6 +154,7 @@ trajectory_dispersion.default <- function(x,
     message("\n=== Trajectory Dispersion Analysis ===")
     message(sprintf("Dimensions: %s", paste(dims, collapse = ", ")))
     message(sprintf("Labels: %s", paste(all_labels, collapse = ", ")))
+    message(sprintf("Scaling method: %s", scale_method))
   }
 
   set.seed(seed)
@@ -236,6 +255,50 @@ trajectory_dispersion.default <- function(x,
       by = c("label", "rendition"), all.x = TRUE)
   } else {
     dispersion_results$.source_row <- NA_integer_
+  }
+
+  # Apply scaling to dispersion
+  dispersion_results$dispersion_scaled <- scale_variability(
+    dispersion_results$dispersion,
+    method = scale_method
+  )
+
+  # Apply normalization if requested
+  if (normalize_variability == "reference") {
+    # Determine reference label
+    if (is.null(reference_label)) {
+      reference_label <- sort_labels(all_labels)[length(all_labels)]
+      if (verbose) {
+        message(sprintf("Using last label as reference: %s", reference_label))
+      }
+    }
+    
+    # Check reference exists
+    if (!reference_label %in% dispersion_results$label) {
+      stop(sprintf(
+        "Reference label '%s' not found. Available: %s",
+        reference_label, paste(all_labels, collapse = ", ")
+      ))
+    }
+    
+    # Compute reference variability
+    ref_var <- mean(
+      dispersion_results$dispersion_scaled[dispersion_results$label == reference_label],
+      na.rm = TRUE
+    )
+    
+    if (verbose) {
+      message(sprintf(
+        "Reference dispersion (mean at %s): %.4f",
+        reference_label, ref_var
+      ))
+    }
+    
+    # Normalize
+    dispersion_results$dispersion_normalized <- 
+      dispersion_results$dispersion_scaled / (ref_var + norm_epsilon)
+  } else {
+    dispersion_results$dispersion_normalized <- dispersion_results$dispersion_scaled
   }
 
   # ==== Metric 3: Path Length ====
@@ -348,15 +411,23 @@ trajectory_dispersion.default <- function(x,
   }
 
   # Return results
-  invisible(list(
+  result <- list(
     type = "dispersion",
     dims = dims,
+    scale_method = scale_method,
+    normalize_variability = normalize_variability,
     pairwise = pairwise_results,
     dispersion = dispersion_results,
     path_length = path_length_results,
     summary = summary_table,
     tests = tests
-  ))
+  )
+  
+  if (normalize_variability == "reference") {
+    result$reference_label <- reference_label
+  }
+  
+  invisible(result)
 }
 
 
@@ -372,6 +443,10 @@ trajectory_dispersion.Sap <- function(x,
                                       max_pairs = 5000,
                                       seed = 222,
                                       stats = TRUE,
+                                      scale_method = c("minmax", "zscore", "none"),
+                                      normalize_variability = c("none", "reference"),
+                                      reference_label = NULL,
+                                      norm_epsilon = 1e-6,
                                       verbose = TRUE,
                                       ...) {
   # Validate
@@ -414,6 +489,10 @@ trajectory_dispersion.Sap <- function(x,
     max_pairs = max_pairs,
     seed = seed,
     stats = stats,
+    scale_method = scale_method,
+    normalize_variability = normalize_variability,
+    reference_label = reference_label,
+    norm_epsilon = norm_epsilon,
     verbose = verbose,
     ...
   )
@@ -448,6 +527,17 @@ trajectory_dispersion.Sap <- function(x,
 #' @param stats Logical. If \code{TRUE} (default), run Kruskal-Wallis and pairwise
 #'   Wilcoxon tests. Set to \code{FALSE} to skip statistical testing and return
 #'   \code{NULL} for \code{tests}.
+#' @param scale_method Character. How to scale variability: "minmax" (default),
+#'   "zscore", or "none". Scaled values are stored with "_scaled" suffix
+#' @param normalize_variability Character. How to normalize variability for
+#'   cross-animal comparison: "none" (default), or "reference" (normalize to
+#'   reference label). When "reference", variability is divided by the mean
+#'   variability at the reference label
+#' @param reference_label Character. Label to use as normalization reference.
+#'   If NULL (default), uses the last label. Only used when
+#'   normalize_variability = "reference"
+#' @param norm_epsilon Numeric. Small constant added to reference variability
+#'   to avoid division by zero (default: 1e-6)
 #' @param verbose Whether to print progress messages (default: TRUE)
 #' @param segment_type For SAP objects: Type of segments ('motifs', 'syllables',
 #'   'bouts', 'segments')
@@ -505,12 +595,19 @@ trajectory_path_deviation.default <- function(x,
                                               time_digits = 6,
                                               labels = NULL,
                                               stats = TRUE,
+                                              scale_method = c("minmax", "zscore", "none"),
+                                              normalize_variability = c("none", "reference"),
+                                              reference_label = NULL,
+                                              norm_epsilon = 1e-6,
                                               verbose = TRUE,
                                               ...) {
   if (!is.data.frame(x)) stop("Input must be a data frame")
   if (length(dims) < 2) {
     stop("Use at least two dimensions so orthogonal width is well-defined")
   }
+
+  scale_method <- match.arg(scale_method)
+  normalize_variability <- match.arg(normalize_variability)
 
   required_cols <- c("label", "rendition", ".time")
   missing_cols <- setdiff(c(required_cols, dims), names(x))
@@ -554,6 +651,7 @@ trajectory_path_deviation.default <- function(x,
       min_coverage * 100
     ))
     message(sprintf("Time binning  : %d decimal places", time_digits))
+    message(sprintf("Scaling method: %s", scale_method))
     message(sprintf("Labels        : %s\n", paste(all_labels, collapse = ", ")))
   }
 
@@ -669,6 +767,64 @@ trajectory_path_deviation.default <- function(x,
     stop("No valid renditions available for width analysis")
   }
 
+  # Apply scaling to width metrics
+  width_results$total_rms_scaled <- scale_variability(
+    width_results$total_rms,
+    method = scale_method
+  )
+  width_results$orthogonal_rms_scaled <- scale_variability(
+    width_results$orthogonal_rms,
+    method = scale_method
+  )
+  width_results$parallel_rms_scaled <- scale_variability(
+    width_results$parallel_rms,
+    method = scale_method
+  )
+
+  # Apply normalization if requested
+  if (normalize_variability == "reference") {
+    # Determine reference label
+    if (is.null(reference_label)) {
+      reference_label <- sort_labels(all_labels)[length(all_labels)]
+      if (verbose) {
+        message(sprintf("Using last label as reference: %s", reference_label))
+      }
+    }
+    
+    # Check reference exists
+    if (!reference_label %in% width_results$label) {
+      stop(sprintf(
+        "Reference label '%s' not found. Available: %s",
+        reference_label, paste(all_labels, collapse = ", ")
+      ))
+    }
+    
+    # Compute reference variability for each metric
+    ref_mask <- width_results$label == reference_label
+    ref_total <- mean(width_results$total_rms_scaled[ref_mask], na.rm = TRUE)
+    ref_orth <- mean(width_results$orthogonal_rms_scaled[ref_mask], na.rm = TRUE)
+    ref_par <- mean(width_results$parallel_rms_scaled[ref_mask], na.rm = TRUE)
+    
+    if (verbose) {
+      message(sprintf("Reference at %s:", reference_label))
+      message(sprintf("  total_rms: %.4f", ref_total))
+      message(sprintf("  orthogonal_rms: %.4f", ref_orth))
+      message(sprintf("  parallel_rms: %.4f", ref_par))
+    }
+    
+    # Normalize each metric
+    width_results$total_rms_normalized <- 
+      width_results$total_rms_scaled / (ref_total + norm_epsilon)
+    width_results$orthogonal_rms_normalized <- 
+      width_results$orthogonal_rms_scaled / (ref_orth + norm_epsilon)
+    width_results$parallel_rms_normalized <- 
+      width_results$parallel_rms_scaled / (ref_par + norm_epsilon)
+  } else {
+    width_results$total_rms_normalized <- width_results$total_rms_scaled
+    width_results$orthogonal_rms_normalized <- width_results$orthogonal_rms_scaled
+    width_results$parallel_rms_normalized <- width_results$parallel_rms_scaled
+  }
+
   summary_df <- width_results |>
     dplyr::group_by(.data$label) |>
     dplyr::summarise(
@@ -744,13 +900,16 @@ trajectory_path_deviation.default <- function(x,
   invisible(list(
     type              = "path_deviation",
     dims              = dims,
+    scale_method      = scale_method,
+    normalize_variability = normalize_variability,
     min_coverage      = min_coverage,
     time_digits       = time_digits,
     width             = width_results,
     summary           = summary_df,
     mean_trajectories = mean_trajectories,
     tangent_vectors   = tangent_vectors,
-    tests             = tests
+    tests             = tests,
+    reference_label   = if (normalize_variability == "reference") reference_label else NULL
   ))
 }
 
@@ -768,6 +927,10 @@ trajectory_path_deviation.Sap <- function(x,
                                           time_digits = 6,
                                           labels = NULL,
                                           stats = TRUE,
+                                          scale_method = c("minmax", "zscore", "none"),
+                                          normalize_variability = c("none", "reference"),
+                                          reference_label = NULL,
+                                          norm_epsilon = 1e-6,
                                           verbose = TRUE,
                                           ...) {
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
@@ -809,6 +972,10 @@ trajectory_path_deviation.Sap <- function(x,
     time_digits = time_digits,
     labels = labels,
     stats = stats,
+    scale_method = scale_method,
+    normalize_variability = normalize_variability,
+    reference_label = reference_label,
+    norm_epsilon = norm_epsilon,
     verbose = verbose,
     ...
   )
@@ -1242,6 +1409,8 @@ trajectory_umap_occupancy.Sap <- function(x,
 #' @param show_cv Logical. If \code{TRUE}, add coefficient-of-variation panels
 #'   for centroid dispersion and trajectory path length when plotting
 #'   \code{trajectory_dispersion()} results (default: \code{FALSE}).
+#' @param use_scaled Logical. If \code{TRUE}, plot scaled variability values
+#'   (with "_scaled" suffix). If \code{FALSE} (default), plot raw values
 #' @param segment_type For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')
 #' @param variability_type For SAP objects: Which computed variability type to plot ('dispersion', 'path_deviation', 'umap_occupancy')
 #' @param ... Additional arguments passed to specific methods.
@@ -1290,6 +1459,7 @@ plot_trajectory_variability.default <- function(x,
                                                 palette = "Set1",
                                                 max_annotations = 10,
                                                 show_cv = FALSE,
+                                                use_scaled = FALSE,
                                                 ...) {
   result <- x
   # ---- Validate input ----
@@ -1321,6 +1491,13 @@ plot_trajectory_variability.default <- function(x,
     pl <- result$path_length
     tst <- result$tests
 
+    # Determine column names based on use_scaled
+    dis_col <- if (use_scaled && "dispersion_scaled" %in% names(dis)) {
+      "dispersion_scaled"
+    } else {
+      "dispersion"
+    }
+
     labs_order <- sort_labels(unique(as.character(pw$label)))
     many_labs <- length(labs_order) > 6
     pal_map <- make_pal(labs_order, palette)
@@ -1329,17 +1506,24 @@ plot_trajectory_variability.default <- function(x,
     kw_dis <- if (!is.null(tst)) fmt_p(tst$kruskal$dispersion$p.value) else NULL
     kw_pl <- if (!is.null(tst)) fmt_p(tst$kruskal$path_length$p.value) else NULL
 
+    # Update y-axis title if using scaled values
+    dis_title <- if (use_scaled && dis_col == "dispersion_scaled") {
+      "Centroid Dispersion (Scaled)"
+    } else {
+      "Centroid Dispersion"
+    }
+
     if (many_labs) {
       p1 <- trend_panel(pw, "label", "mean_dist", "Mean Pairwise Distance", kw_pw, labs_order)
-      p2 <- trend_panel(dis, "label", "dispersion", "Centroid Dispersion", kw_dis, labs_order)
+      p2 <- trend_panel(dis, "label", dis_col, dis_title, kw_dis, labs_order)
       p3 <- trend_panel(pl, "label", "path_length", "Trajectory Path Length", kw_pl, labs_order)
     } else {
       p1 <- panel(pw, "label", "mean_dist", "Mean Pairwise Distance", kw_pw, pal_map, labs_order)
-      p2 <- panel(dis, "label", "dispersion", "Centroid Dispersion", kw_dis, pal_map, labs_order)
+      p2 <- panel(dis, "label", dis_col, dis_title, kw_dis, pal_map, labs_order)
       p3 <- panel(pl, "label", "path_length", "Trajectory Path Length", kw_pl, pal_map, labs_order)
       if (!is.null(tst)) {
         p1 <- add_brackets(p1, brackets(pw$mean_dist, tst$posthoc$pairwise, labs_order, max_annotations))
-        p2 <- add_brackets(p2, brackets(dis$dispersion, tst$posthoc$dispersion, labs_order, max_annotations))
+        p2 <- add_brackets(p2, brackets(dis[[dis_col]], tst$posthoc$dispersion, labs_order, max_annotations))
         p3 <- add_brackets(p3, brackets(pl$path_length, tst$posthoc$path_length, labs_order, max_annotations))
       }
     }
@@ -1363,10 +1547,16 @@ plot_trajectory_variability.default <- function(x,
       panels <- p1 + p2 + p3
     }
 
+    # Add scale method to subtitle if scaled values are used
+    subtitle <- paste("Dimensions:", paste(dims, collapse = " + "))
+    if (use_scaled && !is.null(result$scale_method)) {
+      subtitle <- paste0(subtitle, " | Scaling: ", result$scale_method)
+    }
+
     combined <- panels +
       patchwork::plot_annotation(
         title = "Trajectory Dispersion Comparison",
-        subtitle = paste("Dimensions:", paste(dims, collapse = " + ")),
+        subtitle = subtitle,
         theme = ggplot2::theme(
           plot.background = ggplot2::element_rect(fill = "white", color = NA)
         )
@@ -1375,6 +1565,40 @@ plot_trajectory_variability.default <- function(x,
     # ---- trajectory_path_deviation ----
     wd <- result$width
     tst <- result$tests
+
+    # Determine column names based on use_scaled
+    total_col <- if (use_scaled && "total_rms_scaled" %in% names(wd)) {
+      "total_rms_scaled"
+    } else {
+      "total_rms"
+    }
+    orth_col <- if (use_scaled && "orthogonal_rms_scaled" %in% names(wd)) {
+      "orthogonal_rms_scaled"
+    } else {
+      "orthogonal_rms"
+    }
+    par_col <- if (use_scaled && "parallel_rms_scaled" %in% names(wd)) {
+      "parallel_rms_scaled"
+    } else {
+      "parallel_rms"
+    }
+
+    # Update y-axis titles if using scaled values
+    total_title <- if (use_scaled && total_col == "total_rms_scaled") {
+      "Total RMS Residual (Scaled)"
+    } else {
+      "Total RMS Residual"
+    }
+    orth_title <- if (use_scaled && orth_col == "orthogonal_rms_scaled") {
+      "Orthogonal RMS Residual (Scaled)"
+    } else {
+      "Orthogonal RMS Residual"
+    }
+    par_title <- if (use_scaled && par_col == "parallel_rms_scaled") {
+      "Parallel RMS Residual (Scaled)"
+    } else {
+      "Parallel RMS Residual"
+    }
 
     labs_order <- sort_labels(unique(as.character(wd$label)))
     many_labs <- length(labs_order) > 6
@@ -1385,24 +1609,30 @@ plot_trajectory_variability.default <- function(x,
     kw_par <- if (!is.null(tst)) fmt_p(tst$kruskal$parallel$p.value) else NULL
 
     if (many_labs) {
-      p1 <- trend_panel(wd, "label", "total_rms", "Total RMS Residual", kw_tot, labs_order)
-      p2 <- trend_panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, labs_order)
-      p3 <- trend_panel(wd, "label", "parallel_rms", "Parallel RMS Residual", kw_par, labs_order)
+      p1 <- trend_panel(wd, "label", total_col, total_title, kw_tot, labs_order)
+      p2 <- trend_panel(wd, "label", orth_col, orth_title, kw_orth, labs_order)
+      p3 <- trend_panel(wd, "label", par_col, par_title, kw_par, labs_order)
     } else {
-      p1 <- panel(wd, "label", "total_rms", "Total RMS Residual", kw_tot, pal_map, labs_order)
-      p2 <- panel(wd, "label", "orthogonal_rms", "Orthogonal RMS Residual", kw_orth, pal_map, labs_order)
-      p3 <- panel(wd, "label", "parallel_rms", "Parallel RMS Residual", kw_par, pal_map, labs_order)
+      p1 <- panel(wd, "label", total_col, total_title, kw_tot, pal_map, labs_order)
+      p2 <- panel(wd, "label", orth_col, orth_title, kw_orth, pal_map, labs_order)
+      p3 <- panel(wd, "label", par_col, par_title, kw_par, pal_map, labs_order)
       if (!is.null(tst)) {
-        p1 <- add_brackets(p1, brackets(wd$total_rms, tst$posthoc$total, labs_order, max_annotations))
-        p2 <- add_brackets(p2, brackets(wd$orthogonal_rms, tst$posthoc$orthogonal, labs_order, max_annotations))
-        p3 <- add_brackets(p3, brackets(wd$parallel_rms, tst$posthoc$parallel, labs_order, max_annotations))
+        p1 <- add_brackets(p1, brackets(wd[[total_col]], tst$posthoc$total, labs_order, max_annotations))
+        p2 <- add_brackets(p2, brackets(wd[[orth_col]], tst$posthoc$orthogonal, labs_order, max_annotations))
+        p3 <- add_brackets(p3, brackets(wd[[par_col]], tst$posthoc$parallel, labs_order, max_annotations))
       }
+    }
+
+    # Add scale method to subtitle if scaled values are used
+    subtitle <- paste("Dimensions:", paste(dims, collapse = " + "))
+    if (use_scaled && !is.null(result$scale_method)) {
+      subtitle <- paste0(subtitle, " | Scaling: ", result$scale_method)
     }
 
     combined <- (p1 + p2 + p3) +
       patchwork::plot_annotation(
         title = "Trajectory Path Deviation Comparison",
-        subtitle = paste("Dimensions:", paste(dims, collapse = " + ")),
+        subtitle = subtitle,
         theme = ggplot2::theme(
           plot.background = ggplot2::element_rect(fill = "white", color = NA)
         )
@@ -1469,6 +1699,7 @@ plot_trajectory_variability.Sap <- function(x,
                                             palette = "Set1",
                                             max_annotations = 10,
                                             show_cv = FALSE,
+                                            use_scaled = FALSE,
                                             ...) {
   if (!inherits(x, "Sap")) stop("Input must be a SAP object")
   segment_type <- match.arg(segment_type)
@@ -1492,6 +1723,7 @@ plot_trajectory_variability.Sap <- function(x,
     palette = palette,
     max_annotations = max_annotations,
     show_cv = show_cv,
+    use_scaled = use_scaled,
     ...
   )
 }

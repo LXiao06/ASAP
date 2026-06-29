@@ -13,6 +13,7 @@ plot_trajectory_variability(x, ...)
   palette = "Set1",
   max_annotations = 10,
   show_cv = FALSE,
+  use_scaled = FALSE,
   ...
 )
 
@@ -23,6 +24,7 @@ plot_trajectory_variability(x, ...)
   palette = "Set1",
   max_annotations = 10,
   show_cv = FALSE,
+  use_scaled = FALSE,
   ...
 )
 }
@@ -45,6 +47,9 @@ most significant pairs are retained and a message is issued.}
 \item{show_cv}{Logical. If \code{TRUE}, add coefficient-of-variation panels
 for centroid dispersion and trajectory path length when plotting
 \code{trajectory_dispersion()} results (default: \code{FALSE}).}
+
+\item{use_scaled}{Logical. If \code{TRUE}, plot scaled variability values
+(with "_scaled" suffix). If \code{FALSE} (default), plot raw values}
 
 \item{segment_type}{For SAP objects: Type of segments to visualize ('motifs', 'syllables', 'bouts', 'segments')}
 
