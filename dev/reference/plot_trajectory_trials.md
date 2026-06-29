@@ -1,10 +1,10 @@
 # Plot Individual Trial Scores
 
-Creates a dot plot of per-trial similarity or maturation scores, ordered
-by `.source_row` within each label/day. Helps visualise the sequential
-progression of scores across individual renditions within and across
-days. An optional running-mean trace (default window: 50 trials)
-highlights the local trend.
+Creates a dot plot of per-trial similarity, maturation, or variability
+scores, ordered by `.source_row` within each label/day. Helps visualise
+the sequential progression of scores across individual renditions within
+and across days. An optional running-mean trace (default window: 50
+trials) highlights the local trend.
 
 ## Usage
 
@@ -26,8 +26,8 @@ plot_trajectory_trials(
 plot_trajectory_trials(
   x,
   segment_type = c("motifs", "syllables", "bouts", "segments"),
-  data_type = c("similarity", "maturation"),
-  score_col = "rms_similarity",
+  data_type = c("similarity", "maturation", "dispersion", "path_deviation"),
+  score_col = NULL,
   labels = NULL,
   running_mean = TRUE,
   window_size = 50,
@@ -76,7 +76,8 @@ plot_trajectory_trials(
 
 - data_type:
 
-  For SAP objects: Which results to plot ('similarity' or 'maturation').
+  For SAP objects: Which results to plot ('similarity', 'maturation',
+  'dispersion', or 'path_deviation').
 
 ## Value
 
@@ -94,6 +95,14 @@ A ggplot2 object, printed as a side-effect and returned invisibly.
 - `data_type = "maturation"`: Uses
   `x$features[[feature_type]]$maturation_scores`. Common score columns:
   "maturation_score", "stability_index".
+
+- `data_type = "dispersion"`: Uses
+  `x$features[[feature_type]]$trajectory_dispersion$dispersion`. Score
+  column: "dispersion".
+
+- `data_type = "path_deviation"`: Uses
+  `x$features[[feature_type]]$trajectory_path_deviation$width`. Score
+  columns: "orthogonal_rms", "parallel_rms".
 
 **Label selection:** When `labels = NULL`, the function selects the
 first and last labels from the sorted unique labels in the data
@@ -130,6 +139,25 @@ plot_trajectory_trials(sap,
   score_col = "maturation_score",
   labels = c("60", "80", "100"),
   running_mean = FALSE
+)
+
+# Plot dispersion variability
+plot_trajectory_trials(sap,
+  data_type = "dispersion",
+  score_col = "dispersion"
+)
+
+# Plot orthogonal RMS from path deviation
+plot_trajectory_trials(sap,
+  data_type = "path_deviation",
+  score_col = "orthogonal_rms"
+)
+
+# Plot parallel RMS from path deviation
+plot_trajectory_trials(sap,
+  data_type = "path_deviation",
+  score_col = "parallel_rms",
+  labels = c("60", "90")
 )
 } # }
 ```

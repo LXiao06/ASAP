@@ -48,7 +48,7 @@ small decisions that make a template robust before you scale up.
 ``` r
 
 library(ASAP)
-#> ASAP v0.3.5.9002 loaded.
+#> ASAP v0.3.5.9003 loaded.
 
 # Get path to example WAV file included with the package
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
@@ -406,9 +406,9 @@ if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/RtmpPH1Hgg/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
-| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/RtmpPH1Hgg/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
-| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/RtmpPH1Hgg/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/Rtmpov4L2V/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/Rtmpov4L2V/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/Rtmpov4L2V/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
 
 ### Step 4: Visualize the exported motif files
 
@@ -501,7 +501,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.5.9002
+#> [1] ASAP_0.3.5.9003
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    

@@ -48,7 +48,7 @@ The workflow has three steps:
 ``` r
 
 library(ASAP)
-#> ASAP v0.3.5.9002 loaded.
+#> ASAP v0.3.5.9003 loaded.
 
 wav_file <- system.file("extdata", "zf_example.wav", package = "ASAP")
 wav_dir <- dirname(wav_file)
@@ -481,7 +481,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ASAP_0.3.5.9002
+#> [1] ASAP_0.3.5.9003
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10        generics_0.1.4     tidyr_1.3.2        lattice_0.22-9    
