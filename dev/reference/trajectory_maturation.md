@@ -18,6 +18,9 @@ trajectory_maturation(
   score_type = c("maturation", "stability", "both"),
   invert_variability = TRUE,
   epsilon = 0.01,
+  normalize_variability = c("none", "reference"),
+  reference_label = NULL,
+  norm_epsilon = 1e-06,
   scale_method = c("minmax", "zscore", "none"),
   verbose = TRUE,
   ...
@@ -32,6 +35,9 @@ trajectory_maturation(
   score_type = c("maturation", "stability", "both"),
   invert_variability = TRUE,
   epsilon = 0.01,
+  normalize_variability = c("none", "reference"),
+  reference_label = NULL,
+  norm_epsilon = 1e-06,
   scale_method = c("minmax", "zscore", "none"),
   verbose = TRUE,
   ...
@@ -73,6 +79,25 @@ trajectory_maturation(
   Numeric. Small constant to avoid division by zero in stability_index
   (default: 0.01)
 
+- normalize_variability:
+
+  Character. How to normalize variability for cross-animal comparison:
+  "none" (default), or "reference" (normalize to reference label). When
+  "reference", variability is divided by the mean variability at the
+  reference label, making values interpretable as "X times more variable
+  than reference"
+
+- reference_label:
+
+  Character. Label to use as normalization reference. If NULL (default),
+  uses the last label (typically adult). Only used when
+  normalize_variability = "reference"
+
+- norm_epsilon:
+
+  Numeric. Small constant added to reference variability to avoid
+  division by zero (default: 1e-6)
+
 - scale_method:
 
   Character. How to scale variability: "minmax" (default), "zscore", or
@@ -89,7 +114,25 @@ trajectory_maturation(
 
 ## Value
 
-For data.frame: A data.frame with original data plus score columns.
+For data.frame: A data.frame with original data plus score columns:
+
+- `variability_raw`: Original variability metric value (renamed from
+  input)
+
+- `variability_scaled`: Scaled variability (for ML)
+
+- `variability_normalized`: Normalized to reference label (if
+  normalize_variability = "reference"). Values represent "X times the
+  reference variability". For example, 2.0 means twice as variable as
+  the reference label (typically adult)
+
+- `maturation_score`: Computed maturation score (if requested)
+
+- `stability_index`: Computed stability index (if requested)
+
+Metadata attributes include: variability_metric, scale_method,
+similarity_metric, score_type, invert_variability,
+normalize_variability, reference_label
 
 For SAP objects: Updated object with scores stored in
 `sap$features[[feature_type]]$maturation_scores`
@@ -143,7 +186,15 @@ sap <- trajectory_maturation(sap,
   score_type = "both"
 )
 
+# With reference-based normalization (for cross-animal ML)
+sap <- trajectory_maturation(sap,
+  segment_type = "motifs",
+  normalize_variability = "reference",
+  reference_label = "90"  # Adult as reference
+)
+
 # Access results
 scores <- sap$features$motif$maturation_scores
+# variability_normalized = 2.0 means "2x adult variability"
 } # }
 ```

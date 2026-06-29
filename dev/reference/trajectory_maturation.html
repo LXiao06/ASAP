@@ -56,6 +56,9 @@ similarity (similarity to reference) and within-rendition variability
 <span>  score_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"maturation"</span>, <span class="st">"stability"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
 <span>  invert_variability <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  normalize_variability <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"reference"</span><span class="op">)</span>,</span>
+<span>  reference_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  norm_epsilon <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  scale_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minmax"</span>, <span class="st">"zscore"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -70,6 +73,9 @@ similarity (similarity to reference) and within-rendition variability
 <span>  score_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"maturation"</span>, <span class="st">"stability"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
 <span>  invert_variability <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  normalize_variability <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"reference"</span><span class="op">)</span>,</span>
+<span>  reference_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  norm_epsilon <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  scale_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minmax"</span>, <span class="st">"zscore"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -114,6 +120,25 @@ reduces the score</p></dd>
 stability_index (default: 0.01)</p></dd>
 
 
+<dt id="arg-normalize-variability">normalize_variability<a class="anchor" aria-label="anchor" href="#arg-normalize-variability"></a></dt>
+<dd><p>Character. How to normalize variability for
+cross-animal comparison: "none" (default), or "reference" (normalize to
+reference label). When "reference", variability is divided by the mean
+variability at the reference label, making values interpretable as
+"X times more variable than reference"</p></dd>
+
+
+<dt id="arg-reference-label">reference_label<a class="anchor" aria-label="anchor" href="#arg-reference-label"></a></dt>
+<dd><p>Character. Label to use as normalization reference.
+If NULL (default), uses the last label (typically adult). Only used when
+normalize_variability = "reference"</p></dd>
+
+
+<dt id="arg-norm-epsilon">norm_epsilon<a class="anchor" aria-label="anchor" href="#arg-norm-epsilon"></a></dt>
+<dd><p>Numeric. Small constant added to reference variability
+to avoid division by zero (default: 1e-6)</p></dd>
+
+
 <dt id="arg-scale-method">scale_method<a class="anchor" aria-label="anchor" href="#arg-scale-method"></a></dt>
 <dd><p>Character. How to scale variability: "minmax" (default),
 "zscore", or "none"</p></dd>
@@ -130,7 +155,15 @@ stability_index (default: 0.01)</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>For data.frame: A data.frame with original data plus score columns.</p>
+    <p>For data.frame: A data.frame with original data plus score columns:</p><ul><li><p><code>variability_raw</code>: Original variability metric value (renamed from input)</p></li>
+<li><p><code>variability_scaled</code>: Scaled variability (for ML)</p></li>
+<li><p><code>variability_normalized</code>: Normalized to reference label (if normalize_variability = "reference").
+Values represent "X times the reference variability". For example, 2.0 means
+twice as variable as the reference label (typically adult)</p></li>
+<li><p><code>maturation_score</code>: Computed maturation score (if requested)</p></li>
+<li><p><code>stability_index</code>: Computed stability index (if requested)</p></li>
+</ul><p>Metadata attributes include: variability_metric, scale_method, similarity_metric,
+score_type, invert_variability, normalize_variability, reference_label</p>
 <p>For SAP objects: Updated object with scores stored in
 <code>sap$features[[feature_type]]$maturation_scores</code></p>
     </div>
@@ -168,8 +201,16 @@ trajectory_path_deviation)</p></li>
 <span class="r-in"><span>  score_type <span class="op">=</span> <span class="st">"both"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># With reference-based normalization (for cross-animal ML)</span></span></span>
+<span class="r-in"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu">trajectory_maturation</span><span class="op">(</span><span class="va">sap</span>,</span></span>
+<span class="r-in"><span>  segment_type <span class="op">=</span> <span class="st">"motifs"</span>,</span></span>
+<span class="r-in"><span>  normalize_variability <span class="op">=</span> <span class="st">"reference"</span>,</span></span>
+<span class="r-in"><span>  reference_label <span class="op">=</span> <span class="st">"90"</span>  <span class="co"># Adult as reference</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Access results</span></span></span>
 <span class="r-in"><span><span class="va">scores</span> <span class="op">&lt;-</span> <span class="va">sap</span><span class="op">$</span><span class="va">features</span><span class="op">$</span><span class="va">motif</span><span class="op">$</span><span class="va">maturation_scores</span></span></span>
+<span class="r-in"><span><span class="co"># variability_normalized = 2.0 means "2x adult variability"</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

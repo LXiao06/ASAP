@@ -57,6 +57,10 @@ orthogonal and parallel components relative to the local trajectory tangent.</p>
 <span>  time_digits <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stats <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  scale_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minmax"</span>, <span class="st">"zscore"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  normalize_variability <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"reference"</span><span class="op">)</span>,</span>
+<span>  reference_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  norm_epsilon <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
@@ -71,6 +75,10 @@ orthogonal and parallel components relative to the local trajectory tangent.</p>
 <span>  time_digits <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stats <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  scale_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minmax"</span>, <span class="st">"zscore"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  normalize_variability <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"reference"</span><span class="op">)</span>,</span>
+<span>  reference_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  norm_epsilon <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -115,6 +123,29 @@ grouping and matching trajectories (default: <code>6</code>).</p></dd>
 <dd><p>Logical. If <code>TRUE</code> (default), run Kruskal-Wallis and pairwise
 Wilcoxon tests. Set to <code>FALSE</code> to skip statistical testing and return
 <code>NULL</code> for <code>tests</code>.</p></dd>
+
+
+<dt id="arg-scale-method">scale_method<a class="anchor" aria-label="anchor" href="#arg-scale-method"></a></dt>
+<dd><p>Character. How to scale variability: "minmax" (default),
+"zscore", or "none". Scaled values are stored with "_scaled" suffix</p></dd>
+
+
+<dt id="arg-normalize-variability">normalize_variability<a class="anchor" aria-label="anchor" href="#arg-normalize-variability"></a></dt>
+<dd><p>Character. How to normalize variability for
+cross-animal comparison: "none" (default), or "reference" (normalize to
+reference label). When "reference", variability is divided by the mean
+variability at the reference label</p></dd>
+
+
+<dt id="arg-reference-label">reference_label<a class="anchor" aria-label="anchor" href="#arg-reference-label"></a></dt>
+<dd><p>Character. Label to use as normalization reference.
+If NULL (default), uses the last label. Only used when
+normalize_variability = "reference"</p></dd>
+
+
+<dt id="arg-norm-epsilon">norm_epsilon<a class="anchor" aria-label="anchor" href="#arg-norm-epsilon"></a></dt>
+<dd><p>Numeric. Small constant added to reference variability
+to avoid division by zero (default: 1e-6)</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

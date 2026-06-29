@@ -63,6 +63,7 @@ tests are present.</p>
 <span>  palette <span class="op">=</span> <span class="st">"Set1"</span>,</span>
 <span>  max_annotations <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  show_cv <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  use_scaled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -74,6 +75,7 @@ tests are present.</p>
 <span>  palette <span class="op">=</span> <span class="st">"Set1"</span>,</span>
 <span>  max_annotations <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  show_cv <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  use_scaled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -109,6 +111,11 @@ most significant pairs are retained and a message is issued.</p></dd>
 <dd><p>Logical. If <code>TRUE</code>, add coefficient-of-variation panels
 for centroid dispersion and trajectory path length when plotting
 <code><a href="trajectory_dispersion.html">trajectory_dispersion()</a></code> results (default: <code>FALSE</code>).</p></dd>
+
+
+<dt id="arg-use-scaled">use_scaled<a class="anchor" aria-label="anchor" href="#arg-use-scaled"></a></dt>
+<dd><p>Logical. If <code>TRUE</code>, plot scaled variability values
+(with "_scaled" suffix). If <code>FALSE</code> (default), plot raw values</p></dd>
 
 
 <dt id="arg-segment-type">segment_type<a class="anchor" aria-label="anchor" href="#arg-segment-type"></a></dt>

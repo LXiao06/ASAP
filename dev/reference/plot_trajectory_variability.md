@@ -20,6 +20,7 @@ plot_trajectory_variability(
   palette = "Set1",
   max_annotations = 10,
   show_cv = FALSE,
+  use_scaled = FALSE,
   ...
 )
 
@@ -31,6 +32,7 @@ plot_trajectory_variability(
   palette = "Set1",
   max_annotations = 10,
   show_cv = FALSE,
+  use_scaled = FALSE,
   ...
 )
 ```
@@ -68,6 +70,11 @@ plot_trajectory_variability(
   dispersion and trajectory path length when plotting
   [`trajectory_dispersion()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_dispersion.md)
   results (default: `FALSE`).
+
+- use_scaled:
+
+  Logical. If `TRUE`, plot scaled variability values (with "\_scaled"
+  suffix). If `FALSE` (default), plot raw values
 
 - segment_type:
 
