@@ -28,6 +28,7 @@ Imports:
     av,
     dplyr,
     lattice,
+    MASS,
     methods,
     Matrix (>= 1.5.0),
     monitoR,  

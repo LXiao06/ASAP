@@ -435,7 +435,6 @@ trajectory_maturation.Sap <- function(
     }
     disp_data <- var_result$dispersion[, disp_cols]
     names(disp_data)[names(disp_data) == "dispersion"] <- "variability_dispersion"
-    names(disp_data)[names(disp_data) == "dispersion"] <- "variability_dispersion"
 
     if (nrow(var_sim) == 0) {
       var_sim <- disp_data
@@ -1090,3 +1089,5 @@ plot_trajectory_trials.Sap <- function(
     ...
   )
 }
+
+
