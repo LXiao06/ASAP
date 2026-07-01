@@ -120,6 +120,7 @@ reference:
       - plot_trajectory_similarity
       - plot_trajectory_maturation
       - plot_trajectory_trials
+      - plot_label_anomaly
       - plot_motif_boundaries
       - visualize_song
       - visualize_segments
@@ -133,6 +134,8 @@ reference:
       - trajectory_maturation
       - trajectory_umap_occupancy
       - filter_trajectory_outliers
+      - detect_anomalous_labels
+
       
   - title: "Labeling"
     desc: "Functions for annotating clustered syllables"
