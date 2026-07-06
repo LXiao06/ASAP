@@ -376,6 +376,39 @@ clean_source_row_columns <- function(df) {
 }
 
 
+#' Deduplicate ref_* Columns After Merge
+#'
+#' @description
+#' Internal helper to collapse any \code{ref_*.x} / \code{ref_*.y} pairs that
+#' arise when \code{ref_day} or \code{ref_scale_*} columns are present in both
+#' sides of a merge.  Values should be identical (same animal, same run), so
+#' the \code{.x} value is kept and the \code{.y} duplicate is dropped.
+#'
+#' @param df Data frame to clean
+#'
+#' @return Data frame with one column per \code{ref_*} variable
+#'
+#' @keywords internal
+#' @noRd
+clean_ref_columns <- function(df) {
+  # Find columns ending in .x whose base name starts with ref_
+  x_cols <- grep("\\.x$", names(df), value = TRUE)
+  ref_x_cols <- x_cols[grepl("^ref_", sub("\\.x$", "", x_cols))]
+
+  for (xcol in ref_x_cols) {
+    base <- sub("\\.x$", "", xcol)
+    ycol <- paste0(base, ".y")
+    # Coalesce: prefer .x value, fall back to .y when .x is NA
+    if (ycol %in% names(df)) {
+      df[[base]] <- ifelse(!is.na(df[[xcol]]), df[[xcol]], df[[ycol]])
+      df[[xcol]] <- NULL
+      df[[ycol]] <- NULL
+    }
+  }
+  df
+}
+
+
 #' @rdname trajectory_maturation
 #' @export
 trajectory_maturation.Sap <- function(
@@ -433,7 +466,10 @@ trajectory_maturation.Sap <- function(
     if (".source_row" %in% names(var_result$dispersion)) {
       disp_cols <- c(disp_cols, ".source_row")
     }
-    disp_data <- var_result$dispersion[, disp_cols]
+    # Pull ref_scale_* covariates; exclude ref_day — it already comes from sim_sim
+    var_ref_scale_cols <- grep("^ref_scale_", names(var_result$dispersion), value = TRUE)
+    disp_cols <- c(disp_cols, var_ref_scale_cols)
+    disp_data <- var_result$dispersion[, disp_cols, drop = FALSE]
     names(disp_data)[names(disp_data) == "dispersion"] <- "variability_dispersion"
 
     if (nrow(var_sim) == 0) {
@@ -449,7 +485,10 @@ trajectory_maturation.Sap <- function(
     if (".source_row" %in% names(var_result_path_dev$width)) {
       width_cols <- c(width_cols, ".source_row")
     }
-    width_data <- var_result_path_dev$width[, width_cols]
+    # Pull ref_scale_* covariates; exclude ref_day — it already comes from sim_sim
+    var_ref_scale_cols <- grep("^ref_scale_", names(var_result_path_dev$width), value = TRUE)
+    width_cols <- c(width_cols, var_ref_scale_cols)
+    width_data <- var_result_path_dev$width[, width_cols, drop = FALSE]
     names(width_data)[names(width_data) == "orthogonal_rms"] <- "variability_orthogonal_rms"
     names(width_data)[names(width_data) == "parallel_rms"] <- "variability_parallel_rms"
 
@@ -479,8 +518,9 @@ trajectory_maturation.Sap <- function(
     stop("No matching renditions found between similarity and variability results")
   }
 
-  # Clean up duplicate .source_row columns (from merge operations)
-  merged_data <- clean_source_row_columns(merged_data)
+  # Clean up duplicate columns that can arise from merge operations
+  merged_data <- clean_source_row_columns(merged_data)  # .source_row.x/.y
+  merged_data <- clean_ref_columns(merged_data)          # ref_day.x/.y, ref_scale_*.x/.y
 
   # Compute scores
   scores <- trajectory_maturation.default(

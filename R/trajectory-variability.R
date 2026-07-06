@@ -298,8 +298,25 @@ trajectory_dispersion.default <- function(x,
     dispersion_results$dispersion_normalized <- 
       dispersion_results$dispersion_scaled / (ref_var + norm_epsilon)
   } else {
+    # Resolve reference label for covariate computation even when not normalizing
+    if (is.null(reference_label)) {
+      reference_label <- sort_labels(all_labels)[length(all_labels)]
+    }
+    ref_var <- mean(
+      dispersion_results$dispersion_scaled[dispersion_results$label == reference_label],
+      na.rm = TRUE
+    )
     dispersion_results$dispersion_normalized <- dispersion_results$dispersion_scaled
   }
+
+  # ---- Append ML covariates for reference context ----
+  # ref_day and ref_scale_dispersion are per-animal constants encoding which
+  # reference label was used and how variable that song was.  Include them as
+  # covariates in ML models (alongside similarity ref_day / ref_scale_rms) so
+  # the model can adjust for differences in reference quality across animals
+  # without any data leakage.
+  dispersion_results$ref_day              <- suppressWarnings(as.numeric(reference_label))
+  dispersion_results$ref_scale_dispersion <- ref_var  # mean scaled dispersion at reference
 
   # ==== Metric 3: Path Length ====
   if (verbose) message("Computing trajectory path lengths...")
@@ -800,10 +817,10 @@ trajectory_path_deviation.default <- function(x,
     }
     
     # Compute reference variability for each metric
-    ref_mask <- width_results$label == reference_label
+    ref_mask  <- width_results$label == reference_label
     ref_total <- mean(width_results$total_rms_scaled[ref_mask], na.rm = TRUE)
-    ref_orth <- mean(width_results$orthogonal_rms_scaled[ref_mask], na.rm = TRUE)
-    ref_par <- mean(width_results$parallel_rms_scaled[ref_mask], na.rm = TRUE)
+    ref_orth  <- mean(width_results$orthogonal_rms_scaled[ref_mask], na.rm = TRUE)
+    ref_par   <- mean(width_results$parallel_rms_scaled[ref_mask], na.rm = TRUE)
     
     if (verbose) {
       message(sprintf("Reference at %s:", reference_label))
@@ -820,10 +837,29 @@ trajectory_path_deviation.default <- function(x,
     width_results$parallel_rms_normalized <- 
       width_results$parallel_rms_scaled / (ref_par + norm_epsilon)
   } else {
-    width_results$total_rms_normalized <- width_results$total_rms_scaled
+    # Resolve reference label for covariate computation even when not normalizing
+    if (is.null(reference_label)) {
+      reference_label <- sort_labels(all_labels)[length(all_labels)]
+    }
+    ref_mask  <- width_results$label == reference_label
+    ref_total <- mean(width_results$total_rms_scaled[ref_mask], na.rm = TRUE)
+    ref_orth  <- mean(width_results$orthogonal_rms_scaled[ref_mask], na.rm = TRUE)
+    ref_par   <- mean(width_results$parallel_rms_scaled[ref_mask], na.rm = TRUE)
+    width_results$total_rms_normalized      <- width_results$total_rms_scaled
     width_results$orthogonal_rms_normalized <- width_results$orthogonal_rms_scaled
-    width_results$parallel_rms_normalized <- width_results$parallel_rms_scaled
+    width_results$parallel_rms_normalized   <- width_results$parallel_rms_scaled
   }
+
+  # ---- Append ML covariates for reference context ----
+  # ref_day and the three ref_scale_* columns are per-animal constants encoding
+  # which reference label was used and how variable each metric was at that
+  # reference.  Pair with ref_day / ref_scale_rms from trajectory_similarity
+  # so the ML model has a consistent picture of reference quality for every
+  # variability dimension, without any data leakage.
+  width_results$ref_day                   <- suppressWarnings(as.numeric(reference_label))
+  width_results$ref_scale_total_rms       <- ref_total
+  width_results$ref_scale_orthogonal_rms  <- ref_orth
+  width_results$ref_scale_parallel_rms    <- ref_par
 
   summary_df <- width_results |>
     dplyr::group_by(.data$label) |>
