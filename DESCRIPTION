@@ -43,7 +43,6 @@ LinkingTo:
 Suggests: 
     bigstatsr,
     dbscan,
-    depmixS4,
     dtw,
     fftw,
     ggplot2 (>= 3.4.0),
