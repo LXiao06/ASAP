@@ -1128,3 +1128,69 @@ build_anomaly_heatmap <- function(plot_data, detection_result,
       legend.position = "top"
     )
 }
+
+
+# Manual Anomaly Assignment --------------------------------------------------
+# Update date: July 9, 2026
+
+#' Manually Assign Anomalous Labels to a SAP Object
+#'
+#' @description
+#' Assigns a vector of anomalous labels to a SAP object for a given feature type.
+#' These anomalous labels can then be excluded when calling \code{\link{export_feature_csv}}.
+#'
+#' @param x A SAP object
+#' @param feature_type Character. The feature type under which to store the anomaly list (e.g., \code{"motif"}, \code{"syllable"})
+#' @param labels Character vector. The labels to designate as anomalous
+#' @param overwrite Logical. If \code{TRUE}, replaces any existing anomalous labels for this feature type.
+#'   If \code{FALSE} (default), appends to the existing anomalous labels
+#' @param verbose Logical. Print progress and summary messages (default: \code{TRUE})
+#'
+#' @return The updated SAP object, invisibly.
+#'
+#' @export
+manual_anomaly_label <- function(x,
+                                 feature_type,
+                                 labels,
+                                 overwrite = FALSE,
+                                 verbose = TRUE) {
+  # Validate inputs
+  if (!inherits(x, "Sap")) stop("'x' must be a Sap object")
+
+  if (!is.character(feature_type) || length(feature_type) != 1 || !nzchar(feature_type)) {
+    stop("'feature_type' must be a non-empty character scalar")
+  }
+
+  if (!is.character(labels)) {
+    stop("'labels' must be a character vector")
+  }
+
+  # Initialize feature list if missing
+  if (is.null(x$features[[feature_type]])) {
+    x$features[[feature_type]] <- list()
+  }
+
+  current_anomalies <- x$features[[feature_type]][["anomalous_labels"]]
+
+  if (overwrite || is.null(current_anomalies)) {
+    new_anomalies <- unique(labels)
+  } else {
+    new_anomalies <- unique(c(current_anomalies, labels))
+  }
+
+  # Store anomalous labels
+  x$features[[feature_type]][["anomalous_labels"]] <- new_anomalies
+  x$misc$last_modified <- Sys.time()
+
+  if (verbose) {
+    message(sprintf(
+      "Stored %d anomalous label(s) for feature type '%s': %s",
+      length(new_anomalies),
+      feature_type,
+      paste(new_anomalies, collapse = ", ")
+    ))
+  }
+
+  invisible(x)
+}
+

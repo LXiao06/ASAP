@@ -151,3 +151,5 @@ reference:
       - get_wav_indices
       - list_numeric_dirs
       - anova_analysis
+      - export_feature_csv
+      - manual_anomaly_label

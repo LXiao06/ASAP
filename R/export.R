@@ -1228,3 +1228,429 @@ h5_get_or_create_group <- function(parent, group_name) {
   }
   parent$create_group(group_name)
 }
+
+
+# Export Feature Data Frame to CSV --------------------------------------------
+# Update date: July 9, 2026
+
+#' Export a Stored Feature Data Frame to CSV
+#'
+#' @description
+#' Extracts a pre-computed feature data frame stored in
+#' \code{x$features[[feature_type]][[slot_name]]} and writes it to a CSV file.
+#' Works universally with any feature slot produced by ASAP analysis functions,
+#' including spectral features, trajectory similarity/variability/maturation
+#' scores, and any other data frame or list-of-data-frames stored in the
+#' \code{features} slot of a SAP object.
+#'
+#' When the stored object is a plain data frame
+#' (e.g., \code{spectral_feature}, \code{maturation_scores}), it is exported
+#' directly.
+#'
+#' When the stored object is a list (e.g., \code{trajectory_similarity},
+#' \code{trajectory_dispersion}, \code{trajectory_path_deviation}), use the
+#' \code{sub_table} argument to select which element of the list to export
+#' (e.g., \code{sub_table = "similarity"}, \code{"dispersion"}, \code{"deviation"}).
+#'
+#' @param x A SAP object containing the features to export
+#' @param feature_type Character. The top-level feature key inside
+#'   \code{x$features}, e.g. \code{"motif"}, \code{"syllable"}, \code{"bout"},
+#'   or \code{"segment"}
+#' @param slot_name Character. The sub-slot key inside
+#'   \code{x$features[[feature_type]]}, e.g. \code{"spectral_feature"},
+#'   \code{"maturation_scores"}, \code{"trajectory_similarity"},
+#'   \code{"trajectory_dispersion"}, or \code{"trajectory_path_deviation"}
+#' @param sub_table Character or \code{NULL}. When the stored object is a
+#'   list (trajectory results), the name of the list element to extract
+#'   as a data frame (default: \code{NULL})
+#' @param merge_segments Logical. If \code{TRUE} (default) and the extracted
+#'   data frame contains \code{filename}, \code{start_time}, and
+#'   \code{end_time} columns, it is left-joined against the canonical segment
+#'   metadata stored in \code{x[[segment_type]]} to enrich the export with
+#'   per-segment columns. When those columns are absent, the merge is skipped
+#' @param segment_type Character or \code{NULL}. The segment slot to use for
+#'   metadata merging (one of \code{"motifs"}, \code{"syllables"},
+#'   \code{"bouts"}, \code{"segments"}). If \code{NULL} (default), derived
+#'   automatically from \code{feature_type} by appending \code{"s"}
+#' @param time_match_digits Integer. Number of decimal places used when
+#'   building the merge key (default: \code{3})
+#' @param balance_labels Logical. If \code{TRUE}, labels whose row count falls
+#'   below threshold are dropped before writing the CSV (default: \code{FALSE})
+#' @param balance_threshold Numeric in \code{(0, 1]}. Fraction of the median
+#'   label count used as the minimum retention threshold when
+#'   \code{balance_labels = TRUE} (default: \code{0.5})
+#' @param exclude_anomalies Logical. If \code{TRUE}, excludes rows belonging to
+#'   anomalous labels stored under \code{x$features[[feature_type]][["anomalous_labels"]]}
+#'   if available (default: \code{TRUE})
+#' @param csv_filename Character. Output file name (required)
+#' @param output_dir Character. Directory where the CSV is written (default: \code{"."})
+#' @param overwrite Logical. Whether to overwrite an existing file (default:
+#'   \code{FALSE})
+#' @param verbose Logical. Print progress and summary messages (default:
+#'   \code{TRUE})
+#'
+#' @details
+#' When the stored object is a list, the following sub-tables are typical choices
+#' for \code{sub_table}:
+#' \itemize{
+#'   \item \code{trajectory_similarity}: \code{"similarity"}, \code{"summary"}
+#'   \item \code{trajectory_dispersion}: \code{"dispersion"}, \code{"pairwise"}, \code{"path_length"}, \code{"summary"}
+#'   \item \code{trajectory_path_deviation}: \code{"deviation"}, \code{"deviation_stats"}, \code{"summary"}
+#' }
+#'
+#' @return The exported data frame, invisibly.
+#'
+#' @examples
+#' \dontrun{
+#' # Export spectral features stored from a previous analyze_spectral() run
+#' export_feature_csv(sap,
+#'   feature_type = "motif",
+#'   slot_name    = "spectral_feature",
+#'   csv_filename = "spectral_features.csv"
+#' )
+#'
+#' # Export trajectory similarity scores
+#' export_feature_csv(sap,
+#'   feature_type   = "motif",
+#'   slot_name      = "trajectory_similarity",
+#'   sub_table      = "similarity",
+#'   merge_segments = FALSE,
+#'   csv_filename   = "traj_similarity.csv"
+#' )
+#' }
+#'
+#' @export
+export_feature_csv <- function(x,
+                               feature_type,
+                               slot_name,
+                               sub_table         = NULL,
+                               merge_segments    = TRUE,
+                               segment_type      = NULL,
+                               time_match_digits = 3,
+                               balance_labels    = FALSE,
+                               balance_threshold = 0.5,
+                               exclude_anomalies = TRUE,
+                               csv_filename      = NULL,
+                               output_dir        = ".",
+                               overwrite         = FALSE,
+                               verbose           = TRUE) {
+  # Validate inputs
+  if (!inherits(x, "Sap")) stop("'x' must be a Sap object")
+
+  if (is.null(csv_filename) || !nzchar(csv_filename)) {
+    stop("'csv_filename' is required")
+  }
+
+  if (!is.character(feature_type) || length(feature_type) != 1 || !nzchar(feature_type)) {
+    stop("'feature_type' must be a non-empty character scalar (e.g. \"motif\")")
+  }
+
+  if (!is.character(slot_name) || length(slot_name) != 1 || !nzchar(slot_name)) {
+    stop("'slot_name' must be a non-empty character scalar (e.g. \"spectral_feature\")")
+  }
+
+  if (!is.numeric(balance_threshold) || balance_threshold <= 0 || balance_threshold > 1) {
+    stop("'balance_threshold' must be a number in (0, 1]")
+  }
+
+  # Extract stored object
+  feature_list <- x$features[[feature_type]]
+  if (is.null(feature_list)) {
+    avail <- names(x$features)
+    stop(sprintf(
+      "No features found for feature_type = \"%s\".\nAvailable feature types: %s",
+      feature_type,
+      if (length(avail)) paste(avail, collapse = ", ") else "<none>"
+    ))
+  }
+
+  stored <- feature_list[[slot_name]]
+  if (is.null(stored)) {
+    avail <- names(feature_list)
+    stop(sprintf(
+      paste0(
+        "Slot \"%s\" not found in x$features$%s.\n",
+        "Available slots: %s\n",
+        "Run the corresponding analysis function first."
+      ),
+      slot_name,
+      feature_type,
+      if (length(avail)) paste(avail, collapse = ", ") else "<none>"
+    ))
+  }
+
+  # Resolve list results via sub_table
+  if (is.list(stored) && !is.data.frame(stored)) {
+    if (is.null(sub_table)) {
+      df_elements <- names(stored)[vapply(stored, is.data.frame, logical(1))]
+      stop(sprintf(
+        paste0(
+          "x$features$%s$%s is a list, not a plain data frame.\n",
+          "Specify 'sub_table' to select which element to export.\n",
+          "Data frame elements available: %s"
+        ),
+        feature_type, slot_name,
+        if (length(df_elements)) paste(df_elements, collapse = ", ") else "<none>"
+      ))
+    }
+
+    if (!sub_table %in% names(stored)) {
+      df_elements <- names(stored)[vapply(stored, is.data.frame, logical(1))]
+      stop(sprintf(
+        paste0(
+          "sub_table = \"%s\" not found in x$features$%s$%s.\n",
+          "Data frame elements available: %s"
+        ),
+        sub_table, feature_type, slot_name,
+        if (length(df_elements)) paste(df_elements, collapse = ", ") else "<none>"
+      ))
+    }
+
+    df <- stored[[sub_table]]
+
+    if (!is.data.frame(df)) {
+      stop(sprintf(
+        "x$features$%s$%s$%s is not a data frame (class: %s)",
+        feature_type, slot_name, sub_table,
+        paste(class(df), collapse = "/")
+      ))
+    }
+
+    if (verbose) {
+      message(sprintf(
+        "Extracted sub_table = \"%s\" from x$features$%s$%s  [%d rows x %d cols]",
+        sub_table, feature_type, slot_name, nrow(df), ncol(df)
+      ))
+    }
+
+  } else {
+    # Plain data frame (e.g., spectral_feature, maturation_scores)
+    df <- as.data.frame(stored)
+
+    if (verbose) {
+      message(sprintf(
+        "Extracted x$features$%s$%s  [%d rows x %d cols]",
+        feature_type, slot_name, nrow(df), ncol(df)
+      ))
+    }
+  }
+
+  # Merge with segment metadata
+  merge_key_cols <- c("filename", "start_time", "end_time")
+  has_merge_keys <- all(merge_key_cols %in% names(df))
+
+  if (merge_segments) {
+    if (has_merge_keys) {
+      # Derive segment type if not provided
+      seg_type <- if (!is.null(segment_type)) {
+        segment_type
+      } else {
+        paste0(feature_type, "s")
+      }
+
+      segs <- x[[seg_type]]
+
+      if (is.null(segs) || !is.data.frame(segs) || nrow(segs) == 0) {
+        if (verbose) {
+          message(sprintf(
+            "Segment slot x$%s is empty or missing; skipping metadata merge",
+            seg_type
+          ))
+        }
+      } else {
+        if (verbose) {
+          message(sprintf(
+            "Merging with segment metadata from x$%s  [%d rows]...",
+            seg_type, nrow(segs)
+          ))
+        }
+
+        df <- merge_feature_with_segments(
+          segs_df       = segs,
+          feature_df    = df,
+          time_digits   = time_match_digits
+        )
+
+        if (verbose) {
+          message(sprintf("  → %d rows after merge", nrow(df)))
+        }
+      }
+    } else {
+      if (verbose) {
+        message(paste(
+          "merge_segments = TRUE but the data frame lacks",
+          "filename/start_time/end_time columns; skipping metadata merge",
+          "(This is normal for trajectory summary tables keyed by label + rendition.)"
+        ))
+      }
+    }
+  }
+
+  # Drop under-represented labels
+  if (balance_labels) {
+    if (!"label" %in% names(df)) {
+      warning(paste(
+        "'balance_labels = TRUE' requested but no 'label' column found",
+        "Skipping label balancing"
+      ))
+    } else {
+      df <- balance_feature_labels(
+        df        = df,
+        threshold = balance_threshold,
+        verbose   = verbose
+      )
+    }
+  }
+
+  # Exclude anomalous labels
+  if (exclude_anomalies) {
+    anomalous_labels <- x$features[[feature_type]][["anomalous_labels"]]
+    if (!is.null(anomalous_labels) && length(anomalous_labels) > 0) {
+      if ("label" %in% names(df)) {
+        before_count <- nrow(df)
+        df <- df[!df$label %in% anomalous_labels, , drop = FALSE]
+        if (verbose) {
+          message(sprintf(
+            "Excluded %d rows belonging to anomalous labels: %s",
+            before_count - nrow(df),
+            paste(anomalous_labels, collapse = ", ")
+          ))
+        }
+      } else {
+        warning("'exclude_anomalies = TRUE' requested but no 'label' column found in feature data")
+      }
+    }
+  }
+
+  # Write CSV
+  if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+
+  out_path <- file.path(output_dir, csv_filename)
+
+  if (file.exists(out_path) && !overwrite) {
+    stop(sprintf(
+      "File already exists: %s\nUse overwrite = TRUE to replace it",
+      normalizePath(out_path, mustWork = FALSE)
+    ))
+  }
+
+  utils::write.csv(df, out_path, row.names = FALSE)
+
+  if (verbose) {
+    message(sprintf(
+      "\n✓ Exported %d rows × %d columns → %s",
+      nrow(df), ncol(df),
+      normalizePath(out_path, mustWork = TRUE)
+    ))
+  }
+
+  invisible(df)
+}
+
+#' Merge Feature Data Frame with Canonical Segment Metadata
+#'
+#' @description
+#' Internal helper used by \code{export_feature_csv.Sap()}.
+#' Left-joins a feature data frame onto the canonical segment data frame.
+#'
+#' @param segs_df    Data frame of canonical segments
+#' @param feature_df Data frame of computed features
+#' @param time_digits Integer decimal places for time-key formatting
+#'
+#' @keywords internal
+#' @noRd
+merge_feature_with_segments <- function(segs_df, feature_df, time_digits = 3) {
+  # Build composite string key
+  make_key <- function(df) {
+    fn  <- as.character(df$filename)
+    st  <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$start_time), time_digits))
+    et  <- sprintf(paste0("%.", time_digits, "f"), round(as.numeric(df$end_time),   time_digits))
+    paste(fn, st, et, sep = "||")
+  }
+
+  segs_df$.merge_key    <- make_key(segs_df)
+  feature_df$.merge_key <- make_key(feature_df)
+
+  # Keep only new feature columns
+  extra_cols  <- setdiff(names(feature_df), c(names(segs_df), ".merge_key"))
+  feature_slim <- feature_df[, c(".merge_key", extra_cols), drop = FALSE]
+
+  merged <- merge(
+    segs_df,
+    feature_slim,
+    by      = ".merge_key",
+    all.x   = TRUE,
+    sort    = FALSE
+  )
+  merged$.merge_key <- NULL
+
+  merged
+}
+
+
+#' Drop Under-Represented Labels for ML Balance
+#'
+#' @description
+#' Internal helper used by \code{export_feature_csv.Sap()}.
+#' Identifies labels whose row count is below threshold and removes them.
+#'
+#' @param df        Data frame with a label column
+#' @param threshold Numeric fraction of median count used as minimum retention threshold
+#' @param verbose   Logical print summary table
+#'
+#' @keywords internal
+#' @noRd
+balance_feature_labels <- function(df, threshold = 0.5, verbose = TRUE) {
+  counts     <- table(df$label)
+  med_count  <- stats::median(as.integer(counts))
+  min_count  <- ceiling(threshold * med_count)
+
+  keep_labels <- names(counts)[counts >= min_count]
+  drop_labels <- names(counts)[counts < min_count]
+
+  if (verbose) {
+    cat("\n── Label balance summary ──────────────────────────────────────────\n")
+    cat(sprintf(
+      "  Median label count : %d\n  Retention threshold: >= %d rows (%.0f%% of median)\n\n",
+      med_count, min_count, threshold * 100
+    ))
+
+    # Print table header
+    cat(sprintf("  %-20s  %8s  %10s\n", "Label", "N rows", "Status"))
+    cat(sprintf("  %-20s  %8s  %10s\n", "-----", "------", "------"))
+
+    all_labels <- sort(names(counts))
+    for (lbl in all_labels) {
+      status <- if (lbl %in% keep_labels) "KEEP" else "DROP (too few)"
+      cat(sprintf("  %-20s  %8d  %10s\n", lbl, counts[[lbl]], status))
+    }
+    cat("\n")
+  }
+
+  if (length(drop_labels) == 0) {
+    if (verbose) message("All labels meet the threshold; no labels dropped")
+    return(df)
+  }
+
+  if (verbose) {
+    message(sprintf(
+      "Dropped %d label(s): %s",
+      length(drop_labels),
+      paste(drop_labels, collapse = ", ")
+    ))
+  }
+
+  df_balanced <- df[df$label %in% keep_labels, , drop = FALSE]
+
+  if (verbose) {
+    message(sprintf(
+      "Retained %d labels: %s  [%d rows total]",
+      length(keep_labels),
+      paste(sort(keep_labels), collapse = ", "),
+      nrow(df_balanced)
+    ))
+  }
+
+  df_balanced
+}
+
