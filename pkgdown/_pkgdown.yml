@@ -152,4 +152,4 @@ reference:
       - list_numeric_dirs
       - anova_analysis
       - export_feature_csv
-      - manual_anomaly_label
+      - flag_anomalous_labels

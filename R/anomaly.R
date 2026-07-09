@@ -1130,10 +1130,10 @@ build_anomaly_heatmap <- function(plot_data, detection_result,
 }
 
 
-# Manual Anomaly Assignment --------------------------------------------------
+# Custom Anomaly Label Flagging ----------------------------------------------
 # Update date: July 9, 2026
 
-#' Manually Assign Anomalous Labels to a SAP Object
+#' Flag Anomalous Labels in a SAP Object
 #'
 #' @description
 #' Assigns a vector of anomalous labels to a SAP object for a given feature type.
@@ -1149,11 +1149,11 @@ build_anomaly_heatmap <- function(plot_data, detection_result,
 #' @return The updated SAP object, invisibly.
 #'
 #' @export
-manual_anomaly_label <- function(x,
-                                 feature_type,
-                                 labels,
-                                 overwrite = FALSE,
-                                 verbose = TRUE) {
+flag_anomalous_labels <- function(x,
+                                  feature_type,
+                                  labels,
+                                  overwrite = FALSE,
+                                  verbose = TRUE) {
   # Validate inputs
   if (!inherits(x, "Sap")) stop("'x' must be a Sap object")
 
@@ -1193,4 +1193,5 @@ manual_anomaly_label <- function(x,
 
   invisible(x)
 }
+
 

@@ -1472,7 +1472,7 @@ export_feature_csv <- function(x,
         )
 
         if (verbose) {
-          message(sprintf("  → %d rows after merge", nrow(df)))
+          message(sprintf("  -> %d rows after merge", nrow(df)))
         }
       }
     } else {
@@ -1538,7 +1538,7 @@ export_feature_csv <- function(x,
 
   if (verbose) {
     message(sprintf(
-      "\n✓ Exported %d rows × %d columns → %s",
+      "\nExported %d rows x %d columns -> %s",
       nrow(df), ncol(df),
       normalizePath(out_path, mustWork = TRUE)
     ))
@@ -1609,7 +1609,7 @@ balance_feature_labels <- function(df, threshold = 0.5, verbose = TRUE) {
   drop_labels <- names(counts)[counts < min_count]
 
   if (verbose) {
-    cat("\n── Label balance summary ──────────────────────────────────────────\n")
+    cat("\n== Label balance summary ==========================================\n")
     cat(sprintf(
       "  Median label count : %d\n  Retention threshold: >= %d rows (%.0f%% of median)\n\n",
       med_count, min_count, threshold * 100

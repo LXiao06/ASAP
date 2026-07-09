@@ -105,7 +105,15 @@ For default method: A list (returned invisibly) with:
 \item \code{reference_path}: Data frame of reference trajectory
 \item \code{metrics}: Metrics computed
 \item \code{interpolate_n}: Interpolation info
-\item \code{similarity}: Per-rendition results with all metric columns
+\item \code{similarity}: Per-rendition results with all metric columns,
+plus two ML covariates appended to every row:
+\code{ref_day} (numeric value of the reference label, e.g. 92 for "92 dph")
+and \code{ref_scale_rms} (median within-reference RMS distance — a
+continuous measure of how tight/crystallized the reference song was).
+Include both as covariates in your ML feature matrix so the model can
+learn to adjust similarity scores for variation in reference quality
+across animals (e.g. in leave-one-bird-out cross-validation where
+different birds have different last recording days).
 \item \code{summary}: Per-label summary statistics
 \item \code{tests}: Statistical test results (\code{NULL} if stats=FALSE
 or only one non-reference label)
