@@ -51,6 +51,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/dot-spectral_gate.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/ensure_pkgs.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/export_clip_rows.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/export_feature_csv.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_single_spec.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/extract_spec.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/fast_pca.html</loc></url>
@@ -64,6 +65,7 @@
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/find_motif.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/find_segment_clusters.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/find_segment_neighbors.html</loc></url>
+<url><loc>https://lxiao06.github.io/ASAP/dev/reference/flag_anomalous_labels.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/get_wav_indices.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/goodness.html</loc></url>
 <url><loc>https://lxiao06.github.io/ASAP/dev/reference/h5_get_or_create_group.html</loc></url>

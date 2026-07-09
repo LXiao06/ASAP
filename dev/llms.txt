@@ -210,6 +210,10 @@ Various utility functions for working with ASAP objects and audio files.
   : List Numeric Subdirectory Names
 - [`anova_analysis()`](https://lxiao06.github.io/ASAP/dev/reference/anova_analysis.md)
   : Perform ANOVA and Multiple Comparisons Analysis
+- [`export_feature_csv()`](https://lxiao06.github.io/ASAP/dev/reference/export_feature_csv.md)
+  : Export a Stored Feature Data Frame to CSV
+- [`flag_anomalous_labels()`](https://lxiao06.github.io/ASAP/dev/reference/flag_anomalous_labels.md)
+  : Flag Anomalous Labels in a SAP Object
 
 # Get Started
 

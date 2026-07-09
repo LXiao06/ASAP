@@ -183,7 +183,15 @@ skip statistical testing</p></dd>
 <li><p><code>reference_path</code>: Data frame of reference trajectory</p></li>
 <li><p><code>metrics</code>: Metrics computed</p></li>
 <li><p><code>interpolate_n</code>: Interpolation info</p></li>
-<li><p><code>similarity</code>: Per-rendition results with all metric columns</p></li>
+<li><p><code>similarity</code>: Per-rendition results with all metric columns,
+plus two ML covariates appended to every row:
+<code>ref_day</code> (numeric value of the reference label, e.g. 92 for "92 dph")
+and <code>ref_scale_rms</code> (median within-reference RMS distance — a
+continuous measure of how tight/crystallized the reference song was).
+Include both as covariates in your ML feature matrix so the model can
+learn to adjust similarity scores for variation in reference quality
+across animals (e.g. in leave-one-bird-out cross-validation where
+different birds have different last recording days).</p></li>
 <li><p><code>summary</code>: Per-label summary statistics</p></li>
 <li><p><code>tests</code>: Statistical test results (<code>NULL</code> if stats=FALSE
 or only one non-reference label)</p></li>
@@ -273,7 +281,7 @@ similarity target).</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>
