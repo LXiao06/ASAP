@@ -1612,7 +1612,7 @@ balance_feature_labels <- function(df, threshold = 0.5, verbose = TRUE) {
     cat("\n== Label balance summary ==========================================\n")
     cat(sprintf(
       "  Median label count : %d\n  Retention threshold: >= %d rows (%.0f%% of median)\n\n",
-      med_count, min_count, threshold * 100
+      as.integer(med_count), as.integer(min_count), threshold * 100
     ))
 
     # Print table header
