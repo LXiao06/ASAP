@@ -496,7 +496,7 @@ sessionInfo()
 #> [37] R6_2.6.1           lifecycle_1.0.5    fs_2.1.0           MASS_7.3-65       
 #> [41] ragg_1.5.2         pkgconfig_2.0.3    desc_1.4.3         pkgdown_2.2.1     
 #> [45] pillar_1.11.1      bslib_0.11.0       gtable_0.3.6       glue_1.8.1        
-#> [49] Rcpp_1.1.2         systemfonts_1.3.2  xfun_0.59          tibble_3.3.1      
+#> [49] Rcpp_1.1.2         systemfonts_1.3.2  xfun_0.60          tibble_3.3.1      
 #> [53] tidyselect_1.2.1   knitr_1.51         farver_2.1.2       htmltools_0.5.9   
 #> [57] patchwork_1.3.2    rmarkdown_2.31     signal_1.8-1       compiler_4.6.1    
 #> [61] S7_0.2.2

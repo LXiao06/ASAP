@@ -406,9 +406,9 @@ if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/RtmpMgTza1/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
-| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/RtmpMgTza1/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
-| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/RtmpMgTza1/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/RtmpzRgYre/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/RtmpzRgYre/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/RtmpzRgYre/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
 
 ### Step 4: Visualize the exported motif files
 
@@ -516,7 +516,7 @@ sessionInfo()
 #> [37] lifecycle_1.0.5    fs_2.1.0           MASS_7.3-65        ragg_1.5.2        
 #> [41] pkgconfig_2.0.3    desc_1.4.3         pkgdown_2.2.1      pillar_1.11.1     
 #> [45] bslib_0.11.0       gtable_0.3.6       glue_1.8.1         Rcpp_1.1.2        
-#> [49] systemfonts_1.3.2  xfun_0.59          tibble_3.3.1       tidyselect_1.2.1  
+#> [49] systemfonts_1.3.2  xfun_0.60          tibble_3.3.1       tidyselect_1.2.1  
 #> [53] knitr_1.51         farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2   
 #> [57] rmarkdown_2.31     signal_1.8-1       compiler_4.6.1     S7_0.2.2
 ```
