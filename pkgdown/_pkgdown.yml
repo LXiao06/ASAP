@@ -63,6 +63,7 @@ reference:
     contents:
       - create_sap_object
       - create_sap_metadata
+      - pool_sap_recordings
 
   - title: "Curated Song Export"
     desc: "Functions for exporting user-choice audio clips, bouts, and motifs."
