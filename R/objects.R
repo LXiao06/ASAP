@@ -378,6 +378,80 @@ create_sap_object <- function(base_path,
   return(sap)
 }
 
+#' Pool Selected Recording Folders into a Standard SAP Object
+#'
+#' @description
+#' Links or copies selected recording folders into one conventional SAP folder
+#' tree, then creates a regular SAP object. This lets the existing pipeline run
+#' without multi-animal path handling.
+#'
+#' @param selections Data frame with character columns `animal_id`, `base_path`,
+#'   `subfolder`, and `label`; one row per selected folder.
+#' @param output_dir Directory for the pooled recording tree.
+#' @param method Either `"link"` (default) to create symbolic links or `"copy"`
+#'   to copy WAV files.
+#' @param overwrite Logical; replace existing files in the pooled tree.
+#'
+#' @return A regular SAP object. Its day folders are named
+#'   `<animal_id>__<subfolder>` to keep source files distinct.
+#'
+#' @examples
+#' \dontrun{
+#' sap <- pool_sap_recordings(data.frame(
+#'   animal_id = c("bird_1", "bird_2"),
+#'   base_path = c("/data/bird_1", "/data/bird_2"),
+#'   subfolder = c("60", "65"),
+#'   label = c("60 dph", "65 dph")
+#' ), output_dir = "/data/pooled_recordings")
+#' }
+#'
+#' @export
+pool_sap_recordings <- function(selections,
+                                output_dir,
+                                method = c("link", "copy"),
+                                overwrite = FALSE) {
+  required <- c("animal_id", "base_path", "subfolder", "label")
+  if (!is.data.frame(selections) || !all(required %in% names(selections))) {
+    stop("selections must be a data frame with columns: ", paste(required, collapse = ", "))
+  }
+  if (!nrow(selections) || any(vapply(selections[required], function(x) !is.character(x) || anyNA(x), logical(1)))) {
+    stop("selections must contain non-missing character animal_id, base_path, subfolder, and label values")
+  }
+  method <- match.arg(method)
+  output_dir <- normalizePath(output_dir, mustWork = FALSE)
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+  pooled_folders <- paste(
+    gsub("[^[:alnum:]_.-]", "_", selections$animal_id),
+    gsub("[^[:alnum:]_.-]", "_", selections$subfolder), sep = "__"
+  )
+  if (anyDuplicated(pooled_folders)) stop("Each animal_id/subfolder combination must be unique")
+
+  for (i in seq_len(nrow(selections))) {
+    source_dir <- file.path(normalizePath(selections$base_path[i], mustWork = TRUE), selections$subfolder[i])
+    if (!dir.exists(source_dir)) stop("Selected folder does not exist: ", source_dir)
+    target_dir <- file.path(output_dir, pooled_folders[i])
+    dir.create(target_dir, recursive = TRUE, showWarnings = FALSE)
+    files <- list.files(source_dir, pattern = "\\.wav$", full.names = TRUE, recursive = FALSE)
+    for (source_file in files) {
+      target_file <- file.path(target_dir, basename(source_file))
+      if (file.exists(target_file) && !overwrite) next
+      success <- if (method == "link") {
+        file.symlink(source_file, target_file)
+      } else {
+        file.copy(source_file, target_file, overwrite = overwrite)
+      }
+      if (!success) stop("Could not ", method, " file: ", source_file)
+    }
+  }
+
+  create_sap_object(
+    base_path = output_dir,
+    subfolders_to_include = pooled_folders,
+    labels = selections$label
+  )
+}
+
 #' Internal Constructor for Sound Analysis Pro (SAP) Object
 #'
 #' @description
