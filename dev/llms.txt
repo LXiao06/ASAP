@@ -61,6 +61,8 @@ Functions for creating and writing the core SAP object
 - [`create_sap_metadata()`](https://lxiao06.github.io/ASAP/dev/reference/create_sap_metadata.md)
   : Create metadata for audio files recorded by SAP2011 (Sound Analysis
   Pro)
+- [`pool_sap_recordings()`](https://lxiao06.github.io/ASAP/dev/reference/pool_sap_recordings.md)
+  : Pool Selected Recording Folders into a Standard SAP Object
 
 ## Curated Song Export
 

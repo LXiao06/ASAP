@@ -274,8 +274,8 @@ if (!is.null(bout_export_meta) && nrow(bout_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| bout_001 | 1.057 | 3.553 | 2.496 | /tmp/RtmpuQI3qo/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
-| bout_002 | 4.156 | 4.946 | 0.789 | /tmp/RtmpuQI3qo/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
+| bout_001 | 1.057 | 3.553 | 2.496 | /tmp/RtmpxSSg14/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_002 | 4.156 | 4.946 | 0.789 | /tmp/RtmpxSSg14/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
 
 ### Step 4: Visualize the exported bout files
 
@@ -354,7 +354,7 @@ sessionInfo()
 #> [29] parallel_4.6.1     dplyr_1.2.1        ggplot2_4.0.3      reticulate_1.46.0 
 #> [33] png_0.1-9          vctrs_0.7.3        R6_2.6.1           lifecycle_1.0.5   
 #> [37] fs_2.1.0           MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3   
-#> [41] desc_1.4.3         pkgdown_2.2.1      pillar_1.11.1      bslib_0.11.0      
+#> [41] desc_1.4.3         pkgdown_2.2.1      pillar_1.11.1      bslib_0.12.0      
 #> [45] gtable_0.3.6       glue_1.8.1         Rcpp_1.1.2         systemfonts_1.3.2 
 #> [49] xfun_0.60          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
 #> [53] farver_2.1.2       htmltools_0.5.9    patchwork_1.3.2    rmarkdown_2.31    

@@ -131,6 +131,23 @@ unique(sap$metadata$bird_id)
 visualize_song(sap, n_samples = 4, random = TRUE)
 ```
 
+## Pooling Selected Folders from Multiple Animals
+
+To reuse the standard SAP workflow without changing later analysis
+functions, pool selected folders into a new SAP-style directory tree.
+The default creates symbolic links, so the original recordings are not
+copied.
+
+``` r
+
+sap <- pool_sap_recordings(data.frame(
+  animal_id = c("bird_1", "bird_1", "bird_2", "bird_2"),
+  base_path = c("/data/bird_1", "/data/bird_1", "/data/bird_2", "/data/bird_2"),
+  subfolder = c("60", "90", "65", "95"),
+  label = c("60 dph", "90 dph", "65 dph", "95 dph")
+), output_dir = "/data/pooled_recordings")
+```
+
 **Example metadata structure:**
 
 | filename       | bird_id | day_post_hatch | recording_date | recording_time | label    |
@@ -259,7 +276,7 @@ sessionInfo()
 #>  [5] xfun_0.60         cachem_1.1.0      knitr_1.51        htmltools_0.5.9  
 #>  [9] rmarkdown_2.31    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      
 #> [13] pkgdown_2.2.1     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.2
-#> [17] compiler_4.6.1    tools_4.6.1       ragg_1.5.2        bslib_0.11.0     
+#> [17] compiler_4.6.1    tools_4.6.1       ragg_1.5.2        bslib_0.12.0     
 #> [21] evaluate_1.0.5    yaml_2.3.12       otel_0.2.0        jsonlite_2.0.0   
 #> [25] rlang_1.3.0       fs_2.1.0
 ```
