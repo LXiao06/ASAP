@@ -492,11 +492,12 @@ create_template.Sap <- function(x, # x is Sap object
 #' @param save_plot Whether to save detection plots
 #' @param plot_dir For default method: Directory to save plots
 #' @param proximity_window Time window in seconds to filter nearby detections (NULL to disable filtering).
+#'        Can be a single numeric value (broadcast to all templates) or a vector matching \code{template_name} in length.
 #'        Only the detection with the highest score within each window is retained.
-#' @param template_name For SAP objects: Name of template to use
-#' @param day For SAP objects: Numeric vector of days to process
+#' @param template_name For SAP objects: Character vector of template name(s) to use
+#' @param label For SAP objects: Vector of label(s) to process (character, numeric, or factor). NULL processes all labels.
 #' @param indices For SAP objects: Numeric vector of indices to process
-#' @param threshold For SAP objects: New threshold value
+#' @param threshold For SAP objects: New threshold value(s) matching template_name
 #' @param cores For SAP objects: Number of cores for parallel processing
 #' @param plot_percent For SAP objects: Percentage of files to plot (default: 10)
 #' @param verbose For SAP objects: Whether to print progress messages
@@ -507,7 +508,7 @@ create_template.Sap <- function(x, # x is Sap object
 #'        processing times. When FALSE (default), workers dynamically grab
 #'        tasks from a queue, providing better load balancing but with
 #'        slightly more overhead.
-#' @param ... Additional arguments passed to specific methods
+#' @param ... Additional arguments passed to specific methods (e.g. deprecated \code{day})
 #'
 #' @details
 #' For WAV files:
@@ -522,11 +523,13 @@ create_template.Sap <- function(x, # x is Sap object
 #' For SAP objects:
 #' \itemize{
 #'   \item Parallel processing support
-#'   \item Day-specific processing
+#'   \item Label-specific processing and non-numeric label support
+#'   \item Multi-template matching: when multiple templates are supplied, they can be matched
+#'         across all labels (when \code{label} is NULL or single) or paired 1-to-1 with \code{label}
 #'   \item Optional threshold adjustment
 #'   \item Progress tracking and reporting
 #'   \item Selective plot generation
-#'   \item Filtering of nearby detections when proximity_window is specified
+#'   \item Filtering of nearby detections with single or template-specific proximity windows
 #' }
 #'
 #' @section Proximity Filtering:
@@ -552,12 +555,25 @@ create_template.Sap <- function(x, # x is Sap object
 #'   save_plot = TRUE
 #' )
 #'
-#' # Detect template in SAP object
+#' # Detect template in SAP object for specific labels
 #' sap_obj <- detect_template(sap_object,
 #'   template_name = "template1",
-#'   day = c(30, 40),
+#'   label = c("pre", "post"),
 #'   threshold = 0.7,
 #'   cores = 4
+#' )
+#'
+#' # Multiple templates matched 1-to-1 with multiple labels
+#' sap_obj <- detect_template(sap_object,
+#'   template_name = c("tpl_pre", "tpl_post"),
+#'   label = c("pre", "post")
+#' )
+#'
+#' # Multiple templates with template-specific proximity windows
+#' sap_obj <- detect_template(sap_object,
+#'   template_name = c("tpl_pre", "tpl_post"),
+#'   label = c("pre", "post"),
+#'   proximity_window = c(0.5, 0.3)
 #' )
 #'
 #' # Process specific indices with plots
@@ -587,6 +603,92 @@ create_template.Sap <- function(x, # x is Sap object
 #' @export
 detect_template <- function(x, ...) {
   UseMethod("detect_template")
+}
+
+# Render a monitoR detectionList without using monitoR's plot method.  Its
+# current implementation formats the (double) axis tick positions with `%d`,
+# which errors on recent versions of R.  This is intentionally private: it is
+# only used when detect_template() is asked to save a plot.
+.plot_template_detections <- function(x, flim = c(0, 12), t.each = 30) {
+  survey <- x@survey
+  survey_length <- length(survey@left) / survey@samp.rate
+  n_plots <- ceiling(survey_length / t.each)
+  t_start <- seq_len(n_plots) * t.each - t.each
+  if (n_plots == 1L) t.each <- survey_length
+  t_end <- t_start + t.each
+  t_end[t_end > survey_length] <- survey_length
+  t_start[n_plots] <- t_end[n_plots] - t.each
+
+  amp <- x@survey.data[[1]]$amp
+  t_bins <- x@survey.data[[1]]$t.bins
+  frq_bins <- x@survey.data[[1]]$frq.bins
+  template_names <- names(x@templates)
+  colors <- rep(c("red", "blue", "green", "orange", "purple", "pink",
+                  "darkgreen", "turquoise", "royalblue", "orchid4", "brown",
+                  "salmon2"), length.out = length(template_names))
+  names(colors) <- template_names
+  score_limit <- c(0, max(vapply(x@scores, function(score) max(score$score), numeric(1))))
+
+  old_par <- graphics::par(mar = c(1, 4, 1, 1), oma = c(6, 0, 0, 0), mfrow = c(2, 1))
+  on.exit(graphics::par(old_par), add = TRUE)
+
+  for (i in seq_len(n_plots)) {
+    times <- t_bins[t_bins >= t_start[i] & t_bins <= t_end[i]]
+    amp_clip <- amp[, t_bins %in% times, drop = FALSE]
+    graphics::image(
+      x = times, y = frq_bins, z = t(amp_clip), ylim = flim,
+      col = monitoR::gray.2(), xlab = "", ylab = "Frequency (kHz)",
+      xaxt = "n", las = 1
+    )
+
+    for (j in template_names) {
+      template <- x@templates[[j]]
+      peaks <- x@detections[[j]]
+      peaks <- peaks[peaks$time + template@duration >= t_start[i] &
+                       peaks$time - template@duration <= t_end[i], , drop = FALSE]
+      if (nrow(peaks) > 0L) {
+        for (k in seq_len(nrow(peaks))) {
+          x_left <- peaks$time[k] - template@duration / 2
+          x_right <- peaks$time[k] + template@duration / 2
+          graphics::polygon(
+            x = c(x_left, x_left, x_right, x_right),
+            y = c(template@frq.lim[1], template@frq.lim[2], template@frq.lim[2], template@frq.lim[1]),
+            border = colors[j], lwd = 1
+          )
+        }
+      }
+    }
+
+    graphics::plot(NULL, xlim = c(t_start[i], t_end[i]), ylim = score_limit,
+                   xlab = "", ylab = "Score", type = "n", xaxs = "i", las = 1,
+                   mgp = c(3, 1, 0))
+    graphics::mtext("Time (s or min:sec)", 1, 2.5, outer = TRUE)
+    x_axis <- graphics::par("xaxp")
+    ticks <- seq(x_axis[1], x_axis[2], length.out = x_axis[3] + 1L)
+    # `ticks` is double, even where every value is whole.  Convert its
+    # components explicitly before applying the integer-only `%d` formatter.
+    labels <- paste(
+      sprintf("%02d", as.integer(floor(ticks / 60))),
+      sprintf("%02d", as.integer(floor(ticks %% 60))), sep = ":"
+    )
+    graphics::axis(1, at = ticks, labels = labels, mgp = c(3, 1.9, 0))
+    graphics::legend("topright", template_names, lty = 1, col = colors,
+                     cex = 0.7)
+
+    for (j in template_names) {
+      template <- x@templates[[j]]
+      score <- x@scores[[j]]
+      peaks <- x@detections[[j]]
+      score_clip <- score[score$time >= t_start[i] & score$time <= t_end[i], , drop = FALSE]
+      peaks <- peaks[peaks$time + template@duration >= t_start[i] &
+                       peaks$time - template@duration <= t_end[i], , drop = FALSE]
+      graphics::lines(score_clip$time, score_clip$score, col = colors[j])
+      graphics::abline(v = peaks$time, col = colors[j])
+      if (is.vector(template@score.cutoff)) {
+        graphics::abline(h = template@score.cutoff, lty = 2, col = colors[j])
+      }
+    }
+  }
 }
 
 #' @rdname detect_template
@@ -667,10 +769,6 @@ detect_template.default <- function(x, # x is wav file path
   names(detections)[names(detections) == "id"] <- "filename"
   detections$date.time <- NULL
 
-  # detections <- detections %>%
-  #   dplyr::rename(filename = .data$id) %>%
-  #   dplyr::select(-.data$date.time)
-
   # Generate plot with filtered detections
   if (save_plot) {
     dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
@@ -678,24 +776,13 @@ detect_template.default <- function(x, # x is wav file path
 
     tryCatch(
       {
-        # Suppress C-level fontconfig warnings during PNG device creation.
-        # On Linux, png() triggers fontconfig initialization which prints
-        # "using without calling FcInit()" via fprintf(stderr, ...).
-        # R's sink() cannot intercept C-level stderr; dup2() is required.
         saved_fd <- suppress_stderr()
         png(plot_file, width = 1200, height = 800, res = 150)
         restore_stderr(saved_fd)
         on.exit(if (dev.cur() > 1) dev.off(), add = TRUE)
 
-        # Get plot method once per function call
-        if (!exists("plot_detections")) {
-          plot_detections <- methods::getMethod("plot", "detectionList", where = asNamespace("monitoR"))
-        }
+        suppressMessages(.plot_template_detections(pks))
 
-        # Plot
-        suppressMessages(plot_detections(pks, ask = FALSE))
-
-        # Close device
         if (dev.cur() > 1) dev.off()
       },
       error = function(e) {
@@ -705,14 +792,13 @@ detect_template.default <- function(x, # x is wav file path
     )
   }
 
-
   return(detections)
 }
 
 #' @rdname detect_template
 #' @export
 detect_template.Sap <- function(x, # x is SAP object
-                                day = NULL,
+                                label = NULL,
                                 indices = NULL,
                                 template_name,
                                 threshold = NULL,
@@ -726,49 +812,113 @@ detect_template.Sap <- function(x, # x is SAP object
                                 ...) {
   if (verbose) message(sprintf("\n=== Starting Template Detection ==="))
 
+  # Handle deprecation of `day` argument
+  dots <- list(...)
+  if (!is.null(dots$day)) {
+    warning("Argument 'day' is deprecated; please use 'label' instead.")
+    if (is.null(label)) {
+      label <- dots$day
+    }
+  }
+
   # Validate inputs
   if (!inherits(x, "Sap")) {
     stop("Input must be a SAP object")
   }
 
-  if (is.null(template_name) || !template_name %in% names(x$templates$template_list)) {
-    stop("template_name must be provided and must exist in the SAP object")
+  if (missing(template_name) || is.null(template_name) || length(template_name) == 0) {
+    stop("template_name must be provided")
   }
 
-  # Get the template from SAP object
-  template <- x$templates$template_list[[template_name]]
+  missing_tpls <- setdiff(template_name, names(x$templates$template_list))
+  if (length(missing_tpls) > 0) {
+    stop("The following template(s) do not exist in the SAP object: ", paste(missing_tpls, collapse = ", "))
+  }
 
-  # Update threshold if specified
+  # Update thresholds if specified
   if (!is.null(threshold)) {
-    original_threshold <- monitoR::templateCutoff(template)[[1]]
-
-    # Only update if different
-    if (original_threshold != threshold) {
-      monitoR::templateCutoff(template) <- setNames(threshold, template_name)
-      x$templates$template_list[[template_name]] <- template
-      threshold_idx <- which(x$templates$template_info$template_name == template_name)
-      if (length(threshold_idx) > 0) {
-        x$templates$template_info$threshold[threshold_idx] <- threshold
-      }
-      cat(sprintf(
-        "\nTemplate threshold updated from %.2f to %.2f\n",
-        original_threshold, threshold
-      ))
+    if (length(threshold) == 1) {
+      thresholds <- setNames(rep(threshold, length(unique(template_name))), unique(template_name))
+    } else if (length(threshold) == length(template_name)) {
+      thresholds <- setNames(threshold, template_name)
     } else {
-      cat(sprintf("\nTemplate threshold already at %.2f\n", threshold))
+      stop("length of threshold must be 1 or match length of template_name")
+    }
+
+    for (t_name in names(thresholds)) {
+      t_val <- thresholds[[t_name]]
+      tpl_obj <- x$templates$template_list[[t_name]]
+      orig_thresh <- monitoR::templateCutoff(tpl_obj)[[1]]
+      if (orig_thresh != t_val) {
+        monitoR::templateCutoff(tpl_obj) <- setNames(t_val, t_name)
+        x$templates$template_list[[t_name]] <- tpl_obj
+        threshold_idx <- which(x$templates$template_info$template_name == t_name)
+        if (length(threshold_idx) > 0) {
+          x$templates$template_info$threshold[threshold_idx] <- t_val
+        }
+        if (verbose) {
+          cat(sprintf("Template '%s' threshold updated from %.2f to %.2f\n", t_name, orig_thresh, t_val))
+        }
+      }
     }
   }
 
-  # Filter metadata based on day
-  if (!is.null(day)) {
-    process_metadata <- x$metadata[x$metadata$day_post_hatch %in% day, ]
-    days_to_process <- day
-    if (nrow(process_metadata) == 0) {
-      stop("No files found for specified day(s)")
+  # Parse proximity_window for single or template-specific values
+  if (!is.null(proximity_window)) {
+    if (!is.numeric(proximity_window)) {
+      stop("proximity_window must be numeric")
+    }
+    if (length(proximity_window) == 1) {
+      prox_windows <- setNames(rep(proximity_window, length(unique(template_name))), unique(template_name))
+    } else if (length(proximity_window) == length(template_name)) {
+      if (!is.null(names(proximity_window))) {
+        prox_windows <- proximity_window
+      } else {
+        prox_windows <- setNames(proximity_window, template_name)
+      }
+    } else {
+      stop(sprintf(
+        "length of proximity_window (found %d) must be 1 or match length of template_name (%d)",
+        length(proximity_window), length(template_name)
+      ))
     }
   } else {
+    prox_windows <- NULL
+  }
+
+  # Filter metadata based on label
+  if (!is.null(label)) {
+    process_metadata <- x$metadata[x$metadata$label %in% label, ]
+    if (nrow(process_metadata) == 0) {
+      stop("No files found for specified label(s)")
+    }
+    labels_to_process <- unique(process_metadata$label)
+  } else {
     process_metadata <- x$metadata
-    days_to_process <- unique(process_metadata$day_post_hatch)
+    labels_to_process <- unique(process_metadata$label)
+  }
+
+  # Build mapping of label -> vector of template names
+  label_templates <- list()
+  if (is.null(label) || length(label) <= 1) {
+    # Broad / Single-label dispatch: all templates applied to all targeted labels
+    for (lbl in labels_to_process) {
+      label_templates[[as.character(lbl)]] <- unique(template_name)
+    }
+  } else {
+    # Multi-label specific dispatch: length(label) > 1 requires length(template_name) == length(label)
+    if (length(template_name) != length(label)) {
+      stop(sprintf(
+        "When multiple labels are specified (length %d), template_name must have matching length (found length %d). You can repeat template names if needed.",
+        length(label), length(template_name)
+      ))
+    }
+    for (i in seq_along(label)) {
+      lbl_str <- as.character(label[i])
+      if (lbl_str %in% as.character(labels_to_process)) {
+        label_templates[[lbl_str]] <- unique(c(label_templates[[lbl_str]], template_name[i]))
+      }
+    }
   }
 
   # Set number of cores
@@ -776,22 +926,16 @@ detect_template.Sap <- function(x, # x is SAP object
     cores <- parallel::detectCores() - 1
   }
 
-  # On Linux, create one PSOCK cluster here and reuse it across all days.
-  # This avoids paying the makeCluster startup cost (spawning N Rscript
-  # processes) once per day. On macOS, fork-based pbmclapply is used
-  # instead and needs no pre-created cluster.
+  # On Linux, create one PSOCK cluster here and reuse it across all labels.
   psock_cl <- NULL
   if (Sys.info()["sysname"] != "Darwin" && cores > 1) {
     ensure_pkgs("parallel")
     psock_cl <- parallel::makeCluster(cores, type = "PSOCK")
-    # Pre-initialize fontconfig in each PSOCK worker to suppress
-    # "using without calling FcInit()" warnings from png().
     parallel::clusterEvalQ(psock_cl, {
       loadNamespace("ASAP")
       saved <- ASAP:::suppress_stderr()
       tmp <- tempfile(fileext = ".png")
       grDevices::png(tmp)
-      # Must actually draw text to trigger lazy fontconfig initialization!
       plot(1, 1, main = "Init")
       grDevices::dev.off()
       unlink(tmp)
@@ -804,32 +948,61 @@ detect_template.Sap <- function(x, # x is SAP object
   if (save_plot) {
     plots_dir <- file.path(x$base_path, "plots", "template_matches")
     dir.create(plots_dir, recursive = TRUE, showWarnings = FALSE)
-    for (d in days_to_process) {
-      day_dir <- file.path(plots_dir, paste0("day_", d))
-      dir.create(day_dir, recursive = TRUE, showWarnings = FALSE)
+    for (lbl in labels_to_process) {
+      lbl_dir <- file.path(plots_dir, paste0("label_", sanitize_group_name(as.character(lbl))))
+      dir.create(lbl_dir, recursive = TRUE, showWarnings = FALSE)
     }
   }
 
-  # Process each day
+  # Process each label group
   all_results <- list()
 
-  for (current_day in days_to_process) {
-    day_metadata <- process_metadata[process_metadata$day_post_hatch == current_day, ]
+  for (current_label in labels_to_process) {
+    label_str <- as.character(current_label)
+    lbl_metadata <- process_metadata[process_metadata$label == current_label, ]
     if (!is.null(indices)) {
-      valid_indices <- indices[indices <= nrow(day_metadata)]
+      valid_indices <- indices[indices <= nrow(lbl_metadata)]
       if (length(valid_indices) > 0) {
-        day_metadata <- day_metadata[valid_indices, ]
+        lbl_metadata <- lbl_metadata[valid_indices, ]
       } else {
-        cat(sprintf("\nNo valid indices for day %s.\n", current_day))
+        if (verbose) cat(sprintf("\nNo valid indices for label %s.\n", label_str))
         next
       }
     }
 
-    unique_files <- which(!duplicated(day_metadata$filename))
-    cat(sprintf(
-      "\nProcessing %d files for day %s using %d cores.\n",
-      length(unique_files), current_day, cores
-    ))
+    unique_files <- which(!duplicated(lbl_metadata$filename))
+    tpls_for_label <- label_templates[[label_str]]
+    if (is.null(tpls_for_label) || length(tpls_for_label) == 0) next
+
+    if (verbose) {
+      cat(sprintf(
+        "\nProcessing %d files for label '%s' using template(s) [%s] on %d cores.\n",
+        length(unique_files), label_str, paste(tpls_for_label, collapse = ", "), cores
+      ))
+    }
+
+    # Prepare template object to pass to corMatch
+    if (length(tpls_for_label) == 1) {
+      template_to_use <- x$templates$template_list[[tpls_for_label]]
+    } else {
+      template_to_use <- monitoR::combineCorTemplates(
+        unname(x$templates$template_list[tpls_for_label])
+      )
+    }
+
+    # Subset proximity window to only the templates used for this label.
+    # Passing a single scalar (for 1-template labels) or a named sub-vector
+    # ensures find_peaks_with_proximity gets exactly the values it needs and
+    # avoids confusion from extra entries for other labels' templates.
+    label_prox_window <- if (!is.null(prox_windows)) {
+      if (length(tpls_for_label) == 1) {
+        unname(prox_windows[tpls_for_label])
+      } else {
+        prox_windows[tpls_for_label]
+      }
+    } else {
+      NULL
+    }
 
     # Determine which files to plot
     if (save_plot) {
@@ -839,21 +1012,28 @@ detect_template.Sap <- function(x, # x is SAP object
         n_plots <- ceiling(length(unique_files) * plot_percent / 100)
         files_to_plot <- sort(sample(unique_files, n_plots))
       }
+    } else {
+      files_to_plot <- integer(0)
     }
+
+    # Explicitly capture all loop-varying values so the closure does not
+    # accidentally reference a later iteration's bindings if R's lazy
+    # evaluation or any future parallelism refactoring is involved.
+    local_template    <- template_to_use
+    local_prox        <- label_prox_window
+    local_lbl_meta    <- lbl_metadata
+    local_label_str   <- label_str
+    local_files_plot  <- files_to_plot
 
     process_file <- function(i) {
       tryCatch(
         {
-          should_plot <- save_plot && (i %in% files_to_plot)
-          wavfile <- file.path(
-            x$base_path,
-            day_metadata$day_post_hatch[i],
-            day_metadata$filename[i]
-          )
+          should_plot <- save_plot && (i %in% local_files_plot)
+          wavfile <- construct_wav_path(local_lbl_meta[i, ], wav_dir = x$base_path)
           plot_dir <- if (should_plot) {
             file.path(
               x$base_path, "plots", "template_matches",
-              paste0("day_", day_metadata$day_post_hatch[i])
+              paste0("label_", sanitize_group_name(local_label_str))
             )
           } else {
             NULL
@@ -861,19 +1041,19 @@ detect_template.Sap <- function(x, # x is SAP object
 
           result <- detect_template.default(
             x = wavfile,
-            template = template,
+            template = local_template,
             cor.method = cor.method,
             save_plot = should_plot,
             plot_dir = plot_dir,
-            proximity_window = proximity_window,
+            proximity_window = local_prox,
             ...
           )
 
           if (!is.null(result)) {
             result <- result |>
               dplyr::mutate(
-                day_post_hatch = day_metadata$day_post_hatch[i],
-                label = day_metadata$label[i],
+                label = local_lbl_meta$label[i],
+                day_post_hatch = if ("day_post_hatch" %in% names(local_lbl_meta)) local_lbl_meta$day_post_hatch[i] else NA,
                 .after = filename
               )
           }
@@ -882,44 +1062,55 @@ detect_template.Sap <- function(x, # x is SAP object
         error = function(e) {
           warning(sprintf(
             "Error processing file %s: %s",
-            day_metadata$filename[i], e$message
+            local_lbl_meta$filename[i], e$message
           ))
           return(NULL)
         }
       )
     }
 
-    # Parallel processing (pass pre-created cluster on Linux to avoid
-    # repeated makeCluster overhead across days)
-    day_results <- parallel_apply(unique_files, process_file, cores,
+    # Parallel processing
+    lbl_results <- parallel_apply(unique_files, process_file, cores,
       use_preschedule = use_preschedule, cl = psock_cl
     )
 
-    valid_detections <- day_results[!sapply(day_results, is.null)]
+    valid_detections <- lbl_results[!sapply(lbl_results, is.null)]
     if (length(valid_detections) > 0) {
-      day_detections <- do.call(rbind, valid_detections)
-      all_results[[as.character(current_day)]] <- day_detections
-      cat(sprintf(
-        "\nProcessed files in day %s. Total detections: %d\n",
-        current_day, nrow(day_detections)
-      ))
+      lbl_detections <- do.call(rbind, valid_detections)
+      all_results[[label_str]] <- lbl_detections
+      if (verbose) {
+        cat(sprintf(
+          "\nProcessed files for label '%s'. Total detections: %d\n",
+          label_str, nrow(lbl_detections)
+        ))
+      }
     } else {
-      cat(sprintf("\nNo detections found in day %s.\n", current_day))
+      if (verbose) cat(sprintf("\nNo detections found for label '%s'.\n", label_str))
     }
   }
 
   if (length(all_results) > 0) {
     final_results <- do.call(rbind, all_results)
     row.names(final_results) <- NULL
-    x$templates$template_matches[[template_name]] <- final_results
+
+    for (t_name in unique(template_name)) {
+      t_matches <- final_results[final_results$template == t_name, , drop = FALSE]
+      row.names(t_matches) <- NULL
+      x$templates$template_matches[[t_name]] <- t_matches
+      if (verbose) {
+        cat(sprintf("\nTotal detections for template '%s': %d\n", t_name, nrow(t_matches)))
+        cat(sprintf(
+          "Access detection results via: Sap_object$templates$template_matches[[\"%s\"]]\n",
+          t_name
+        ))
+      }
+    }
     x$misc$last_modified <- Sys.time()
-    message(sprintf("\nTotal detections across all days: %d", nrow(final_results)))
-    message(sprintf(
-      "Access detection results via: Sap_object$templates$template_matches[[\"%s\"]]",
-      template_name
-    ))
   } else {
-    warning(sprintf("No detections found for template '%s'", template_name))
+    for (t_name in unique(template_name)) {
+      x$templates$template_matches[[t_name]] <- data.frame()
+    }
+    warning("No detections found for specified template(s)")
   }
 
   invisible(x)
@@ -929,12 +1120,27 @@ detect_template.Sap <- function(x, # x is SAP object
 find_peaks_with_proximity <- function(score.obj, proximity_window = NULL) {
   pks <- monitoR::findPeaks(score.obj = score.obj)
 
+  if (is.null(proximity_window)) {
+    return(pks)
+  }
+
   # Process each template's detections
   for (tpl_name in names(pks@templates)) {
     dets <- pks@detections[[tpl_name]]
 
     # Skip if no detections
     if (is.null(dets) || nrow(dets) == 0) next
+
+    # Determine proximity window for this specific template
+    win <- if (!is.null(names(proximity_window)) && tpl_name %in% names(proximity_window)) {
+      proximity_window[[tpl_name]]
+    } else if (length(proximity_window) == 1) {
+      proximity_window[[1]]
+    } else {
+      NULL
+    }
+
+    if (is.null(win) || is.na(win) || win <= 0) next
 
     # Sort by time and apply proximity filtering using anchor-based grouping.
     # Each group is anchored at its first detection: a new group starts only
@@ -950,7 +1156,7 @@ find_peaks_with_proximity <- function(score.obj, proximity_window = NULL) {
     anchor_time <- dets$time[1]
     current_group <- 1L
     for (j in seq_len(n - 1) + 1L) {
-      if (dets$time[j] - anchor_time > proximity_window) {
+      if (dets$time[j] - anchor_time > win) {
         current_group <- current_group + 1L
         anchor_time <- dets$time[j]
       }
