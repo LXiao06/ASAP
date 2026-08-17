@@ -103,11 +103,11 @@ motifs <- find_motif(template_matches,
 knitr::kable(motifs, digits = 3)
 ```
 
-| filename       | detection_time | start_time | end_time | duration |
-|:---------------|---------------:|-----------:|---------:|---------:|
-| zf_example.wav |           1.76 |       1.06 |     2.26 |      1.2 |
-| zf_example.wav |           3.07 |       2.37 |     3.57 |      1.2 |
-| zf_example.wav |           4.66 |       3.96 |     5.16 |      1.2 |
+| filename       | detection_time | start_time | end_time | template | score | duration |
+|:---------------|---------------:|-----------:|---------:|:---------|------:|---------:|
+| zf_example.wav |           1.76 |       1.06 |     2.26 | d        | 0.934 |      1.2 |
+| zf_example.wav |           3.07 |       2.37 |     3.57 | d        | 0.774 |      1.2 |
+| zf_example.wav |           4.66 |       3.96 |     5.16 | d        | 0.792 |      1.2 |
 
 ------------------------------------------------------------------------
 

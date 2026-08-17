@@ -274,8 +274,8 @@ if (!is.null(bout_export_meta) && nrow(bout_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| bout_001 | 1.057 | 3.553 | 2.496 | /tmp/RtmpdTHS1e/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
-| bout_002 | 4.156 | 4.946 | 0.789 | /tmp/RtmpdTHS1e/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
+| bout_001 | 1.057 | 3.553 | 2.496 | /tmp/RtmpzL5siv/asap_bout_export/bouts/unknown_bird/unknown_day/bout_001.wav |
+| bout_002 | 4.156 | 4.946 | 0.789 | /tmp/RtmpzL5siv/asap_bout_export/bouts/unknown_bird/unknown_day/bout_002.wav |
 
 ### Step 4: Visualize the exported bout files
 

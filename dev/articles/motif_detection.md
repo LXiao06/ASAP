@@ -278,11 +278,11 @@ motifs <- find_motif(template_matches,
 knitr::kable(motifs, digits = 2)
 ```
 
-| filename       | detection_time | start_time | end_time | duration |
-|:---------------|---------------:|-----------:|---------:|---------:|
-| zf_example.wav |           1.76 |       1.06 |     2.26 |      1.2 |
-| zf_example.wav |           3.07 |       2.37 |     3.57 |      1.2 |
-| zf_example.wav |           4.66 |       3.96 |     5.16 |      1.2 |
+| filename       | detection_time | start_time | end_time | template | score | duration |
+|:---------------|---------------:|-----------:|---------:|:---------|------:|---------:|
+| zf_example.wav |           1.76 |       1.06 |     2.26 | d        |  0.93 |      1.2 |
+| zf_example.wav |           3.07 |       2.37 |     3.57 | d        |  0.77 |      1.2 |
+| zf_example.wav |           4.66 |       3.96 |     5.16 | d        |  0.79 |      1.2 |
 
 ### Adjusting Pre/Lag Times
 
@@ -406,9 +406,9 @@ if (!is.null(motif_export_meta) && nrow(motif_export_meta) > 0) {
 
 | clip_id | start_time | end_time | duration | output_path |
 |:---|---:|---:|---:|:---|
-| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/Rtmppq8xPY/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
-| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/Rtmppq8xPY/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
-| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/Rtmppq8xPY/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
+| motif_001 | 1.06 | 2.26 | 1.2 | /tmp/RtmpaJKzQp/asap_motif_export/motifs/unknown_bird/unknown_day/motif_001.wav |
+| motif_002 | 2.37 | 3.57 | 1.2 | /tmp/RtmpaJKzQp/asap_motif_export/motifs/unknown_bird/unknown_day/motif_002.wav |
+| motif_003 | 3.96 | 5.16 | 1.2 | /tmp/RtmpaJKzQp/asap_motif_export/motifs/unknown_bird/unknown_day/motif_003.wav |
 
 ### Step 4: Visualize the exported motif files
 
