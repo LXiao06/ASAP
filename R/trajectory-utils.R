@@ -110,13 +110,21 @@ get_p <- function(pmat, g1, g2) {
   if (is.null(pmat)) {
     return(NA_real_)
   }
+  if (inherits(pmat, "pairwise.htest") || (is.list(pmat) && !is.data.frame(pmat) && "p.value" %in% names(pmat))) {
+    pmat <- pmat$p.value
+  }
+  if (is.null(pmat) || !is.matrix(pmat)) {
+    return(NA_real_)
+  }
   rn <- rownames(pmat)
   cn <- colnames(pmat)
   if (g1 %in% rn && g2 %in% cn) {
-    return(pmat[g1, g2])
+    val <- pmat[g1, g2]
+    return(if (is.null(val) || is.na(val)) NA_real_ else as.numeric(val))
   }
   if (g2 %in% rn && g1 %in% cn) {
-    return(pmat[g2, g1])
+    val <- pmat[g2, g1]
+    return(if (is.null(val) || is.na(val)) NA_real_ else as.numeric(val))
   }
   NA_real_
 }
@@ -131,18 +139,32 @@ get_p <- function(pmat, g1, g2) {
 #' @keywords internal
 #' @noRd
 brackets <- function(values, posthoc_obj, labels_in_order, max_annotations) {
+  if (is.null(posthoc_obj) || length(labels_in_order) < 2) {
+    return(NULL)
+  }
+
   comps <- utils::combn(labels_in_order, 2, simplify = FALSE)
+  pvals <- vapply(comps, function(comp) {
+    get_p(posthoc_obj, comp[1], comp[2])
+  }, numeric(1))
+
+  # Keep only valid (non-NA) p-values
+  valid_idx <- which(!is.na(pvals))
+  if (length(valid_idx) == 0) {
+    return(NULL)
+  }
+
+  comps <- comps[valid_idx]
+  pvals <- pvals[valid_idx]
 
   if (length(comps) > max_annotations) {
-    pvals <- vapply(comps, function(comp) {
-      get_p(posthoc_obj, comp[1], comp[2])
-    }, numeric(1))
     keep_idx <- order(pvals)[seq_len(max_annotations)]
     message(sprintf(
       "  %d pairwise comparisons available; showing %d most significant.",
       length(comps), max_annotations
     ))
     comps <- comps[keep_idx]
+    pvals <- pvals[keep_idx]
   }
 
   y_range <- range(values, na.rm = TRUE)
@@ -153,15 +175,17 @@ brackets <- function(values, posthoc_obj, labels_in_order, max_annotations) {
 
   ann <- do.call(rbind, lapply(seq_along(comps), function(i) {
     comp <- comps[[i]]
-    p_val <- get_p(posthoc_obj, comp[1], comp[2])
     data.frame(
       x1 = match(comp[1], labels_in_order),
       x2 = match(comp[2], labels_in_order),
       y = base_y + (i - 1) * step_y,
-      lbl = fmt_p(p_val),
+      lbl = fmt_p(pvals[i]),
       stringsAsFactors = FALSE
     )
   }))
+  if (is.null(ann) || nrow(ann) == 0) {
+    return(NULL)
+  }
   ann$y_text <- ann$y + 0.025 * span
   ann$y_tip <- ann$y - 0.020 * span
   ann$y_max <- max(ann$y_text) + 0.06 * span
