@@ -20,7 +20,7 @@ find_motif(x, ...)
 
 \method{find_motif}{Sap}(
   x,
-  template_name,
+  template_name = NULL,
   pre_time = NULL,
   lag_time = NULL,
   day_post_hatch = NULL,
@@ -29,21 +29,26 @@ find_motif(x, ...)
 )
 }
 \arguments{
-\item{x}{An object to process, either a data frame or SAP object}
+\item{x}{An object to process, either a data frame of detections or a SAP object.}
 
-\item{...}{Additional arguments passed to specific methods}
+\item{...}{Additional arguments passed to specific methods.}
 
-\item{pre_time}{Time in seconds before detection point}
+\item{pre_time}{Time in seconds before detection point.
+Can be a single numeric value (broadcast to all templates) or a numeric vector
+matching \code{template_name} in length (optionally named).}
 
-\item{lag_time}{Time in seconds after detection point}
+\item{lag_time}{Time in seconds after detection point.
+Can be a single numeric value (broadcast to all templates) or a numeric vector
+matching \code{template_name} in length (optionally named).}
 
-\item{wav_dir}{For default method: Directory containing WAV files}
+\item{wav_dir}{For default method: Directory containing WAV files.}
 
-\item{add_path_attr}{For default method: Add wav_dir as attribute (default: TRUE)}
+\item{add_path_attr}{For default method: Add wav_dir as attribute (default: TRUE).}
 
-\item{verbose}{Whether to print processing information (default: TRUE)}
+\item{verbose}{Whether to print processing information (default: TRUE).}
 
-\item{template_name}{For SAP objects: Name of template to process}
+\item{template_name}{For SAP objects: Character vector of template name(s) to process.
+If \code{NULL} (default), processes all templates found in \code{template_matches}.}
 
 \item{day_post_hatch}{For SAP objects: Numeric value(s) to use for
 \code{day_post_hatch} when it cannot be determined from subfolder names
@@ -62,10 +67,12 @@ For default method: Data frame containing:
 \item duration: Motif duration
 }
 
-For SAP objects: Updated object with motifs stored in motifs slot
+For SAP objects: Updated SAP object with motifs stored in the \code{motifs} slot
+as a validated \code{segment} object.
 }
 \description{
 Identifies and extracts motifs from song recordings based on detection times.
+Supports single or multiple templates with template-specific pre- and lag-times.
 }
 \details{
 For detection data frames:
@@ -78,10 +85,12 @@ For detection data frames:
 
 For SAP objects:
 \itemize{
-\item Processes template-based detections
-\item Organizes results by recording day
-\item Validates motif boundaries
-\item Updates object with extracted motifs
+\item Processes template-based detections for one or multiple templates
+\item Applies template-specific \code{pre_time} and \code{lag_time} boundaries
+\item Organizes results by recording day / subfolder
+\item Validates motif boundaries against recording durations
+\item Stores all extracted motifs in a unified \code{x$motifs} segment data frame
+with a \code{template_name} column identifying the source template
 }
 }
 \examples{
@@ -92,34 +101,23 @@ motifs <- find_motif(detections,
                      lag_time = 0.2,
                      wav_dir = "path/to/wavs")
 
-# Process with path attribute
-motifs <- find_motif(detections,
-                     pre_time = 0.1,
-                     lag_time = 0.2,
-                     wav_dir = "path/to/wavs",
-                     add_path_attr = TRUE)
-
-# Find motifs in SAP object
+# Find motifs in SAP object with single template
 sap_obj <- find_motif(sap_object,
                       template_name = "template1",
                       pre_time = 0.7,
                       lag_time = 0.5)
 
-# When subfolders have non-numeric names, supply a single value
+# Find motifs with multiple templates and template-specific boundaries
 sap_obj <- find_motif(sap_object,
-                      template_name = "b",
-                      pre_time = 0.1,
-                      lag_time = 0.4,
-                      day_post_hatch = 65)
+                      template_name = c("c", "c1", "c2"),
+                      pre_time = c(0.58, 0.78, 1.68),
+                      lag_time = c(0.70, 0.87, 1.80))
 
-# Or supply a named vector for different folders
+# Broadcast same pre_time and lag_time across multiple templates
 sap_obj <- find_motif(sap_object,
-                      template_name = "b",
-                      pre_time = 0.1,
-                      lag_time = 0.4,
-                      day_post_hatch = c(FD_661_667 = 61,
-                                         PD_661_667 = 65,
-                                         UD = 90))
+                      template_name = c("c", "c1", "c2"),
+                      pre_time = 0.5,
+                      lag_time = 0.5)
 }
 
 }
