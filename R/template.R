@@ -1168,7 +1168,7 @@ find_peaks_with_proximity <- function(score.obj, proximity_window = NULL) {
       dplyr::group_by(.data$group) %>%
       dplyr::slice_max(.data$score, n = 1, with_ties = FALSE) %>%
       dplyr::ungroup() %>%
-      dplyr::select(-.data$group)
+      dplyr::select(-"group")
 
     # Preserve original structure
     if (nrow(filtered_dets) > 0) {
