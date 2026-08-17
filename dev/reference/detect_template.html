@@ -56,7 +56,7 @@
 <span><span class="co"># S3 method for class 'Sap'</span></span>
 <span><span class="fu">detect_template</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
-<span>  day <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  label <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  indices <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">template_name</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -80,7 +80,7 @@
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments passed to specific methods</p></dd>
+<dd><p>Additional arguments passed to specific methods (e.g. deprecated <code>day</code>)</p></dd>
 
 
 <dt id="arg-template">template<a class="anchor" aria-label="anchor" href="#arg-template"></a></dt>
@@ -101,11 +101,12 @@
 
 <dt id="arg-proximity-window">proximity_window<a class="anchor" aria-label="anchor" href="#arg-proximity-window"></a></dt>
 <dd><p>Time window in seconds to filter nearby detections (NULL to disable filtering).
+Can be a single numeric value (broadcast to all templates) or a vector matching <code>template_name</code> in length.
 Only the detection with the highest score within each window is retained.</p></dd>
 
 
-<dt id="arg-day">day<a class="anchor" aria-label="anchor" href="#arg-day"></a></dt>
-<dd><p>For SAP objects: Numeric vector of days to process</p></dd>
+<dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
+<dd><p>For SAP objects: Vector of label(s) to process (character, numeric, or factor). NULL processes all labels.</p></dd>
 
 
 <dt id="arg-indices">indices<a class="anchor" aria-label="anchor" href="#arg-indices"></a></dt>
@@ -113,11 +114,11 @@ Only the detection with the highest score within each window is retained.</p></d
 
 
 <dt id="arg-template-name">template_name<a class="anchor" aria-label="anchor" href="#arg-template-name"></a></dt>
-<dd><p>For SAP objects: Name of template to use</p></dd>
+<dd><p>For SAP objects: Character vector of template name(s) to use</p></dd>
 
 
 <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
-<dd><p>For SAP objects: New threshold value</p></dd>
+<dd><p>For SAP objects: New threshold value(s) matching template_name</p></dd>
 
 
 <dt id="arg-cores">cores<a class="anchor" aria-label="anchor" href="#arg-cores"></a></dt>
@@ -157,11 +158,13 @@ slightly more overhead.</p></dd>
 <li><p>Optionally filters nearby detections (if proximity_window is set)</p></li>
 <li><p>Optionally saves detection plots</p></li>
 </ul><p>For SAP objects:</p><ul><li><p>Parallel processing support</p></li>
-<li><p>Day-specific processing</p></li>
+<li><p>Label-specific processing and non-numeric label support</p></li>
+<li><p>Multi-template matching: when multiple templates are supplied, they can be matched
+across all labels (when <code>label</code> is NULL or single) or paired 1-to-1 with <code>label</code></p></li>
 <li><p>Optional threshold adjustment</p></li>
 <li><p>Progress tracking and reporting</p></li>
 <li><p>Selective plot generation</p></li>
-<li><p>Filtering of nearby detections when proximity_window is specified</p></li>
+<li><p>Filtering of nearby detections with single or template-specific proximity windows</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="proximity-filtering">Proximity Filtering<a class="anchor" aria-label="anchor" href="#proximity-filtering"></a></h2>
@@ -185,12 +188,25 @@ only the one with the highest score is kept. This is useful for removing false p
 <span class="r-in"><span>  save_plot <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Detect template in SAP object</span></span></span>
+<span class="r-in"><span><span class="co"># Detect template in SAP object for specific labels</span></span></span>
 <span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
 <span class="r-in"><span>  template_name <span class="op">=</span> <span class="st">"template1"</span>,</span></span>
-<span class="r-in"><span>  day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pre"</span>, <span class="st">"post"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  threshold <span class="op">=</span> <span class="fl">0.7</span>,</span></span>
 <span class="r-in"><span>  cores <span class="op">=</span> <span class="fl">4</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Multiple templates matched 1-to-1 with multiple labels</span></span></span>
+<span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
+<span class="r-in"><span>  template_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tpl_pre"</span>, <span class="st">"tpl_post"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pre"</span>, <span class="st">"post"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Multiple templates with template-specific proximity windows</span></span></span>
+<span class="r-in"><span><span class="va">sap_obj</span> <span class="op">&lt;-</span> <span class="fu">detect_template</span><span class="op">(</span><span class="va">sap_object</span>,</span></span>
+<span class="r-in"><span>  template_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tpl_pre"</span>, <span class="st">"tpl_post"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pre"</span>, <span class="st">"post"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  proximity_window <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Process specific indices with plots</span></span></span>

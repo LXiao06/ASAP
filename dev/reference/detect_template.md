@@ -22,7 +22,7 @@ detect_template(
 # S3 method for class 'Sap'
 detect_template(
   x,
-  day = NULL,
+  label = NULL,
   indices = NULL,
   template_name,
   threshold = NULL,
@@ -45,7 +45,8 @@ detect_template(
 
 - ...:
 
-  Additional arguments passed to specific methods
+  Additional arguments passed to specific methods (e.g. deprecated
+  `day`)
 
 - template:
 
@@ -66,12 +67,14 @@ detect_template(
 - proximity_window:
 
   Time window in seconds to filter nearby detections (NULL to disable
-  filtering). Only the detection with the highest score within each
-  window is retained.
+  filtering). Can be a single numeric value (broadcast to all templates)
+  or a vector matching `template_name` in length. Only the detection
+  with the highest score within each window is retained.
 
-- day:
+- label:
 
-  For SAP objects: Numeric vector of days to process
+  For SAP objects: Vector of label(s) to process (character, numeric, or
+  factor). NULL processes all labels.
 
 - indices:
 
@@ -79,11 +82,11 @@ detect_template(
 
 - template_name:
 
-  For SAP objects: Name of template to use
+  For SAP objects: Character vector of template name(s) to use
 
 - threshold:
 
-  For SAP objects: New threshold value
+  For SAP objects: New threshold value(s) matching template_name
 
 - cores:
 
@@ -138,7 +141,11 @@ For SAP objects:
 
 - Parallel processing support
 
-- Day-specific processing
+- Label-specific processing and non-numeric label support
+
+- Multi-template matching: when multiple templates are supplied, they
+  can be matched across all labels (when `label` is NULL or single) or
+  paired 1-to-1 with `label`
 
 - Optional threshold adjustment
 
@@ -146,7 +153,8 @@ For SAP objects:
 
 - Selective plot generation
 
-- Filtering of nearby detections when proximity_window is specified
+- Filtering of nearby detections with single or template-specific
+  proximity windows
 
 ## Proximity Filtering
 
@@ -171,12 +179,25 @@ detections <- detect_template("path/to/song.wav",
   save_plot = TRUE
 )
 
-# Detect template in SAP object
+# Detect template in SAP object for specific labels
 sap_obj <- detect_template(sap_object,
   template_name = "template1",
-  day = c(30, 40),
+  label = c("pre", "post"),
   threshold = 0.7,
   cores = 4
+)
+
+# Multiple templates matched 1-to-1 with multiple labels
+sap_obj <- detect_template(sap_object,
+  template_name = c("tpl_pre", "tpl_post"),
+  label = c("pre", "post")
+)
+
+# Multiple templates with template-specific proximity windows
+sap_obj <- detect_template(sap_object,
+  template_name = c("tpl_pre", "tpl_post"),
+  label = c("pre", "post"),
+  proximity_window = c(0.5, 0.3)
 )
 
 # Process specific indices with plots
