@@ -158,3 +158,16 @@ UMAP, and visualise how motif acoustic structure shifts across
 developmental stages.
 
 Advanced · ~25 min
+
+[](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_similarity.md)
+
+![Per-label trajectory similarity distributions coloured by
+metric](figures/motif_trajectory_similarity.png)
+
+Longitudinal Motif Similarity Analysis
+
+Filter outlier renditions, compute per-label trajectory similarity to a
+baseline reference using RMS, Fréchet, DTW, and correlation metrics, and
+visualise how acoustic convergence changes across developmental stages.
+
+Advanced · ~20 min
