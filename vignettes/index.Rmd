@@ -333,8 +333,8 @@ vignette: >
   <!-- Card 11 -->
   <a class="gs-card" href="longitudinal_motif_similarity.html">
     <div class="gs-card-img-wrap" style="background:#fff;">
-      <img src="figures/motif_trajectory_similarity.png"
-           alt="Per-label trajectory similarity distributions coloured by metric">
+      <img src="figures/motif_trajectory_similarity_card.png"
+           alt="Per-label trajectory similarity distributions (Correlation)">
     </div>
     <div class="gs-card-body">
       <div class="gs-card-title">Longitudinal Motif Similarity Analysis</div>

@@ -189,7 +189,7 @@ how closely Post and Rec motifs match the baseline acoustic trajectory.
 sap <- trajectory_similarity(
   sap,
   reference_label = "BL",
-  metrics          = "all"
+  metrics = "all"
 )
 ```
 
@@ -317,7 +317,7 @@ sap_tp <- sap_tp |>
   filter_trajectory_outliers() |>
   trajectory_similarity(
     reference_label = "Tutor",
-    metrics          = "correlation"
+    metrics = "correlation"
   )
 
 plot_trajectory_similarity(sap_tp)
@@ -333,7 +333,7 @@ if (file.exists("figures/tutor_pupils_songs.png")) {
 }
 ```
 
-```{r tutor_similarity_fig, echo = FALSE, eval = TRUE, out.width = "100%", fig.cap = "Trajectory shape correlation similarity distributions (violin and box plots) comparing each pupil group to the tutor reference. The tutor self-similarity distribution is tightly centered near 1.0. Brackets indicate pairwise Wilcoxon significance tests comparing similarity across pupil groups."}
+```{r tutor_similarity_fig, echo = FALSE, eval = TRUE, out.width = "50%", fig.align = "center", fig.cap = "Trajectory shape correlation similarity distributions (violin and box plots) comparing each pupil group to the tutor reference. The tutor self-similarity distribution is tightly centered near 1.0. Brackets indicate pairwise Wilcoxon significance tests comparing similarity across pupil groups."}
 if (file.exists("figures/tutor_pupils_similarity.png")) {
   knitr::include_graphics("figures/tutor_pupils_similarity.png")
 } else {
