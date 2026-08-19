@@ -81,7 +81,7 @@ recommend completing:</p>
 <ul>
 <li>
 <a href="longitudinal_motif_trajectory.html">Longitudinal Motif
-Trajectory Analysis</a> — Building trajectory matrices and UMAP
+Trajectory Analysis</a> — Building trajectory matrices and PC
 embeddings</li>
 </ul>
 <p><strong>What you will learn</strong>:</p>
@@ -293,7 +293,7 @@ baseline acoustic trajectory.</p>
 <code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/trajectory_similarity.html">trajectory_similarity</a></span><span class="op">(</span></span>
 <span>  <span class="va">sap</span>,</span>
 <span>  reference_label <span class="op">=</span> <span class="st">"BL"</span>,</span>
-<span>  metrics          <span class="op">=</span> <span class="st">"all"</span></span>
+<span>  metrics <span class="op">=</span> <span class="st">"all"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code>=== Trajectory Similarity Analysis ===
 Dimensions       : PC1, PC2
@@ -479,20 +479,19 @@ labelling them <code>"Tutor"</code>, <code>"Pupil_early"</code>,
 <li>Run <code><a href="../reference/find_motif.html">find_motif()</a></code> on the pooled object to detect motifs
 from both birds.</li>
 <li>Build trajectory matrices and UMAP embeddings with
-<code><a href="../reference/create_trajectory_matrix.html">create_trajectory_matrix()</a></code> → <code><a href="../reference/run_pca.html">run_pca()</a></code> →
-<code><a href="../reference/run_umap.html">run_umap()</a></code>.</li>
+<code><a href="../reference/create_trajectory_matrix.html">create_trajectory_matrix()</a></code> → <code><a href="../reference/run_pca.html">run_pca()</a></code>.</li>
 <li>Filter outliers and compute similarity with the tutor as the
 reference:</li>
 </ol>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sap_tp</span> <span class="op">&lt;-</span> <span class="va">sap_tp</span> <span class="op">|&gt;</span></span>
+<code class="sourceCode R"><span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="va">sap</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/filter_trajectory_outliers.html">filter_trajectory_outliers</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/trajectory_similarity.html">trajectory_similarity</a></span><span class="op">(</span></span>
 <span>    reference_label <span class="op">=</span> <span class="st">"Tutor"</span>,</span>
-<span>    metrics          <span class="op">=</span> <span class="st">"correlation"</span></span>
+<span>    metrics <span class="op">=</span> <span class="st">"correlation"</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plot_trajectory_similarity.html">plot_trajectory_similarity</a></span><span class="op">(</span><span class="va">sap_tp</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_trajectory_similarity.html">plot_trajectory_similarity</a></span><span class="op">(</span><span class="va">sap</span><span class="op">)</span></span></code></pre></div>
 <p>The panels below illustrate this analysis: the first plot shows
 representative spectrograms of motifs extracted from the tutor and three
 pupils (<code>pupil_R</code>, <code>pupil_G</code>,
@@ -505,8 +504,8 @@ Representative spectrograms of extracted motifs from tutor and three
 pupils (pupil_R, pupil_G, pupil_O).
 </p>
 </div>
-<div class="figure">
-<img src="figures/tutor_pupils_similarity.png" class="r-plt" alt="Trajectory shape correlation similarity distributions (violin and box plots) comparing each pupil group to the tutor reference. The tutor self-similarity distribution is tightly centered near 1.0. Brackets indicate pairwise Wilcoxon significance tests comparing similarity across pupil groups." width="100%"><p class="caption">
+<div class="figure" style="text-align: center">
+<img src="figures/tutor_pupils_similarity.png" class="r-plt" alt="Trajectory shape correlation similarity distributions (violin and box plots) comparing each pupil group to the tutor reference. The tutor self-similarity distribution is tightly centered near 1.0. Brackets indicate pairwise Wilcoxon significance tests comparing similarity across pupil groups." width="50%"><p class="caption">
 Trajectory shape correlation similarity distributions (violin and box
 plots) comparing each pupil group to the tutor reference. The tutor
 self-similarity distribution is tightly centered near 1.0. Brackets
@@ -524,14 +523,6 @@ across pupil groups.
 <span></span>
 <span><span class="co"># Reload later with:</span></span>
 <span><span class="va">sap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"longitudinal_motif_similarity.rds"</span><span class="op">)</span></span></code></pre></div>
-<p><strong>What gets saved:</strong> - Everything from previous pipeline
-steps - Filtered trajectory embeddings:
-<code>sap$features$motif$traj.embeds</code> - Similarity results:
-<code>sap$features$motif$trajectory_similarity</code> -
-<code>$similarity</code> - per-rendition scores for all metrics -
-<code>$summary</code> - per-label summary statistics -
-<code>$tests</code> - Kruskal-Wallis and pairwise Wilcoxon results -
-<code>$reference_path</code> - the trimmed reference trajectory</p>
 <hr>
 </div>
 <div class="section level2">

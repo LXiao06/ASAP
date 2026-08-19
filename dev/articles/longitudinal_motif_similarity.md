@@ -14,7 +14,7 @@ completing:
 
 - [Longitudinal Motif Trajectory
   Analysis](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_trajectory.md)
-  — Building trajectory matrices and UMAP embeddings
+  — Building trajectory matrices and PC embeddings
 
 **What you will learn**:
 
@@ -186,7 +186,7 @@ trajectory.
 sap <- trajectory_similarity(
   sap,
   reference_label = "BL",
-  metrics          = "all"
+  metrics = "all"
 )
 ```
 
@@ -319,22 +319,20 @@ developmental example above:
 3.  Build trajectory matrices and UMAP embeddings with
     [`create_trajectory_matrix()`](https://lxiao06.github.io/ASAP/dev/reference/create_trajectory_matrix.md)
     →
-    [`run_pca()`](https://lxiao06.github.io/ASAP/dev/reference/run_pca.md)
-    →
-    [`run_umap()`](https://lxiao06.github.io/ASAP/dev/reference/run_umap.md).
+    [`run_pca()`](https://lxiao06.github.io/ASAP/dev/reference/run_pca.md).
 4.  Filter outliers and compute similarity with the tutor as the
     reference:
 
 ``` r
 
-sap_tp <- sap_tp |>
+sap <- sap |>
   filter_trajectory_outliers() |>
   trajectory_similarity(
     reference_label = "Tutor",
-    metrics          = "correlation"
+    metrics = "correlation"
   )
 
-plot_trajectory_similarity(sap_tp)
+plot_trajectory_similarity(sap)
 ```
 
 The panels below illustrate this analysis: the first plot shows
@@ -372,13 +370,6 @@ saveRDS(sap, "longitudinal_motif_similarity.rds")
 # Reload later with:
 sap <- readRDS("longitudinal_motif_similarity.rds")
 ```
-
-**What gets saved:** - Everything from previous pipeline steps -
-Filtered trajectory embeddings: `sap$features$motif$traj.embeds` -
-Similarity results: `sap$features$motif$trajectory_similarity` -
-`$similarity` - per-rendition scores for all metrics - `$summary` -
-per-label summary statistics - `$tests` - Kruskal-Wallis and pairwise
-Wilcoxon results - `$reference_path` - the trimmed reference trajectory
 
 ------------------------------------------------------------------------
 

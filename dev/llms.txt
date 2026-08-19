@@ -380,8 +380,8 @@ Advanced · ~25 min
 
 [](https://lxiao06.github.io/ASAP/dev/articles/longitudinal_motif_similarity.md)
 
-![Per-label trajectory similarity distributions coloured by
-metric](figures/motif_trajectory_similarity.png)
+![Per-label trajectory similarity distributions
+(Correlation)](figures/motif_trajectory_similarity_card.png)
 
 Longitudinal Motif Similarity Analysis
 
