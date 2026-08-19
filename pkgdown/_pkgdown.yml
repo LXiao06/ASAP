@@ -56,6 +56,7 @@ articles:
       - syllable_labeling
       - longitudinal_motif_boundaries
       - longitudinal_motif_trajectory
+      - longitudinal_motif_similarity
 
 reference:
   - title: "Object Construction"

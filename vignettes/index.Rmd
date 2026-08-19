@@ -330,5 +330,22 @@ vignette: >
     </div>
   </a>
 
+  <!-- Card 11 -->
+  <a class="gs-card" href="longitudinal_motif_similarity.html">
+    <div class="gs-card-img-wrap" style="background:#fff;">
+      <img src="figures/motif_trajectory_similarity.png"
+           alt="Per-label trajectory similarity distributions coloured by metric">
+    </div>
+    <div class="gs-card-body">
+      <div class="gs-card-title">Longitudinal Motif Similarity Analysis</div>
+      <div class="gs-card-desc">
+        Filter outlier renditions, compute per-label trajectory similarity to
+        a baseline reference using RMS, Fréchet, DTW, and correlation metrics,
+        and visualise how acoustic convergence changes across developmental stages.
+      </div>
+      <span class="gs-card-tag">Advanced &middot; ~20 min</span>
+    </div>
+  </a>
+
 </div>
 ```
