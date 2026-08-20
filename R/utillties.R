@@ -740,9 +740,9 @@ list_numeric_dirs <- function(directory) {
 #' @param scale Logical. Whether to standardize features to zero-mean and unit-variance
 #'   prior to analysis (default: \code{TRUE})
 #' @param n_perm Integer. Number of label permutations for empirical robustness
-#'   testing (default: \code{500}). Set to \code{0} to skip permutation testing
+#'   testing (default: \code{1000}). Set to \code{0} to skip permutation testing
 #' @param cv Logical. Whether to perform Leave-One-Out Cross-Validation (default: \code{TRUE})
-#' @param seed Integer. Random seed for reproducible permutation testing (default: \code{42})
+#' @param seed Integer. Random seed for reproducible permutation testing (default: \code{222})
 #' @param plot Logical. Whether to generate and display the canonical separation plot (default: \code{TRUE})
 #' @param save_plot Logical. Whether to save the generated plot to disk (default: \code{FALSE})
 #' @param plot_dir Optional character. Directory to save the plot when \code{save_plot = TRUE}
@@ -794,7 +794,7 @@ list_numeric_dirs <- function(directory) {
 #'   data = sim_data,
 #'   group_col = "label",
 #'   reference_group = "tutor",
-#'   n_perm = 500
+#'   n_perm = 1000
 #' )
 #'
 #' # Inspect classification accuracy and confusion matrix
@@ -813,9 +813,9 @@ discriminant_analysis <- function(data,
                                   feature_cols = NULL,
                                   reference_group = NULL,
                                   scale = TRUE,
-                                  n_perm = 500,
+                                  n_perm = 1000,
                                   cv = TRUE,
-                                  seed = 42,
+                                  seed = 222,
                                   plot = TRUE,
                                   save_plot = FALSE,
                                   plot_dir = NULL,

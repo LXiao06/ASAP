@@ -10,9 +10,9 @@ discriminant_analysis(
   feature_cols = NULL,
   reference_group = NULL,
   scale = TRUE,
-  n_perm = 500,
+  n_perm = 1000,
   cv = TRUE,
-  seed = 42,
+  seed = 222,
   plot = TRUE,
   save_plot = FALSE,
   plot_dir = NULL,
@@ -40,11 +40,11 @@ to compute multivariate Mahalanobis distances from all groups to the reference}
 prior to analysis (default: \code{TRUE})}
 
 \item{n_perm}{Integer. Number of label permutations for empirical robustness
-testing (default: \code{500}). Set to \code{0} to skip permutation testing}
+testing (default: \code{1000}). Set to \code{0} to skip permutation testing}
 
 \item{cv}{Logical. Whether to perform Leave-One-Out Cross-Validation (default: \code{TRUE})}
 
-\item{seed}{Integer. Random seed for reproducible permutation testing (default: \code{42})}
+\item{seed}{Integer. Random seed for reproducible permutation testing (default: \code{222})}
 
 \item{plot}{Logical. Whether to generate and display the canonical separation plot (default: \code{TRUE})}
 
@@ -112,7 +112,7 @@ res <- discriminant_analysis(
   data = sim_data,
   group_col = "label",
   reference_group = "tutor",
-  n_perm = 500
+  n_perm = 1000
 )
 
 # Inspect classification accuracy and confusion matrix
