@@ -153,5 +153,6 @@ reference:
       - get_wav_indices
       - list_numeric_dirs
       - anova_analysis
+      - discriminant_analysis
       - export_feature_csv
       - flag_anomalous_labels
