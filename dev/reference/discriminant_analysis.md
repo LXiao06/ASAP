@@ -14,9 +14,9 @@ discriminant_analysis(
   feature_cols = NULL,
   reference_group = NULL,
   scale = TRUE,
-  n_perm = 500,
+  n_perm = 1000,
   cv = TRUE,
-  seed = 42,
+  seed = 222,
   plot = TRUE,
   save_plot = FALSE,
   plot_dir = NULL,
@@ -59,7 +59,7 @@ discriminant_analysis(
 - n_perm:
 
   Integer. Number of label permutations for empirical robustness testing
-  (default: `500`). Set to `0` to skip permutation testing
+  (default: `1000`). Set to `0` to skip permutation testing
 
 - cv:
 
@@ -69,7 +69,7 @@ discriminant_analysis(
 - seed:
 
   Integer. Random seed for reproducible permutation testing (default:
-  `42`)
+  `222`)
 
 - plot:
 
@@ -200,7 +200,7 @@ res <- discriminant_analysis(
   data = sim_data,
   group_col = "label",
   reference_group = "tutor",
-  n_perm = 500
+  n_perm = 1000
 )
 
 # Inspect classification accuracy and confusion matrix
