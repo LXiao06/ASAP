@@ -451,9 +451,11 @@ plot_trajectory_similarity(sap)
 
 The panels below illustrate this analysis: the first plot shows
 representative spectrograms of motifs extracted from the tutor and three
-pupils (`pupil_R`, `pupil_G`, `pupil_O`), and the second plot shows the
-trajectory shape correlation similarity scores comparing the pupil
-groups against the tutor reference:
+pupils (`pupil_R`, `pupil_G`, `pupil_O`), the second plot shows the
+trajectory shape correlation similarity distributions comparing the
+pupil groups against the tutor reference, and the third plot shows the
+multivariate Canonical Discriminant Analysis (CDA) integrating all
+similarity metrics:
 
 ![Representative spectrograms of extracted motifs from tutor and three
 pupils (pupil_R, pupil_G, pupil_O).](figures/tutor_pupils_songs.png)
@@ -472,6 +474,18 @@ plots) comparing each pupil group to the tutor reference. The tutor
 self-similarity distribution is tightly centered near 1.0. Brackets
 indicate pairwise Wilcoxon significance tests comparing similarity
 across pupil groups.
+
+![Canonical Discriminant Analysis (CDA) of trajectory similarity metrics
+comparing pupil groups (pupil_R, pupil_G, pupil_O) against the tutor
+reference. Group centroids and 95% confidence ellipses illustrate
+multivariate acoustic separation and the developmental gradient toward
+the crystallized tutor model.](figures/tutor_pupils_similarity_cda.png)
+
+Canonical Discriminant Analysis (CDA) of trajectory similarity metrics
+comparing pupil groups (pupil_R, pupil_G, pupil_O) against the tutor
+reference. Group centroids and 95% confidence ellipses illustrate
+multivariate acoustic separation and the developmental gradient toward
+the crystallized tutor model.
 
 ------------------------------------------------------------------------
 
