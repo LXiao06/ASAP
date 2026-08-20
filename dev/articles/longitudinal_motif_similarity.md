@@ -26,6 +26,9 @@ completing:
 3.  How to visualise and interpret per-label similarity distributions
     with
     [`plot_trajectory_similarity()`](https://lxiao06.github.io/ASAP/dev/reference/plot_trajectory_similarity.md)
+4.  How to quantify multivariate group separation and learning fidelity
+    using
+    [`discriminant_analysis()`](https://lxiao06.github.io/ASAP/dev/reference/discriminant_analysis.md)
 
 ------------------------------------------------------------------------
 
@@ -301,6 +304,117 @@ Significance brackets show pairwise Wilcoxon results.
   `metrics = c("rms", "correlation")` to
   [`trajectory_similarity()`](https://lxiao06.github.io/ASAP/dev/reference/trajectory_similarity.md)
   for a faster, cleaner plot.
+
+------------------------------------------------------------------------
+
+## Multivariate Separation: Canonical Discriminant Analysis (CDA)
+
+While univariate statistical tests (such as Kruskal-Wallis or pairwise
+Wilcoxon tests) evaluate each similarity metric in isolation,
+**Canonical Discriminant Analysis (`discriminant_analysis`)** integrates
+all trajectory similarity metrics into a unified multivariate space.
+
+### Why use Canonical Discriminant Analysis?
+
+- **Avoids p-value inflation from large sample sizes**: When comparing
+  hundreds of song renditions ($`N = 500+`$), standard univariate
+  $`p`$-values can become artificially extreme ($`p \sim 10^{-23}`$)
+  simply due to large $`N`$. CDA focuses on **multivariate effect
+  sizes** (Leave-One-Out Cross-Validation accuracy and Mahalanobis
+  distances) that remain robust and biologically interpretable.
+- **Multivariate integration**: Evaluates whether the combination of
+  distance metrics (RMS, Fréchet, DTW) and temporal shape correlation
+  provides superior stage separation over any individual metric alone.
+- **Distance to baseline**: Computes the exact multivariate Mahalanobis
+  distance ($`D_M`$) from each developmental stage centroid to the
+  baseline (`BL`) reference.
+- **Empirical robustness**: Performs label permutations ($`N = 1,000`$
+  iterations) to establish an empirical non-parametric null distribution
+  and $`p`$-value.
+
+### Running CDA on Trajectory Similarity Results
+
+Extract the per-rendition similarity table and run
+[`discriminant_analysis()`](https://lxiao06.github.io/ASAP/dev/reference/discriminant_analysis.md):
+
+``` r
+
+# Extract similarity table
+sim_data <- sap$features$motif$trajectory_similarity$similarity
+
+# Perform CDA with all 4 metrics, reference = "BL", and 1000 permutations
+cda_res <- discriminant_analysis(
+  data            = sim_data,
+  group_col       = "label",
+  feature_cols    = c("rms_similarity", "frechet_similarity", "dtw_similarity", "correlation"),
+  reference_group = "BL",
+  n_perm          = 1000,
+  plot            = TRUE
+)
+```
+
+    === Canonical Discriminant Analysis ===
+    Observations: 567 | Groups (3): BL, Post, Rec
+    Features (4): rms_similarity, frechet_similarity, dtw_similarity, correlation
+
+    Variance Explained by Canonical Variates:
+     CV1  CV2 
+    99.8  0.2 
+
+    LOOCV Classification Accuracy: 69.66%
+    Permutation Test: empirical p = 0.0010 (1000 permutations)
+
+    Confusion Matrix:
+            Predicted
+    Observed  BL Post Rec
+        BL   130   59   0
+        Post 111   77   0
+        Rec    0    2 188
+
+    Mahalanobis Distances to Reference ('BL'):
+       BL  Post   Rec 
+    0.000 0.423 2.066 
+
+### Interpreting the Results
+
+1.  **Primary Axis of Variance ($`\text{CV1} = 99.8\%`$)**:
+    - Nearly all between-stage variation is captured along a single
+      canonical axis ($`\text{CV1}`$), demonstrating that trajectory
+      similarity follows a continuous developmental gradient of
+      divergence from the pre-perturbation baseline.
+2.  **High Retention in Post ($`D_M = 0.423`$) vs. Marked Divergence in
+    Rec ($`D_M = 2.066`$)**:
+    - **`Post` ($`D_M = 0.423`$)** remains very close to baseline,
+      reflecting strong post-perturbation acoustic stability with
+      substantial overlap between `BL` and `Post` renditions in the
+      confusion matrix ($`130`$ BL as BL, $`59`$ as Post; $`111`$ Post
+      as BL, $`77`$ as Post).
+    - **`Rec` ($`D_M = 2.066`$)** is far from `BL`, confirming that
+      recovery motifs diverge substantially from baseline rather than
+      returning to pre-perturbation acoustics.
+3.  **Discrete Recovery Crystallization**:
+    - In the confusion matrix, `Rec` motifs are **$`98.9\%`$ classified
+      ($`188/190`$)** as `Rec`, with zero misclassifications into `BL`
+      and only $`2`$ into `Post`.
+4.  **Empirical Permutation Significance ($`p = 0.0010`$)**:
+    - The Leave-One-Out Cross-Validation accuracy of **$`69.66\%`$**
+      (more than double the $`33.3\%`$ chance level for 3 groups) is
+      statistically confirmed by the 1,000-iteration permutation test
+      ($`p = 0.0010`$).
+
+The generated 2D canonical space visualization highlights group
+clusters, 95% confidence ellipses, and group centroids:
+
+![Canonical Discriminant Analysis (CDA) projecting motif renditions
+across developmental stages (BL, Post, Rec) onto Canonical Variates CV1
+and CV2. Confidence ellipses (95%) and centroids demonstrate robust
+stage separation relative to the BL
+baseline.](figures/motif_trajectory_cda.png)
+
+Canonical Discriminant Analysis (CDA) projecting motif renditions across
+developmental stages (BL, Post, Rec) onto Canonical Variates CV1 and
+CV2. Confidence ellipses (95%) and centroids demonstrate robust stage
+separation relative to the BL baseline.
 
 ------------------------------------------------------------------------
 
