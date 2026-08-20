@@ -403,7 +403,7 @@ sap <- sap |>
 plot_trajectory_similarity(sap)
 ```
 
-The panels below illustrate this analysis: the first plot shows representative spectrograms of motifs extracted from the tutor and three pupils (`pupil_R`, `pupil_G`, `pupil_O`), and the second plot shows the trajectory shape correlation similarity scores comparing the pupil groups against the tutor reference:
+The panels below illustrate this analysis: the first plot shows representative spectrograms of motifs extracted from the tutor and three pupils (`pupil_R`, `pupil_G`, `pupil_O`), the second plot shows the trajectory shape correlation similarity distributions comparing the pupil groups against the tutor reference, and the third plot shows the multivariate Canonical Discriminant Analysis (CDA) integrating all similarity metrics:
 
 ```{r tutor_songs_fig, echo = FALSE, eval = TRUE, out.width = "100%", fig.cap = "Representative spectrograms of extracted motifs from tutor and three pupils (pupil_R, pupil_G, pupil_O)."}
 if (file.exists("figures/tutor_pupils_songs.png")) {
@@ -418,6 +418,14 @@ if (file.exists("figures/tutor_pupils_similarity.png")) {
   knitr::include_graphics("figures/tutor_pupils_similarity.png")
 } else {
   message("Image placeholder: figures/tutor_pupils_similarity.png")
+}
+```
+
+```{r tutor_cda_fig, echo = FALSE, eval = TRUE, out.width = "75%", fig.align = "center", fig.cap = "Canonical Discriminant Analysis (CDA) of trajectory similarity metrics comparing pupil groups (pupil_R, pupil_G, pupil_O) against the tutor reference. Group centroids and 95% confidence ellipses illustrate multivariate acoustic separation and the developmental gradient toward the crystallized tutor model."}
+if (file.exists("figures/tutor_pupils_similarity_cda.png")) {
+  knitr::include_graphics("figures/tutor_pupils_similarity_cda.png")
+} else {
+  message("Image placeholder: figures/tutor_pupils_similarity_cda.png")
 }
 ```
 
