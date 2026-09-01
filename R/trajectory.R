@@ -196,10 +196,6 @@ create_trajectory_matrix.default <- function(
         do.call(cbind, vectors)
       },
       error = function(e) {
-        warning(sprintf(
-          "Error processing segment %d: %s",
-          segment$rendition[1], e$message
-        ))
         return(NULL)
       }
     )
@@ -236,7 +232,10 @@ create_trajectory_matrix.default <- function(
   # }
 
   # Combine results without building a second giant transposed copy.
-  spc_list <- spc_list[!sapply(spc_list, is.null)]
+  spc_list <- Filter(
+    function(spc) is.matrix(spc) && nrow(spc) > 0L && ncol(spc) > 0L,
+    spc_list
+  )
   if (length(spc_list) == 0) {
     stop("No valid spectrograms were generated")
   }
