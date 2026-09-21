@@ -711,10 +711,40 @@ filter_trajectory_outliers.Sap <- function(x,
 
   missing_dims <- setdiff(dims, names(traj_embeds))
   if (length(missing_dims) > 0) {
-    stop(sprintf(
-      "Dimensions not found in traj.embeds: %s",
-      paste(missing_dims, collapse = ", ")
-    ))
+    # Attempt to source missing dims from traj_mat (populated by run_pca()).
+    # traj_mat and traj.embeds share the same row ordering (both come from
+    # create_trajectory_matrix()), so a direct cbind is safe.
+    traj_mat <- x$features[[feature_type]][["traj_mat"]]
+    dims_in_traj_mat <- if (!is.null(traj_mat)) intersect(missing_dims, names(traj_mat)) else character(0)
+
+    if (length(dims_in_traj_mat) > 0) {
+      if (nrow(traj_mat) != nrow(traj_embeds)) {
+        stop(sprintf(
+          paste0(
+            "Dimensions not found in traj.embeds: %s\n",
+            "Found them in traj_mat (from run_pca()), but row counts differ ",
+            "(traj.embeds: %d, traj_mat: %d). Cannot merge safely."
+          ),
+          paste(missing_dims, collapse = ", "),
+          nrow(traj_embeds), nrow(traj_mat)
+        ))
+      }
+      if (verbose) {
+        message(sprintf(
+          "Dimensions [%s] not in traj.embeds; borrowing from traj_mat (run_pca() output).",
+          paste(dims_in_traj_mat, collapse = ", ")
+        ))
+      }
+      traj_embeds[dims_in_traj_mat] <- traj_mat[dims_in_traj_mat]
+      missing_dims <- setdiff(dims, names(traj_embeds))
+    }
+
+    if (length(missing_dims) > 0) {
+      stop(sprintf(
+        "Dimensions not found in traj.embeds or traj_mat: %s",
+        paste(missing_dims, collapse = ", ")
+      ))
+    }
   }
 
   filtered <- filter_trajectory_outliers.default(
